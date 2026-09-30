@@ -44,6 +44,7 @@ export function PaymentsPage() {
   const recordPayment = useStore(s => s.recordPayment);
 
   const isParent = currentUser?.role === 'PARENT';
+  const canManagePayments = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN';
   const basePayments = useMemo(() => {
     if (isParent && currentUser) {
       return allPayments.filter(p => p.parentId === currentUser.id);
@@ -131,7 +132,7 @@ export function PaymentsPage() {
         title={isParent ? "To'lovlarim tarixi" : "To'lovlar"}
         description={isParent ? `Siz tomondan amalga oshirilgan jami to'lovlar` : "Barcha manual to'lovlarni boshqarish"}
         actions={
-          !isParent ? (
+          canManagePayments ? (
             <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>
               To'lov qabul qilish
             </Button>

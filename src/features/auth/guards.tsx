@@ -1,16 +1,16 @@
 // ═══════════════════════════════════════════════════════
 //  Route Guards + Error Pages
 // ═══════════════════════════════════════════════════════
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShieldAlert, Home, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/store';
 import type { UserRole } from '@/types';
 
-const ROLE_REDIRECTS: Record<UserRole, string> = {
+export const ROLE_REDIRECTS: Record<UserRole, string> = {
   SUPER_ADMIN: '/dashboard/super-admin',
-  ADMIN: '/dashboard/super-admin',       // fallback — treat ADMIN as super-admin
-  SPECIALIST: '/dashboard/super-admin',  // fallback
+  ADMIN: '/dashboard/super-admin',
+  SPECIALIST: '/dashboard/specialist',
   PARENT: '/dashboard/parent',
 };
 
@@ -47,6 +47,8 @@ export function RoleRedirect() {
 // ─── 404 Page ─────────────────────────────────────────────
 
 export function NotFoundPage() {
+  const navigate = useNavigate();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -60,18 +62,19 @@ export function NotFoundPage() {
           Siz qidirgan sahifa mavjud emas yoki ko'chirilgan bo'lishi mumkin.
         </p>
         <div className="flex items-center justify-center gap-3">
-          <a
-            href="javascript:history.back()"
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
             className="flex items-center gap-2 px-4 py-2 rounded-[10px] border border-warm-300 text-sm font-medium text-charcoal-700 hover:bg-warm-100 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> Orqaga
-          </a>
-          <a
-            href="/"
+          </button>
+          <Link
+            to="/"
             className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition-colors"
           >
             <Home className="w-4 h-4" /> Bosh sahifa
-          </a>
+          </Link>
         </div>
       </div>
     </motion.div>
@@ -98,12 +101,12 @@ export function ForbiddenPage() {
         <p className="text-sm text-charcoal-400 mb-8">
           Sizda ushbu sahifani ko'rish huquqi mavjud emas. Iltimos administratorga murojaat qiling.
         </p>
-        <a
-          href={redirectTo}
+        <Link
+          to={redirectTo}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition-colors"
         >
           <Home className="w-4 h-4" /> Dashboardga qaytish
-        </a>
+        </Link>
       </div>
     </motion.div>
   );

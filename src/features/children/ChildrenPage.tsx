@@ -55,6 +55,29 @@ export function ChildrenPage() {
 
   const activeFilterCount = [statusFilter, specialistFilter].filter(Boolean).length;
 
+  // Memoized maps for O(1) cell lookups
+  const { balancesMap, nextAppointmentsMap } = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const bMap = new Map<string, ReturnType<typeof calculateChildBalance>>();
+    const aMap = new Map<string, (typeof appointments)[0]>();
+
+    for (const c of baseChildren) {
+      bMap.set(c.id, calculateChildBalance(c.id, transactions));
+    }
+
+    const upcoming = appointments
+      .filter(a => a.date >= todayStr && ['SCHEDULED', 'CONFIRMED'].includes(a.status))
+      .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+
+    for (const apt of upcoming) {
+      if (!aMap.has(apt.childId)) {
+        aMap.set(apt.childId, apt);
+      }
+    }
+
+    return { balancesMap: bMap, nextAppointmentsMap: aMap };
+  }, [baseChildren, transactions, appointments]);
+
   const columns: Column<Child>[] = [
     {
       key: 'fullName',
@@ -98,10 +121,7 @@ export function ChildrenPage() {
       key: 'nextAppointment',
       header: "Keyingi uchrashuv",
       cell: (row) => {
-        const todayStr = new Date().toISOString().split('T')[0];
-        const next = appointments
-          .filter(a => a.childId === row.id && a.date >= todayStr && ['SCHEDULED', 'CONFIRMED'].includes(a.status))
-          .sort((a, b) => a.date.localeCompare(b.date))[0];
+        const next = nextAppointmentsMap.get(row.id);
         return next ? (
           <div>
             <p className="text-sm text-charcoal-700">{formatDate(next.date)}</p>
@@ -114,7 +134,7 @@ export function ChildrenPage() {
       key: 'balance',
       header: 'Balans',
       cell: (row) => {
-        const bal = calculateChildBalance(row.id, transactions);
+        const bal = balancesMap.get(row.id) ?? { balance: 0, debt: 0 };
         return (
           <div>
             {bal.balance > 0 && (

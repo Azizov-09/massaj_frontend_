@@ -4,6 +4,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 import { generateId } from '@/utils';
 import type {
   AdminUser, Specialist, Parent, Child, Service,
@@ -26,6 +27,7 @@ interface AuthState {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  updateCurrentUser: (data: Partial<AdminUser | Specialist | Parent>) => void;
 }
 
 // ─── Data State ───────────────────────────────────────────
@@ -47,6 +49,13 @@ interface DataState {
   payments: Payment[];
   notifications: Notification[];
   activityLogs: ActivityLog[];
+  clinicSettings: {
+    clinicName: string;
+    phone: string;
+    address: string;
+    workStart: string;
+    workEnd: string;
+  };
 }
 
 // ─── UI State ─────────────────────────────────────────────
@@ -139,6 +148,10 @@ interface Actions {
 
   // Activity log helper
   addActivityLog: (log: Omit<ActivityLog, 'id' | 'timestamp'>) => void;
+
+  // Clinic Settings & Reset
+  updateClinicSettings: (settings: Partial<DataState['clinicSettings']>) => void;
+  resetStore: () => void;
 }
 
 // ─── Combined Store ───────────────────────────────────────
@@ -168,6 +181,8 @@ export const useStore = create<Store>()(
 
         if (cred.role === 'SUPER_ADMIN') {
           user = get().admins.find(a => a.email === email);
+        } else if (cred.role === 'SPECIALIST') {
+          user = get().specialists.find(s => s.email === email);
         } else if (cred.role === 'PARENT') {
           user = get().parents.find(p => p.email === email);
         }
@@ -182,6 +197,31 @@ export const useStore = create<Store>()(
 
       logout: () => {
         set({ currentUser: null, isAuthenticated: false });
+      },
+
+      updateCurrentUser: (data) => {
+        set(s => {
+          if (!s.currentUser) return s;
+          const updated = { ...s.currentUser, ...data };
+          if (s.currentUser.role === 'SUPER_ADMIN' || s.currentUser.role === 'ADMIN') {
+            return {
+              currentUser: updated as AdminUser,
+              admins: s.admins.map(a => a.id === updated.id ? (updated as AdminUser) : a),
+            };
+          } else if (s.currentUser.role === 'SPECIALIST') {
+            return {
+              currentUser: updated as Specialist,
+              specialists: s.specialists.map(sp => sp.id === updated.id ? (updated as Specialist) : sp),
+            };
+          } else if (s.currentUser.role === 'PARENT') {
+            return {
+              currentUser: updated as Parent,
+              parents: s.parents.map(p => p.id === updated.id ? (updated as Parent) : p),
+            };
+          }
+          return { currentUser: updated as AdminUser };
+        });
+        get().addToast({ type: 'success', title: 'Profil yangilandi', description: 'Ma\'lumotlaringiz muvaffaqiyatli saqlandi' });
       },
 
       // ── Data ────────────────────────────────────────────
@@ -201,6 +241,13 @@ export const useStore = create<Store>()(
       payments: PAYMENTS,
       notifications: NOTIFICATIONS,
       activityLogs: ACTIVITY_LOGS,
+      clinicSettings: {
+        clinicName: 'Bolalar Massaj & Reabilitatsiya Markazi',
+        phone: '+998 71 200 00 00',
+        address: 'Toshkent sh., Chilonzor tumani, 9-mavze',
+        workStart: '08:00',
+        workEnd: '18:00',
+      },
 
       // ── UI ──────────────────────────────────────────────
       sidebarCollapsed: false,
@@ -223,7 +270,14 @@ export const useStore = create<Store>()(
       // ── Children Actions ─────────────────────────────────
       createChild: (data) => {
         const child: Child = { ...data, id: `child-${generateId()}`, createdAt: new Date().toISOString() };
-        set(s => ({ children: [...s.children, child] }));
+        set(s => ({
+          children: [...s.children, child],
+          parents: s.parents.map(p =>
+            p.id === child.parentId && !p.childrenIds.includes(child.id)
+              ? { ...p, childrenIds: [...p.childrenIds, child.id] }
+              : p
+          ),
+        }));
         get().addActivityLog({
           actorId: get().currentUser?.id ?? 'system',
           actorName: get().currentUser?.fullName ?? 'Sistema',
@@ -233,7 +287,7 @@ export const useStore = create<Store>()(
           entityId: child.id,
           description: `Yangi bola qo'shildi: ${child.fullName}`,
         });
-        get().addToast({ type: 'success', title: 'Bola qo\'shildi', description: `${child.fullName} muvaffaqiyatli qo\'shildi` });
+        get().addToast({ type: 'success', title: 'Bola qo\'shildi', description: `${child.fullName} muvaffaqiyatli qo'shildi` });
         return child;
       },
 
@@ -251,7 +305,7 @@ export const useStore = create<Store>()(
       createParent: (data) => {
         const parent: Parent = { ...data, id: `par-${generateId()}`, createdAt: new Date().toISOString() };
         set(s => ({ parents: [...s.parents, parent] }));
-        get().addToast({ type: 'success', title: 'Qo\'shildi', description: `${parent.fullName} tizimga qo\'shildi` });
+        get().addToast({ type: 'success', title: 'Qo\'shildi', description: `${parent.fullName} tizimga qo'shildi` });
         return parent;
       },
 
@@ -532,6 +586,46 @@ export const useStore = create<Store>()(
         const entry: ActivityLog = { ...log, id: `log-${generateId()}`, timestamp: new Date().toISOString() };
         set(s => ({ activityLogs: [entry, ...s.activityLogs] }));
       },
+
+      // ── Clinic Settings & Reset ───────────────────────────
+      updateClinicSettings: (settings) => {
+        set(s => ({ clinicSettings: { ...s.clinicSettings, ...settings } }));
+        get().addToast({ type: 'success', title: 'Sozlamalar saqlandi', description: 'Markaz ma\'lumotlari yangilandi' });
+      },
+
+      resetStore: () => {
+        try {
+          localStorage.removeItem('massaj-crm-store');
+        } catch {}
+        set({
+          currentUser: null,
+          isAuthenticated: false,
+          admins: ADMINS,
+          employees: EMPLOYEES,
+          specialists: SPECIALISTS,
+          parents: PARENTS,
+          children: CHILDREN,
+          services: SERVICES,
+          appointments: APPOINTMENTS,
+          sessions: SESSIONS,
+          attendance: ATTENDANCE,
+          assessments: ASSESSMENTS,
+          progressNotes: PROGRESS_NOTES,
+          goals: GOALS,
+          transactions: TRANSACTIONS,
+          payments: PAYMENTS,
+          notifications: NOTIFICATIONS,
+          activityLogs: ACTIVITY_LOGS,
+          clinicSettings: {
+            clinicName: 'Bolalar Massaj & Reabilitatsiya Markazi',
+            phone: '+998 71 200 00 00',
+            address: 'Toshkent sh., Chilonzor tumani, 9-mavze',
+            workStart: '08:00',
+            workEnd: '18:00',
+          },
+        });
+        get().addToast({ type: 'info', title: 'Tizim qayta tiklandi', description: 'Boshlang\'ich ma\'lumotlar yuklandi' });
+      },
     }),
     {
       name: 'massaj-crm-store',
@@ -552,32 +646,43 @@ export const useStore = create<Store>()(
         assessments: state.assessments,
         notifications: state.notifications,
         activityLogs: state.activityLogs,
+        clinicSettings: state.clinicSettings,
       }),
     }
   )
 );
 
-// Convenience selectors
+// Convenience selectors (Shallow memoized to prevent render cascading)
 export const useAuth = () => {
-  const currentUser = useStore(s => s.currentUser);
-  const isAuthenticated = useStore(s => s.isAuthenticated);
-  const login = useStore(s => s.login);
-  const logout = useStore(s => s.logout);
-  return { currentUser, isAuthenticated, login, logout };
+  return useStore(
+    useShallow(s => ({
+      currentUser: s.currentUser,
+      isAuthenticated: s.isAuthenticated,
+      login: s.login,
+      logout: s.logout,
+      updateCurrentUser: s.updateCurrentUser,
+    }))
+  );
 };
 
 export const useToasts = () => {
-  const toasts = useStore(s => s.toasts);
-  const addToast = useStore(s => s.addToast);
-  const removeToast = useStore(s => s.removeToast);
-  return { toasts, addToast, removeToast };
+  return useStore(
+    useShallow(s => ({
+      toasts: s.toasts,
+      addToast: s.addToast,
+      removeToast: s.removeToast,
+    }))
+  );
 };
 
 export const useSidebar = () => {
-  const collapsed = useStore(s => s.sidebarCollapsed);
-  const toggle = useStore(s => s.toggleSidebar);
-  const set = useStore(s => s.setSidebarCollapsed);
-  return { collapsed, toggle, set };
+  return useStore(
+    useShallow(s => ({
+      collapsed: s.sidebarCollapsed,
+      toggle: s.toggleSidebar,
+      set: s.setSidebarCollapsed,
+    }))
+  );
 };
 
 // Helper (used inside store without import cycle)

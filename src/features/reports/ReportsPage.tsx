@@ -115,26 +115,37 @@ export function ReportsPage() {
   const handleExportCSV = () => {
     if (reportData.length === 0) return;
     const keys = Object.keys(reportData[0]);
-    const csvContent =
-      'data:text/csv;charset=utf-8,' +
-      [keys.join(','), ...reportData.map(row => keys.map(k => `"${(row as Record<string, unknown>)[k] ?? ''}"`).join(','))].join('\n');
-
+    const headerRow = keys.join(',');
+    const bodyRows = reportData.map(row =>
+      keys.map(k => {
+        const val = String((row as Record<string, unknown>)[k] ?? '');
+        return `"${val.replace(/"/g, '""')}"`;
+      }).join(',')
+    );
+    const csvContent = '\uFEFF' + [headerRow, ...bodyRows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodeURI(csvContent));
+    link.setAttribute('href', url);
     link.setAttribute('download', `${reportType.toLowerCase()}_hisobot_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleExportJSON = () => {
-    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(reportData, null, 2))}`;
+    if (reportData.length === 0) return;
+    const jsonString = JSON.stringify(reportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', jsonString);
+    link.setAttribute('href', url);
     link.setAttribute('download', `${reportType.toLowerCase()}_hisobot_${new Date().toISOString().split('T')[0]}.json`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (

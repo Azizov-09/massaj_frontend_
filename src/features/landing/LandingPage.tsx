@@ -13,8 +13,15 @@ import {
 import { useStore, useAuth } from '@/store';
 import { formatCurrencyCompact } from '@/utils';
 import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
-import { Input, Select, Textarea } from '@/components/ui/primitives';
+import { Input } from '@/components/ui/primitives';
+import { BookingModal } from './components/BookingModal';
+import {
+  NAV_LINKS,
+  TRUST_METRICS,
+  PROCESS_STEPS,
+  TESTIMONIALS,
+  FAQS,
+} from './landing.data';
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -26,112 +33,77 @@ export function LandingPage() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [selectedServiceId, setSelectedServiceId] = useState<string | undefined>();
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
-  const [bookingSuccess, setBookingSuccess] = useState(false);
 
-  // Form state
-  const [bookingData, setBookingData] = useState({
+  const createParent = useStore(s => s.createParent);
+  const createChild = useStore(s => s.createChild);
+  const createAppointment = useStore(s => s.createAppointment);
+  const addToast = useStore(s => s.addToast);
+
+  // Quick consultation form state (on-page)
+  const [quickForm, setQuickForm] = useState({
     parentName: '',
     phone: '',
     childName: '',
-    childAge: '',
-    serviceId: '',
-    notes: '',
   });
 
-  const handleBookingSubmit = (e: React.FormEvent) => {
+  const handleQuickSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setBookingSuccess(true);
-    setTimeout(() => {
-      setBookingSuccess(false);
-      setBookingModalOpen(false);
-      setBookingData({ parentName: '', phone: '', childName: '', childAge: '', serviceId: '', notes: '' });
-    }, 2500);
+    if (!quickForm.parentName || !quickForm.phone) return;
+
+    try {
+      const parent = createParent({
+        fullName: quickForm.parentName,
+        phone: quickForm.phone,
+        email: `lead_${Date.now()}@landing.uz`,
+        role: 'PARENT',
+        status: 'ACTIVE',
+        childrenIds: [],
+      });
+
+      const child = createChild({
+        fullName: quickForm.childName || 'Yangi bola',
+        dateOfBirth: new Date(Date.now() - 3 * 365 * 24 * 3600 * 1000).toISOString().split('T')[0],
+        gender: 'MALE',
+        parentId: parent.id,
+        status: 'ACTIVE',
+        notes: "Landing orqali tezkor ariza",
+      });
+
+      createAppointment({
+        childId: child.id,
+        parentId: parent.id,
+        specialistId: specialists[0]?.id || 'spec-1',
+        serviceId: services[0]?.id || 'svc-1',
+        date: new Date(Date.now() + 24 * 3600 * 1000).toISOString().split('T')[0],
+        startTime: '10:00',
+        endTime: '10:45',
+        status: 'SCHEDULED',
+        notes: "Landing tezkor konsultatsiya arizasi",
+      });
+
+      addToast({
+        type: 'success',
+        title: "Qabulga so'rov yuborildi!",
+        description: `${quickForm.parentName}, ma'lumotlaringiz qabul qilindi. Operator tez orada bog'lanadi.`,
+      });
+
+      setQuickForm({ parentName: '', phone: '', childName: '' });
+    } catch {
+      addToast({
+        type: 'error',
+        title: 'Xatolik yuz berdi',
+        description: "Iltimos, qaytadan urinib ko'ring.",
+      });
+    }
   };
 
-  const navLinks = [
-    { label: 'Bosh sahifa', href: '#hero' },
-    { label: 'Markaz haqida', href: '#about' },
-    { label: 'Xizmatlar', href: '#services' },
-    { label: 'Jarayon', href: '#process' },
-    { label: 'Mutaxassislar', href: '#specialists' },
-    { label: 'FAQ', href: '#faq' },
-    { label: 'Aloqa', href: '#contact' },
-  ];
-
-  const trustMetrics = [
-    { value: '500+', label: 'Sog‘lomlashgan bolalar', icon: Baby, color: 'text-brand-500' },
-    { value: '15+', label: 'Malakali mutaxassislar', icon: Stethoscope, color: 'text-sage-600' },
-    { value: '98%', label: 'Mamnun ota-onalar', icon: Heart, color: 'text-gold-500' },
-    { value: '5+ yil', label: 'Amaliy tajriba', icon: Award, color: 'text-brand-600' },
-  ];
-
-  const processSteps = [
-    {
-      step: '01',
-      title: 'Birlamchi ko‘rik va konsultatsiya',
-      desc: 'Mutaxassis bolaning jismoniy holati, mushak tonusi va harakat faolligini batafsil baholaydi.',
-      icon: Stethoscope,
-    },
-    {
-      step: '02',
-      title: 'Individual reabilitatsiya rejasi',
-      desc: 'Har bir bolaning yoshi va xususiyatlariga mos individual mashg‘ulotlar va massaj dasturi tuziladi.',
-      icon: Activity,
-    },
-    {
-      step: '03',
-      title: 'Professional davolash seanslari',
-      desc: 'Sertifikatlangan mutaxassislar nazorati ostida qulay va xavfsiz muhitda muolajalar o‘tkaziladi.',
-      icon: Heart,
-    },
-    {
-      step: '04',
-      title: 'Dinamik kuzatuv va monitoring',
-      desc: 'Har seansdan so‘ng ota-onalarga taraqqiyot hisoboti beriladi va kerakli tavsiyalar ko‘rsatiladi.',
-      icon: Shield,
-    },
-  ];
-
-  const testimonials = [
-    {
-      name: 'Gulnoza Karimova',
-      child: 'Jasurbek (1.5 yosh)',
-      text: 'Bolamda gipertonus tashxisi qo‘yilgan edi. 10 kunlik massaj kursidan so‘ng o‘tirishi va oyoqlaridagi taranglik sezilarli darajada yumshadi. Mutaxassislarga katta rahmat!',
-      rating: 5,
-    },
-    {
-      name: 'Bobur Mirzayev',
-      child: 'Farangiz (3 yosh)',
-      text: 'Markazning xizmat sifati va tozaligi ajoyib. Har bir seansdan so‘ng mutaxassis shaxsan tushuntirish beradi. Qizim muolajalarga quvonch bilan boradi.',
-      rating: 5,
-    },
-    {
-      name: 'Shahlo Umarova',
-      child: 'Imronbek (8 oylik)',
-      text: 'Emaklashda qiyinchilik bo‘layotgan edi. 2 haftalik kompleks reabilitatsiyadan keyin o‘zi dadil emaklay boshladi. Natija biz kutgandan ham a’lo bo‘ldi.',
-      rating: 5,
-    },
-  ];
-
-  const faqs = [
-    {
-      q: 'Bolalar massaji qaysi yoshdan boshlab tavsiya etiladi?',
-      a: 'Profilaktik va davolovchi massajlar bolaning 1 oyligidan boshlab shifokor ko‘rigi va tavsiyasiga ko‘ra o‘tkazilishi mumkin.',
-    },
-    {
-      q: 'Bitta massaj kursi necha seansdan iborat?',
-      a: 'Odatda standart reabilitatsiya kursi 10 yoki 12 seansdan iborat bo‘ladi. Har bir seans davomiyligi 30 dan 60 daqiqagacha davom etadi.',
-    },
-    {
-      q: 'Seans paytida ota-ona bolaning yonida bo‘lishi mumkinmi?',
-      a: 'Albatta! Bolaning o‘zini erkin va xavfsiz his qilishi uchun ota-onalarning barcha seanslarda birga bo‘lishi rag‘batlantiriladi.',
-    },
-    {
-      q: 'To‘lovlarni qanday amalga oshirish mumkin?',
-      a: 'To‘lovlarni markazimizda naqd pul, bank kartalari (Uzcard, Humo) yoki bank o‘tkazmasi orqali amalga oshirishingiz mumkin.',
-    },
-  ];
+  const navLinks = NAV_LINKS;
+  const trustMetrics = TRUST_METRICS;
+  const processSteps = PROCESS_STEPS;
+  const testimonials = TESTIMONIALS;
+  const faqs = FAQS;
 
   return (
     <div className="min-h-screen bg-[#FFFDF9] text-charcoal-900 font-sans selection:bg-brand-500 selection:text-white">
@@ -502,7 +474,7 @@ export function LandingPage() {
                     size="sm"
                     variant="secondary"
                     onClick={() => {
-                      setBookingData(prev => ({ ...prev, serviceId: svc.id }));
+                      setSelectedServiceId(svc.id);
                       setBookingModalOpen(true);
                     }}
                   >
@@ -736,27 +708,27 @@ export function LandingPage() {
               <h3 className="text-xl font-bold text-charcoal-900">Konsultatsiyaga yoziling</h3>
               <p className="text-xs text-charcoal-500">Mutaxassisimiz 15 daqiqa ichida siz bilan bog‘lanadi va ma’lumot beradi.</p>
 
-              <form onSubmit={handleBookingSubmit} className="space-y-4">
+              <form onSubmit={handleQuickSubmit} className="space-y-4">
                 <Input
                   label="Ota-ona ismi"
                   required
                   placeholder="Ismingizni kiriting"
-                  value={bookingData.parentName}
-                  onChange={e => setBookingData({ ...bookingData, parentName: e.target.value })}
+                  value={quickForm.parentName}
+                  onChange={e => setQuickForm({ ...quickForm, parentName: e.target.value })}
                 />
                 <Input
                   label="Telefon raqam"
                   required
                   type="tel"
                   placeholder="+998 (90) 123-45-67"
-                  value={bookingData.phone}
-                  onChange={e => setBookingData({ ...bookingData, phone: e.target.value })}
+                  value={quickForm.phone}
+                  onChange={e => setQuickForm({ ...quickForm, phone: e.target.value })}
                 />
                 <Input
                   label="Bola ismi va yoshi"
                   placeholder="Masalan: Umar, 1.5 yosh"
-                  value={bookingData.childName}
-                  onChange={e => setBookingData({ ...bookingData, childName: e.target.value })}
+                  value={quickForm.childName}
+                  onChange={e => setQuickForm({ ...quickForm, childName: e.target.value })}
                 />
                 <Button type="submit" size="lg" className="w-full">
                   Ariza yuborish
@@ -795,82 +767,16 @@ export function LandingPage() {
       </footer>
 
       {/* ─── Booking Modal ─── */}
-      <Modal
+      <BookingModal
         isOpen={bookingModalOpen}
-        onClose={() => setBookingModalOpen(false)}
-        title="Uchrashuvga yozilish"
-        size="md"
-      >
-        {bookingSuccess ? (
-          <div className="py-8 text-center space-y-3">
-            <div className="w-14 h-14 bg-sage-50 text-sage-600 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-8 h-8" />
-            </div>
-            <h4 className="text-lg font-bold text-charcoal-900">Arizangiz qabul qilindi!</h4>
-            <p className="text-sm text-charcoal-600 max-w-xs mx-auto">
-              Tez orada mutaxassisimiz siz bilan bog‘lanib, qulay vaqtni belgilaydi.
-            </p>
-          </div>
-        ) : (
-          <form onSubmit={handleBookingSubmit} className="space-y-4">
-            <Input
-              label="Ota-ona to‘liq ismi"
-              required
-              placeholder="Masalan: Dilshod Rahimov"
-              value={bookingData.parentName}
-              onChange={e => setBookingData({ ...bookingData, parentName: e.target.value })}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="Telefon"
-                required
-                type="tel"
-                placeholder="+998901234567"
-                value={bookingData.phone}
-                onChange={e => setBookingData({ ...bookingData, phone: e.target.value })}
-              />
-              <Input
-                label="Bolaning yoshi"
-                placeholder="Masalan: 2 yosh"
-                value={bookingData.childAge}
-                onChange={e => setBookingData({ ...bookingData, childAge: e.target.value })}
-              />
-            </div>
-            <Input
-              label="Bolaning ismi"
-              required
-              placeholder="Masalan: Amirbek"
-              value={bookingData.childName}
-              onChange={e => setBookingData({ ...bookingData, childName: e.target.value })}
-            />
-            <Select
-              label="Xizmat turi"
-              value={bookingData.serviceId}
-              onChange={e => setBookingData({ ...bookingData, serviceId: e.target.value })}
-            >
-              <option value="">Xizmatni tanlang (ixtiyoriy)</option>
-              {services.map(s => (
-                <option key={s.id} value={s.id}>{s.name} ({formatCurrencyCompact(s.price)})</option>
-              ))}
-            </Select>
-            <Textarea
-              label="Qo‘shimcha izoh yoki shikoyat"
-              rows={2}
-              placeholder="Bolaning holati haqida qisqacha..."
-              value={bookingData.notes}
-              onChange={e => setBookingData({ ...bookingData, notes: e.target.value })}
-            />
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-warm-100">
-              <Button variant="secondary" type="button" onClick={() => setBookingModalOpen(false)}>
-                Bekor qilish
-              </Button>
-              <Button type="submit">
-                Tasdiqlash va yuborish
-              </Button>
-            </div>
-          </form>
-        )}
-      </Modal>
+        onClose={() => {
+          setBookingModalOpen(false);
+          setSelectedServiceId(undefined);
+        }}
+        services={services}
+        specialists={specialists}
+        initialServiceId={selectedServiceId}
+      />
     </div>
   );
 }

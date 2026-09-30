@@ -84,14 +84,15 @@ export function SchedulePage() {
   // Filtered appointments
   const filteredAppointments = useMemo(() => {
     return appointments.filter(apt => {
-      if (specialistFilter && apt.specialistId !== specialistFilter) return false;
+      const targetSpecialistId = currentUser?.role === 'SPECIALIST' ? currentUser.id : specialistFilter;
+      if (targetSpecialistId && apt.specialistId !== targetSpecialistId) return false;
       if (viewMode === 'day') {
         return apt.date === selectedDate;
       } else {
         return weekDates.some(w => w.dateStr === apt.date);
       }
     });
-  }, [appointments, selectedDate, specialistFilter, viewMode, weekDates]);
+  }, [appointments, selectedDate, specialistFilter, viewMode, weekDates, currentUser]);
 
   // Appointment action handlers
   const handleConfirm = (id: string) => {

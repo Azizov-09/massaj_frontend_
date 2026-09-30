@@ -32,6 +32,8 @@ export function SessionsPage() {
   const completeSession = useStore(s => s.completeSession);
 
   const isParent = currentUser?.role === 'PARENT';
+  const isSpecialist = currentUser?.role === 'SPECIALIST';
+
   const myChildIds = useMemo(() => {
     if (isParent && currentUser) {
       return children.filter(c => c.parentId === currentUser.id).map(c => c.id);
@@ -43,8 +45,11 @@ export function SessionsPage() {
     if (isParent && currentUser) {
       return allSessions.filter(s => myChildIds.includes(s.childId));
     }
+    if (isSpecialist && currentUser) {
+      return allSessions.filter(s => s.specialistId === currentUser.id);
+    }
     return allSessions;
-  }, [allSessions, isParent, currentUser, myChildIds]);
+  }, [allSessions, isParent, isSpecialist, currentUser, myChildIds]);
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -106,7 +111,7 @@ export function SessionsPage() {
     },
     {
       key: 'actions', header: '', width: isParent ? '0px' : '100px',
-      cell: (row) => (!isParent && row.status === 'IN_PROGRESS') ? (
+      cell: (row) => (!isParent && row.status === 'IN_PROGRESS' && (currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN' || row.specialistId === currentUser?.id)) ? (
         <Button
           size="xs"
           onClick={e => { e.stopPropagation(); setCompleteTarget(row.id); }}
@@ -121,8 +126,8 @@ export function SessionsPage() {
   return (
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
       <PageHeader
-        title={isParent ? "Seanslar tarixi" : "Seanslar"}
-        description={isParent ? `Farzandlaringizning ${baseSessions.length} ta seansi` : `Jami ${allSessions.length} ta seans`}
+        title={isParent ? "Seanslar tarixi" : isSpecialist ? "Mening seanslarim" : "Seanslar"}
+        description={isParent ? `Farzandlaringizning ${baseSessions.length} ta seansi` : isSpecialist ? `Sizning ${baseSessions.length} ta seansingiz` : `Jami ${allSessions.length} ta seans`}
       />
 
       <div className="grid grid-cols-3 gap-3">

@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
 
 export function ProfilePage() {
-  const { currentUser } = useAuth();
+  const { currentUser, updateCurrentUser } = useAuth();
   const addToast = useStore(s => s.addToast);
 
   const [fullName, setFullName] = useState(currentUser?.fullName || '');
@@ -27,10 +27,11 @@ export function ProfilePage() {
 
   const handleUpdateInfo = (e: React.FormEvent) => {
     e.preventDefault();
-    addToast({
-      type: 'success',
-      title: 'Profil yangilandi',
-      description: 'Shaxsiy ma’lumotlaringiz muvaffaqiyatli saqlandi',
+    if (!fullName) return;
+    updateCurrentUser({
+      fullName,
+      email,
+      phone,
     });
   };
 

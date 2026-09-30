@@ -7,7 +7,6 @@ import { z } from 'zod';
 import { useStore, useAuth } from '@/store';
 import { Input, Select, Textarea } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
-import { SERVICES } from '@/data/seed';
 
 const schema = z.object({
   childId: z.string().min(1, 'Bolani tanlang'),
@@ -32,7 +31,9 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate }: Prop
   const specialists = useStore(s => s.specialists);
   const services = useStore(s => s.services);
   const parents = useStore(s => s.parents);
+  const appointments = useStore(s => s.appointments);
   const createAppointment = useStore(s => s.createAppointment);
+  const addToast = useStore(s => s.addToast);
 
   const isParent = currentUser?.role === 'PARENT';
   const availableChildren = isParent && currentUser
@@ -67,6 +68,24 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate }: Prop
 
   const onSubmit = async (data: FormValues) => {
     await new Promise(r => setTimeout(r, 300));
+
+    // Conflict check
+    const hasConflict = appointments.some(a =>
+      a.specialistId === data.specialistId &&
+      a.date === data.date &&
+      ['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'].includes(a.status) &&
+      a.startTime === data.startTime
+    );
+
+    if (hasConflict) {
+      addToast({
+        type: 'error',
+        title: 'Vaqt band!',
+        description: 'Ushbu mutaxassisning ko‘rsatilgan vaqtda boshqa qabuli mavjud. Iltimos, boshqa vaqt tanlang.',
+      });
+      return;
+    }
+
     createAppointment({
       childId: data.childId,
       parentId,

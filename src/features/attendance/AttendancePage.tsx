@@ -46,10 +46,11 @@ export function AttendancePage() {
   const dayAppointments = useMemo(() => {
     return appointments.filter(a => {
       if (a.date !== selectedDate) return false;
-      if (specialistFilter && a.specialistId !== specialistFilter) return false;
+      const targetSpecialistId = currentUser?.role === 'SPECIALIST' ? currentUser.id : specialistFilter;
+      if (targetSpecialistId && a.specialistId !== targetSpecialistId) return false;
       return true;
     });
-  }, [appointments, selectedDate, specialistFilter]);
+  }, [appointments, selectedDate, specialistFilter, currentUser]);
 
   // Combined attendance records for the day's appointments
   const attendanceItems = useMemo(() => {
@@ -107,6 +108,7 @@ export function AttendancePage() {
   }, [dayAppointments, attendance, selectedDate]);
 
   const handleMark = (appointmentId: string, childId: string, specialistId: string, status: AttendanceStatus) => {
+    if (currentUser?.role === 'SPECIALIST' && specialistId !== currentUser.id) return;
     recordAttendance({
       appointmentId,
       childId,

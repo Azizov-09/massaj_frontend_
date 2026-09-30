@@ -65,8 +65,9 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
     switch (currentUser?.role) {
       case 'SUPER_ADMIN':
       case 'ADMIN':
-      case 'SPECIALIST':
         return '/dashboard/super-admin';
+      case 'SPECIALIST':
+        return '/dashboard/specialist';
       case 'PARENT':
         return '/dashboard/parent';
       default:

@@ -116,6 +116,42 @@ function getParentNav(unreadCount: number): NavGroup[] {
   ];
 }
 
+function getSpecialistNav(unreadCount: number): NavGroup[] {
+  return [
+    {
+      label: 'Umumiy',
+      items: [
+        { label: 'Dashboard', path: '/dashboard/specialist', icon: <LayoutDashboard className="w-4 h-4" /> },
+      ],
+    },
+    {
+      label: 'Klinik faoliyat',
+      items: [
+        { label: 'Seanslar', path: '/dashboard/specialist/sessions', icon: <Activity className="w-4 h-4" /> },
+        { label: 'Uchrashuvlar', path: '/dashboard/specialist/appointments', icon: <Calendar className="w-4 h-4" /> },
+        { label: 'Jadvalim', path: '/dashboard/specialist/schedule', icon: <Clock className="w-4 h-4" /> },
+        { label: 'Davomat', path: '/dashboard/specialist/attendance', icon: <ClipboardList className="w-4 h-4" /> },
+        { label: 'Bolalar', path: '/dashboard/specialist/children', icon: <Baby className="w-4 h-4" /> },
+      ],
+    },
+    {
+      label: 'Tashxis va rivojlanish',
+      items: [
+        { label: 'Baholashlar', path: '/dashboard/specialist/assessments', icon: <Stethoscope className="w-4 h-4" /> },
+        { label: 'Rivojlanish', path: '/dashboard/specialist/progress', icon: <TrendingUp className="w-4 h-4" /> },
+        { label: 'Maqsadlar', path: '/dashboard/specialist/goals', icon: <Target className="w-4 h-4" /> },
+      ],
+    },
+    {
+      label: 'Tizim',
+      items: [
+        { label: 'Bildirishnomalar', path: '/dashboard/specialist/notifications', icon: <Bell className="w-4 h-4" />, badge: unreadCount || undefined },
+        { label: 'Profilim', path: '/dashboard/specialist/profile', icon: <User className="w-4 h-4" /> },
+      ],
+    },
+  ];
+}
+
 interface SidebarProps {
   mobileOpen?: boolean;
   onMobileClose?: () => void;
@@ -134,6 +170,8 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
       case 'SUPER_ADMIN':
       case 'ADMIN':
         return getSuperAdminNav(unreadCount);
+      case 'SPECIALIST':
+        return getSpecialistNav(unreadCount);
       case 'PARENT':
         return getParentNav(unreadCount);
       default: return [];

@@ -72,26 +72,29 @@ export function TransactionsPage() {
     const rows = filtered.map(t => {
       const p = parents.find(pa => pa.id === t.parentId)?.fullName ?? '';
       const c = children.find(ch => ch.id === t.childId)?.fullName ?? '';
+      const desc = t.description || '';
       return [
         t.id,
         t.date,
         t.type,
         t.direction,
         t.amount,
-        `"${p}"`,
-        `"${c}"`,
-        `"${t.description || ''}"`,
+        `"${p.replace(/"/g, '""')}"`,
+        `"${c.replace(/"/g, '""')}"`,
+        `"${desc.replace(/"/g, '""')}"`,
       ].join(',');
     });
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
+    link.setAttribute('href', url);
     link.setAttribute('download', `tranzaksiyalar_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const columns: Column<Transaction>[] = [

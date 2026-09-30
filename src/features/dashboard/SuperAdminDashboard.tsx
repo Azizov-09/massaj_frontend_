@@ -3,21 +3,21 @@
 // ═══════════════════════════════════════════════════════
 import { useState, useMemo } from 'react';
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
 import {
-  TrendingUp, TrendingDown, DollarSign, Users, Baby,
-  Calendar, Activity, ArrowRight, Clock, CheckCircle,
-  AlertCircle, Stethoscope,
+  TrendingUp, TrendingDown, DollarSign, Baby,
+  Calendar, Activity, ArrowRight, CheckCircle,
+  Stethoscope,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, parseISO } from 'date-fns';
 import { useStore } from '@/store';
 import { calculateFinancialSummary, getRevenueByDay, getAppointmentStats, getTopDebtors, getSpecialistWorkload } from '@/services/finance.service';
-import { formatCurrencyCompact, formatCurrency, formatAmount, getDateRange, formatDate, formatTime, getAppointmentStatusColor, getAppointmentStatusLabel, truncate } from '@/utils';
-import { KpiCard, DateFilterTabs, PageHeader } from '@/components/ui/KpiCard';
-import { Card, CardHeader, CardBody, Avatar, Badge, EmptyState, ProgressBar } from '@/components/ui/primitives';
+import { formatCurrencyCompact, getDateRange, formatDate, getAppointmentStatusColor, getAppointmentStatusLabel, truncate } from '@/utils';
+import { KpiCard, DateFilterTabs } from '@/components/ui/KpiCard';
+import { Card, CardHeader, CardBody, Avatar, EmptyState, ProgressBar } from '@/components/ui/primitives';
 import type { DateFilterPreset } from '@/types';
 import { Link } from 'react-router-dom';
 
@@ -53,19 +53,18 @@ export function SuperAdminDashboard() {
   const range = useMemo(() => getDateRange(dateFilter as DateFilterPreset), [dateFilter]);
 
   const revenueData = useMemo(() => {
-    const data = getRevenueByDay(transactions, getDateRange('last7days'));
+    const data = getRevenueByDay(transactions, range);
     return data.map(d => ({
       date: format(parseISO(d.date), 'dd MMM'),
       "Tushum": d.revenue,
       "Xarajat": d.charges,
     }));
-  }, [transactions]);
+  }, [transactions, range]);
 
   const aptStats = useMemo(() => getAppointmentStats(appointments, range), [appointments, range]);
 
   const todayStr = new Date().toISOString().split('T')[0];
   const todayAppointments = appointments.filter(a => a.date === todayStr).sort((a, b) => a.startTime.localeCompare(b.startTime));
-  const upcomingAppointments = appointments.filter(a => a.date >= todayStr && ['SCHEDULED', 'CONFIRMED'].includes(a.status)).slice(0, 5);
 
   const topDebtors = useMemo(() => getTopDebtors(transactions, children, parents, 5), [transactions, children, parents]);
 

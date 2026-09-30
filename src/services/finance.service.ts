@@ -168,10 +168,36 @@ export function calculateFinancialSummary(
     .filter(t => t.type === 'SESSION_CHARGE' && isWithinRange(t.date, lastMonthRange))
     .reduce((sum, t) => sum + t.amount, 0);
 
-  // Recovered debt = payments that cleared previous debt
-  const recoveredDebt = transactions
-    .filter(t => t.type === 'PAYMENT' && t.direction === 'IN')
-    .reduce((sum, t) => sum + t.amount, 0) * 0.15; // Approx estimate
+  // Recovered debt = exact payments applied toward prior debt reduction
+  let recoveredDebt = 0;
+  for (const childId of childIds) {
+    const relevant = transactions
+      .filter(t => t.childId === childId)
+      .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime());
+
+    let running = 0;
+    let debt = 0;
+    for (const txn of relevant) {
+      if (txn.direction === 'IN') {
+        if (debt > 0) {
+          const debtPayment = Math.min(txn.amount, debt);
+          debt -= debtPayment;
+          recoveredDebt += debtPayment;
+          running += txn.amount - debtPayment;
+        } else {
+          running += txn.amount;
+        }
+      } else {
+        if (running >= txn.amount) {
+          running -= txn.amount;
+        } else {
+          const deficit = txn.amount - running;
+          running = 0;
+          debt += deficit;
+        }
+      }
+    }
+  }
 
   return {
     totalRevenue,
@@ -232,6 +258,7 @@ export function getTopDebtors(
 ): {
   childId: string;
   childName: string;
+  parentId: string;
   parentName: string;
   parentPhone: string;
   balance: number;
@@ -244,6 +271,7 @@ export function getTopDebtors(
       return {
         childId: child.id,
         childName: child.fullName,
+        parentId: child.parentId,
         parentName: parent?.fullName ?? '',
         parentPhone: parent?.phone ?? '',
         balance: cb.balance,

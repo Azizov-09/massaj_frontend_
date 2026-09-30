@@ -11,15 +11,19 @@ import { useStore } from '@/store';
 import { Card, CardHeader, CardBody, Input } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
+import { ConfirmDialog } from '@/components/ui/Modal';
 
 export function SettingsPage() {
-  const addToast = useStore(s => s.addToast);
+  const clinicSettings = useStore(s => s.clinicSettings);
+  const updateClinicSettings = useStore(s => s.updateClinicSettings);
+  const resetStore = useStore(s => s.resetStore);
 
-  const [clinicName, setClinicName] = useState('Bolalar Massaj & Reabilitatsiya Markazi');
-  const [phone, setPhone] = useState('+998 71 200 00 00');
-  const [address, setAddress] = useState('Toshkent sh., Chilonzor tumani, 9-mavze');
-  const [workStart, setWorkStart] = useState('08:00');
-  const [workEnd, setWorkEnd] = useState('18:00');
+  const [clinicName, setClinicName] = useState(clinicSettings?.clinicName || 'Bolalar Massaj & Reabilitatsiya Markazi');
+  const [phone, setPhone] = useState(clinicSettings?.phone || '+998 71 200 00 00');
+  const [address, setAddress] = useState(clinicSettings?.address || 'Toshkent sh., Chilonzor tumani, 9-mavze');
+  const [workStart, setWorkStart] = useState(clinicSettings?.workStart || '08:00');
+  const [workEnd, setWorkEnd] = useState(clinicSettings?.workEnd || '18:00');
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   // Notifications
   const [smsEnabled, setSmsEnabled] = useState(true);
@@ -28,18 +32,18 @@ export function SettingsPage() {
 
   const handleSaveGeneral = (e: React.FormEvent) => {
     e.preventDefault();
-    addToast({
-      type: 'success',
-      title: 'Sozlamalar saqlandi',
-      description: 'Markaz ma’lumotlari muvaffaqiyatli yangilandi',
+    updateClinicSettings({
+      clinicName,
+      phone,
+      address,
+      workStart,
+      workEnd,
     });
   };
 
-  const handleResetData = () => {
-    if (confirm('Barcha ma’lumotlar boshlang‘ich holatiga qaytariladi. Davom etasizmi?')) {
-      localStorage.clear();
-      window.location.reload();
-    }
+  const handleResetConfirm = () => {
+    resetStore();
+    setShowResetConfirm(false);
   };
 
   return (
@@ -165,13 +169,23 @@ export function SettingsPage() {
             <Button
               variant="danger"
               leftIcon={<RefreshCw className="w-4 h-4" />}
-              onClick={handleResetData}
+              onClick={() => setShowResetConfirm(true)}
             >
               Ma’lumotlarni qayta tiklash
             </Button>
           </div>
         </CardBody>
       </Card>
+
+      <ConfirmDialog
+        isOpen={showResetConfirm}
+        onClose={() => setShowResetConfirm(false)}
+        onConfirm={handleResetConfirm}
+        title="Ma’lumotlarni qayta tiklash"
+        message="Barcha qo‘shilgan mijozlar, qabullar va to‘lovlar o‘chirilib, tizim dastlabki demo holatiga qaytariladi. Davom etishni xohlaysizmi?"
+        confirmLabel="Qayta tiklash"
+        variant="danger"
+      />
     </div>
   );
 }

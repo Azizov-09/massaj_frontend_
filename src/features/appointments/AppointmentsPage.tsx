@@ -29,6 +29,8 @@ export function AppointmentsPage() {
   const { currentUser } = useAuth();
 
   const isParent = currentUser?.role === 'PARENT';
+  const isSpecialist = currentUser?.role === 'SPECIALIST';
+
   const myChildIds = useMemo(() => {
     if (isParent && currentUser) {
       return children.filter(c => c.parentId === currentUser.id).map(c => c.id);
@@ -40,8 +42,11 @@ export function AppointmentsPage() {
     if (isParent && currentUser) {
       return appointments.filter(a => a.parentId === currentUser.id || myChildIds.includes(a.childId));
     }
+    if (isSpecialist && currentUser) {
+      return appointments.filter(a => a.specialistId === currentUser.id);
+    }
     return appointments;
-  }, [appointments, isParent, currentUser, myChildIds]);
+  }, [appointments, isParent, isSpecialist, currentUser, myChildIds]);
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -185,8 +190,14 @@ export function AppointmentsPage() {
   return (
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
       <PageHeader
-        title={isParent ? "Farzandlarim qabullari" : "Uchrashuvlar"}
-        description={isParent ? `Jami ${baseAppointments.length} ta uchrashuv qayd etilgan` : `Jami ${appointments.length} ta uchrashuv`}
+        title={isParent ? "Farzandlarim qabullari" : isSpecialist ? "Mening qabullarim" : "Uchrashuvlar"}
+        description={
+          isParent
+            ? `Jami ${baseAppointments.length} ta uchrashuv qayd etilgan`
+            : isSpecialist
+            ? `Sizga biriktirilgan ${baseAppointments.length} ta uchrashuv`
+            : `Jami ${appointments.length} ta uchrashuv`
+        }
         actions={
           <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>
             {isParent ? "Qabulga yozilish" : "Uchrashuv qo'shish"}

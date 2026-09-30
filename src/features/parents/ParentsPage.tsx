@@ -25,6 +25,14 @@ export function ParentsPage() {
     return parents.filter(p => p.fullName.toLowerCase().includes(q) || p.phone.includes(q));
   }, [parents, search]);
 
+  const parentBalancesMap = useMemo(() => {
+    const map = new Map<string, { balance: number; debt: number }>();
+    for (const p of parents) {
+      map.set(p.id, calculateParentBalance(p.id, p.childrenIds, transactions));
+    }
+    return map;
+  }, [parents, transactions]);
+
   const columns: Column<Parent>[] = [
     {
       key: 'fullName', header: 'Ota-ona', sortable: true,
@@ -48,7 +56,7 @@ export function ParentsPage() {
     {
       key: 'balance', header: 'Balans/Qarz',
       cell: (row) => {
-        const bal = calculateParentBalance(row.id, row.childrenIds, transactions);
+        const bal = parentBalancesMap.get(row.id) ?? { balance: 0, debt: 0 };
         return (
           <div>
             {bal.balance > 0 && <p className="text-sm font-semibold text-green-600 tabular-nums">{formatCurrencyCompact(bal.balance)}</p>}

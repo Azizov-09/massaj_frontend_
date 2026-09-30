@@ -22,12 +22,14 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 const DEMO_ACCOUNTS = [
   { email: 'superadmin@demo.com', password: 'demo123', role: 'Bosh Admin (Super Admin)', color: 'brand' },
+  { email: 'specialist@demo.com', password: 'demo123', role: 'Mutaxassis (Specialist)', color: 'gold' },
   { email: 'parent@demo.com', password: 'demo123', role: 'Ota-ona (Parent)', color: 'sage' },
 ];
 
 const ROLE_REDIRECTS: Record<string, string> = {
   SUPER_ADMIN: '/dashboard/super-admin',
   ADMIN: '/dashboard/super-admin',
+  SPECIALIST: '/dashboard/specialist',
   PARENT: '/dashboard/parent',
 };
 

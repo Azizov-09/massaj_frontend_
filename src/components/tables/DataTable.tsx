@@ -169,22 +169,37 @@ export function DataTable<T>({
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-              const pageNum = totalPages <= 7 ? i + 1 : i < 3 ? i + 1 : i === 3 ? page : totalPages - 2 + (i - 4);
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => setPage(pageNum)}
-                  className={cn(
-                    'w-8 h-8 rounded-[8px] text-sm font-medium transition-colors',
-                    page === pageNum ? 'bg-brand-500 text-white' : 'hover:bg-warm-200 text-charcoal-600'
-                  )}
-                  aria-current={page === pageNum ? 'page' : undefined}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
+            {(() => {
+              const getPageItems = (current: number, total: number): (number | string)[] => {
+                if (total <= 7) return Array.from({ length: total }, (_, idx) => idx + 1);
+                if (current <= 4) return [1, 2, 3, 4, 5, 'ellipsis-end', total];
+                if (current >= total - 3) return [1, 'ellipsis-start', total - 4, total - 3, total - 2, total - 1, total];
+                return [1, 'ellipsis-start', current - 1, current, current + 1, 'ellipsis-end', total];
+              };
+
+              return getPageItems(page, totalPages).map((item) => {
+                if (typeof item === 'string') {
+                  return (
+                    <span key={item} className="px-1.5 text-xs text-charcoal-400 select-none">
+                      •••
+                    </span>
+                  );
+                }
+                return (
+                  <button
+                    key={item}
+                    onClick={() => setPage(item)}
+                    className={cn(
+                      'w-8 h-8 rounded-[8px] text-sm font-medium transition-colors',
+                      page === item ? 'bg-brand-500 text-white shadow-sm' : 'hover:bg-warm-200 text-charcoal-600'
+                    )}
+                    aria-current={page === item ? 'page' : undefined}
+                  >
+                    {item}
+                  </button>
+                );
+              });
+            })()}
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}

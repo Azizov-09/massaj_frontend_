@@ -38,11 +38,35 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
   }, [isOpen]);
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusableElements = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusableElements.length === 0) return;
+        const first = focusableElements[0];
+        const last = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first || document.activeElement === dialogRef.current) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
     };
-    if (isOpen) window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
   return (
@@ -115,12 +139,28 @@ interface ConfirmDialogProps {
   title: string;
   message: string;
   confirmLabel?: string;
+  confirmText?: string;
   cancelLabel?: string;
+  cancelText?: string;
   variant?: 'danger' | 'warning' | 'default';
   loading?: boolean;
 }
 
-export function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmLabel = 'Tasdiqlash', cancelLabel = 'Bekor qilish', variant = 'default', loading }: ConfirmDialogProps) {
+export function ConfirmDialog({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmLabel,
+  confirmText,
+  cancelLabel,
+  cancelText,
+  variant = 'default',
+  loading,
+}: ConfirmDialogProps) {
+  const finalConfirmLabel = confirmLabel || confirmText || 'Tasdiqlash';
+  const finalCancelLabel = cancelLabel || cancelText || 'Bekor qilish';
   const confirmColor = variant === 'danger' ? 'bg-danger-main hover:bg-danger-dark text-white' : variant === 'warning' ? 'bg-warning-main hover:bg-warning-dark text-white' : 'bg-brand-500 hover:bg-brand-600 text-white';
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm" hideClose>
@@ -131,14 +171,14 @@ export function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, conf
           disabled={loading}
           className="flex-1 px-4 py-2 text-sm font-medium rounded-[10px] border border-warm-300 text-charcoal-700 hover:bg-warm-100 transition-colors"
         >
-          {cancelLabel}
+          {finalCancelLabel}
         </button>
         <button
           onClick={onConfirm}
           disabled={loading}
           className={cn('flex-1 px-4 py-2 text-sm font-medium rounded-[10px] transition-colors', confirmColor)}
         >
-          {loading ? 'Yuklanmoqda...' : confirmLabel}
+          {loading ? 'Yuklanmoqda...' : finalConfirmLabel}
         </button>
       </div>
     </Modal>

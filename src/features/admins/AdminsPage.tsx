@@ -19,6 +19,7 @@ import type { AdminUser } from '@/types';
 
 export function AdminsPage() {
   const admins = useStore(s => s.admins);
+  const createAdmin = useStore(s => s.createAdmin);
   const { currentUser } = useAuth();
 
   const [search, setSearch] = useState('');
@@ -52,21 +53,13 @@ export function AdminsPage() {
     e.preventDefault();
     if (!newAdmin.fullName || !newAdmin.email) return;
 
-    useStore.setState(s => ({
-      admins: [
-        ...s.admins,
-        {
-          id: `adm-${Date.now()}`,
-          fullName: newAdmin.fullName,
-          email: newAdmin.email,
-          phone: newAdmin.phone,
-          role: newAdmin.role,
-          status: 'ACTIVE',
-          permissions: ['*'],
-          createdAt: new Date().toISOString(),
-        },
-      ],
-    }));
+    createAdmin({
+      fullName: newAdmin.fullName,
+      email: newAdmin.email,
+      phone: newAdmin.phone,
+      role: newAdmin.role,
+      status: 'ACTIVE',
+    });
 
     setShowCreateModal(false);
     setNewAdmin({ fullName: '', email: '', phone: '', role: 'ADMIN' });

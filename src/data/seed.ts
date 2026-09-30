@@ -26,6 +26,7 @@ import {
 
 export const DEMO_CREDENTIALS = [
   { email: 'superadmin@demo.com', password: 'demo123', role: 'SUPER_ADMIN' as const },
+  { email: 'specialist@demo.com', password: 'demo123', role: 'SPECIALIST' as const },
   { email: 'parent@demo.com', password: 'demo123', role: 'PARENT' as const },
 ];
 

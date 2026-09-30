@@ -19,7 +19,7 @@ export function DebtorsPage() {
   const allDebtors = useMemo(() => getTopDebtors(transactions, children, parents, 100), [transactions, children, parents]);
   const debtors = useMemo(() => {
     if (isParent && currentUser) {
-      return allDebtors.filter(d => d.parentPhone === currentUser.phone || d.parentName === currentUser.fullName);
+      return allDebtors.filter(d => d.parentId === currentUser.id);
     }
     return allDebtors;
   }, [allDebtors, isParent, currentUser]);

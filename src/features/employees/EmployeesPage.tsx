@@ -19,6 +19,7 @@ import type { Employee } from '@/types';
 
 export function EmployeesPage() {
   const employees = useStore(s => s.employees);
+  const createEmployee = useStore(s => s.createEmployee);
   const { currentUser } = useAuth();
 
   const [search, setSearch] = useState('');
@@ -56,20 +57,13 @@ export function EmployeesPage() {
     e.preventDefault();
     if (!newEmp.fullName || !newEmp.phone) return;
 
-    useStore.setState(s => ({
-      employees: [
-        ...s.employees,
-        {
-          id: `emp-${Date.now()}`,
-          fullName: newEmp.fullName,
-          position: newEmp.position,
-          phone: newEmp.phone,
-          email: newEmp.email || undefined,
-          status: 'ACTIVE',
-          joinedAt: new Date().toISOString().split('T')[0],
-        },
-      ],
-    }));
+    createEmployee({
+      fullName: newEmp.fullName,
+      position: newEmp.position,
+      phone: newEmp.phone,
+      email: newEmp.email || undefined,
+      status: 'ACTIVE',
+    });
 
     setShowCreateModal(false);
     setNewEmp({ fullName: '', position: 'Katta hamshira', phone: '', email: '' });
