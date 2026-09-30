@@ -1,0 +1,374 @@
+@import "tailwindcss";
+
+@theme {
+  /* ═══════════════════════════════════════
+     MASSAJ CRM — Design Token System
+     Warm professional wellness palette
+  ═══════════════════════════════════════ */
+
+  /* Brand Colors — Warm Carrot Orange */
+  --color-brand-50: #fff7f0;
+  --color-brand-100: #ffedd8;
+  --color-brand-200: #ffd9b0;
+  --color-brand-300: #ffbd7a;
+  --color-brand-400: #ff9640;
+  --color-brand-500: #f97316;
+  --color-brand-600: #ea6410;
+  --color-brand-700: #c24f0c;
+  --color-brand-800: #9a3f12;
+  --color-brand-900: #7c3412;
+
+  /* Secondary — Soft Golden Yellow */
+  --color-gold-50: #fffbeb;
+  --color-gold-100: #fef3c7;
+  --color-gold-200: #fde68a;
+  --color-gold-300: #fcd34d;
+  --color-gold-400: #fbbf24;
+  --color-gold-500: #f59e0b;
+  --color-gold-600: #d97706;
+  --color-gold-700: #b45309;
+  --color-gold-800: #92400e;
+  --color-gold-900: #78350f;
+
+  /* Sage Green — Supporting color */
+  --color-sage-50: #f2f7f4;
+  --color-sage-100: #e0ece5;
+  --color-sage-200: #c1d9cb;
+  --color-sage-300: #97bea8;
+  --color-sage-400: #6a9e82;
+  --color-sage-500: #4a8063;
+  --color-sage-600: #3a6650;
+  --color-sage-700: #2f5240;
+  --color-sage-800: #274235;
+  --color-sage-900: #21372c;
+
+  /* Warm Neutrals — Background / Surface */
+  --color-warm-50: #fdfaf7;
+  --color-warm-100: #f9f4ee;
+  --color-warm-200: #f0e8db;
+  --color-warm-300: #e4d5c0;
+  --color-warm-400: #cdb89a;
+  --color-warm-500: #b59b7a;
+  --color-warm-600: #9a7f5f;
+  --color-warm-700: #7e654a;
+  --color-warm-800: #65503c;
+  --color-warm-900: #4a3a2d;
+
+  /* Charcoal — Text */
+  --color-charcoal-50: #f6f5f4;
+  --color-charcoal-100: #e8e6e3;
+  --color-charcoal-200: #d2cec9;
+  --color-charcoal-300: #b5afa8;
+  --color-charcoal-400: #938c83;
+  --color-charcoal-500: #797269;
+  --color-charcoal-600: #635d56;
+  --color-charcoal-700: #524d47;
+  --color-charcoal-800: #3d3935;
+  --color-charcoal-900: #2a2724;
+
+  /* Semantic */
+  --color-success-light: #f0fdf4;
+  --color-success-main: #22c55e;
+  --color-success-dark: #15803d;
+  --color-warning-light: #fffbeb;
+  --color-warning-main: #f59e0b;
+  --color-warning-dark: #d97706;
+  --color-danger-light: #fff1f2;
+  --color-danger-main: #f43f5e;
+  --color-danger-dark: #be123c;
+  --color-info-light: #f0f9ff;
+  --color-info-main: #64748b;
+  --color-info-dark: #334155;
+
+  /* Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", 'Inter', system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro", 'Inter', system-ui, sans-serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Border Radius */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 30px;
+
+  /* Shadows — Apple ambient multi-layer lighting */
+  --shadow-surface: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.02);
+  --shadow-card: 0 4px 20px -2px rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.02), inset 0 1px 0 rgb(255 255 255 / 0.85);
+  --shadow-elevated: 0 14px 38px -6px rgb(0 0 0 / 0.07), 0 4px 14px -3px rgb(0 0 0 / 0.04), inset 0 1px 0 rgb(255 255 255 / 0.95);
+  --shadow-modal: 0 24px 68px -12px rgb(0 0 0 / 0.16), 0 10px 28px -6px rgb(0 0 0 / 0.08);
+
+  /* Animation durations */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 350ms;
+
+  /* Z-indices */
+  --z-sidebar: 40;
+  --z-header: 50;
+  --z-dropdown: 60;
+  --z-modal: 70;
+  --z-toast: 80;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    letter-spacing: -0.011em;
+  }
+
+  body {
+    background-color: #f7f5f2;
+    color: var(--color-charcoal-900);
+    line-height: 1.5;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Focus visible styles */
+  :focus-visible {
+    outline: 2.5px solid var(--color-brand-500);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+
+  /* Remove focus ring for mouse users */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Apple iOS floating scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.16);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.28);
+  }
+
+  /* Selection */
+  ::selection {
+    background: rgba(249, 115, 22, 0.18);
+    color: var(--color-brand-900);
+  }
+
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.022em;
+    color: var(--color-charcoal-900);
+  }
+
+  /* Tabular nums for financial data */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+}
+
+@layer utilities {
+  /* Apple Liquid Frosted Glass */
+  .glass {
+    backdrop-filter: blur(24px) saturate(190%);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
+    background-color: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+
+  .glass-warm {
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    background-color: rgba(254, 251, 248, 0.84);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+  }
+
+  .ios-glass-header {
+    backdrop-filter: blur(30px) saturate(210%);
+    -webkit-backdrop-filter: blur(30px) saturate(210%);
+    background-color: rgba(255, 255, 255, 0.78);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.02);
+  }
+
+  .ios-glass-sidebar {
+    backdrop-filter: blur(36px) saturate(200%);
+    -webkit-backdrop-filter: blur(36px) saturate(200%);
+    background-color: rgba(255, 255, 255, 0.82);
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  /* iOS Squircle Card */
+  .ios-card {
+    background-color: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.28s cubic-bezier(0.32, 0.72, 0, 1), border-color 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .ios-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 36px -4px rgba(0, 0, 0, 0.06), 0 4px 12px -2px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 1);
+    border-color: rgba(0, 0, 0, 0.08);
+  }
+
+  /* iOS Tactile Haptic Press */
+  .ios-press {
+    transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s ease, filter 0.2s ease;
+    user-select: none;
+  }
+
+  .ios-press:active {
+    transform: scale(0.965);
+    filter: brightness(0.96);
+  }
+
+  /* Gradient text */
+  .text-gradient-brand {
+    background: linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-gold-500) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Soft gradient backgrounds */
+  .bg-brand-soft {
+    background: linear-gradient(135deg, var(--color-brand-50) 0%, var(--color-gold-50) 100%);
+  }
+
+  .bg-warm-gradient {
+    background: linear-gradient(180deg, var(--color-warm-50) 0%, var(--color-warm-100) 100%);
+  }
+
+  /* Brand accent strips */
+  .accent-strip-brand {
+    border-left: 3px solid var(--color-brand-500);
+  }
+
+  .accent-strip-sage {
+    border-left: 3px solid var(--color-sage-400);
+  }
+
+  /* Skeleton shimmer */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--color-warm-200) 0%,
+      var(--color-warm-100) 50%,
+      var(--color-warm-200) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Card hover lift */
+  .card-lift {
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+
+  .card-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  /* Safe area */
+  .safe-top { padding-top: env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-left { padding-left: env(safe-area-inset-left); }
+  .safe-right { padding-right: env(safe-area-inset-right); }
+
+  /* Hide scrollbar but keep scroll */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Status dot */
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-brand {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print { display: none !important; }
+}
