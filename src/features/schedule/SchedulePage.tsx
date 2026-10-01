@@ -6,7 +6,7 @@ import { useState, useMemo } from 'react';
 import {
   ChevronLeft, ChevronRight, Plus,
   CheckCircle2, Play, XCircle,
-  Calendar, Clock, Sparkles
+  Calendar, Clock, CalendarCheck
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate, getAppointmentStatusColor, getAppointmentStatusLabel, cn } from '@/utils';
@@ -225,7 +225,7 @@ export function SchedulePage() {
           label="Bo‘sh slotlar"
           value={kpis.freeSlots}
           description={viewMode === 'day' ? "Bugun mavjud vaqtlar" : "Hafta bo‘yicha bo‘sh slotlar"}
-          icon={<Sparkles className="w-5 h-5 text-purple-600" />}
+          icon={<CalendarCheck className="w-5 h-5 text-purple-600" />}
           accentColor="purple"
           index={3}
         />

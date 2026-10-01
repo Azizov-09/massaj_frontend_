@@ -13,7 +13,7 @@ import React, {
   useId,
 } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ChevronDown, Check, X, Sparkles } from 'lucide-react';
+import { Clock, ChevronDown, Check, X } from 'lucide-react';
 import { cn } from '@/utils';
 
 export interface TimePickerProps
@@ -363,7 +363,7 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                   onClick={handleSetNow}
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-brand-600 hover:text-brand-700 bg-white hover:bg-brand-50 border border-warm-200 rounded-[8px] transition-colors shadow-2xs"
                 >
-                  <Sparkles className="w-3 h-3 text-brand-500" />
+                  <Clock className="w-3.5 h-3.5 text-brand-500" />
                   Hozirgi vaqt
                 </button>
               </div>
