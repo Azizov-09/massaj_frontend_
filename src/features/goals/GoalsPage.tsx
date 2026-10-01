@@ -156,26 +156,38 @@ export function GoalsPage() {
       />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <KpiCard
           label="Jami maqsadlar"
           value={stats.total}
-          icon={<Target className="w-5 h-5 text-brand-500" />}
+          description="Barcha qo'yilgan maqsadlar"
+          icon={<Target className="w-5 h-5 text-brand-600" />}
+          accentColor="brand"
+          index={0}
         />
         <KpiCard
           label="Erishilgan maqsadlar"
           value={stats.achieved}
-          icon={<CheckCircle2 className="w-5 h-5 text-sage-600" />}
+          description="To'liq bajarildi"
+          icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />}
+          accentColor="sage"
+          index={1}
         />
         <KpiCard
           label="Jarayonda"
           value={stats.inProgress}
-          icon={<Clock className="w-5 h-5 text-gold-500" />}
+          description="Bajarilayotgan maqsadlar"
+          icon={<Clock className="w-5 h-5 text-amber-500" />}
+          accentColor="gold"
+          index={2}
         />
         <KpiCard
           label="O‘rtacha natija"
           value={`${stats.avgProgress}%`}
+          description="Umumiy o'rtacha ko'rsatkich"
           icon={<BarChart className="w-5 h-5 text-blue-500" />}
+          accentColor="blue"
+          index={3}
         />
       </div>
 

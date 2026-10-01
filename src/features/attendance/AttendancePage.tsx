@@ -184,33 +184,47 @@ export function AttendancePage() {
       />
 
       {/* KPI Cards Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
         <KpiCard
           label="Davomat darajasi"
           value={`${stats.rate}%`}
           change={`${stats.present + stats.late} / ${stats.total} qatnashdi`}
           changeType={stats.rate >= 80 ? 'positive' : 'negative'}
-          icon={<UserCheck className="w-5 h-5 text-brand-500" />}
+          icon={<UserCheck className="w-5 h-5 text-brand-600" />}
+          accentColor="brand"
+          index={0}
         />
         <KpiCard
           label="Kelganlar"
           value={stats.present}
+          description="O‘z vaqtida qatnashdi"
           icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />}
+          accentColor="sage"
+          index={1}
         />
         <KpiCard
           label="Kechikkanlar"
           value={stats.late}
+          description="Darsga kechikib keldi"
           icon={<Clock className="w-5 h-5 text-amber-500" />}
+          accentColor="gold"
+          index={2}
         />
         <KpiCard
           label="Sababli kelmagan"
           value={stats.absent}
+          description="Oldindan ogohlantirilgan"
           icon={<AlertCircle className="w-5 h-5 text-blue-500" />}
+          accentColor="blue"
+          index={3}
         />
         <KpiCard
           label="Sababsiz kelmagan"
           value={stats.noShow}
+          description="Qatnashmadi"
           icon={<XCircle className="w-5 h-5 text-rose-500" />}
+          accentColor="danger"
+          index={4}
         />
       </div>
 

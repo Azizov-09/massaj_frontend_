@@ -205,11 +205,39 @@ export function AppointmentsPage() {
       />
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <KpiCard label="Bugun" value={todayApts.length} icon={<Calendar className="w-4 h-4 text-brand-600" />} accentColor="brand" index={0} />
-        <KpiCard label="Kutilmoqda" value={pending} icon={<Clock className="w-4 h-4 text-amber-500" />} accentColor="gold" index={1} />
-        <KpiCard label="Yakunlangan" value={completed} icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />} accentColor="sage" index={2} />
-        <KpiCard label="Bekor qilingan" value={cancelled} icon={<XCircle className="w-4 h-4 text-rose-500" />} accentColor="danger" index={3} />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <KpiCard
+          label="Bugun"
+          value={todayApts.length}
+          description="Bugungi uchrashuvlar"
+          icon={<Calendar className="w-5 h-5 text-brand-600" />}
+          accentColor="brand"
+          index={0}
+        />
+        <KpiCard
+          label="Kutilmoqda"
+          value={pending}
+          description="Rejadagi qabullar"
+          icon={<Clock className="w-5 h-5 text-amber-600" />}
+          accentColor="gold"
+          index={1}
+        />
+        <KpiCard
+          label="Yakunlangan"
+          value={completed}
+          description="Muvaffaqiyatli seanslar"
+          icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />}
+          accentColor="sage"
+          index={2}
+        />
+        <KpiCard
+          label="Bekor qilingan"
+          value={cancelled}
+          description="Bekor qilingan qabullar"
+          icon={<XCircle className="w-5 h-5 text-rose-600" />}
+          accentColor="danger"
+          index={3}
+        />
       </div>
 
       {/* Table */}

@@ -124,26 +124,38 @@ export function AdminsPage() {
       />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <KpiCard
           label="Jami ma’murlar"
           value={admins.length}
-          icon={<ShieldCheck className="w-5 h-5 text-brand-500" />}
+          description="Tizim boshqaruvchilari"
+          icon={<ShieldCheck className="w-5 h-5 text-brand-600" />}
+          accentColor="brand"
+          index={0}
         />
         <KpiCard
           label="Super Adminlar"
           value={admins.filter(a => a.role === 'SUPER_ADMIN').length}
-          icon={<Shield className="w-5 h-5 text-danger-main" />}
+          description="To'liq huquqli boshqaruv"
+          icon={<Shield className="w-5 h-5 text-rose-600" />}
+          accentColor="danger"
+          index={1}
         />
         <KpiCard
           label="Administratorlar"
           value={admins.filter(a => a.role === 'ADMIN').length}
-          icon={<User className="w-5 h-5 text-blue-500" />}
+          description="Filial boshqaruvchilari"
+          icon={<User className="w-5 h-5 text-blue-600" />}
+          accentColor="blue"
+          index={2}
         />
         <KpiCard
           label="Faol akkauntlar"
           value={admins.filter(a => a.status === 'ACTIVE').length}
+          description="Faol holatdagi adminlar"
           icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />}
+          accentColor="sage"
+          index={3}
         />
       </div>
 

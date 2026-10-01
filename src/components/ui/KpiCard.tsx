@@ -51,94 +51,98 @@ export function KpiCard({
   const trendPositive = trend && trend.value > 0;
   const trendNeutral = trend && trend.value === 0;
 
-  const topAccentMap: Record<string, string> = {
-    brand: 'bg-brand-500',
-    sage: 'bg-emerald-500',
-    gold: 'bg-amber-500',
-    danger: 'bg-rose-500',
-    success: 'bg-emerald-500',
-    blue: 'bg-blue-500',
-    purple: 'bg-purple-500',
-  };
-
   const iconBgMap: Record<string, string> = {
-    brand: 'bg-brand-50 text-brand-600 border border-brand-100/80',
-    sage: 'bg-emerald-50 text-emerald-600 border border-emerald-100/80',
-    gold: 'bg-amber-50 text-amber-600 border border-amber-100/80',
-    danger: 'bg-rose-50 text-rose-600 border border-rose-100/80',
-    success: 'bg-emerald-50 text-emerald-600 border border-emerald-100/80',
-    blue: 'bg-blue-50 text-blue-600 border border-blue-100/80',
-    purple: 'bg-purple-50 text-purple-600 border border-purple-100/80',
+    brand: 'bg-brand-50 text-brand-600 border border-brand-100/70',
+    sage: 'bg-emerald-50 text-emerald-600 border border-emerald-100/70',
+    gold: 'bg-amber-50 text-amber-600 border border-amber-100/70',
+    danger: 'bg-rose-50 text-rose-600 border border-rose-100/70',
+    success: 'bg-emerald-50 text-emerald-600 border border-emerald-100/70',
+    blue: 'bg-blue-50 text-blue-600 border border-blue-100/70',
+    purple: 'bg-purple-50 text-purple-600 border border-purple-100/70',
+    warm: 'bg-warm-100 text-charcoal-600 border border-warm-200/70',
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, delay: index * 0.05, ease: 'easeOut' }}
+      transition={{ duration: 0.22, delay: index * 0.04, ease: 'easeOut' }}
       className={cn(
-        'relative bg-white rounded-xl border border-warm-200/90 shadow-2xs hover:shadow-xs hover:border-warm-300 transition-all duration-200 p-4 sm:p-5 overflow-hidden group flex flex-col justify-between',
-        size === 'sm' ? 'p-3' : size === 'lg' ? 'p-6' : 'p-4 sm:p-5',
+        'relative bg-white rounded-xl border border-warm-200/90 shadow-2xs hover:shadow-xs hover:border-warm-300 transition-all duration-200 p-3.5 sm:p-4 flex items-center gap-3.5 group',
+        size === 'sm' && 'p-2.5 sm:p-3 gap-2.5',
+        size === 'lg' && 'p-4 sm:p-5 gap-4',
         className
       )}
     >
-      {/* Top Accent Strip */}
-      <div className={cn('absolute top-0 left-0 right-0 h-[2.5px]', topAccentMap[accentColor] ?? topAccentMap.brand)} />
-
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <span className="text-xs font-semibold text-charcoal-500 uppercase tracking-wider truncate">
-          {label}
-        </span>
-        {icon && (
-          <div className={cn(
-            'w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105 shadow-2xs',
-            iconBgMap[accentColor] ?? iconBgMap.brand,
-            size === 'lg' && 'w-11 h-11'
-          )}>
-            {icon}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <motion.p
-          key={String(value)}
-          initial={{ opacity: 0, y: 3 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
+      {icon && (
+        <div
           className={cn(
-            'font-extrabold text-charcoal-900 tabular-nums tracking-tight leading-none',
-            size === 'sm' ? 'text-xl' : size === 'lg' ? 'text-3xl' : 'text-2xl sm:text-[28px]'
+            'w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105 shadow-2xs [&>svg]:w-5 [&>svg]:h-5',
+            iconBgMap[accentColor] ?? iconBgMap.brand,
+            size === 'sm' && 'w-9 h-9 rounded-[10px] [&>svg]:w-4 [&>svg]:h-4',
+            size === 'lg' && 'w-13 h-13 rounded-2xl [&>svg]:w-6 [&>svg]:h-6'
           )}
         >
-          {formatValue()}
-        </motion.p>
+          {icon}
+        </div>
+      )}
 
-        {description && (
-          <p className="text-[11px] text-charcoal-400 mt-2 font-medium leading-tight truncate">{description}</p>
-        )}
-
-        {trend && (
-          <div className="flex items-center gap-1.5 mt-2.5">
-            <span className={cn(
-              'inline-flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-[5px]',
-              trendPositive ? 'bg-emerald-50 text-emerald-700 border border-emerald-100/80' :
-              trendNeutral ? 'bg-warm-100 text-charcoal-600 border border-warm-200/80' :
-              'bg-rose-50 text-rose-700 border border-rose-100/80'
-            )}>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <span className="text-xs font-medium text-charcoal-500 truncate">
+            {label}
+          </span>
+          {trend && (
+            <span
+              className={cn(
+                'inline-flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-[5px] shrink-0',
+                trendPositive
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-100/80'
+                  : trendNeutral
+                  ? 'bg-warm-100 text-charcoal-600 border border-warm-200/80'
+                  : 'bg-rose-50 text-rose-700 border border-rose-100/80'
+              )}
+            >
               {trendPositive ? <TrendingUp className="w-3 h-3" /> : trendNeutral ? <Minus className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
               {trend.value > 0 ? '+' : ''}{trend.value}%
             </span>
-            {trend.label && <span className="text-[11px] text-charcoal-400 truncate">{trend.label}</span>}
-          </div>
-        )}
-
-        {!trend && change && (
-          <div className="flex items-center gap-1 mt-2 text-[11px] font-semibold">
-            <span className={changeType === 'positive' ? 'text-emerald-600' : changeType === 'negative' ? 'text-rose-600' : 'text-charcoal-500'}>
+          )}
+          {!trend && change && (
+            <span
+              className={cn(
+                'text-[11px] font-semibold shrink-0',
+                changeType === 'positive' ? 'text-emerald-600' : changeType === 'negative' ? 'text-rose-600' : 'text-charcoal-500'
+              )}
+            >
               {change}
             </span>
-          </div>
+          )}
+        </div>
+
+        <div className="flex items-baseline gap-2">
+          <motion.span
+            key={String(value)}
+            initial={{ opacity: 0, y: 2 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className={cn(
+              'font-extrabold text-charcoal-900 tabular-nums tracking-tight leading-none',
+              size === 'sm' ? 'text-lg sm:text-xl' : size === 'lg' ? 'text-3xl' : 'text-2xl sm:text-[26px]'
+            )}
+          >
+            {formatValue()}
+          </motion.span>
+          {trend?.label && (
+            <span className="text-[11px] text-charcoal-400 font-normal truncate hidden sm:inline">
+              {trend.label}
+            </span>
+          )}
+        </div>
+
+        {description && (
+          <p className="text-[11px] text-charcoal-400 mt-1 font-normal leading-tight truncate">
+            {description}
+          </p>
         )}
       </div>
     </motion.div>

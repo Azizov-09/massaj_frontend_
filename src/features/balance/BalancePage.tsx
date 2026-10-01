@@ -221,29 +221,40 @@ export function BalancePage() {
       />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <KpiCard
           label="Jami depozit mablag‘i"
           value={formatCurrencyCompact(kpis.totalDeposit)}
+          description="Mijozlar hisobidagi mablag'"
           icon={<TrendingUp className="w-5 h-5 text-emerald-600" />}
+          accentColor="sage"
           changeType="positive"
+          index={0}
         />
         <KpiCard
           label="Jami haqiqiy qarz"
           value={formatCurrencyCompact(kpis.totalDebt)}
-          icon={<AlertTriangle className="w-5 h-5 text-danger-main" />}
+          description="Klinikaga to'lanishi kerak"
+          icon={<AlertTriangle className="w-5 h-5 text-rose-600" />}
+          accentColor="danger"
           changeType={kpis.totalDebt > 0 ? 'negative' : 'positive'}
+          index={1}
         />
         <KpiCard
           label="Qarzdor mijozlar"
           value={`${kpis.debtClients} ta`}
-          change={`${kpis.totalClients} tadan`}
+          description={`${kpis.totalClients} ta mijozdan`}
           icon={<Wallet className="w-5 h-5 text-amber-500" />}
+          accentColor="gold"
+          index={2}
         />
         <KpiCard
           label="Moliyaviy barqarorlik"
           value={`${Math.round(((kpis.totalClients - kpis.debtClients) / (kpis.totalClients || 1)) * 100)}%`}
-          icon={<CheckCircle2 className="w-5 h-5 text-brand-500" />}
+          description="To'lov intizomi darajasi"
+          icon={<CheckCircle2 className="w-5 h-5 text-brand-600" />}
+          accentColor="brand"
+          index={3}
         />
       </div>
 

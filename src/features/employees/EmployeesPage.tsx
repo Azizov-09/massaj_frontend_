@@ -129,26 +129,38 @@ export function EmployeesPage() {
       />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <KpiCard
           label="Jami xodimlar"
           value={employees.length}
-          icon={<Users className="w-5 h-5 text-brand-500" />}
+          description="Barcha xodimlar"
+          icon={<Users className="w-5 h-5 text-brand-600" />}
+          accentColor="brand"
+          index={0}
         />
         <KpiCard
           label="Faol xodimlar"
           value={employees.filter(e => e.status === 'ACTIVE').length}
+          description="Hozirda ishlayotganlar"
           icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />}
+          accentColor="sage"
+          index={1}
         />
         <KpiCard
           label="Lavozimlar soni"
           value={positions.length}
+          description="Mavjud mutaxassisliklar"
           icon={<Briefcase className="w-5 h-5 text-amber-500" />}
+          accentColor="gold"
+          index={2}
         />
         <KpiCard
           label="Tarkib to‘liqligi"
           value="100%"
+          description="Shtat to'liq shakllangan"
           icon={<UserCheck className="w-5 h-5 text-blue-500" />}
+          accentColor="blue"
+          index={3}
         />
       </div>
 

@@ -2,22 +2,25 @@
 
 Ushbu hujjatda **Senior Frontend Engineer** va **AGENTS.md** arxitektura qoidalari asosida loyihada amalga oshirilgan barcha tizimli tuzatishlar, refaktoringlar, xavfsizlik va optimallashtirish ishlari bosqichma-bosqich qayd etib boriladi.
 
-## 📌 2026-10-01: KPI Ko‘rsatkich Kartalari (KpiCard) Dizaynini To‘liq Yangilash va Sahifalarda 4 Tali Simmetrik To‘rni (4-Card Metric Grid) Standartlashtirish
+## 📌 2026-10-01: KPI Metrika Kartalari (KpiCard) Dizaynini To‘liq Premium Gorizontal Arxitekturaga O‘tkazish (Top Accent Chiziqlari va Bo‘shliqlarni Yo‘qotish)
 
-### [P0] KPI Metrika Kartalari Dizayni va Joylashuvini "Senior Frontend" Standartiga Keltirish
+### [P0] KPI Metrika Kartalari Dizayni va Joylashuvini "Senior Frontend" Mukammal Standartiga Keltirish
 - **Fayllar:**
-  - [`src/components/ui/KpiCard.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/KpiCard.tsx) — Chapdagi qalin chiziq (`border-l-[3px]`), xira gradient fon va dumaloq fon dog‘i olib tashlandi; yuqori 2.5px rangli aktsent tasmasi, toza oq fon, ixcham `w-9 h-9` pastel rangli ikonka konteyneri va muvozanatli 2 qatorli ierarxiya qo‘shildi.
-  - [`src/features/specialists/SpecialistsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/specialists/SpecialistsPage.tsx) — 3 ta cho‘zilgan karta o‘rniga 4 ta simmetrik KPI karta (`Faol mutaxassislar`, `Bajarilgan seanslar`, `O‘rtacha tajriba`, `Jami mutaxassislar`) o‘rnatildi; filtr qatoriga mutaxassis holati bo‘yicha yangi Select menyusi qo‘shildi.
-  - [`src/features/payments/PaymentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/payments/PaymentsPage.tsx) — 3 ta kartadan 4 ta muvozanatli KPI kartasiga (`Jami tushum`, `Bu oy`, `Bugun`, `To'lovlar soni`) o‘tkazildi.
-  - [`src/features/sessions/SessionsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/sessions/SessionsPage.tsx) — 4 ta simmetrik KPI kartasi (`Jami seanslar`, `Yakunlangan`, `Jarayonda`, `Bekor qilingan`) o‘rnatildi.
-  - [`src/features/services/ServicesPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/services/ServicesPage.tsx) — 4 ta simmetrik KPI kartasi (`Faol xizmatlar`, `O‘tkazilgan seanslar`, `Jami tushum`, `Arxivlangan`) o‘rnatildi.
-  - [`src/features/debtors/DebtorsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/debtors/DebtorsPage.tsx) — Adminlar uchun 4 ta simmetrik KPI kartasi (`Jami qarz`, `Qarzdorlar soni`, `O'rtacha qarz`, `Maksimal qarz`) o‘rnatildi.
-  - [`src/features/dashboard/ParentDashboard.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/dashboard/ParentDashboard.tsx) va [`SpecialistDashboard.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/dashboard/SpecialistDashboard.tsx) — KPI kartalarining aktsent va ikonka ranglari yangi tokenlarga moslashtirildi.
+  - [`src/components/ui/KpiCard.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/KpiCard.tsx) — Kartalarning yuqori qismidagi sun’iy rangli chiziq (`h-[2.5px]`) butunlay olib tashlandi; qulay va professional gorizontal arxitektura (`flex items-center gap-3.5`) joriy etildi; chap tomonga `w-11 h-11 rounded-xl` pastel fonli zamonaviy squircle ikonka konteyneri joylashtirildi; o‘ng tomonga sarlavha, yirik raqam, foizli trend nishoni va tushuntirish yozuvi mutanosib birlashtirildi; burchakdagi bo‘shliqlar (empty void) va baqiruvchi all-caps (katta harflar) butunlay bartaraf etildi.
+  - [`src/features/appointments/AppointmentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/appointments/AppointmentsPage.tsx) — Barcha 4 ta KPI kartaga (`Bugun`, `Kutilmoqda`, `Yakunlangan`, `Bekor qilingan`) tushunarli kontekst izohlari (`description`), `w-5 h-5` vektor ikonkalari va `gap-3.5` to‘r o‘lchami o‘rnatildi.
+  - [`src/features/attendance/AttendancePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/attendance/AttendancePage.tsx) — 5 ta kartaga mos pastel rang aktsentlari (`brand`, `sage`, `gold`, `blue`, `danger`), tartibli `index` va kontekst tavsiflari qo‘shildi.
+  - [`src/features/admins/AdminsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/admins/AdminsPage.tsx) — 4 ta kartaga rang tokenlari, aniq tavsiflar va silliq yuklanish animatsiyalari berildi.
+  - [`src/features/employees/EmployeesPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/employees/EmployeesPage.tsx) — Xodimlar statistikasi kartalariga to‘liq rang va tavsiflar ulandi.
+  - [`src/features/goals/GoalsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/goals/GoalsPage.tsx) — Maqsadlar sahifasidagi 4 ta kartaga ranglar va tavsiflar biriktirildi.
+  - [`src/features/analytics/AnalyticsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/analytics/AnalyticsPage.tsx) — Analitika ko‘rsatkich kartalari ranglari va matnlari unifikatsiya qilindi.
+  - [`src/features/balance/BalancePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/balance/BalancePage.tsx) — Balans va depozit kartalariga rang va tavsiflar ulandi.
+  - [`src/features/dashboard/SuperAdminDashboard.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/dashboard/SuperAdminDashboard.tsx) — Boshqaruv paneli to‘ri `gap-3.5` standartiga keltirildi.
 
-- **Bajarilgan Standartlashtirish va Yechim:**
-  1. **Toza va Zamonaviy Karta Dizayni:** Asimmetrik va burchak egriligi bilan to‘qnashuvchi chap chegara o‘rniga har bir kartaning yuqori qismida nozik `h-[2.5px]` rangli aktsent tasmasi (`topAccentMap`) qo‘llandi. Qoramtir/loyqa gradient fon o‘rniga toza oq `bg-white`, `border-warm-200/90` va yumshoq `shadow-2xs hover:shadow-xs` qo‘shildi.
-  2. **Aniq Ierarxiya va Balans:** Har bir karta yuqori qatorda sarlavha va `w-9 h-9 rounded-[10px]` pastel rangli ixcham ikonka konteyneriga, quyi qatorda esa `text-2xl sm:text-[28px] font-extrabold` qiymat, izoh va trend o‘zgarish ko‘rsatkichlariga ega bo‘ldi.
-  3. **4-Karta Simmetriyasi (`grid grid-cols-2 lg:grid-cols-4 gap-3.5`):** Oldin 3 ta karta bo‘lgan sahifalarda kartalar katta ekranlarda 530px gacha haddan tashqari cho‘zilib, o‘rtada bo‘shliq paydo qilardi. Endi barcha asosiy CRM bo‘limlari 4 ta karta bilan bir xil simmetriyaga keltirildi.
+- **Bajarilgan Tizimli Yechim va Natija:**
+  1. **Sun’iy Chegaralar va Chiziqlarsiz Tabiiy Oq Karta:** Kartaning na chapida va na tepasida hech qanday sun’iy rangli chiziq qolmadi. Karta toza oq `bg-white`, nozik `border-warm-200/90`, `rounded-xl` va `shadow-2xs hover:shadow-xs hover:border-warm-300` bilan professional tibbiy SaaS dasturiga moslandi.
+  2. **Gorizontal Mutanosiblik (Zero Dead Space):** Chapda chiroyli pastel squircle ikonka (`w-11 h-11`), uning yonida darhol toza sarlavha va yirik son. Hech qanday bo‘sh qolgan oq dog‘lar yo‘q.
+  3. **Yumshoq Tipografiya:** Qattiq va xunuk katta harflar (`BUGUN`, `KUTILMOQDA`) o‘rniga insoniy yumshoq Sentence case (`Bugun`, `Kutilmoqda`, `Yakunlangan`, `Bekor qilingan`) o‘rnatildi.
+  4. **Ixcham va Balandligi Bir Xil To‘r:** Kartalar vertikaliga haddan tashqari cho‘zilmaydi (`p-3.5 sm:p-4`, balandligi ~76px), ekranda kam joy olib, maksimal axborot beradi.
 
 ---
 

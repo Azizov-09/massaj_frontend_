@@ -144,28 +144,40 @@ export function AnalyticsPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <KpiCard
           label="Jami tushum"
           value={formatCurrencyCompact(totalRevenue)}
-          icon={<DollarSign className="w-5 h-5 text-brand-500" />}
+          description="Barcha muolajalar tushumi"
+          icon={<DollarSign className="w-5 h-5 text-brand-600" />}
+          accentColor="brand"
           changeType="positive"
+          index={0}
         />
         <KpiCard
           label="Bajarilgan seanslar"
           value={totalCompletedSessions}
+          description="Muvaffaqiyatli seanslar"
           icon={<Activity className="w-5 h-5 text-emerald-600" />}
+          accentColor="sage"
           changeType="positive"
+          index={1}
         />
         <KpiCard
           label="Davomat ko‘rsatkichi"
           value={`${attendanceRate}%`}
+          description="Bolalar davomati darajasi"
           icon={<Users className="w-5 h-5 text-amber-500" />}
+          accentColor="gold"
+          index={2}
         />
         <KpiCard
           label="O‘rtacha seans narxi"
           value={formatCurrencyCompact(totalCompletedSessions > 0 ? Math.round(totalRevenue / totalCompletedSessions) : 100000)}
+          description="Har bir seans bo'yicha"
           icon={<TrendingUp className="w-5 h-5 text-blue-500" />}
+          accentColor="blue"
+          index={3}
         />
       </div>
 

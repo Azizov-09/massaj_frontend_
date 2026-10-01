@@ -100,7 +100,7 @@ export function SuperAdminDashboard() {
       </div>
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <KpiCard
           label="Jami tushum"
           value={summary.totalRevenue}
