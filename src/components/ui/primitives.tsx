@@ -160,6 +160,8 @@ Input.displayName = 'Input';
 
 export { Select, type SelectProps, type SelectOption } from './Select';
 export { DatePicker, type DatePickerProps } from './DatePicker';
+export { TimePicker, type TimePickerProps } from './TimePicker';
+export { Switch, type SwitchProps } from './Switch';
 
 // ─── Textarea ─────────────────────────────────────────────
 

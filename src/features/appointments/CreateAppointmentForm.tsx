@@ -5,7 +5,7 @@ import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useStore, useAuth } from '@/store';
-import { Input, Select, Textarea, DatePicker } from '@/components/ui/primitives';
+import { Select, Textarea, DatePicker, TimePicker } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 
 const schema = z.object({
@@ -142,13 +142,19 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
             />
           )}
         />
-        <Input
-          type="time"
-          label="Boshlanish vaqti"
-          required
-          error={errors.startTime?.message}
-          hint={endTime ? `Tugash: ${endTime}` : undefined}
-          {...register('startTime')}
+        <Controller
+          control={control}
+          name="startTime"
+          render={({ field }) => (
+            <TimePicker
+              label="Boshlanish vaqti"
+              required
+              error={errors.startTime?.message}
+              hint={endTime ? `Tugash: ${endTime}` : undefined}
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
         />
         {parentId && (
           <div className="flex items-end pb-2">

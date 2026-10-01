@@ -7,7 +7,7 @@ import {
   Building2, Bell, Save, RefreshCw, AlertTriangle
 } from 'lucide-react';
 import { useStore } from '@/store';
-import { Card, CardHeader, CardBody, Input, Select } from '@/components/ui/primitives';
+import { Card, CardHeader, CardBody, Input, Select, TimePicker, Switch } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
 import { ConfirmDialog } from '@/components/ui/Modal';
@@ -84,18 +84,22 @@ export function SettingsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <Input
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <TimePicker
                 label="Ish boshlanishi"
-                type="time"
                 value={workStart}
                 onChange={e => setWorkStart(e.target.value)}
+                min="06:00"
+                max="12:00"
+                stepMinutes={30}
               />
-              <Input
+              <TimePicker
                 label="Ish tugashi"
-                type="time"
                 value={workEnd}
                 onChange={e => setWorkEnd(e.target.value)}
+                min="14:00"
+                max="23:00"
+                stepMinutes={30}
               />
             </div>
 
@@ -120,31 +124,29 @@ export function SettingsPage() {
           </div>
         </CardHeader>
         <CardBody className="space-y-4">
-          <label className="flex items-center justify-between p-3.5 rounded-[12px] border border-warm-200 shadow-2xs hover:bg-warm-50/50 cursor-pointer transition-colors">
+          <div className="flex items-center justify-between p-3.5 rounded-[12px] border border-warm-200 shadow-2xs hover:bg-warm-50/50 transition-colors">
             <div>
               <span className="text-xs sm:text-sm font-bold text-charcoal-900 block">SMS Eslatmalar</span>
               <span className="text-xs text-charcoal-500">Seansdan oldin ota-onaga SMS xabarnoma yuborish</span>
             </div>
-            <input
-              type="checkbox"
+            <Switch
               checked={smsEnabled}
-              onChange={e => setSmsEnabled(e.target.checked)}
-              className="w-4 h-4 accent-brand-500"
+              onChange={setSmsEnabled}
+              aria-label="SMS Eslatmalar"
             />
-          </label>
+          </div>
 
-          <label className="flex items-center justify-between p-3.5 rounded-[12px] border border-warm-200 shadow-2xs hover:bg-warm-50/50 cursor-pointer transition-colors">
+          <div className="flex items-center justify-between p-3.5 rounded-[12px] border border-warm-200 shadow-2xs hover:bg-warm-50/50 transition-colors">
             <div>
               <span className="text-xs sm:text-sm font-bold text-charcoal-900 block">Ovozli signallar</span>
               <span className="text-xs text-charcoal-500">Yangi uchrashuv yoki to‘lov kiritilganda ovoz chiqarish</span>
             </div>
-            <input
-              type="checkbox"
+            <Switch
               checked={soundEnabled}
-              onChange={e => setSoundEnabled(e.target.checked)}
-              className="w-4 h-4 accent-brand-500"
+              onChange={setSoundEnabled}
+              aria-label="Ovozli signallar"
             />
-          </label>
+          </div>
 
           <div className="flex items-center justify-between p-3.5 rounded-[12px] border border-warm-200 shadow-2xs">
             <div>
