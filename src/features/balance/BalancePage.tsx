@@ -225,7 +225,7 @@ export function BalancePage() {
         <KpiCard
           label="Jami depozit mablag‘i"
           value={formatCurrencyCompact(kpis.totalDeposit)}
-          icon={<TrendingUp className="w-5 h-5 text-sage-600" />}
+          icon={<TrendingUp className="w-5 h-5 text-emerald-600" />}
           changeType="positive"
         />
         <KpiCard
@@ -238,7 +238,7 @@ export function BalancePage() {
           label="Qarzdor mijozlar"
           value={`${kpis.debtClients} ta`}
           change={`${kpis.totalClients} tadan`}
-          icon={<Wallet className="w-5 h-5 text-gold-500" />}
+          icon={<Wallet className="w-5 h-5 text-amber-500" />}
         />
         <KpiCard
           label="Moliyaviy barqarorlik"
@@ -253,24 +253,25 @@ export function BalancePage() {
           <div className="flex flex-wrap items-center gap-3">
             {/* Search */}
             <div className="relative w-64">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Ota-ona yoki bola ismi..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full text-xs pl-8 pr-3 py-1.5 border border-warm-300 rounded-xl bg-white outline-none focus:border-brand-500"
+                className="w-full h-9 pl-9 pr-3 text-xs border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 shadow-2xs placeholder:text-charcoal-400 transition-colors"
               />
             </div>
 
             {/* Status pills */}
-            <div className="flex rounded-xl bg-warm-100 p-1">
+            <div className="flex items-center h-9 p-1 rounded-[10px] bg-warm-100/90 border border-warm-200/80 shadow-2xs gap-1">
               {(['ALL', 'DEBT', 'DEPOSIT', 'ZERO'] as const).map(st => (
                 <button
                   key={st}
+                  type="button"
                   onClick={() => setStatusFilter(st)}
                   className={cn(
-                    'px-3 py-1 text-xs font-semibold rounded-lg transition-all',
+                    'h-7 px-3 text-xs font-semibold rounded-[7px] transition-all cursor-pointer',
                     statusFilter === st
                       ? 'bg-white shadow-xs text-charcoal-900'
                       : 'text-charcoal-500 hover:text-charcoal-900'
@@ -282,7 +283,7 @@ export function BalancePage() {
             </div>
           </div>
 
-          <span className="text-xs text-charcoal-400">
+          <span className="text-xs text-charcoal-400 font-medium">
             {filteredRows.length} ta ota-ona
           </span>
         </div>

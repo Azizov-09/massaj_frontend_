@@ -78,7 +78,7 @@ export function EmployeesPage() {
           <Avatar name={e.fullName} size="sm" />
           <div>
             <h5 className="font-semibold text-charcoal-900 text-xs sm:text-sm">{e.fullName}</h5>
-            <p className="text-[11px] text-charcoal-400">{e.email || '—'}</p>
+            {e.email ? <p className="text-[11px] text-charcoal-400">{e.email}</p> : null}
           </div>
         </div>
       ),
@@ -138,12 +138,12 @@ export function EmployeesPage() {
         <KpiCard
           label="Faol xodimlar"
           value={employees.filter(e => e.status === 'ACTIVE').length}
-          icon={<CheckCircle2 className="w-5 h-5 text-sage-600" />}
+          icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />}
         />
         <KpiCard
           label="Lavozimlar soni"
           value={positions.length}
-          icon={<Briefcase className="w-5 h-5 text-gold-500" />}
+          icon={<Briefcase className="w-5 h-5 text-amber-500" />}
         />
         <KpiCard
           label="Tarkib to‘liqligi"
@@ -152,18 +152,18 @@ export function EmployeesPage() {
         />
       </div>
 
-      {/* Filter strip */}
-      <Card className="p-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      {/* Table */}
+      <Card className="overflow-hidden">
+        <div className="px-4 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-warm-100">
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative w-64">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Ism yoki telefon..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full text-xs pl-8 pr-3 py-1.5 border border-warm-300 rounded-xl bg-white outline-none focus:border-brand-500"
+                className="w-full h-9 pl-9 pr-3 text-xs border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 shadow-2xs placeholder:text-charcoal-400 transition-colors"
               />
             </div>
 
@@ -171,7 +171,8 @@ export function EmployeesPage() {
               <Select
                 value={positionFilter}
                 onChange={e => setPositionFilter(e.target.value)}
-                className="py-1.5 text-xs"
+                size="sm"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
               >
                 <option value="">Barcha lavozimlar</option>
                 {positions.map(pos => (
@@ -181,14 +182,11 @@ export function EmployeesPage() {
             </div>
           </div>
 
-          <span className="text-xs text-charcoal-400">
+          <span className="text-xs text-charcoal-400 font-medium">
             {filtered.length} ta xodim
           </span>
         </div>
-      </Card>
 
-      {/* Table */}
-      <Card className="overflow-hidden">
         <DataTable
           data={filtered}
           columns={columns}

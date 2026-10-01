@@ -2,7 +2,7 @@
 //  Sessions Page — With complete workflow
 // ═══════════════════════════════════════
 import { useState, useMemo } from 'react';
-import { Activity, CheckCircle, Search } from 'lucide-react';
+import { Activity, CheckCircle2, XCircle, Search } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDateTime, formatCurrencyCompact, getSessionStatusColor, getSessionStatusLabel } from '@/utils';
 import { DataTable, Column } from '@/components/tables/DataTable';
@@ -114,7 +114,7 @@ export function SessionsPage() {
         <Button
           size="xs"
           onClick={e => { e.stopPropagation(); setCompleteTarget(row.id); }}
-          leftIcon={<CheckCircle className="w-3 h-3" />}
+          leftIcon={<CheckCircle2 className="w-3 h-3" />}
         >
           Yakunlash
         </Button>
@@ -130,20 +130,26 @@ export function SessionsPage() {
       />
 
       <div className="grid grid-cols-3 gap-3">
-        <KpiCard label="Yakunlangan" value={completed} icon={<CheckCircle className="w-4 h-4" />} accentColor="sage" index={0} />
-        <KpiCard label="Jarayonda" value={inProgress} icon={<Activity className="w-4 h-4" />} accentColor="brand" index={1} />
-        <KpiCard label="Bekor qilingan" value={cancelled} icon={<Activity className="w-4 h-4" />} accentColor="danger" index={2} />
+        <KpiCard label="Yakunlangan" value={completed} icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />} accentColor="sage" index={0} />
+        <KpiCard label="Jarayonda" value={inProgress} icon={<Activity className="w-4 h-4 text-brand-600" />} accentColor="brand" index={1} />
+        <KpiCard label="Bekor qilingan" value={cancelled} icon={<XCircle className="w-4 h-4 text-rose-500" />} accentColor="danger" index={2} />
       </div>
 
       <Card>
         <div className="px-4 py-3 flex gap-3 border-b border-warm-100 flex-wrap items-center">
           <div className="relative flex-1 min-w-[180px] max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Bola ismi..."
-              className="w-full pl-9 pr-3 py-2 text-sm border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 placeholder:text-charcoal-400 transition-colors" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Bola ismi..."
+              className="w-full h-9 pl-9 pr-3 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 outline-none transition-all"
+            />
           </div>
           <div className="w-48">
             <Select
+              size="sm"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
               options={[
@@ -155,7 +161,7 @@ export function SessionsPage() {
               aria-label="Holat bo'yicha filter"
             />
           </div>
-          <span className="ml-auto text-xs text-charcoal-400">{filtered.length} ta</span>
+          <span className="ml-auto text-xs text-charcoal-400 font-medium">{filtered.length} ta seans</span>
         </div>
         <DataTable
           data={filtered}
@@ -203,7 +209,7 @@ function CompleteSessionForm({ sessionId, onSuccess, onCancel, onComplete }: {
       </div>
       <div className="flex items-center justify-end gap-3 pt-2">
         <Button variant="secondary" type="button" onClick={onCancel}>Bekor qilish</Button>
-        <Button type="submit" loading={isSubmitting} leftIcon={<CheckCircle className="w-4 h-4" />}>Yakunlash</Button>
+        <Button type="submit" loading={isSubmitting} leftIcon={<CheckCircle2 className="w-4 h-4" />}>Yakunlash</Button>
       </div>
     </form>
   );

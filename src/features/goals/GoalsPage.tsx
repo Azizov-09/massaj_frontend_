@@ -185,32 +185,36 @@ export function GoalsPage() {
           <div className="flex flex-wrap items-center gap-3">
             <div className="w-56">
               <Select
+                size="sm"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
                 value={selectedChildId}
                 onChange={e => setSelectedChildId(e.target.value)}
-                className="py-1.5 text-xs"
-              >
-                <option value="">Barcha bolalar</option>
-                {availableChildren.map(c => (
-                  <option key={c.id} value={c.id}>{c.fullName}</option>
-                ))}
-              </Select>
+                options={[
+                  { value: '', label: 'Barcha bolalar' },
+                  ...availableChildren.map(c => ({ value: c.id, label: c.fullName })),
+                ]}
+                aria-label="Bola bo'yicha filter"
+              />
             </div>
 
             <div className="w-48">
               <Select
+                size="sm"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
                 value={selectedStatus}
                 onChange={e => setSelectedStatus(e.target.value)}
-                className="py-1.5 text-xs"
-              >
-                <option value="">Barcha holatlar</option>
-                <option value="ACTIVE">Faol (Jarayonda)</option>
-                <option value="COMPLETED">Bajarilgan</option>
-                <option value="PAUSED">To‘xtatilgan</option>
-              </Select>
+                options={[
+                  { value: '', label: 'Barcha holatlar' },
+                  { value: 'ACTIVE', label: 'Faol (Jarayonda)' },
+                  { value: 'COMPLETED', label: 'Bajarilgan' },
+                  { value: 'PAUSED', label: 'To‘xtatilgan' },
+                ]}
+                aria-label="Holat bo'yicha filter"
+              />
             </div>
           </div>
 
-          <span className="text-xs text-charcoal-400">
+          <span className="text-xs text-charcoal-400 font-medium">
             {filteredGoals.length} ta maqsad
           </span>
         </div>
@@ -321,11 +325,8 @@ export function GoalsPage() {
             required
             value={newGoal.childId}
             onChange={e => setNewGoal({ ...newGoal, childId: e.target.value })}
-          >
-            {availableChildren.map(c => (
-              <option key={c.id} value={c.id}>{c.fullName}</option>
-            ))}
-          </Select>
+            options={availableChildren.map(c => ({ value: c.id, label: c.fullName }))}
+          />
 
           <Input
             label="Maqsad nomi"
@@ -419,11 +420,12 @@ export function GoalsPage() {
               label="Holat"
               value={editData.status}
               onChange={e => setEditData({ ...editData, status: e.target.value as GoalStatus })}
-            >
-              <option value="ACTIVE">Faol (Jarayonda)</option>
-              <option value="COMPLETED">Bajarildi (100%)</option>
-              <option value="PAUSED">To‘xtatilgan</option>
-            </Select>
+              options={[
+                { value: 'ACTIVE', label: 'Faol (Jarayonda)' },
+                { value: 'COMPLETED', label: 'Bajarildi (100%)' },
+                { value: 'PAUSED', label: 'To‘xtatilgan' },
+              ]}
+            />
 
             <Textarea
               label="Mutaxassis izohi va natija"

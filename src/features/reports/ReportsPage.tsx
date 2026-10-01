@@ -185,9 +185,9 @@ export function ReportsPage() {
             <button
               key={item.type}
               onClick={() => setReportType(item.type)}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all ${
+              className={`px-4 py-2 rounded-[10px] font-bold text-xs sm:text-sm flex items-center gap-2 transition-all ${
                 reportType === item.type
-                  ? 'bg-brand-500 text-white shadow-sm shadow-brand-500/25 scale-[1.02]'
+                  ? 'bg-brand-500 text-white shadow-2xs'
                   : 'bg-white border border-warm-200 text-charcoal-700 hover:border-brand-400'
               }`}
             >
@@ -209,6 +209,7 @@ export function ReportsPage() {
               <div className="w-36">
                 <DatePicker
                   size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
                   value={dateFrom}
                   onChange={e => setDateFrom(e.target.value)}
                   placeholder="Boshlanish"
@@ -219,6 +220,7 @@ export function ReportsPage() {
               <div className="w-36">
                 <DatePicker
                   size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
                   value={dateTo}
                   onChange={e => setDateTo(e.target.value)}
                   placeholder="Tugash"
@@ -229,22 +231,23 @@ export function ReportsPage() {
 
             {/* Specialist filter for sessions and attendance */}
             {(reportType === 'SESSIONS' || reportType === 'ATTENDANCE') && (
-              <div className="w-52">
+              <div className="w-56">
                 <Select
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
                   value={specialistFilter}
                   onChange={e => setSpecialistFilter(e.target.value)}
-                  className="py-1 text-xs"
-                >
-                  <option value="">Barcha mutaxassislar</option>
-                  {specialists.map(s => (
-                    <option key={s.id} value={s.id}>{s.fullName}</option>
-                  ))}
-                </Select>
+                  options={[
+                    { value: '', label: 'Barcha mutaxassislar' },
+                    ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                  ]}
+                  aria-label="Mutaxassis bo'yicha filter"
+                />
               </div>
             )}
           </div>
 
-          <span className="text-xs text-charcoal-400">
+          <span className="text-xs text-charcoal-400 font-medium">
             {reportData.length} ta yozuv shakllantirildi
           </span>
         </div>

@@ -2,7 +2,7 @@
 //  Appointments Page — Full CRUD with status workflow
 // ═══════════════════════════════════════════════════════
 import { useState, useMemo } from 'react';
-import { Plus, Search, Calendar, CheckCircle, XCircle, Play, UserX, X } from 'lucide-react';
+import { Plus, Search, Calendar, CheckCircle2, XCircle, Play, UserX, X, Clock } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import {
   formatDate, getAppointmentStatusColor, getAppointmentStatusLabel,
@@ -151,7 +151,7 @@ export function AppointmentsPage() {
               className="p-1.5 rounded-[6px] text-sage-600 hover:bg-sage-50 transition-colors"
               title="Tasdiqlash"
             >
-              <CheckCircle className="w-3.5 h-3.5" />
+              <CheckCircle2 className="w-3.5 h-3.5" />
             </button>
           )}
           {!isParent && ['SCHEDULED', 'CONFIRMED'].includes(row.status) && (
@@ -206,10 +206,10 @@ export function AppointmentsPage() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <KpiCard label="Bugun" value={todayApts.length} icon={<Calendar className="w-4 h-4" />} accentColor="brand" index={0} />
-        <KpiCard label="Kutilmoqda" value={pending} icon={<Calendar className="w-4 h-4" />} accentColor="gold" index={1} />
-        <KpiCard label="Yakunlangan" value={completed} icon={<CheckCircle className="w-4 h-4" />} accentColor="sage" index={2} />
-        <KpiCard label="Bekor qilingan" value={cancelled} icon={<XCircle className="w-4 h-4" />} accentColor="danger" index={3} />
+        <KpiCard label="Bugun" value={todayApts.length} icon={<Calendar className="w-4 h-4 text-brand-600" />} accentColor="brand" index={0} />
+        <KpiCard label="Kutilmoqda" value={pending} icon={<Clock className="w-4 h-4 text-amber-500" />} accentColor="gold" index={1} />
+        <KpiCard label="Yakunlangan" value={completed} icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />} accentColor="sage" index={2} />
+        <KpiCard label="Bekor qilingan" value={cancelled} icon={<XCircle className="w-4 h-4 text-rose-500" />} accentColor="danger" index={3} />
       </div>
 
       {/* Table */}
@@ -221,11 +221,13 @@ export function AppointmentsPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Bola yoki mutaxassis..."
-              className="w-full pl-9 pr-3 py-2 text-sm border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 placeholder:text-charcoal-400 transition-colors"
+              className="w-full h-9 pl-9 pr-3 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 outline-none transition-all"
             />
           </div>
           <div className="w-52">
             <Select
+              size="sm"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
               options={[
@@ -243,6 +245,7 @@ export function AppointmentsPage() {
           <div className="w-44">
             <DatePicker
               size="sm"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
               value={dateFilter}
               onChange={e => setDateFilter(e.target.value)}
               placeholder="Sana bo'yicha..."
@@ -257,7 +260,7 @@ export function AppointmentsPage() {
               <X className="w-3 h-3" /> Tozalash
             </button>
           )}
-          <span className="ml-auto text-xs text-charcoal-400">{filtered.length} ta</span>
+          <span className="ml-auto text-xs text-charcoal-400 font-medium">{filtered.length} ta uchrashuv</span>
         </div>
         <DataTable
           data={filtered}

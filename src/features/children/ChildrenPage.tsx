@@ -191,7 +191,7 @@ export function ChildrenPage() {
 
       {/* Filters */}
       <Card>
-        <div className="px-4 py-3 flex flex-wrap items-center gap-3">
+        <div className="px-4 py-3 flex flex-wrap items-center gap-3 border-b border-warm-100">
           {/* Search */}
           <div className="relative flex-1 min-w-[200px] max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
@@ -199,7 +199,7 @@ export function ChildrenPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Ism yoki ota-ona bo'yicha qidirish..."
-              className="w-full pl-9 pr-3 py-2 text-sm border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-colors placeholder:text-charcoal-400"
+              className="w-full h-9 pl-9 pr-8 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 outline-none transition-all"
             />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700">
@@ -211,6 +211,8 @@ export function ChildrenPage() {
           {/* Status filter */}
           <div className="w-44">
             <Select
+              size="sm"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
               options={[
@@ -226,6 +228,8 @@ export function ChildrenPage() {
           {/* Specialist filter */}
           <div className="w-52">
             <Select
+              size="sm"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
               value={specialistFilter}
               onChange={e => setSpecialistFilter(e.target.value)}
               options={[
@@ -247,7 +251,7 @@ export function ChildrenPage() {
             </button>
           )}
 
-          <span className="ml-auto text-xs text-charcoal-400">{filtered.length} ta natija</span>
+          <span className="ml-auto text-xs text-charcoal-400 font-medium">{filtered.length} ta natija</span>
         </div>
 
         <DataTable

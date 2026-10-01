@@ -205,7 +205,7 @@ export function TransactionsPage() {
         <KpiCard
           label="Jami tushum (Kirim)"
           value={formatCurrencyCompact(summary.totalIn)}
-          icon={<ArrowDownLeft className="w-5 h-5 text-sage-600" />}
+          icon={<ArrowDownLeft className="w-5 h-5 text-emerald-600" />}
           accentColor="sage"
         />
         <KpiCard
@@ -217,7 +217,7 @@ export function TransactionsPage() {
         <KpiCard
           label="Sof saldo"
           value={formatCurrencyCompact(summary.net)}
-          icon={<CreditCard className="w-5 h-5 text-gold-500" />}
+          icon={<CreditCard className="w-5 h-5 text-amber-500" />}
           accentColor="gold"
         />
         <KpiCard
@@ -234,13 +234,13 @@ export function TransactionsPage() {
           <div className="flex flex-wrap items-center gap-3">
             {/* Search */}
             <div className="relative w-64">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder="ID, tavsif yoki ism..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full text-xs pl-8 pr-3 py-1.5 border border-warm-300 rounded-xl bg-white outline-none focus:border-brand-500"
+                className="w-full h-9 pl-9 pr-3 text-xs border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 shadow-2xs placeholder:text-charcoal-400 transition-colors"
               />
             </div>
 
@@ -249,7 +249,8 @@ export function TransactionsPage() {
               <Select
                 value={typeFilter}
                 onChange={e => setTypeFilter(e.target.value)}
-                className="py-1.5 text-xs"
+                size="sm"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
               >
                 <option value="">Barcha turlar</option>
                 <option value="PAYMENT">To‘lov (Payment)</option>
@@ -265,7 +266,8 @@ export function TransactionsPage() {
               <Select
                 value={directionFilter}
                 onChange={e => setDirectionFilter(e.target.value)}
-                className="py-1.5 text-xs"
+                size="sm"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
               >
                 <option value="">Kirim / Chiqim</option>
                 <option value="IN">Faqat Kirim</option>
@@ -282,6 +284,7 @@ export function TransactionsPage() {
                   onChange={e => setDateFrom(e.target.value)}
                   placeholder="Boshlanish"
                   aria-label="Boshlanish sanasi"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
                 />
               </div>
               <span className="text-charcoal-400">—</span>
@@ -292,6 +295,7 @@ export function TransactionsPage() {
                   onChange={e => setDateTo(e.target.value)}
                   placeholder="Tugash"
                   aria-label="Tugash sanasi"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
                 />
               </div>
             </div>

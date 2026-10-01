@@ -131,18 +131,19 @@ export function AssessmentsPage() {
             <span className="text-xs font-semibold text-charcoal-500">Bola bo‘yicha filtr:</span>
             <div className="w-64">
               <Select
+                size="sm"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
                 value={selectedChildId}
                 onChange={e => setSelectedChildId(e.target.value)}
-                className="py-1.5 text-xs"
-              >
-                <option value="">Barcha bolalar</option>
-                {children.map(c => (
-                  <option key={c.id} value={c.id}>{c.fullName}</option>
-                ))}
-              </Select>
+                options={[
+                  { value: '', label: 'Barcha bolalar' },
+                  ...children.map(c => ({ value: c.id, label: c.fullName })),
+                ]}
+                aria-label="Bola bo'yicha filter"
+              />
             </div>
           </div>
-          <span className="text-xs text-charcoal-400">
+          <span className="text-xs text-charcoal-400 font-medium">
             Jami: {filteredAssessments.length} ta baholash
           </span>
         </div>
@@ -280,16 +281,13 @@ export function AssessmentsPage() {
               required
               value={formData.childId}
               onChange={e => setFormData({ ...formData, childId: e.target.value })}
-            >
-              {children.map(c => (
-                <option key={c.id} value={c.id}>{c.fullName}</option>
-              ))}
-            </Select>
+              options={children.map(c => ({ value: c.id, label: c.fullName }))}
+            />
 
             {currentUser?.role === 'SPECIALIST' ? (
               <div>
                 <label className="block text-xs font-semibold text-charcoal-700 mb-1.5">Mutaxassis</label>
-                <div className="px-3 py-2 text-xs rounded-xl bg-warm-100 border border-warm-200 text-charcoal-700 font-medium">
+                <div className="px-3 py-2 text-xs rounded-[10px] bg-warm-100 border border-warm-200 text-charcoal-700 font-medium">
                   {currentUser.fullName} (Siz)
                 </div>
               </div>
@@ -299,11 +297,8 @@ export function AssessmentsPage() {
                 required
                 value={formData.specialistId}
                 onChange={e => setFormData({ ...formData, specialistId: e.target.value })}
-              >
-                {specialists.map(s => (
-                  <option key={s.id} value={s.id}>{s.fullName}</option>
-                ))}
-              </Select>
+                options={specialists.map(s => ({ value: s.id, label: s.fullName }))}
+              />
             )}
           </div>
 

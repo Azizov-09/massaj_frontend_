@@ -153,6 +153,7 @@ export function DataTable<T>({
                 value={String(pageSize)}
                 onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
                 size="sm"
+                triggerClassName="h-8 rounded-[8px] text-xs shadow-2xs border-warm-300"
                 options={PAGE_SIZES.map(ps => ({ value: String(ps), label: String(ps) }))}
                 aria-label="Sahifadagi yozuvlar soni"
               />

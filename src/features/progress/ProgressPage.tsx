@@ -143,18 +143,19 @@ export function ProgressPage() {
             <span className="text-xs font-semibold text-charcoal-500">Bola bo‘yicha filtr:</span>
             <div className="w-64">
               <Select
+                size="sm"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
                 value={selectedChildId}
                 onChange={e => setSelectedChildId(e.target.value)}
-                className="py-1.5 text-xs"
-              >
-                <option value="">{isParent ? "Barcha farzandlarim" : "Barcha bolalar"}</option>
-                {availableChildren.map(c => (
-                  <option key={c.id} value={c.id}>{c.fullName}</option>
-                ))}
-              </Select>
+                options={[
+                  { value: '', label: isParent ? "Barcha farzandlarim" : "Barcha bolalar" },
+                  ...availableChildren.map(c => ({ value: c.id, label: c.fullName })),
+                ]}
+                aria-label="Bola bo'yicha filter"
+              />
             </div>
           </div>
-          <span className="text-xs text-charcoal-400">
+          <span className="text-xs text-charcoal-400 font-medium">
             Jami: {timelineEvents.length} ta xronologik qayd
           </span>
         </div>
@@ -254,22 +255,16 @@ export function ProgressPage() {
             required
             value={formData.childId}
             onChange={e => setFormData({ ...formData, childId: e.target.value })}
-          >
-            {children.map(c => (
-              <option key={c.id} value={c.id}>{c.fullName}</option>
-            ))}
-          </Select>
+            options={children.map(c => ({ value: c.id, label: c.fullName }))}
+          />
 
           <Select
             label="Mutaxassis"
             required
             value={formData.specialistId}
             onChange={e => setFormData({ ...formData, specialistId: e.target.value })}
-          >
-            {specialists.map(s => (
-              <option key={s.id} value={s.id}>{s.fullName}</option>
-            ))}
-          </Select>
+            options={specialists.map(s => ({ value: s.id, label: s.fullName }))}
+          />
 
           <Textarea
             label="Kuzatuv qaydi yoki tavsiya"

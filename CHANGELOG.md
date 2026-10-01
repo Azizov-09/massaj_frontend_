@@ -2,6 +2,37 @@
 
 Ushbu hujjatda **Senior Frontend Engineer** va **AGENTS.md** arxitektura qoidalari asosida loyihada amalga oshirilgan barcha tizimli tuzatishlar, refaktoringlar, xavfsizlik va optimallashtirish ishlari bosqichma-bosqich qayd etib boriladi.
 
+## 📌 2026-10-01: Barcha Sahifalarda Boshqaruv Elementlari (Filtrlar, Inputlar, Select, DatePicker, Tugmalar) va Dizayn Standartlarini To‘liq Bir Xil Tekislash (Global Design Unification)
+
+### [P0] CRM Tizimining Barcha 17+ Sahifasida Boshqaruv Elementlarini Yagona "Senior Frontend" Standartiga Keltirish ("Bir xil tekisdan")
+- **Fayllar:**
+  - [`src/features/employees/EmployeesPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/employees/EmployeesPage.tsx) — Filtr va jadval kartalari birlashtirildi, qidiruv va Select `h-9 rounded-[10px]` o‘lchamiga keltirildi, email bo‘lmaganda chiqadigan chiziqcha tuzatildi.
+  - [`src/features/admins/AdminsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/admins/AdminsPage.tsx) — Qidiruv va Select boshqaruvlari, KPI ranglari unifikatsiya qilindi.
+  - [`src/features/activity-logs/ActivityLogsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/activity-logs/ActivityLogsPage.tsx) — Qidiruv va ikkala Select menyusi unifikatsiya qilindi.
+  - [`src/features/balance/BalancePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/balance/BalancePage.tsx) — Qidiruv, segmented control va KPI ranglari yangilandi.
+  - [`src/features/transactions/TransactionsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/transactions/TransactionsPage.tsx) — Qidiruv, Select, DatePicker va KPI ranglari yangilandi.
+  - [`src/features/appointments/AppointmentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/appointments/AppointmentsPage.tsx) — Qidiruv, Select, DatePicker, `CheckCircle2` ikonkalari va KPI ranglari bir xil standartga keltirildi.
+  - [`src/features/children/ChildrenPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/children/ChildrenPage.tsx) — Filtr paneli ajratgichi, qidiruv inputi, ikkala Select boshqaruvi va natijalar hisoblagichi tekislandi.
+  - [`src/features/parents/ParentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/parents/ParentsPage.tsx) — Qidiruv maydoni `h-9 rounded-[10px] shadow-2xs` ga keltirildi, hisoblagich qo‘shildi.
+  - [`src/features/specialists/SpecialistsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/specialists/SpecialistsPage.tsx) — Qidiruv, KPI ikonkalari (`Award`, `Users`) va mutaxassislar hisoblagichi tekislandi.
+  - [`src/features/payments/PaymentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/payments/PaymentsPage.tsx) — To‘lov usuli Select triggeri, qidiruv, KPI ranglari va hisoblagich unifikatsiya qilindi.
+  - [`src/features/sessions/SessionsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/sessions/SessionsPage.tsx) — Seanslar filtri, Select, harakat tugmalaridagi `CheckCircle2` ikonkalari va KPI ranglari yangilandi.
+  - [`src/features/reports/ReportsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/reports/ReportsPage.tsx) — Hisobot turi tugmalari `rounded-[10px]`, sana oraliqlari DatePicker triggerlari va mutaxassis Select to‘liq tekislandi.
+  - [`src/features/analytics/AnalyticsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/analytics/AnalyticsPage.tsx) — Vaqt oralig‘i segmented control `h-9` standartiga keltirildi, KPI ikonka ranglari yangilandi.
+  - [`src/features/assessments/AssessmentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/assessments/AssessmentsPage.tsx) — Bolalar filtri Select triggeri va modal oynasidagi dropdownlar `options` propiga o‘tkazildi.
+  - [`src/features/goals/GoalsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/goals/GoalsPage.tsx) — Bola va holat bo‘yicha Select triggerlari hamda modallardagi dropdownlar bir xil standartga keltirildi.
+  - [`src/features/progress/ProgressPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/progress/ProgressPage.tsx) — Rivojlanish filtri Select triggeri va modaldagi dropdownlar tekislandi.
+  - [`src/components/tables/DataTable.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/tables/DataTable.tsx) — Sahifalash (pagination) Select triggeriga `h-8 rounded-[8px] shadow-2xs` qo‘shildi.
+  - [`src/features/attendance/AttendancePage.test.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/attendance/AttendancePage.test.tsx) — Test muhitidagi `AdminUser` interfeysiga mos `phone` maydoni to‘ldirildi.
+
+- **Bajarilgan Standartlashtirish:**
+  1. **Yagona Balandlik va Burchak Radiusi:** Barcha sahifalardagi barcha izlash inputlari, Select ochiluvchi menyulari, DatePicker sana tanlagichlari aniq `h-9` (36px) balandlik, `rounded-[10px]` burchak va `shadow-2xs border-warm-300` ga ega.
+  2. **Segmented Control Standarti:** Barcha pill/tab almashtirgichlar `inline-flex items-center h-9 p-1 rounded-[10px] bg-warm-100/90 border border-warm-200/80 shadow-2xs gap-1` konteyner va `h-7 px-3 text-xs font-semibold rounded-[7px]` tugmalaridan iborat.
+  3. **Yagona Natijalar Ko‘rsatkichi:** Barcha jadvallarda `text-xs text-charcoal-400 font-medium` uslubida yagona formatdagi hisoblagich mavjud.
+  4. **Professional Ranglar va Ikonkalar:** KPI kartalari va amallarda `emerald-600`, `amber-500`, `rose-500`, `blue-500` standart tibbiy ranglar va zamonaviy Lucide ikonkalari (`CheckCircle2`, `Award`, `Clock` va h.k.) qo‘llanildi.
+
+---
+
 ## 📌 2026-10-01: Davomat Jurnali (Attendance) va Jadval (Schedule) Boshqaruvlari Dizayni, Tekislanishi va Takrorlanuvchi Sanalarni Bartaraf Etish
 
 ### [P0] Davomat Boshqaruvlarini Bir Xil Tekislash ("Bir xil tekisdan"), Holat Belgilarining Takrorlanishini Olib Tashlash va Sana Navigatorini Bir Butun Qilish

@@ -141,9 +141,9 @@ export function PaymentsPage() {
 
       {/* KPI Row */}
       <div className="grid grid-cols-3 gap-3">
-        <KpiCard label="Jami to'lovlar" value={totalPayments} format="currency" icon={<Wallet className="w-4 h-4" />} accentColor="brand" index={0} />
-        <KpiCard label="Bu oy" value={thisMonthPayments} format="currency" icon={<TrendingUp className="w-4 h-4" />} accentColor="sage" index={1} />
-        <KpiCard label="Bugun" value={todayPayments} format="currency" icon={<TrendingUp className="w-4 h-4" />} accentColor="gold" index={2} />
+        <KpiCard label="Jami to'lovlar" value={totalPayments} format="currency" icon={<Wallet className="w-4 h-4 text-brand-600" />} accentColor="brand" index={0} />
+        <KpiCard label="Bu oy" value={thisMonthPayments} format="currency" icon={<TrendingUp className="w-4 h-4 text-emerald-600" />} accentColor="sage" index={1} />
+        <KpiCard label="Bugun" value={todayPayments} format="currency" icon={<TrendingUp className="w-4 h-4 text-amber-500" />} accentColor="gold" index={2} />
       </div>
 
       {/* Table */}
@@ -155,11 +155,13 @@ export function PaymentsPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Ota-ona yoki bola bo'yicha..."
-              className="w-full pl-9 pr-3 py-2 text-sm border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 placeholder:text-charcoal-400 transition-colors"
+              className="w-full h-9 pl-9 pr-3 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 outline-none transition-all"
             />
           </div>
           <div className="w-48">
             <Select
+              size="sm"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
               value={methodFilter}
               onChange={e => setMethodFilter(e.target.value)}
               options={[
@@ -171,7 +173,7 @@ export function PaymentsPage() {
               aria-label="To'lov usuli bo'yicha filter"
             />
           </div>
-          <span className="ml-auto text-xs text-charcoal-400">{filtered.length} ta to'lov</span>
+          <span className="ml-auto text-xs text-charcoal-400 font-medium">{filtered.length} ta to'lov</span>
         </div>
         <DataTable
           data={filtered}

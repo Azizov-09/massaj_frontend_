@@ -80,12 +80,17 @@ export function ParentsPage() {
         actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>Ota-ona qo'shish</Button>}
       />
       <Card>
-        <div className="px-4 py-3 flex gap-3 border-b border-warm-100">
+        <div className="px-4 py-3 flex items-center justify-between gap-3 border-b border-warm-100">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Ism yoki telefon..."
-              className="w-full pl-9 pr-3 py-2 text-sm border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 placeholder:text-charcoal-400 transition-colors" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Ism yoki telefon..."
+              className="w-full h-9 pl-9 pr-3 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 outline-none transition-all"
+            />
           </div>
+          <span className="text-xs text-charcoal-400 font-medium">{filtered.length} ta ota-ona</span>
         </div>
         <DataTable data={filtered} columns={columns}
           keyExtractor={r => r.id} emptyTitle="Ota-onalar topilmadi" emptyIcon={<Users className="w-5 h-5" />} />

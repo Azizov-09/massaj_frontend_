@@ -143,7 +143,7 @@ export function AdminsPage() {
         <KpiCard
           label="Faol akkauntlar"
           value={admins.filter(a => a.status === 'ACTIVE').length}
-          icon={<CheckCircle2 className="w-5 h-5 text-sage-600" />}
+          icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />}
         />
       </div>
 
@@ -152,13 +152,13 @@ export function AdminsPage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative w-64">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Ism, email yoki telefon..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full text-xs pl-8 pr-3 py-1.5 border border-warm-300 rounded-xl bg-white outline-none focus:border-brand-500"
+                className="w-full h-9 pl-9 pr-3 text-xs border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 shadow-2xs placeholder:text-charcoal-400 transition-colors"
               />
             </div>
 
@@ -166,7 +166,8 @@ export function AdminsPage() {
               <Select
                 value={roleFilter}
                 onChange={e => setRoleFilter(e.target.value)}
-                className="py-1.5 text-xs"
+                size="sm"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
               >
                 <option value="">Barcha rollar</option>
                 <option value="SUPER_ADMIN">Super Admin</option>
@@ -175,7 +176,7 @@ export function AdminsPage() {
             </div>
           </div>
 
-          <span className="text-xs text-charcoal-400">
+          <span className="text-xs text-charcoal-400 font-medium">
             {filtered.length} ta admin
           </span>
         </div>

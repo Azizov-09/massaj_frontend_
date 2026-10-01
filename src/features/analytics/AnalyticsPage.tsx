@@ -115,27 +115,27 @@ export function AnalyticsPage() {
           title="Biznes analitika"
           description="Moliyaviy ko‘rsatkichlar, seanslar samaradorligi va xodimlar yuklamasi"
         />
-        <div className="flex rounded-xl bg-warm-100 p-1">
+        <div className="inline-flex items-center h-9 p-1 rounded-[10px] bg-warm-100/90 border border-warm-200/80 shadow-2xs gap-1">
           <button
             onClick={() => setTimeRange('7days')}
-            className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-              timeRange === '7days' ? 'bg-white shadow-xs text-charcoal-900' : 'text-charcoal-500 hover:text-charcoal-900'
+            className={`h-7 px-3 text-xs font-semibold rounded-[7px] transition-all ${
+              timeRange === '7days' ? 'bg-white shadow-2xs text-charcoal-900 font-bold' : 'text-charcoal-500 hover:text-charcoal-900'
             }`}
           >
             7 kun
           </button>
           <button
             onClick={() => setTimeRange('month')}
-            className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-              timeRange === 'month' ? 'bg-white shadow-xs text-charcoal-900' : 'text-charcoal-500 hover:text-charcoal-900'
+            className={`h-7 px-3 text-xs font-semibold rounded-[7px] transition-all ${
+              timeRange === 'month' ? 'bg-white shadow-2xs text-charcoal-900 font-bold' : 'text-charcoal-500 hover:text-charcoal-900'
             }`}
           >
             Shu oy
           </button>
           <button
             onClick={() => setTimeRange('year')}
-            className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-              timeRange === 'year' ? 'bg-white shadow-xs text-charcoal-900' : 'text-charcoal-500 hover:text-charcoal-900'
+            className={`h-7 px-3 text-xs font-semibold rounded-[7px] transition-all ${
+              timeRange === 'year' ? 'bg-white shadow-2xs text-charcoal-900 font-bold' : 'text-charcoal-500 hover:text-charcoal-900'
             }`}
           >
             Shu yil
@@ -154,13 +154,13 @@ export function AnalyticsPage() {
         <KpiCard
           label="Bajarilgan seanslar"
           value={totalCompletedSessions}
-          icon={<Activity className="w-5 h-5 text-sage-600" />}
+          icon={<Activity className="w-5 h-5 text-emerald-600" />}
           changeType="positive"
         />
         <KpiCard
           label="Davomat ko‘rsatkichi"
           value={`${attendanceRate}%`}
-          icon={<Users className="w-5 h-5 text-gold-500" />}
+          icon={<Users className="w-5 h-5 text-amber-500" />}
         />
         <KpiCard
           label="O‘rtacha seans narxi"
