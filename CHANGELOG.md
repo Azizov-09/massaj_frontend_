@@ -2,6 +2,22 @@
 
 Ushbu hujjatda **Senior Frontend Engineer** va **AGENTS.md** arxitektura qoidalari asosida loyihada amalga oshirilgan barcha tizimli tuzatishlar, refaktoringlar, xavfsizlik va optimallashtirish ishlari bosqichma-bosqich qayd etib boriladi.
 
+## 📌 2026-10-01: Jadval (Schedule) Sahifasining Kunlik va Haftalik Rejimlarini Zamonaviy Interaktiv Arxitekturaga O‘tkazish (Senior UX/UI Overhaul)
+
+### [P0] Jadval Sahifasida Bo‘sh Vaqt Slotlarini Interaktiv Kartalarga O‘tkazish va 4 Ta KPI Metrika Qo‘shish
+- **Fayllar:**
+  - [`src/features/schedule/SchedulePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/schedule/SchedulePage.tsx) — Jadval sahifasi to‘liq qayta ishlandi:
+    1. **4 ta KPI Metrika Kartalari:** Yuqorida `Jami qabullar`, `Kutilmoqda`, `Yakunlangan`, `Bo‘sh slotlar` soni aks ettiruvchi `<KpiCard>` paneli qo‘shildi.
+    2. **Interaktiv Bo‘sh Vaqt Slotlari:** Avvalgi o‘lik, passiv kursiv `Bo'sh vaqt` matni o‘rniga to‘liq interaktiv chiziqli (dashed) karta yaratildi (`+ Bo‘sh vaqt sloti — {time}`, `Ushbu soatga yangi uchrashuv belgilash uchun bosing`, hover paytida `+ Yozilish` tugmasi).
+    3. **Tezkor Vaqt Bilan Uchrashuv Yaratish:** Bo‘sh slot yoki haftalik katakcha bosilganda avtomatik ravishda `defaultDate` va tanlangan soat (`defaultTime`) bilan `CreateAppointmentForm` modalini ochadi.
+    4. **Vaqt O‘qi Bejilari (Time Period Badges):** Ertalab (`Ertalab` - sariq), tushlik (`Tushlik` - neytral) va tushdan so‘ng (`Tushdan so‘ng` - ko‘k) ko‘rsatkichlari hamda bugungi kunda ayni joriy soat uchun jonli pulsatsiyalanuvchi `Hozir` indikatori qo‘shildi.
+    5. **Band Uchrashuv Kartalari:** Har bir band qabul uchun bolaning rasmli avatari (`Avatar`), ismi, mutaxassis nomi, xizmat turi, status nishoni va aniq vaqt oraliqlari ko‘rsatildi.
+    6. **Haftalik Ko‘rinish (Week View):** Bugungi kun ustuni rang va nishon bilan ajratib ko‘rsatildi, bo‘sh katakchalarda esa o‘sha kun va soatga to‘g‘ridan-to‘g‘ri uchrashuv belgilash tugmasi integratsiya qilindi.
+    7. **Holat Ko‘rsatkichlari (Legend):** Sahifaning pastida barcha status ranglari (Kutilmoqda, Tasdiqlangan, Yakunlangan, Bekor qilingan) va tushuntirish qo‘shildi.
+  - [`src/features/appointments/CreateAppointmentForm.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/appointments/CreateAppointmentForm.tsx) — `defaultTime?: string` prop qabul qilish imkoniyati qo‘shildi va formaning boshlang‘ich `startTime` qiymatiga bog‘landi.
+
+---
+
 ## 📌 2026-10-01: KPI Metrika Kartalari Burchaklarini Tizimdagi Boshqa Kartalar Bilan Bir Xil Qilish (`rounded-[14px]`)
 
 ### [P0] KPI Metrika Kartalarining Burchak Radiusini Tizim Standartiga Keltirish (`rounded-[14px]`)

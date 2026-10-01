@@ -23,9 +23,10 @@ interface Props {
   onSuccess: () => void;
   onCancel: () => void;
   defaultDate?: string;
+  defaultTime?: string;
 }
 
-export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate }: Props) {
+export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaultTime }: Props) {
   const { currentUser } = useAuth();
   const allChildren = useStore(s => s.children);
   const specialists = useStore(s => s.specialists);
@@ -45,7 +46,7 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate }: Prop
     defaultValues: {
       childId: availableChildren[0]?.id || '',
       date: defaultDate || new Date().toISOString().split('T')[0],
-      startTime: '09:00',
+      startTime: defaultTime || '09:00',
     },
   });
 
