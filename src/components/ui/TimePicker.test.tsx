@@ -27,12 +27,12 @@ describe('TimePicker Component', () => {
 
   it('opens popup when trigger button is clicked', () => {
     render(<TimePicker value="09:00" onChange={vi.fn()} />);
-    expect(screen.queryByText('Mashhur vaqtlar:')).not.toBeInTheDocument();
+    expect(screen.queryByText('Mashhur vaqtlar')).not.toBeInTheDocument();
 
     const trigger = screen.getByRole('button');
     fireEvent.click(trigger);
 
-    expect(screen.getByText('Mashhur vaqtlar:')).toBeInTheDocument();
+    expect(screen.getByText('Mashhur vaqtlar')).toBeInTheDocument();
   });
 
   it('selects preset time and calls onChange', () => {
@@ -53,6 +53,9 @@ describe('TimePicker Component', () => {
     render(<TimePicker value="09:00" onChange={handleChange} />);
 
     fireEvent.click(screen.getByRole('button'));
+
+    // Switch to Aniq soat tab
+    fireEvent.click(screen.getByRole('button', { name: 'Aniq soat' }));
     
     // Choose hour 15
     const hourBtn = screen.getByRole('button', { name: 'Soat 15' });

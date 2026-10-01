@@ -5,8 +5,9 @@ import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useStore, useAuth } from '@/store';
-import { Select, Textarea, DatePicker, TimePicker } from '@/components/ui/primitives';
+import { Select, Textarea, DatePicker, TimePicker, Badge, Avatar } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
+import { Clock } from 'lucide-react';
 
 const schema = z.object({
   childId: z.string().min(1, 'Bolani tanlang'),
@@ -64,8 +65,10 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
   const startTime = useWatch({ control, name: 'startTime' }) || '09:00';
   const endTime = getEndTime(startTime, selectedServiceId);
 
+  const selectedService = services.find(s => s.id === selectedServiceId);
   const selectedChild = allChildren.find(c => c.id === selectedChildId);
   const parentId = selectedChild?.parentId ?? (isParent && currentUser ? currentUser.id : '');
+  const parent = parents.find(p => p.id === parentId);
 
   const onSubmit = async (data: FormValues) => {
     await new Promise(r => setTimeout(r, 300));
@@ -120,6 +123,30 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
           error={errors.specialistId?.message}
           {...register('specialistId')}
         />
+        {selectedChild && (
+          <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-[12px] bg-warm-50/80 border border-warm-200/80 text-xs">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Avatar name={selectedChild.fullName} src={selectedChild.avatar} size="xs" />
+              <div className="truncate">
+                <span className="font-semibold text-charcoal-900">{selectedChild.fullName}</span>
+                {selectedChild.dateOfBirth && (
+                  <span className="text-charcoal-500 ml-1.5 font-normal">
+                    ({new Date().getFullYear() - new Date(selectedChild.dateOfBirth).getFullYear()} yosh)
+                  </span>
+                )}
+              </div>
+            </div>
+            {parent && (
+              <div className="flex items-center gap-1.5 text-charcoal-600 shrink-0">
+                <span className="text-charcoal-400">Ota-onasi:</span>
+                <span className="font-medium text-charcoal-800">{parent.fullName}</span>
+                {parent.phone && (
+                  <span className="text-charcoal-500 font-mono text-[11px]">({parent.phone})</span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
         <Select
           label="Xizmat"
           required
@@ -150,19 +177,34 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
               label="Boshlanish vaqti"
               required
               error={errors.startTime?.message}
-              hint={endTime ? `Tugash: ${endTime}` : undefined}
               value={field.value}
               onChange={field.onChange}
             />
           )}
         />
-        {parentId && (
-          <div className="flex items-end pb-2">
-            <p className="text-xs text-charcoal-500">
-              Ota-ona: <span className="font-medium text-charcoal-800">{parents.find(p => p.id === parentId)?.fullName}</span>
-            </p>
+        <div>
+          <label className="block text-xs font-semibold text-charcoal-700 uppercase tracking-wider mb-1.5">
+            Tugash vaqti
+          </label>
+          <div className="flex items-center justify-between px-3.5 h-[42px] bg-warm-50/60 border border-warm-200/80 rounded-[10px] text-charcoal-700">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Clock className="w-4 h-4 text-charcoal-400" />
+              <span className={endTime ? 'text-charcoal-900 font-mono font-bold' : 'text-charcoal-400 font-normal italic'}>
+                {endTime || '--:--'}
+              </span>
+            </div>
+            {selectedService ? (
+              <Badge variant="neutral" className="text-[11px] py-0 px-2 font-medium">
+                {selectedService.durationMinutes} daq seans
+              </Badge>
+            ) : (
+              <span className="text-[11px] text-charcoal-400">Xizmat kutilmoqda</span>
+            )}
           </div>
-        )}
+          <p className="text-[11px] text-charcoal-500 mt-1">
+            {endTime ? 'Boshlanish vaqti va davomiylikka asosan' : 'Xizmat tanlanganda avtomatik hisoblanadi'}
+          </p>
+        </div>
         <div className="sm:col-span-2">
           <Textarea label="Izoh" placeholder="Qo'shimcha ma'lumot..." rows={2} {...register('notes')} />
         </div>

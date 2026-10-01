@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════
-//  TimePicker — Custom Accessible 24-Hour Time Picker
+//  TimePicker — Senior Clean Modern 24-Hour Time Picker
 //  Matches Massaj CRM Warm Design System
 // ═══════════════════════════════════════════════════════
 
@@ -53,8 +53,13 @@ const sizeStyles = {
 
 // Preset popular times for clinic workflows
 const DEFAULT_PRESETS = [
-  '08:30', '09:00', '09:30', '10:00', '10:30', '11:00',
-  '12:00', '14:00', '14:30', '15:00', '16:00', '17:00', '18:00'
+  '08:00', '08:30', '09:00', '09:30',
+  '10:00', '10:30', '11:00', '11:30',
+  '12:00', '12:30', '13:00', '13:30',
+  '14:00', '14:30', '15:00', '15:30',
+  '16:00', '16:30', '17:00', '17:30',
+  '18:00', '18:30', '19:00', '19:30',
+  '20:00'
 ];
 
 export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
@@ -89,8 +94,6 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
     const hiddenInputRef = useRef<HTMLInputElement>(null);
-    const hourListRef = useRef<HTMLDivElement>(null);
-    const minuteListRef = useRef<HTMLDivElement>(null);
 
     useImperativeHandle(ref, () => hiddenInputRef.current!);
 
@@ -110,6 +113,7 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
 
     const [tempHour, setTempHour] = useState<string>(selectedHour || '09');
     const [tempMinute, setTempMinute] = useState<string>(selectedMinute || '00');
+    const [activeTab, setActiveTab] = useState<'presets' | 'custom'>('presets');
 
     const [isOpen, setIsOpen] = useState(false);
     const [openUpward, setOpenUpward] = useState(false);
@@ -152,14 +156,14 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
           const topLimit = modalRect ? modalRect.top : 0;
           const spaceBelow = bottomLimit - rect.bottom;
           const spaceAbove = rect.top - topLimit;
-          const estimatedHeight = 310;
+          const estimatedHeight = 260;
 
           // Open upward if constrained below and more space is available above
           setOpenUpward(spaceBelow < estimatedHeight && spaceAbove > spaceBelow);
 
           // Align to right edge if opening towards right exceeds container
           const rightLimit = modalRect ? modalRect.right : window.innerWidth;
-          setAlignRight(rect.left + 320 > rightLimit);
+          setAlignRight(rect.left + 310 > rightLimit);
         }
         setIsOpen(true);
       }
@@ -233,7 +237,6 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
     const handleSetNow = () => {
       const now = new Date();
       const h = String(now.getHours()).padStart(2, '0');
-      // round to nearest step
       const rawM = now.getMinutes();
       const roundedM = Math.round(rawM / stepMinutes) * stepMinutes;
       const finalM = String(roundedM >= 60 ? 0 : roundedM).padStart(2, '0');
@@ -300,7 +303,7 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
               )}
             />
             {currentVal ? (
-              <span className="font-semibold text-charcoal-900 tracking-wide text-sm">
+              <span className="font-semibold text-charcoal-900 tracking-wide text-sm font-mono">
                 {currentVal}
               </span>
             ) : (
@@ -337,105 +340,69 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, y: openUpward ? 6 : -6, scale: 0.98 }}
+              initial={{ opacity: 0, y: openUpward ? 4 : -4, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: openUpward ? 6 : -6, scale: 0.98 }}
+              exit={{ opacity: 0, y: openUpward ? 4 : -4, scale: 0.98 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
               className={cn(
-                'absolute z-50 w-full sm:w-[320px] bg-white rounded-[14px] border border-warm-200 shadow-xl overflow-hidden',
+                'absolute z-50 w-[290px] sm:w-[310px] bg-white rounded-[14px] border border-warm-200/90 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.14),0_4px_12px_-2px_rgba(0,0,0,0.06)] overflow-hidden',
                 alignRight ? 'right-0' : 'left-0',
                 openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
                 popupClassName
               )}
             >
-              {/* Header / Current selection display */}
-              <div className="px-4 py-3 border-b border-warm-100 bg-warm-50/70 flex items-center justify-between">
-                <div>
-                  <span className="text-[11px] uppercase tracking-wider font-semibold text-charcoal-400 block">
-                    Tanlangan vaqt
+              {/* Header: Title, Segmented Tabs & Now Button */}
+              <div className="p-2.5 pb-2 border-b border-warm-100 bg-warm-50/60">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-charcoal-800 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-brand-500" />
+                    Vaqtni tanlang
                   </span>
-                  <span className="text-base font-bold text-charcoal-900 font-mono tracking-wider">
-                    {tempHour}:{tempMinute}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={handleSetNow}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200/80 rounded-[6px] transition-colors"
+                  >
+                    <Clock className="w-3 h-3 text-brand-500" />
+                    Hozirgi vaqt
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleSetNow}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-brand-600 hover:text-brand-700 bg-white hover:bg-brand-50 border border-warm-200 rounded-[8px] transition-colors shadow-2xs"
-                >
-                  <Clock className="w-3.5 h-3.5 text-brand-500" />
-                  Hozirgi vaqt
-                </button>
+
+                {/* Segmented Control */}
+                <div className="grid grid-cols-2 p-0.5 bg-warm-200/60 rounded-[8px] text-[11px] font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('presets')}
+                    className={cn(
+                      'py-1 rounded-[6px] transition-all text-center',
+                      activeTab === 'presets'
+                        ? 'bg-white text-charcoal-900 shadow-xs'
+                        : 'text-charcoal-600 hover:text-charcoal-900'
+                    )}
+                  >
+                    Mashhur vaqtlar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('custom')}
+                    className={cn(
+                      'py-1 rounded-[6px] transition-all text-center',
+                      activeTab === 'custom'
+                        ? 'bg-white text-charcoal-900 shadow-xs'
+                        : 'text-charcoal-600 hover:text-charcoal-900'
+                    )}
+                  >
+                    Aniq soat
+                  </button>
+                </div>
               </div>
 
-              {/* Hour & Minute Column Selectors */}
-              <div className="p-3">
-                <div className="grid grid-cols-2 gap-2 text-center text-xs font-semibold text-charcoal-500 mb-1.5">
-                  <span>Soat</span>
-                  <span>Daqiqa</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 h-44 border border-warm-200 rounded-[10px] p-1.5 bg-warm-50/30">
-                  {/* Hours Column */}
-                  <div
-                    ref={hourListRef}
-                    className="overflow-y-auto space-y-1 pr-1 scrollbar-thin scrollbar-thumb-warm-300"
-                  >
-                    {hours.map(h => {
-                      const isSelected = tempHour === h;
-                      return (
-                        <button
-                          key={h}
-                          type="button"
-                          aria-label={`Soat ${h}`}
-                          onClick={() => setTempHour(h)}
-                          className={cn(
-                            'w-full py-1.5 text-xs font-semibold rounded-[8px] transition-colors',
-                            isSelected
-                              ? 'bg-brand-500 text-white shadow-xs'
-                              : 'text-charcoal-700 hover:bg-warm-100 hover:text-charcoal-900'
-                          )}
-                        >
-                          {h}:00
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Minutes Column */}
-                  <div
-                    ref={minuteListRef}
-                    className="overflow-y-auto space-y-1 pr-1 scrollbar-thin scrollbar-thumb-warm-300"
-                  >
-                    {minutes.map(m => {
-                      const isSelected = tempMinute === m;
-                      return (
-                        <button
-                          key={m}
-                          type="button"
-                          aria-label={`${m} daqiqa`}
-                          onClick={() => setTempMinute(m)}
-                          className={cn(
-                            'w-full py-1.5 text-xs font-semibold rounded-[8px] transition-colors',
-                            isSelected
-                              ? 'bg-brand-500 text-white shadow-xs'
-                              : 'text-charcoal-700 hover:bg-warm-100 hover:text-charcoal-900'
-                          )}
-                        >
-                          :{m} daq
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Popular Presets */}
-                <div className="mt-3 pt-2.5 border-t border-warm-100">
-                  <span className="text-[11px] font-semibold text-charcoal-400 block mb-1.5">
-                    Mashhur vaqtlar:
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {DEFAULT_PRESETS.slice(0, 8).map(preset => {
+              {/* Tab 1: Presets Slot Grid */}
+              {activeTab === 'presets' && (
+                <div className="p-2.5">
+                  <span className="sr-only">Mashhur vaqtlar:</span>
+                  <div className="grid grid-cols-4 gap-1.5 max-h-[190px] overflow-y-auto pr-0.5 [scrollbar-width:thin] [scrollbar-color:#d4cfc7_transparent]">
+                    {DEFAULT_PRESETS.map(preset => {
                       const isMatch = currentVal === preset;
                       return (
                         <button
@@ -444,10 +411,10 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                           aria-label={`Vaqt ${preset}`}
                           onClick={() => handleSelectPreset(preset)}
                           className={cn(
-                            'px-2 py-0.5 text-[11px] font-medium rounded-[6px] border transition-colors',
+                            'py-1.5 px-1 text-xs font-semibold rounded-[8px] border transition-all text-center font-mono',
                             isMatch
-                              ? 'bg-brand-50 border-brand-300 text-brand-700 font-semibold'
-                              : 'bg-white border-warm-200 text-charcoal-600 hover:border-brand-200 hover:text-brand-600'
+                              ? 'bg-brand-500 border-brand-500 text-white font-bold shadow-xs'
+                              : 'bg-white border-warm-200 text-charcoal-700 hover:border-brand-300 hover:text-brand-600 hover:bg-brand-50/40'
                           )}
                         >
                           {preset}
@@ -456,26 +423,82 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                     })}
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Footer Actions */}
-              <div className="px-3 py-2.5 bg-warm-50/70 border-t border-warm-100 flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="px-2.5 py-1 text-xs font-medium text-charcoal-500 hover:text-charcoal-800 transition-colors"
-                >
-                  Bekor qilish
-                </button>
-                <button
-                  type="button"
-                  onClick={handleApply}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-brand-500 hover:bg-brand-600 rounded-[8px] transition-colors shadow-xs"
-                >
-                  <Check className="w-3.5 h-3.5" />
-                  Tanlash
-                </button>
-              </div>
+              {/* Tab 2: Custom Hour and Minute Pickers */}
+              {activeTab === 'custom' && (
+                <div className="p-2.5">
+                  {/* Digital Preview */}
+                  <div className="text-center py-1.5 mb-2 bg-warm-100/60 rounded-[8px] border border-warm-200/70">
+                    <span className="text-lg font-bold font-mono text-charcoal-900 tracking-wider">
+                      {tempHour}:{tempMinute}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-center text-[11px] font-semibold text-charcoal-500 mb-1">
+                    <span>Soat</span>
+                    <span>Daqiqa</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 h-32 border border-warm-200/90 rounded-[8px] p-1 bg-warm-50/40">
+                    {/* Hours */}
+                    <div className="overflow-y-auto space-y-0.5 pr-0.5 [scrollbar-width:thin] [scrollbar-color:#d4cfc7_transparent]">
+                      {hours.map(h => {
+                        const isSelected = tempHour === h;
+                        return (
+                          <button
+                            key={h}
+                            type="button"
+                            aria-label={`Soat ${h}`}
+                            onClick={() => setTempHour(h)}
+                            className={cn(
+                              'w-full py-1 text-xs font-semibold rounded-[6px] transition-colors font-mono',
+                              isSelected
+                                ? 'bg-brand-500 text-white shadow-xs'
+                                : 'text-charcoal-700 hover:bg-warm-100 hover:text-charcoal-900'
+                            )}
+                          >
+                            {h}:00
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Minutes */}
+                    <div className="overflow-y-auto space-y-0.5 pr-0.5 [scrollbar-width:thin] [scrollbar-color:#d4cfc7_transparent]">
+                      {minutes.map(m => {
+                        const isSelected = tempMinute === m;
+                        return (
+                          <button
+                            key={m}
+                            type="button"
+                            aria-label={`${m} daqiqa`}
+                            onClick={() => setTempMinute(m)}
+                            className={cn(
+                              'w-full py-1 text-xs font-semibold rounded-[6px] transition-colors font-mono',
+                              isSelected
+                                ? 'bg-brand-500 text-white shadow-xs'
+                                : 'text-charcoal-700 hover:bg-warm-100 hover:text-charcoal-900'
+                            )}
+                          >
+                            :{m}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Apply Button for Custom Tab */}
+                  <button
+                    type="button"
+                    onClick={handleApply}
+                    className="w-full mt-2 inline-flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold text-white bg-brand-500 hover:bg-brand-600 rounded-[8px] transition-colors shadow-xs"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    Tanlash
+                  </button>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
