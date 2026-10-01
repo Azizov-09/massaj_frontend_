@@ -351,14 +351,12 @@ export function GoalsPage() {
                         <div className="w-6 h-6 rounded-lg bg-brand-50 border border-brand-100/80 flex items-center justify-center shrink-0 mt-0.5 text-brand-600">
                           <Quote className="w-3.5 h-3.5 text-brand-500" />
                         </div>
-                        <div className="flex-1 min-w-0 pt-0.5">
-                          <p className="text-xs leading-relaxed break-words line-clamp-2">
-                            <span className="text-[11px] font-bold text-charcoal-800 not-italic mr-1.5">
-                              Sharh:
-                            </span>
-                            <span className="italic text-charcoal-700">
-                              “{goal.specialistNote}”
-                            </span>
+                        <div className="flex-1 min-w-0">
+                          <span className="block text-[11px] font-semibold text-charcoal-800 leading-tight mb-0.5">
+                            Mutaxassis sharhi
+                          </span>
+                          <p className="text-xs text-charcoal-600 italic leading-relaxed break-words line-clamp-2">
+                            “{goal.specialistNote}”
                           </p>
                         </div>
                       </div>
