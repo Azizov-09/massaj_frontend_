@@ -201,30 +201,38 @@ export function TransactionsPage() {
       />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <KpiCard
           label="Jami tushum (Kirim)"
           value={formatCurrencyCompact(summary.totalIn)}
+          description="Barcha kirim to'lovlar"
           icon={<ArrowDownLeft className="w-5 h-5 text-emerald-600" />}
           accentColor="sage"
+          index={0}
         />
         <KpiCard
           label="Hisoblangan (Chiqim)"
           value={formatCurrencyCompact(summary.totalOut)}
-          icon={<ArrowUpRight className="w-5 h-5 text-brand-500" />}
+          description="Xizmatlar uchun yechilgan"
+          icon={<ArrowUpRight className="w-5 h-5 text-brand-600" />}
           accentColor="brand"
+          index={1}
         />
         <KpiCard
           label="Sof saldo"
           value={formatCurrencyCompact(summary.net)}
+          description="Umumiy aylanma balansi"
           icon={<CreditCard className="w-5 h-5 text-amber-500" />}
           accentColor="gold"
+          index={2}
         />
         <KpiCard
           label="Jami operatsiyalar"
           value={summary.count}
+          description="Bajarilgan tranzaksiyalar"
           icon={<RefreshCw className="w-5 h-5 text-blue-500" />}
-          accentColor="sage"
+          accentColor="blue"
+          index={3}
         />
       </div>
 

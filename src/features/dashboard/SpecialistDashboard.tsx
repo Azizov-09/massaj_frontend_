@@ -80,33 +80,40 @@ export function SpecialistDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <KpiCard
           label="Bugungi muolajalar"
           value={todayAppointments.length}
           accentColor="brand"
-          icon={<Clock className="w-4 h-4 text-brand-600" />}
+          icon={<Clock className="w-5 h-5 text-brand-600" />}
           change={`${todayAppointments.filter(a => a.status === 'COMPLETED').length} tasi yakunlandi`}
+          index={0}
         />
         <KpiCard
           label="Biriktirilgan bolalar"
           value={assignedChildren.length}
+          description="Davolash dasturidagi"
           accentColor="sage"
-          icon={<Users className="w-4 h-4 text-emerald-600" />}
+          icon={<Users className="w-5 h-5 text-emerald-600" />}
+          index={1}
         />
         <KpiCard
           label="Bajarilgan seanslar"
           value={completedSessions.length}
+          description="Jami o'tkazilgan muolajalar"
           accentColor="gold"
-          icon={<CheckCircle2 className="w-4 h-4 text-amber-500" />}
+          icon={<CheckCircle2 className="w-5 h-5 text-amber-500" />}
+          index={2}
         />
         <KpiCard
           label="Kasbiy reyting"
           value="4.95"
+          description="Mijozlar bahosi"
           accentColor="blue"
-          icon={<Award className="w-4 h-4 text-blue-600" />}
+          icon={<Award className="w-5 h-5 text-blue-600" />}
           change="A’lo darajada"
           changeType="positive"
+          index={3}
         />
       </div>
 

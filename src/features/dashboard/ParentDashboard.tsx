@@ -99,32 +99,40 @@ export function ParentDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <KpiCard
           label="Mening farzandlarim"
           value={myChildren.length}
+          description="Markazda ro'yxatdan o'tgan"
           accentColor="brand"
-          icon={<Heart className="w-4 h-4 text-brand-600" />}
+          icon={<Heart className="w-5 h-5 text-brand-600" />}
+          index={0}
         />
         <KpiCard
           label="Navbatdagi uchrashuvlar"
           value={upcomingAppointments.length}
+          description="Rejalashtirilgan qabullar"
           accentColor="blue"
-          icon={<Calendar className="w-4 h-4 text-blue-600" />}
+          icon={<Calendar className="w-5 h-5 text-blue-600" />}
+          index={1}
         />
         <KpiCard
           label="Joriy balans (Depozit)"
           value={formatCurrency(finance.balance)}
+          description="Hisobdagi qoldiq mablag'"
           accentColor="sage"
-          icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />}
+          icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />}
           changeType="positive"
+          index={2}
         />
         <KpiCard
           label="Qarzdorlik"
           value={formatCurrency(finance.debt)}
+          description={finance.debt > 0 ? "To'lov amalga oshirish lozim" : "Qarzdorlik mavjud emas"}
           accentColor="danger"
-          icon={<AlertCircle className="w-4 h-4 text-rose-600" />}
+          icon={<AlertCircle className="w-5 h-5 text-rose-600" />}
           changeType={finance.debt > 0 ? 'negative' : 'positive'}
+          index={3}
         />
       </div>
 
