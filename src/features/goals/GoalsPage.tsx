@@ -5,10 +5,10 @@
 import { useState, useMemo } from 'react';
 import {
   Target, Plus, CheckCircle2, Clock,
-  Edit2, BarChart
+  Edit2, BarChart, Sparkles, Check
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
-import { formatDate } from '@/utils';
+import { formatDate, cn } from '@/utils';
 import { Card, Badge, Avatar, Select, EmptyState } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
@@ -398,28 +398,67 @@ export function GoalsPage() {
       >
         {editingGoal && (() => {
           const editingChild = children.find(c => c.id === editingGoal.childId);
+          const progressDelta = editData.progress - editingGoal.progress;
+
           return (
             <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div className="p-3.5 rounded-[14px] bg-warm-50/80 border border-warm-200/90 shadow-2xs space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Avatar name={editingChild?.fullName ?? 'Bola'} size="xs" />
-                    <span className="text-xs font-bold text-charcoal-800 truncate">
-                      {editingChild?.fullName}
+              {/* ─── Patient & Objective Summary Card ─── */}
+              <div className="p-4 rounded-[14px] bg-warm-50/90 border border-warm-200/90 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Avatar name={editingChild?.fullName ?? 'Bola'} size="sm" />
+                    <div className="min-w-0">
+                      <span className="text-xs sm:text-sm font-bold text-charcoal-900 truncate block">
+                        {editingChild?.fullName}
+                      </span>
+                      <span className="text-[11px] text-charcoal-500 block truncate">
+                        {editingChild?.diagnosis || 'Reabilitatsiya dasturi'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[11px] font-semibold bg-white border border-warm-200 text-charcoal-600 shadow-2xs">
+                      <Clock className="w-3 h-3 text-brand-500" />
+                      {formatDate(editingGoal.targetDate)}
                     </span>
                   </div>
-                  <span className="text-[11px] font-medium text-charcoal-400">
-                    Muddat: {formatDate(editingGoal.targetDate)}
-                  </span>
                 </div>
-                <div className="pt-1.5 border-t border-warm-200/60">
-                  <h4 className="text-sm font-bold text-charcoal-900">{editingGoal.title}</h4>
-                  {editingGoal.description && (
-                    <p className="text-xs text-charcoal-500 mt-0.5 leading-relaxed">{editingGoal.description}</p>
-                  )}
+
+                <div className="pt-2.5 border-t border-warm-200/70 flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-charcoal-900">
+                      <Target className="w-3.5 h-3.5 text-brand-600 flex-shrink-0" />
+                      <span className="truncate">{editingGoal.title}</span>
+                    </div>
+                    {editingGoal.description && (
+                      <p className="text-xs text-charcoal-500 mt-1 leading-relaxed line-clamp-2">
+                        {editingGoal.description}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex-shrink-0 text-right">
+                    <span className="text-[10px] text-charcoal-400 block uppercase tracking-wider font-semibold">
+                      Boshlang‘ich
+                    </span>
+                    <span className="text-xs font-bold text-charcoal-700">
+                      {editingGoal.progress}%
+                    </span>
+                    {progressDelta !== 0 && (
+                      <span
+                        className={cn(
+                          'block text-[11px] font-extrabold',
+                          progressDelta > 0 ? 'text-emerald-600' : 'text-amber-600'
+                        )}
+                      >
+                        {progressDelta > 0 ? `+${progressDelta}%` : `${progressDelta}%`}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
+              {/* ─── Interactive Progress Slider ─── */}
               <Slider
                 label="Reabilitatsiya progressi"
                 value={editData.progress}
@@ -433,37 +472,124 @@ export function GoalsPage() {
                 presets={[0, 25, 50, 75, 100]}
               />
 
-              <Select
-                label="Holat"
-                value={editData.status}
-                onChange={e => {
-                  const newStatus = e.target.value as GoalStatus;
-                  setEditData({
-                    ...editData,
-                    status: newStatus,
-                    progress: newStatus === 'COMPLETED' && editData.progress < 100 ? 100 : editData.progress,
-                  });
-                }}
-                options={[
-                  { value: 'ACTIVE', label: 'Faol (Jarayonda)' },
-                  { value: 'COMPLETED', label: 'Bajarildi (100%)' },
-                  { value: 'PAUSED', label: 'To‘xtatilgan' },
-                ]}
-              />
+              {/* ─── Segmented Status Control ─── */}
+              <div>
+                <label className="block text-xs font-bold text-charcoal-800 mb-1.5">
+                  Maqsad holati
+                </label>
+                <div className="grid grid-cols-3 gap-1.5 p-1 bg-warm-100/80 rounded-[12px] border border-warm-200/90">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditData({
+                        ...editData,
+                        status: 'ACTIVE',
+                      });
+                    }}
+                    className={cn(
+                      'flex items-center justify-center gap-1.5 py-2 px-2 rounded-[9px] text-xs font-bold transition-all active:scale-95',
+                      editData.status === 'ACTIVE'
+                        ? 'bg-white text-brand-700 shadow-xs border border-brand-200/70 ring-1 ring-brand-500/10'
+                        : 'text-charcoal-600 hover:text-charcoal-900 hover:bg-white/50'
+                    )}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
+                    <span className="truncate">Faol</span>
+                  </button>
 
-              <Textarea
-                label="Mutaxassis izohi va natija"
-                rows={3}
-                placeholder="O‘zgarishlar va keyingi qadamlar haqida..."
-                value={editData.specialistNote}
-                onChange={e => setEditData({ ...editData, specialistNote: e.target.value })}
-              />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditData({
+                        ...editData,
+                        status: 'COMPLETED',
+                        progress: 100,
+                      });
+                    }}
+                    className={cn(
+                      'flex items-center justify-center gap-1.5 py-2 px-2 rounded-[9px] text-xs font-bold transition-all active:scale-95',
+                      editData.status === 'COMPLETED'
+                        ? 'bg-white text-emerald-700 shadow-xs border border-emerald-200/70 ring-1 ring-emerald-500/10'
+                        : 'text-charcoal-600 hover:text-charcoal-900 hover:bg-white/50'
+                    )}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                    <span className="truncate">Bajarildi (100%)</span>
+                  </button>
 
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditData({
+                        ...editData,
+                        status: 'PAUSED',
+                      });
+                    }}
+                    className={cn(
+                      'flex items-center justify-center gap-1.5 py-2 px-2 rounded-[9px] text-xs font-bold transition-all active:scale-95',
+                      editData.status === 'PAUSED'
+                        ? 'bg-white text-charcoal-800 shadow-xs border border-warm-300 ring-1 ring-charcoal-500/10'
+                        : 'text-charcoal-600 hover:text-charcoal-900 hover:bg-white/50'
+                    )}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-charcoal-400 flex-shrink-0" />
+                    <span className="truncate">To‘xtatilgan</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* ─── Specialist Note & Result with Quick Templates ─── */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-charcoal-800 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-brand-500" />
+                    <span>Mutaxassis izohi va natija</span>
+                  </label>
+                  <span className="text-[11px] text-charcoal-400">Tezkor shablonlar:</span>
+                </div>
+
+                {/* Quick note templates */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {[
+                    'Dinamika ijobiy',
+                    'Mashqlarni mustaqil bajardi',
+                    'Mushak tonusi yaxshilandi',
+                    'Keyingi bosqichga tavsiya',
+                  ].map(template => (
+                    <button
+                      key={template}
+                      type="button"
+                      onClick={() => {
+                        const cur = editData.specialistNote.trim();
+                        const next = cur ? `${cur}. ${template}` : template;
+                        setEditData({ ...editData, specialistNote: next });
+                      }}
+                      className="text-[11px] font-medium px-2 py-0.5 rounded-[6px] bg-warm-100 hover:bg-warm-200/90 text-charcoal-600 hover:text-charcoal-900 transition-colors border border-warm-200/80 active:scale-95"
+                    >
+                      + {template}
+                    </button>
+                  ))}
+                </div>
+
+                <textarea
+                  rows={3}
+                  value={editData.specialistNote}
+                  onChange={e => setEditData({ ...editData, specialistNote: e.target.value })}
+                  placeholder="O‘zgarishlar, dinamika va erishilgan natijalar haqida yozing..."
+                  className={cn(
+                    'w-full bg-white border border-warm-300 rounded-[10px] px-3.5 py-2.5 text-xs sm:text-sm text-charcoal-900 placeholder:text-charcoal-400',
+                    'outline-none transition-colors duration-150 resize-y min-h-[76px]',
+                    'hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 shadow-2xs'
+                  )}
+                />
+              </div>
+
+              {/* ─── Actions ─── */}
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-warm-100">
                 <Button variant="secondary" type="button" onClick={() => setEditingGoal(null)}>
                   Bekor qilish
                 </Button>
-                <Button type="submit">
+                <Button type="submit" leftIcon={<Check className="w-4 h-4" />}>
                   O‘zgarishlarni saqlash
                 </Button>
               </div>

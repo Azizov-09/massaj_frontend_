@@ -1,4 +1,4 @@
-import React, { useId, useMemo } from 'react';
+import { useId, useMemo } from 'react';
 import { cn } from '@/utils';
 import { Target, TrendingUp, CheckCircle2, Minus, Plus } from 'lucide-react';
 
@@ -51,7 +51,7 @@ export function Slider({
       return {
         barGradient: 'bg-gradient-to-r from-emerald-500 to-teal-500',
         badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
-        thumbBorder: 'border-emerald-500',
+        thumbBorder: 'border-emerald-500 shadow-emerald-500/20',
         thumbDot: 'bg-emerald-500',
         accentColor: '#10b981',
         statusLabel: 'To‘liq bajarildi',
@@ -59,11 +59,23 @@ export function Slider({
         icon: <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />,
       };
     }
-    if (clampedValue >= 50) {
+    if (clampedValue >= 75) {
       return {
         barGradient: 'bg-gradient-to-r from-brand-500 to-brand-600',
         badgeBg: 'bg-brand-50 text-brand-700 border-brand-200/80',
-        thumbBorder: 'border-brand-500',
+        thumbBorder: 'border-brand-600 shadow-brand-600/20',
+        thumbDot: 'bg-brand-600',
+        accentColor: '#ea6410',
+        statusLabel: 'Yuqori natija',
+        presetActive: 'bg-brand-600 text-white shadow-xs shadow-brand-600/30 ring-2 ring-brand-500/20',
+        icon: <TrendingUp className="w-3.5 h-3.5 text-brand-600" />,
+      };
+    }
+    if (clampedValue >= 50) {
+      return {
+        barGradient: 'bg-gradient-to-r from-brand-400 to-brand-500',
+        badgeBg: 'bg-brand-50 text-brand-700 border-brand-200/80',
+        thumbBorder: 'border-brand-500 shadow-brand-500/20',
         thumbDot: 'bg-brand-500',
         accentColor: '#f97316',
         statusLabel: 'Faol jarayon',
@@ -75,7 +87,7 @@ export function Slider({
       return {
         barGradient: 'bg-gradient-to-r from-amber-400 to-amber-500',
         badgeBg: 'bg-amber-50 text-amber-800 border-amber-200/80',
-        thumbBorder: 'border-amber-500',
+        thumbBorder: 'border-amber-500 shadow-amber-500/20',
         thumbDot: 'bg-amber-500',
         accentColor: '#f59e0b',
         statusLabel: 'Boshlang‘ich bosqich',
@@ -104,7 +116,7 @@ export function Slider({
   return (
     <div
       className={cn(
-        'p-3.5 sm:p-4 rounded-[14px] bg-warm-50/70 border border-warm-200/90 shadow-2xs space-y-3 transition-colors duration-150',
+        'p-3.5 sm:p-4 rounded-[14px] bg-warm-50/80 border border-warm-200/90 shadow-2xs space-y-3 transition-colors duration-150',
         'focus-within:border-brand-300 focus-within:ring-2 focus-within:ring-brand-500/10',
         disabled && 'opacity-60 pointer-events-none',
         className
@@ -128,7 +140,7 @@ export function Slider({
         {showValueBadge && (
           <div
             className={cn(
-              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] text-xs font-bold border transition-colors duration-200',
+              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] text-xs font-bold border transition-colors duration-200 shadow-2xs',
               theme.badgeBg
             )}
           >
@@ -141,21 +153,27 @@ export function Slider({
       </div>
 
       {/* ─── Interactive Slider Bar & Thumb ─── */}
-      <div className="relative pt-1 pb-1 flex items-center group">
+      <div className="relative pt-1.5 pb-1.5 flex items-center group">
         {/* Track Container */}
-        <div className="relative w-full h-3 rounded-full bg-warm-200/90 overflow-hidden shadow-inner">
+        <div className="relative w-full h-3 rounded-full bg-warm-200/90 overflow-hidden shadow-inner border border-warm-300/40">
           {/* Active Fill Track */}
           <div
             className={cn('h-full rounded-full transition-all duration-150 ease-out', theme.barGradient)}
             style={{ width: `${percentage}%` }}
           />
+
+          {/* Track Landmark Ticks (25%, 50%, 75%) */}
+          <div className="absolute inset-0 flex justify-between px-[25%] pointer-events-none opacity-40">
+            <div className="w-0.5 h-full bg-white/70" />
+            <div className="w-0.5 h-full bg-white/70" />
+          </div>
         </div>
 
         {/* Floating Custom Thumb (Positioned precisely without overflowing track) */}
         <div
           className={cn(
-            'absolute top-1/2 w-6 h-6 rounded-full bg-white shadow-md border-[2.5px] pointer-events-none transition-transform duration-100 flex items-center justify-center',
-            'group-hover:scale-110 group-hover:shadow-lg',
+            'absolute top-1/2 w-6 h-6 sm:w-6.5 sm:h-6.5 rounded-full bg-white shadow-md border-[2.5px] pointer-events-none transition-transform duration-100 flex items-center justify-center',
+            'group-hover:scale-115 group-hover:shadow-lg',
             theme.thumbBorder
           )}
           style={{
@@ -181,7 +199,7 @@ export function Slider({
           aria-valuemax={max}
           aria-valuenow={clampedValue}
           aria-valuetext={`${clampedValue}${unit}`}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+          className="range-slider-input absolute inset-0 w-full h-full opacity-0 z-10"
         />
       </div>
 

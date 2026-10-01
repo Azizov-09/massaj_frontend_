@@ -256,6 +256,36 @@
     filter: brightness(0.96);
   }
 
+  /* Range Slider Input */
+  .range-slider-input {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: grab;
+    outline: none;
+  }
+  .range-slider-input:active {
+    cursor: grabbing;
+  }
+  .range-slider-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    opacity: 0;
+    cursor: grab;
+  }
+  .range-slider-input:active::-webkit-slider-thumb {
+    cursor: grabbing;
+  }
+  .range-slider-input::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    opacity: 0;
+    cursor: grab;
+    border: none;
+  }
+
   /* Gradient text */
   .text-gradient-brand {
     background: linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-gold-500) 100%);
