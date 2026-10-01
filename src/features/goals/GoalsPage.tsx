@@ -334,18 +334,22 @@ export function GoalsPage() {
                     </div>
                   </div>
 
-                  {/* Specialist Note Slot (Senior-level polished uniform slot) */}
+                  {/* Specialist Sharh / Note Slot (Senior-level clinical observation design) */}
                   <div className="pt-0.5">
                     {goal.specialistNote ? (
-                      <div className="p-2.5 rounded-xl bg-warm-50/80 border border-warm-200/70 shadow-2xs flex items-start gap-2.5 min-h-[46px]">
-                        <div className="w-6 h-6 rounded-lg bg-brand-50 border border-brand-100/80 flex items-center justify-center shrink-0 mt-0.5 text-brand-600">
-                          <MessageSquare className="w-3 h-3" />
+                      <div className="rounded-xl bg-warm-50/80 border border-warm-200/75 p-2.5 shadow-2xs transition-colors hover:border-brand-200 min-h-[64px] flex flex-col justify-between">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-charcoal-500">
+                            <MessageSquare className="w-3 h-3 text-brand-500" />
+                            Mutaxassis sharhi
+                          </span>
+                          <span className="text-[10px] text-charcoal-400 font-medium italic">
+                            Klinik xulosa
+                          </span>
                         </div>
-                        <div className="flex-1 min-w-0 pt-0.5">
-                          <p className="text-[11px] text-charcoal-700 italic line-clamp-2 leading-relaxed">
-                            “{goal.specialistNote}”
-                          </p>
-                        </div>
+                        <p className="text-xs text-charcoal-700 italic line-clamp-2 leading-relaxed">
+                          “{goal.specialistNote}”
+                        </p>
                       </div>
                     ) : (
                       !isParent ? (
@@ -355,20 +359,32 @@ export function GoalsPage() {
                             e.stopPropagation();
                             handleOpenEdit(goal);
                           }}
-                          className="w-full p-2.5 rounded-xl bg-warm-50/50 hover:bg-brand-50/40 border border-warm-200/70 hover:border-brand-200/90 flex items-center justify-center gap-2 transition-all duration-150 min-h-[46px] group/note cursor-pointer"
-                          title="Mutaxassis izohini kiritish"
+                          className="w-full rounded-xl bg-warm-50/40 hover:bg-brand-50/30 border border-warm-200/70 hover:border-brand-200/90 p-2.5 text-left transition-all duration-150 group/add cursor-pointer min-h-[64px] flex flex-col justify-between"
+                          title="Mutaxassis sharhini kiritish"
                         >
-                          <div className="w-5 h-5 rounded-md bg-white border border-warm-200/80 group-hover/note:border-brand-300 group-hover/note:bg-brand-50 flex items-center justify-center shadow-2xs transition-all">
-                            <Plus className="w-3 h-3 text-charcoal-400 group-hover/note:text-brand-600 transition-colors" />
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-charcoal-500 group-hover/add:text-brand-600 transition-colors">
+                              <MessageSquare className="w-3 h-3 text-charcoal-400 group-hover/add:text-brand-500 transition-colors" />
+                              Mutaxassis sharhi
+                            </span>
+                            <span className="text-[10px] font-semibold text-brand-600 group-hover/add:text-brand-700 flex items-center gap-0.5 transition-colors">
+                              <Plus className="w-2.5 h-2.5" />
+                              Qo‘shish
+                            </span>
                           </div>
-                          <span className="text-xs font-medium text-charcoal-500 group-hover/note:text-brand-600 transition-colors">
-                            Izoh kiritilmagan · Qo‘shish
-                          </span>
+                          <p className="text-xs text-charcoal-400 group-hover/add:text-charcoal-600 italic transition-colors line-clamp-1">
+                            Hozircha sharh kiritilmagan · Kiritish uchun bosing
+                          </p>
                         </button>
                       ) : (
-                        <div className="w-full p-2.5 rounded-xl bg-warm-50/30 border border-warm-200/40 flex items-center justify-center gap-2 min-h-[46px] text-xs text-charcoal-400 italic">
-                          <Clock className="w-3.5 h-3.5 text-charcoal-300" />
-                          <span>Hozircha mutaxassis izohi kiritilmagan</span>
+                        <div className="w-full rounded-xl bg-warm-50/30 border border-warm-200/40 p-2.5 min-h-[64px] flex flex-col justify-between">
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-charcoal-500 mb-1">
+                            <MessageSquare className="w-3 h-3 text-charcoal-400" />
+                            Mutaxassis sharhi
+                          </span>
+                          <p className="text-xs text-charcoal-400 italic">
+                            Hozircha mutaxassis sharhi kiritilmagan
+                          </p>
                         </div>
                       )
                     )}
@@ -448,9 +464,9 @@ export function GoalsPage() {
           />
 
           <Textarea
-            label="Mutaxassis izohi (ixtiyoriy)"
+            label="Mutaxassis sharhi (ixtiyoriy)"
             rows={2}
-            placeholder="Qo‘shimcha ko‘rsatmalar..."
+            placeholder="Bolaning holati bo‘yicha dastlabki xulosa yoki ko‘rsatmalar..."
             value={newGoal.specialistNote}
             onChange={e => setNewGoal({ ...newGoal, specialistNote: e.target.value })}
           />
@@ -615,14 +631,14 @@ export function GoalsPage() {
                 </div>
               </div>
 
-              {/* ─── Specialist Note & Result with Quick Templates ─── */}
-              <div className="space-y-1.5">
+              {/* ─── Specialist Sharh & Result with Quick Templates ─── */}
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-charcoal-800 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-brand-500" />
-                    <span>Mutaxassis izohi va natija</span>
+                    <span>Mutaxassis sharhi va xulosasi</span>
                   </label>
-                  <span className="text-[11px] text-charcoal-400">Tezkor shablonlar:</span>
+                  <span className="text-[11px] text-charcoal-400 font-medium">Tezkor shablonlar:</span>
                 </div>
 
                 {/* Quick note templates */}
@@ -632,6 +648,7 @@ export function GoalsPage() {
                     'Mashqlarni mustaqil bajardi',
                     'Mushak tonusi yaxshilandi',
                     'Keyingi bosqichga tavsiya',
+                    'Qo‘shimcha mashqlar tavsiya etildi',
                   ].map(template => (
                     <button
                       key={template}
@@ -641,24 +658,36 @@ export function GoalsPage() {
                         const next = cur ? `${cur}. ${template}` : template;
                         setEditData({ ...editData, specialistNote: next });
                       }}
-                      className="text-[11px] font-medium px-2 py-0.5 rounded-[6px] bg-warm-100 hover:bg-warm-200/90 text-charcoal-600 hover:text-charcoal-900 transition-colors border border-warm-200/80 active:scale-95"
+                      className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-warm-100/90 hover:bg-brand-50 hover:text-brand-700 text-charcoal-700 transition-all border border-warm-200/80 hover:border-brand-200 active:scale-95 cursor-pointer shadow-2xs"
                     >
                       + {template}
                     </button>
                   ))}
                 </div>
 
-                <textarea
-                  rows={3}
-                  value={editData.specialistNote}
-                  onChange={e => setEditData({ ...editData, specialistNote: e.target.value })}
-                  placeholder="O‘zgarishlar, dinamika va erishilgan natijalar haqida yozing..."
-                  className={cn(
-                    'w-full bg-white border border-warm-300 rounded-[10px] px-3.5 py-2.5 text-xs sm:text-sm text-charcoal-900 placeholder:text-charcoal-400',
-                    'outline-none transition-colors duration-150 resize-y min-h-[76px]',
-                    'hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 shadow-2xs'
+                <div className="relative">
+                  <textarea
+                    rows={3}
+                    value={editData.specialistNote}
+                    onChange={e => setEditData({ ...editData, specialistNote: e.target.value })}
+                    placeholder="Bolaning reabilitatsiya jarayoni, erishgan natijalari va keyingi tavsiyalarni yozing..."
+                    className={cn(
+                      'w-full bg-white border border-warm-300 rounded-[12px] p-3 text-xs sm:text-sm text-charcoal-900 placeholder:text-charcoal-400',
+                      'outline-none transition-all duration-150 resize-y min-h-[84px]',
+                      'hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 shadow-2xs'
+                    )}
+                  />
+                  {editData.specialistNote && (
+                    <button
+                      type="button"
+                      onClick={() => setEditData({ ...editData, specialistNote: '' })}
+                      className="absolute right-2.5 bottom-2.5 text-[10px] font-semibold text-charcoal-400 hover:text-danger-main px-2 py-0.5 rounded-md bg-warm-100 hover:bg-red-50 border border-warm-200/60 transition-colors"
+                      title="Sharhni tozalash"
+                    >
+                      Tozalash
+                    </button>
                   )}
-                />
+                </div>
               </div>
 
               {/* ─── Actions ─── */}
