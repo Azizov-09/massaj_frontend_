@@ -111,6 +111,7 @@ interface Actions {
 
   // Attendance
   recordAttendance: (data: Omit<AttendanceRecord, 'id' | 'createdAt'>) => void;
+  removeAttendance: (appointmentId: string) => void;
 
   // Assessments
   createAssessment: (data: Omit<Assessment, 'id' | 'createdAt'>) => void;
@@ -467,13 +468,17 @@ export const useStore = create<Store>()(
         const record: AttendanceRecord = { ...data, id: `att-${generateId()}`, createdAt: new Date().toISOString() };
         set(s => ({
           attendance: [
-            ...s.attendance.filter(
-              a => !(a.appointmentId === data.appointmentId || (a.childId === data.childId && a.date === data.date))
-            ),
+            ...s.attendance.filter(a => a.appointmentId !== data.appointmentId),
             record,
           ],
         }));
         get().addToast({ type: 'success', title: 'Davomat belgilandi' });
+      },
+      removeAttendance: (appointmentId) => {
+        set(s => ({
+          attendance: s.attendance.filter(a => a.appointmentId !== appointmentId),
+        }));
+        get().addToast({ type: 'info', title: 'Davomat bekor qilindi' });
       },
 
       // ── Assessments ──────────────────────────────────────

@@ -64,6 +64,7 @@ export function AttendancePage() {
   const specialists = useStore(s => s.specialists);
   const services = useStore(s => s.services);
   const recordAttendance = useStore(s => s.recordAttendance);
+  const removeAttendance = useStore(s => s.removeAttendance);
 
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [specialistFilter, setSpecialistFilter] = useState(
@@ -94,15 +95,13 @@ export function AttendancePage() {
     });
   }, [appointments, selectedDate, specialistFilter, currentUser]);
 
-  // Combined attendance records for the day's appointments
+  // Combined attendance records for the day's appointments (strictly per appointmentId)
   const attendanceItems = useMemo(() => {
     return dayAppointments.map(apt => {
       const child = children.find(c => c.id === apt.childId);
       const spec = specialists.find(s => s.id === apt.specialistId);
       const svc = services.find(s => s.id === apt.serviceId);
-      const attRecord = attendance.find(
-        att => att.appointmentId === apt.id || (att.childId === apt.childId && att.date === selectedDate)
-      );
+      const attRecord = attendance.find(att => att.appointmentId === apt.id);
 
       return {
         appointment: apt,
@@ -121,7 +120,7 @@ export function AttendancePage() {
         item.service?.name.toLowerCase().includes(q)
       );
     });
-  }, [dayAppointments, attendance, children, specialists, services, selectedDate, search]);
+  }, [dayAppointments, attendance, children, specialists, services, search]);
 
   // Daily statistics
   const stats = useMemo(() => {
@@ -132,9 +131,7 @@ export function AttendancePage() {
     let noShow = 0;
 
     dayAppointments.forEach(apt => {
-      const att = attendance.find(
-        a => a.appointmentId === apt.id || (a.childId === apt.childId && a.date === selectedDate)
-      );
+      const att = attendance.find(a => a.appointmentId === apt.id);
       if (att) {
         if (att.status === 'PRESENT') present++;
         else if (att.status === 'LATE') late++;
@@ -147,10 +144,20 @@ export function AttendancePage() {
     const rate = total > 0 ? Math.round((attended / total) * 100) : 0;
 
     return { total, present, late, absent, noShow, rate };
-  }, [dayAppointments, attendance, selectedDate]);
+  }, [dayAppointments, attendance]);
 
-  const handleMark = (appointmentId: string, childId: string, specialistId: string, status: AttendanceStatus) => {
+  const handleMark = (
+    appointmentId: string,
+    childId: string,
+    specialistId: string,
+    status: AttendanceStatus,
+    currentStatus: AttendanceStatus | null
+  ) => {
     if (currentUser?.role === 'SPECIALIST' && specialistId !== currentUser.id) return;
+    if (currentStatus === status) {
+      removeAttendance(appointmentId);
+      return;
+    }
     recordAttendance({
       appointmentId,
       childId,
@@ -355,7 +362,7 @@ export function AttendancePage() {
                               <button
                                 key={opt.status}
                                 type="button"
-                                onClick={() => handleMark(appointment.id, appointment.childId, appointment.specialistId, opt.status)}
+                                onClick={() => handleMark(appointment.id, appointment.childId, appointment.specialistId, opt.status, status)}
                                 className={cn(
                                   'h-8 px-1.5 flex items-center justify-center gap-1.5 rounded-[7px] text-xs font-semibold transition-all duration-150 cursor-pointer',
                                   isSelected

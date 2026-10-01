@@ -130,4 +130,61 @@ describe('AttendancePage Component', () => {
     fireEvent.click(keldiButton);
     expect(keldiButton).toHaveClass('bg-emerald-600');
   });
+
+  it('marks attendance independently when a child has multiple appointments on the same day', () => {
+    // Add a second appointment for the same child on the same day
+    useStore.setState({
+      appointments: [
+        {
+          id: 'apt-test-1',
+          childId: 'c1',
+          parentId: 'p1',
+          specialistId: 's1',
+          serviceId: 'srv1',
+          date: today,
+          startTime: '10:00',
+          endTime: '11:00',
+          status: 'CONFIRMED',
+          createdAt: '2026-01-01T00:00:00Z',
+        },
+        {
+          id: 'apt-test-2',
+          childId: 'c1',
+          parentId: 'p1',
+          specialistId: 's1',
+          serviceId: 'srv1',
+          date: today,
+          startTime: '14:00',
+          endTime: '15:00',
+          status: 'CONFIRMED',
+          createdAt: '2026-01-01T00:00:00Z',
+        },
+      ],
+      attendance: [],
+    });
+
+    render(
+      <MemoryRouter>
+        <AttendancePage />
+      </MemoryRouter>
+    );
+
+    const keldiButtons = screen.getAllByTitle('Keldi (mashg‘ulotda qatnashdi)');
+    expect(keldiButtons).toHaveLength(2);
+
+    // Both should be unmarked initially
+    expect(keldiButtons[0]).not.toHaveClass('bg-emerald-600');
+    expect(keldiButtons[1]).not.toHaveClass('bg-emerald-600');
+
+    // Click "Keldi" on the FIRST appointment only
+    fireEvent.click(keldiButtons[0]);
+
+    // ONLY the first appointment should have "Keldi" selected!
+    expect(keldiButtons[0]).toHaveClass('bg-emerald-600');
+    expect(keldiButtons[1]).not.toHaveClass('bg-emerald-600');
+
+    // Click "Keldi" again on the first appointment to unmark it
+    fireEvent.click(keldiButtons[0]);
+    expect(keldiButtons[0]).not.toHaveClass('bg-emerald-600');
+  });
 });
