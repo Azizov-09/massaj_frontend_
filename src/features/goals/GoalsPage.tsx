@@ -337,7 +337,7 @@ export function GoalsPage() {
                   {/* Specialist Sharh / Note Slot (Senior-level clinical observation design) */}
                   <div className="pt-0.5">
                     {goal.specialistNote ? (
-                      <div className="rounded-xl bg-warm-50/80 border border-warm-200/75 p-2.5 shadow-2xs transition-colors hover:border-brand-200 min-h-[64px] flex flex-col justify-between">
+                      <div className="rounded-xl bg-warm-50/80 border border-warm-200/75 p-2.5 shadow-2xs transition-colors hover:border-brand-200 min-h-[44px] flex flex-col justify-between">
                         <div className="flex items-center justify-between mb-1">
                           <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-charcoal-500">
                             <Quote className="w-3.5 h-3.5 text-brand-500 shrink-0" />
@@ -359,32 +359,15 @@ export function GoalsPage() {
                             e.stopPropagation();
                             handleOpenEdit(goal);
                           }}
-                          className="w-full rounded-xl bg-warm-50/40 hover:bg-brand-50/30 border border-warm-200/70 hover:border-brand-200/90 p-2.5 text-left transition-all duration-150 group/add cursor-pointer min-h-[64px] flex flex-col justify-between"
-                          title="Mutaxassis sharhini kiritish"
+                          className="w-full p-2.5 rounded-xl border border-dashed border-warm-200/90 hover:border-brand-300 hover:bg-brand-50/40 text-[11px] text-charcoal-400 hover:text-brand-600 flex items-center justify-center gap-1.5 transition-all min-h-[44px] group/note cursor-pointer"
+                          title="Mutaxassis izohini qo‘shish"
                         >
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-charcoal-500 group-hover/add:text-brand-600 transition-colors">
-                              <Quote className="w-3.5 h-3.5 text-charcoal-400 group-hover/add:text-brand-500 transition-colors shrink-0" />
-                              Mutaxassis sharhi
-                            </span>
-                            <span className="text-[10px] font-semibold text-brand-600 group-hover/add:text-brand-700 flex items-center gap-0.5 transition-colors">
-                              <Plus className="w-2.5 h-2.5" />
-                              Qo‘shish
-                            </span>
-                          </div>
-                          <p className="text-xs text-charcoal-400 group-hover/add:text-charcoal-600 italic transition-colors line-clamp-1">
-                            Hozircha sharh kiritilmagan · Kiritish uchun bosing
-                          </p>
+                          <Plus className="w-3.5 h-3.5 text-charcoal-400 group-hover/note:text-brand-500 transition-colors" />
+                          <span className="font-medium">Izoh kiritilmagan · Qo‘shish</span>
                         </button>
                       ) : (
-                        <div className="w-full rounded-xl bg-warm-50/30 border border-warm-200/40 p-2.5 min-h-[64px] flex flex-col justify-between">
-                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-charcoal-500 mb-1">
-                            <Quote className="w-3.5 h-3.5 text-charcoal-400 shrink-0" />
-                            Mutaxassis sharhi
-                          </span>
-                          <p className="text-xs text-charcoal-400 italic">
-                            Hozircha mutaxassis sharhi kiritilmagan
-                          </p>
+                        <div className="w-full p-2.5 rounded-xl bg-warm-50/40 border border-warm-200/40 text-[11px] text-charcoal-400 flex items-center justify-center min-h-[44px] italic">
+                          Hozircha izoh kiritilmagan
                         </div>
                       )
                     )}
