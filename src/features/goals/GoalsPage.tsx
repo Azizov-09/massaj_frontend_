@@ -334,14 +334,18 @@ export function GoalsPage() {
                     </div>
                   </div>
 
-                  {/* Specialist Note Slot (Restored uniform slot for notes/add-note action) */}
+                  {/* Specialist Note Slot (Senior-level polished uniform slot) */}
                   <div className="pt-0.5">
                     {goal.specialistNote ? (
-                      <div className="p-2.5 rounded-xl bg-warm-50/90 text-[11px] text-charcoal-700 border border-warm-200/80 shadow-2xs flex items-start gap-2 min-h-[44px]">
-                        <MessageSquare className="w-3.5 h-3.5 text-brand-500 mt-0.5 shrink-0" />
-                        <p className="italic line-clamp-2 leading-relaxed text-charcoal-600">
-                          "{goal.specialistNote}"
-                        </p>
+                      <div className="p-2.5 rounded-xl bg-warm-50/80 border border-warm-200/70 shadow-2xs flex items-start gap-2.5 min-h-[46px]">
+                        <div className="w-6 h-6 rounded-lg bg-brand-50 border border-brand-100/80 flex items-center justify-center shrink-0 mt-0.5 text-brand-600">
+                          <MessageSquare className="w-3 h-3" />
+                        </div>
+                        <div className="flex-1 min-w-0 pt-0.5">
+                          <p className="text-[11px] text-charcoal-700 italic line-clamp-2 leading-relaxed">
+                            “{goal.specialistNote}”
+                          </p>
+                        </div>
                       </div>
                     ) : (
                       !isParent ? (
@@ -351,15 +355,20 @@ export function GoalsPage() {
                             e.stopPropagation();
                             handleOpenEdit(goal);
                           }}
-                          className="w-full p-2.5 rounded-xl border border-dashed border-warm-200/90 hover:border-brand-300 hover:bg-brand-50/40 text-[11px] text-charcoal-400 hover:text-brand-600 flex items-center justify-center gap-1.5 transition-all min-h-[44px] group/note"
-                          title="Mutaxassis izohini qo‘shish"
+                          className="w-full p-2.5 rounded-xl bg-warm-50/50 hover:bg-brand-50/40 border border-warm-200/70 hover:border-brand-200/90 flex items-center justify-center gap-2 transition-all duration-150 min-h-[46px] group/note cursor-pointer"
+                          title="Mutaxassis izohini kiritish"
                         >
-                          <Plus className="w-3.5 h-3.5 text-charcoal-400 group-hover/note:text-brand-500 transition-colors" />
-                          <span className="font-medium">Izoh kiritilmagan · Qo‘shish</span>
+                          <div className="w-5 h-5 rounded-md bg-white border border-warm-200/80 group-hover/note:border-brand-300 group-hover/note:bg-brand-50 flex items-center justify-center shadow-2xs transition-all">
+                            <Plus className="w-3 h-3 text-charcoal-400 group-hover/note:text-brand-600 transition-colors" />
+                          </div>
+                          <span className="text-xs font-medium text-charcoal-500 group-hover/note:text-brand-600 transition-colors">
+                            Izoh kiritilmagan · Qo‘shish
+                          </span>
                         </button>
                       ) : (
-                        <div className="p-2.5 rounded-xl bg-warm-50/40 border border-warm-200/40 text-[11px] text-charcoal-400 flex items-center justify-center min-h-[44px] italic">
-                          Hozircha izoh kiritilmagan
+                        <div className="w-full p-2.5 rounded-xl bg-warm-50/30 border border-warm-200/40 flex items-center justify-center gap-2 min-h-[46px] text-xs text-charcoal-400 italic">
+                          <Clock className="w-3.5 h-3.5 text-charcoal-300" />
+                          <span>Hozircha mutaxassis izohi kiritilmagan</span>
                         </div>
                       )
                     )}
