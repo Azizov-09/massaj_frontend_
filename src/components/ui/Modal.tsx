@@ -92,7 +92,7 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             tabIndex={-1}
             className={cn(
-              'relative z-10 w-full bg-white rounded-[20px] shadow-[0_20px_60px_-10px_rgb(0_0_0/0.18)] flex flex-col max-h-[90vh]',
+              'relative z-10 w-full bg-white rounded-[16px] border border-warm-200/90 shadow-[0_20px_60px_-10px_rgb(0_0_0/0.18)] flex flex-col max-h-[90vh]',
               sizeClasses[size],
               className
             )}
@@ -119,7 +119,7 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
             <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
             {/* Footer */}
             {footer && (
-              <div className="px-6 py-4 border-t border-warm-100 bg-warm-50/50 rounded-b-[20px] flex items-center justify-end gap-2">
+              <div className="px-6 py-4 border-t border-warm-100 bg-warm-50/50 rounded-b-[16px] flex items-center justify-end gap-2">
                 {footer}
               </div>
             )}

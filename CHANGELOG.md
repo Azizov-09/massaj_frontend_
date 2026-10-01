@@ -2,6 +2,33 @@
 
 Ushbu hujjatda **Senior Frontend Engineer** va **AGENTS.md** arxitektura qoidalari asosida loyihada amalga oshirilgan barcha tizimli tuzatishlar, refaktoringlar, xavfsizlik va optimallashtirish ishlari bosqichma-bosqich qayd etib boriladi.
 
+## 📌 2026-10-01: Barcha Ichki Kartalar, Modal Bloklari va Ma'lumot Qutilari Burchaklarini Tizimdagi Boshqa Kartalar Bilan Bir Xil Qilish (Global Card Corner & Design Token Normalization)
+
+### [P0] Modal Oynalari va Ichki Ma'lumot Bloklarining O‘ta Yumaloqlangan ("Pill / Stadium") Burchaklarini Tizim Standartiga Keltirish (`rounded-[14px]` va `rounded-[12px]`)
+- **Muammoning Tub Sababi (Root Cause):**
+  - `src/index.css` faylidagi Tailwind v4 `@theme` blokida `--radius-sm: 12px`, `--radius-md: 16px`, `--radius-lg: 22px`, `--radius-xl: 30px` sun'iy ravishda oshirib yozilgan edi. Natijada `rounded-xl` sinfi 30px, `rounded-2xl` esa 36px+ ga aylanib, kichik 50-60px o‘lchamdagi kartalar va ma'lumot bloklari (masalan, Jadval modali ichidagi "Xizmat turi", "Vaqti va sanasi" qutilari) butunlay dumaloq oval/kapsula ("pill") ko‘rinishiga kirib qolgan edi.
+- **Fayllar:**
+  - [`src/index.css`](file:///home/Bekzod/Desktop/massaj_frontend_/src/index.css) — `@theme` dagi border radius tokenlari tizimning asosiy `Card` (`14px`) va ichki elementlar (`10-12px`) iyerarxiyasiga moslashtirildi:
+    - `--radius-xs: 4px;`
+    - `--radius-sm: 6px;`
+    - `--radius-md: 8px;`
+    - `--radius-lg: 10px;`
+    - `--radius-xl: 14px;` (asosiy kartalar bilan 100% bir xil)
+    - `--radius-2xl: 18px;` (konteynerlar va modallar uchun silliq egrilik)
+    - `--radius-3xl: 22px;`
+  - [`src/features/schedule/SchedulePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/schedule/SchedulePage.tsx) — Uchrashuv tafsilotlari modalidagi barcha ichki kartalar ("Xizmat turi", "Vaqti va sanasi", "Izoh") `rounded-[12px]` va `border-warm-200 shadow-2xs` ga, foydalanuvchi yuqori bloki esa `rounded-[14px]` ga o‘tkazildi; kunlik jadvaldagi bo‘sh va band slot kartalari `rounded-[14px]` ga keltirildi.
+  - [`src/features/balance/BalancePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/balance/BalancePage.tsx) — To‘lov qabul qilish modalidagi ota-ona qarzdorlik bloki `rounded-[14px] bg-warm-50/80 border-warm-200/90 shadow-2xs` ga keltirildi.
+  - [`src/features/goals/GoalsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/goals/GoalsPage.tsx) — Mutaxassis qaydi va maqsad tahrirlash modalidagi ma'lumot bloki `rounded-[10px]` va `rounded-[14px]` ga tekislandi.
+  - [`src/features/assessments/AssessmentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/assessments/AssessmentsPage.tsx) — Tibbiy ogohlantirish banneri (`rounded-[14px]`), taqqoslash ball bloklari (`rounded-[12px]`), o‘rtacha ko‘rsatkich nishoni (`rounded-[8px]`), mezon qutilari (`rounded-[10px]`) va yangi baholash modali konteyneri `rounded-[14px]` ga keltirildi.
+  - [`src/features/progress/ProgressPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/progress/ProgressPage.tsx) — Rivojlanish tavsifi bloki `rounded-[10px]` ga o‘tkazildi.
+  - [`src/features/dashboard/ParentDashboard.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/dashboard/ParentDashboard.tsx) — Mutaxassis qaydi qutisi `rounded-[12px]` ga o‘tkazildi.
+  - [`src/features/settings/SettingsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/settings/SettingsPage.tsx) — Sozlamalar menyusi elementlari `rounded-[12px]` ga o‘tkazildi.
+  - [`src/components/ui/ErrorBoundary.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/ErrorBoundary.tsx) — Xatolik kartasi va stek-treys bloki `rounded-[18px]`, `rounded-[14px]` va `rounded-[12px]` ga tekislandi.
+  - [`src/components/ui/Modal.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/Modal.tsx) — Modal dialogining tashqi konteyneri `rounded-[16px]` va `border-warm-200/90` ga ixchamlashtirildi.
+  - [`src/features/landing/LandingPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/landing/LandingPage.tsx) — Interaktiv demo xizmat kartalari `rounded-[14px]` va `rounded-[10px]` ga tekislandi.
+
+---
+
 ## 📌 2026-10-01: Jadval (Schedule) Sahifasining Kunlik va Haftalik Rejimlarini Zamonaviy Interaktiv Arxitekturaga O‘tkazish (Senior UX/UI Overhaul)
 
 ### [P0] Jadval Sahifasida Bo‘sh Vaqt Slotlarini Interaktiv Kartalarga O‘tkazish va 4 Ta KPI Metrika Qo‘shish

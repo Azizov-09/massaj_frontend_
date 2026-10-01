@@ -113,7 +113,7 @@ export function AssessmentsPage() {
       />
 
       {/* Professional observation note / medical disclaimer */}
-      <div className="p-4 rounded-2xl bg-brand-50/70 border border-brand-200/60 flex items-start gap-3.5 text-xs text-charcoal-700">
+      <div className="p-4 rounded-[14px] bg-brand-50/70 border border-brand-200/70 shadow-2xs flex items-start gap-3.5 text-xs text-charcoal-700">
         <AlertCircle className="w-5 h-5 text-brand-600 flex-shrink-0 mt-0.5" />
         <div>
           <p className="font-semibold text-charcoal-900 mb-0.5">Professional kuzatuv eslatmasi</p>
@@ -176,7 +176,7 @@ export function AssessmentsPage() {
               const diff = late - init;
 
               return (
-                <div key={key} className="bg-white p-3.5 rounded-2xl border border-warm-200 shadow-2xs space-y-1">
+                <div key={key} className="bg-white p-3.5 rounded-[12px] border border-warm-200 shadow-2xs space-y-1">
                   <span className="text-[11px] font-medium text-charcoal-500 block truncate">{label}</span>
                   <div className="flex items-baseline justify-between">
                     <div className="flex items-baseline gap-1.5">
@@ -233,7 +233,7 @@ export function AssessmentsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-charcoal-400">O‘rtacha ko‘rsatkich:</span>
-                    <span className="px-3 py-1 rounded-xl bg-brand-500 text-white font-extrabold text-sm shadow-2xs">
+                    <span className="px-3 py-1 rounded-[8px] bg-brand-500 text-white font-extrabold text-sm shadow-2xs">
                       {avgScore} / 5.0
                     </span>
                   </div>
@@ -244,7 +244,7 @@ export function AssessmentsPage() {
                   {criteriaLabels.map(({ key, label }) => {
                     const score = asmnt.scores[key];
                     return (
-                      <div key={key} className="p-2.5 rounded-xl bg-warm-50/70 border border-warm-100 flex items-center justify-between">
+                      <div key={key} className="p-2.5 rounded-[10px] bg-warm-50/70 border border-warm-200/70 shadow-2xs flex items-center justify-between">
                         <span className="text-xs text-charcoal-600 font-medium truncate mr-1">{label}</span>
                         <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${getScoreColor(score)}`}>
                           {score}
@@ -256,7 +256,7 @@ export function AssessmentsPage() {
 
                 {/* Professional Observation note */}
                 {asmnt.professionalObservation && (
-                  <div className="mt-4 p-3.5 rounded-xl bg-warm-50 border border-warm-100 text-xs">
+                  <div className="mt-4 p-3.5 rounded-[12px] bg-warm-50/70 border border-warm-200/80 shadow-2xs text-xs">
                     <span className="font-bold text-charcoal-700 block mb-1">Kuzatuv xulosasi:</span>
                     <p className="text-charcoal-600 leading-relaxed">{asmnt.professionalObservation}</p>
                   </div>
@@ -306,7 +306,7 @@ export function AssessmentsPage() {
             <p className="text-xs font-bold text-charcoal-800 mb-2">
               5 ballik mezonlar (1: Eng past, 5: Optimal):
             </p>
-            <div className="space-y-3 bg-warm-50/70 p-4 rounded-2xl border border-warm-100">
+            <div className="space-y-3 bg-warm-50/70 p-4 rounded-[14px] border border-warm-200/90 shadow-2xs">
               {criteriaLabels.map(({ key, label }) => (
                 <div key={key} className="flex items-center justify-between gap-4">
                   <span className="text-xs font-medium text-charcoal-700">{label}</span>

@@ -413,7 +413,7 @@ export function SchedulePage() {
                       <button
                         type="button"
                         onClick={() => handleOpenCreate(selectedDate, time)}
-                        className="w-full h-full min-h-[66px] border-2 border-dashed border-warm-200/90 hover:border-brand-400 bg-warm-50/20 hover:bg-brand-50/30 rounded-xl px-4 py-3 flex items-center justify-between transition-all duration-150 group/slot cursor-pointer text-left focus:outline-hidden focus:ring-2 focus:ring-brand-400"
+                        className="w-full h-full min-h-[66px] border-2 border-dashed border-warm-200/90 hover:border-brand-400 bg-warm-50/20 hover:bg-brand-50/30 rounded-[14px] px-4 py-3 flex items-center justify-between transition-all duration-150 group/slot cursor-pointer text-left focus:outline-hidden focus:ring-2 focus:ring-brand-400"
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-warm-100 group-hover/slot:bg-brand-100 text-charcoal-400 group-hover/slot:text-brand-600 flex items-center justify-center transition-colors shadow-2xs">
@@ -443,7 +443,7 @@ export function SchedulePage() {
                             <div
                               key={apt.id}
                               onClick={() => setActiveAppointment(apt)}
-                              className="p-3.5 rounded-xl border border-warm-200/90 bg-white hover:border-brand-400 hover:shadow-xs transition-all cursor-pointer flex flex-col justify-between group/card relative"
+                              className="p-3.5 rounded-[14px] border border-warm-200/90 bg-white hover:border-brand-400 hover:shadow-xs shadow-[0_1px_3px_0_rgb(0_0_0/0.06)] transition-all cursor-pointer flex flex-col justify-between group/card relative"
                             >
                               <div>
                                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -477,7 +477,7 @@ export function SchedulePage() {
                           <button
                             type="button"
                             onClick={() => handleOpenCreate(selectedDate, time)}
-                            className="border border-dashed border-warm-200 hover:border-brand-300 bg-warm-50/20 hover:bg-brand-50/30 rounded-xl p-3 flex items-center justify-center gap-1.5 text-xs font-medium text-charcoal-400 hover:text-brand-700 transition-all cursor-pointer min-h-[66px]"
+                            className="border border-dashed border-warm-200 hover:border-brand-300 bg-warm-50/20 hover:bg-brand-50/30 rounded-[12px] p-3 flex items-center justify-center gap-1.5 text-xs font-medium text-charcoal-400 hover:text-brand-700 transition-all cursor-pointer min-h-[66px]"
                             title="Ushbu soatga yana uchrashuv qo‘shish"
                           >
                             <Plus className="w-3.5 h-3.5" />
@@ -567,7 +567,7 @@ export function SchedulePage() {
                               <div
                                 key={apt.id}
                                 onClick={() => setActiveAppointment(apt)}
-                                className="p-2 rounded-lg border border-warm-200 bg-white hover:border-brand-400 hover:shadow-xs cursor-pointer transition-all text-[11px]"
+                                className="p-2 rounded-[10px] border border-warm-200 bg-white hover:border-brand-400 hover:shadow-xs shadow-2xs cursor-pointer transition-all text-[11px]"
                               >
                                 <div className="flex items-center gap-1.5 mb-1">
                                   <Avatar name={child?.fullName ?? 'Bola'} size="xs" />
@@ -609,7 +609,7 @@ export function SchedulePage() {
 
           return (
             <div className="space-y-4">
-              <div className="p-4 rounded-2xl bg-warm-50 border border-warm-100 flex items-center justify-between">
+              <div className="p-4 rounded-[14px] bg-warm-50/80 border border-warm-200/90 shadow-2xs flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar name={child?.fullName ?? 'Bola'} size="md" />
                   <div>
@@ -623,14 +623,14 @@ export function SchedulePage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-white border border-warm-200">
+                <div className="p-3.5 rounded-[12px] bg-white border border-warm-200 shadow-2xs">
                   <span className="text-charcoal-400 block mb-1">Xizmat turi</span>
                   <span className="font-semibold text-charcoal-800">{svc?.name ?? '—'}</span>
                   {svc?.durationMinutes && (
                     <span className="text-[11px] text-charcoal-400 block mt-0.5">Davomiyligi: {svc.durationMinutes} daqiqa</span>
                   )}
                 </div>
-                <div className="p-3 rounded-xl bg-white border border-warm-200">
+                <div className="p-3.5 rounded-[12px] bg-white border border-warm-200 shadow-2xs">
                   <span className="text-charcoal-400 block mb-1">Vaqti va sanasi</span>
                   <span className="font-semibold text-charcoal-800">
                     {formatDate(activeAppointment.date)}
@@ -642,7 +642,7 @@ export function SchedulePage() {
               </div>
 
               {activeAppointment.notes && (
-                <div className="p-3 rounded-xl bg-white border border-warm-200 text-xs">
+                <div className="p-3.5 rounded-[12px] bg-white border border-warm-200 text-xs shadow-2xs">
                   <span className="text-charcoal-400 block mb-1 font-medium">Izoh / Qo‘shimcha ma’lumot</span>
                   <p className="text-charcoal-700 whitespace-pre-wrap">{activeAppointment.notes}</p>
                 </div>

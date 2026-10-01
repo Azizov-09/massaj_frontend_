@@ -274,7 +274,7 @@ export function ParentDashboard() {
                 <p className="text-xs text-charcoal-400 text-center py-4">Tavsiyalar mavjud emas</p>
               ) : (
                 recentNotes.map(n => (
-                  <div key={n.id} className="p-3 rounded-xl bg-warm-50 border border-warm-100 text-xs space-y-1">
+                  <div key={n.id} className="p-3.5 rounded-[12px] bg-warm-50/70 border border-warm-200/80 shadow-2xs text-xs space-y-1">
                     <div className="flex justify-between text-[11px] text-charcoal-400">
                       <span>Mutaxassis qaydi</span>
                       <span>{formatDate(n.date)}</span>

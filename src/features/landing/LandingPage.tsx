@@ -303,9 +303,9 @@ export function LandingPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <div className="p-3.5 rounded-2xl bg-warm-50/70 border border-warm-100 flex items-center justify-between">
+                  <div className="p-3.5 rounded-[14px] bg-warm-50/70 border border-warm-200/80 shadow-2xs flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center">
+                      <div className="w-9 h-9 rounded-[10px] bg-brand-500/10 text-brand-600 flex items-center justify-center">
                         <Stethoscope className="w-5 h-5" />
                       </div>
                       <div>
@@ -316,9 +316,9 @@ export function LandingPage() {
                     <span className="text-xs font-bold text-brand-600">Bepul</span>
                   </div>
 
-                  <div className="p-3.5 rounded-2xl bg-warm-50/70 border border-warm-100 flex items-center justify-between">
+                  <div className="p-3.5 rounded-[14px] bg-warm-50/70 border border-warm-200/80 shadow-2xs flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-sage-50 text-sage-600 flex items-center justify-center">
+                      <div className="w-9 h-9 rounded-[10px] bg-sage-50 text-sage-600 flex items-center justify-center">
                         <Activity className="w-5 h-5" />
                       </div>
                       <div>
@@ -329,9 +329,9 @@ export function LandingPage() {
                     <span className="text-xs font-bold text-charcoal-900">100 000 UZS</span>
                   </div>
 
-                  <div className="p-3.5 rounded-2xl bg-warm-50/70 border border-warm-100 flex items-center justify-between">
+                  <div className="p-3.5 rounded-[14px] bg-warm-50/70 border border-warm-200/80 shadow-2xs flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-gold-50 text-gold-600 flex items-center justify-center">
+                      <div className="w-9 h-9 rounded-[10px] bg-gold-50 text-gold-600 flex items-center justify-center">
                         <Shield className="w-5 h-5" />
                       </div>
                       <div>

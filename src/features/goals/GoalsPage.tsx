@@ -297,7 +297,7 @@ export function GoalsPage() {
                   </div>
 
                   {goal.specialistNote && (
-                    <div className="p-2.5 rounded-xl bg-warm-50 text-[11px] text-charcoal-600 border border-warm-100 italic">
+                    <div className="p-2.5 rounded-[10px] bg-warm-50/80 text-[11px] text-charcoal-600 border border-warm-200/80 shadow-2xs italic">
                       "{goal.specialistNote}"
                     </div>
                   )}
@@ -407,7 +407,7 @@ export function GoalsPage() {
       >
         {editingGoal && (
           <form onSubmit={handleEditSubmit} className="space-y-4">
-            <div className="p-3 rounded-2xl bg-warm-50 border border-warm-100">
+            <div className="p-3.5 rounded-[14px] bg-warm-50/80 border border-warm-200/90 shadow-2xs">
               <h4 className="text-sm font-bold text-charcoal-900">{editingGoal.title}</h4>
               <p className="text-xs text-charcoal-500 mt-0.5">{editingGoal.description}</p>
             </div>

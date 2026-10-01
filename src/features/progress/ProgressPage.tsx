@@ -231,7 +231,7 @@ export function ProgressPage() {
                   </p>
 
                   {evt.details && (
-                    <div className="mt-3 p-2.5 rounded-xl bg-warm-50 text-xs text-charcoal-600 font-medium border border-warm-100">
+                    <div className="mt-3 p-2.5 rounded-[10px] bg-warm-50/80 text-xs text-charcoal-600 font-medium border border-warm-200/80 shadow-2xs">
                       {evt.details}
                     </div>
                   )}

@@ -47,8 +47,8 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="min-h-screen bg-warm-100 flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-warm-200 shadow-xl text-center">
-            <div className="w-16 h-16 rounded-2xl bg-danger-light text-danger-main flex items-center justify-center mx-auto mb-5">
+          <div className="max-w-md w-full bg-white rounded-[18px] p-8 border border-warm-200 shadow-xl text-center">
+            <div className="w-16 h-16 rounded-[14px] bg-danger-light text-danger-main flex items-center justify-center mx-auto mb-5">
               <AlertOctagon className="w-8 h-8" />
             </div>
 
@@ -60,7 +60,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </p>
 
             {process.env.NODE_ENV !== 'production' && this.state.error && (
-              <div className="mb-6 p-3 rounded-xl bg-warm-50 border border-warm-200 text-left overflow-auto max-h-40">
+              <div className="mb-6 p-3.5 rounded-[12px] bg-warm-50 border border-warm-200 text-left overflow-auto max-h-40 shadow-2xs">
                 <p className="text-xs font-mono text-danger-main font-semibold">
                   {this.state.error.toString()}
                 </p>

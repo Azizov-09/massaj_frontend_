@@ -321,7 +321,7 @@ export function BalancePage() {
       >
         {paymentModalParent && (
           <form onSubmit={handlePaymentSubmit} className="space-y-4">
-            <div className="p-3.5 rounded-2xl bg-warm-50 border border-warm-100 flex items-center justify-between">
+            <div className="p-3.5 rounded-[14px] bg-warm-50/80 border border-warm-200/90 shadow-2xs flex items-center justify-between">
               <div>
                 <h4 className="text-sm font-bold text-charcoal-900">{paymentModalParent.parentName}</h4>
                 <p className="text-xs text-charcoal-500">{paymentModalParent.phone}</p>

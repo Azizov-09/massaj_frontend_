@@ -120,7 +120,7 @@ export function SettingsPage() {
           </div>
         </CardHeader>
         <CardBody className="space-y-4">
-          <label className="flex items-center justify-between p-3 rounded-xl border border-warm-200 hover:bg-warm-50/50 cursor-pointer">
+          <label className="flex items-center justify-between p-3.5 rounded-[12px] border border-warm-200 shadow-2xs hover:bg-warm-50/50 cursor-pointer transition-colors">
             <div>
               <span className="text-xs sm:text-sm font-bold text-charcoal-900 block">SMS Eslatmalar</span>
               <span className="text-xs text-charcoal-500">Seansdan oldin ota-onaga SMS xabarnoma yuborish</span>
@@ -133,7 +133,7 @@ export function SettingsPage() {
             />
           </label>
 
-          <label className="flex items-center justify-between p-3 rounded-xl border border-warm-200 hover:bg-warm-50/50 cursor-pointer">
+          <label className="flex items-center justify-between p-3.5 rounded-[12px] border border-warm-200 shadow-2xs hover:bg-warm-50/50 cursor-pointer transition-colors">
             <div>
               <span className="text-xs sm:text-sm font-bold text-charcoal-900 block">Ovozli signallar</span>
               <span className="text-xs text-charcoal-500">Yangi uchrashuv yoki to‘lov kiritilganda ovoz chiqarish</span>
@@ -146,7 +146,7 @@ export function SettingsPage() {
             />
           </label>
 
-          <div className="flex items-center justify-between p-3 rounded-xl border border-warm-200">
+          <div className="flex items-center justify-between p-3.5 rounded-[12px] border border-warm-200 shadow-2xs">
             <div>
               <span className="text-xs sm:text-sm font-bold text-charcoal-900 block">Eslatma yuborish vaqti</span>
               <span className="text-xs text-charcoal-500">Seans boshlanishidan necha soat oldin yuboriladi</span>
