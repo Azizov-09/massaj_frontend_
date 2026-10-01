@@ -4,20 +4,19 @@
 
 import { useState, useMemo } from 'react';
 import {
-  FileText, Download, Filter, Calendar, Users,
-  CreditCard, Activity, CheckCircle2, Search
+  FileText, Download, Users,
+  CreditCard, Activity, CheckCircle2
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { formatCurrency, formatDate } from '@/utils';
-import { Card, Badge, Select } from '@/components/ui/primitives';
+import { Card, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
-import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
+import { PageHeader } from '@/components/ui/KpiCard';
 
 type ReportType = 'FINANCE' | 'ATTENDANCE' | 'SESSIONS' | 'CHILDREN';
 
 export function ReportsPage() {
   const transactions = useStore(s => s.transactions);
-  const appointments = useStore(s => s.appointments);
   const sessions = useStore(s => s.sessions);
   const children = useStore(s => s.children);
   const specialists = useStore(s => s.specialists);

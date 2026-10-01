@@ -5,11 +5,11 @@
 import { useState, useMemo } from 'react';
 import {
   CreditCard, ArrowDownLeft, ArrowUpRight, Search,
-  Calendar, Download, Filter, RefreshCw
+  Download, Filter, RefreshCw
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { formatCurrency, formatCurrencyCompact, formatDate, cn } from '@/utils';
-import { Card, Badge, Select, EmptyState } from '@/components/ui/primitives';
+import { Card, Badge, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { DataTable, Column } from '@/components/tables/DataTable';

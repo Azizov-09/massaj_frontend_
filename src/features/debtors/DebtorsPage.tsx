@@ -1,13 +1,10 @@
-// Debtors Page
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { TrendingDown, ArrowRight, Phone } from 'lucide-react';
+import { TrendingDown, Phone } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
-import { calculateChildBalance, getTopDebtors } from '@/services/finance.service';
-import { formatCurrencyCompact, formatDate, cn } from '@/utils';
+import { getTopDebtors } from '@/services/finance.service';
+import { formatCurrencyCompact } from '@/utils';
 import { Card, Avatar, EmptyState, ProgressBar } from '@/components/ui/primitives';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
-import { DataTable, Column } from '@/components/tables/DataTable';
 
 export function DebtorsPage() {
   const { currentUser } = useAuth();
@@ -26,6 +23,7 @@ export function DebtorsPage() {
 
   const totalDebt = debtors.reduce((s, d) => s + d.debt, 0);
   const maxDebt = Math.max(...debtors.map(d => d.debt), 1);
+  const avgDebt = debtors.length > 0 ? Math.round(totalDebt / debtors.length) : 0;
 
   return (
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
@@ -37,7 +35,7 @@ export function DebtorsPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <KpiCard label={isParent ? "Sizning qarzingiz" : "Jami qarz"} value={totalDebt} format="currency" icon={<TrendingDown className="w-4 h-4" />} accentColor="danger" index={0} />
         <KpiCard label={isParent ? "Qarz bo'lgan bolalar" : "Qarzdorlar soni"} value={debtors.length} icon={<TrendingDown className="w-4 h-4" />} accentColor="gold" index={1} />
-        <KpiCard label={isParent ? "Status" : "O'rtacha qarz"} value={isParent ? (totalDebt > 0 ? "Qarzdorlik mavjud" : "Qarz yo'q") : totalDebt} format={isParent ? "text" : "currency"} accentColor="brand" index={2} />
+        <KpiCard label={isParent ? "Status" : "O'rtacha qarz"} value={isParent ? (totalDebt > 0 ? "Qarzdorlik mavjud" : "Qarz yo'q") : avgDebt} format={isParent ? "text" : "currency"} accentColor="brand" index={2} />
       </div>
 
       <Card>
