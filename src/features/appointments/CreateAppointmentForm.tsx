@@ -45,7 +45,9 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
   const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      childId: availableChildren[0]?.id || '',
+      childId: '',
+      specialistId: '',
+      serviceId: '',
       date: defaultDate || new Date().toISOString().split('T')[0],
       startTime: defaultTime || '09:00',
     },
@@ -107,21 +109,35 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <div className="grid sm:grid-cols-2 gap-4">
-        <Select
-          label="Bola"
-          required
-          placeholder="Bolani tanlang"
-          options={availableChildren.filter(c => c.status === 'ACTIVE').map(c => ({ value: c.id, label: c.fullName }))}
-          error={errors.childId?.message}
-          {...register('childId')}
+        <Controller
+          control={control}
+          name="childId"
+          render={({ field }) => (
+            <Select
+              label="Bola"
+              required
+              placeholder="Bolani tanlang"
+              options={availableChildren.filter(c => c.status === 'ACTIVE').map(c => ({ value: c.id, label: c.fullName }))}
+              error={errors.childId?.message}
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
         />
-        <Select
-          label="Mutaxassis"
-          required
-          placeholder="Mutaxassisni tanlang"
-          options={specialists.filter(s => s.status === 'ACTIVE').map(s => ({ value: s.id, label: `${s.fullName} — ${s.specialization}` }))}
-          error={errors.specialistId?.message}
-          {...register('specialistId')}
+        <Controller
+          control={control}
+          name="specialistId"
+          render={({ field }) => (
+            <Select
+              label="Mutaxassis"
+              required
+              placeholder="Mutaxassisni tanlang"
+              options={specialists.filter(s => s.status === 'ACTIVE').map(s => ({ value: s.id, label: `${s.fullName} — ${s.specialization}` }))}
+              error={errors.specialistId?.message}
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
         />
         {selectedChild && (
           <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-[12px] bg-warm-50/80 border border-warm-200/80 text-xs">
@@ -147,13 +163,20 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
             )}
           </div>
         )}
-        <Select
-          label="Xizmat"
-          required
-          placeholder="Xizmatni tanlang"
-          options={services.filter(s => s.status === 'ACTIVE').map(s => ({ value: s.id, label: `${s.name} (${s.durationMinutes} daq · ${(s.price / 1000).toFixed(0)}K so'm)` }))}
-          error={errors.serviceId?.message}
-          {...register('serviceId')}
+        <Controller
+          control={control}
+          name="serviceId"
+          render={({ field }) => (
+            <Select
+              label="Xizmat"
+              required
+              placeholder="Xizmatni tanlang"
+              options={services.filter(s => s.status === 'ACTIVE').map(s => ({ value: s.id, label: `${s.name} (${s.durationMinutes} daq · ${(s.price / 1000).toFixed(0)}K so'm)` }))}
+              error={errors.serviceId?.message}
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
         />
         <Controller
           control={control}
