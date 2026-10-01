@@ -4,6 +4,23 @@ Ushbu hujjatda **Senior Frontend Engineer** va **AGENTS.md** arxitektura qoidala
 
 ---
 
+## 📌 2026-10-01: AI/Emoji Belgilarini Tibbiy Professional Vektor Ikonkalariga Almashtirish
+
+### [P2] Rivojlanish Xronologiyasi, Bildirishnomalar va Lendingdagi AI va Emoji Belgilarini Lucide Ikonkalariga O‘tkazish
+- **Fayllar:**
+  - [`src/features/progress/ProgressPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/progress/ProgressPage.tsx) — Bola rivojlanishi xronologiyasidagi `✨` (AI/sparkle), `✍️` va `📊` emojilari professional `Activity`, `FileText`, `ClipboardCheck` vektor belgilariga almashtirildi.
+  - [`src/features/notifications/NotificationsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/notifications/NotificationsPage.tsx) — Bildirishnomalar turlaridagi emojilar (`💳`, `📅`, `✨`, `📊`, `🕒`, `🔔`) professional `CreditCard`, `Calendar`, `Activity`, `ClipboardCheck`, `Clock`, `Bell` Lucide SVG vektor belgilariga o‘tkazildi.
+  - [`src/features/landing/LandingPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/landing/LandingPage.tsx) — `Sparkles` belgisi nufuzli `Award` (sertifikatlangan tibbiy reabilitatsiya nishoni) ga, `👶` emojisi esa `Baby` vektor belgisiga almashtirildi.
+
+- **Muammo va Sabab:**
+  - Rivojlanish tarixi va bildirishnomalar sahifalarida sun'iy intellektga o‘xshab ketuvchi `✨` (sparkle) va bolalarcha emoji piktogrammalari ishlatilgan edi. Bu jiddiy tibbiy reabilitatsiya CRM tizimining nufuzi va ishonchliligiga putur yetkazardi.
+
+- **Yechim:**
+  - Barcha joylarda `lucide-react` to‘plamining klinik, toza va vektor SVG piktogrammalari bilan almashtirildi.
+  - Vitest, Oxlint va Production build 100% toza muvaffaqiyat bilan tasdiqlandi.
+
+---
+
 ## 📌 2026-10-01: Barcha Dropdownlar Dizayni va UX'ini Mukammallashtirish (Custom Accessible Select Component)
 
 ### [P1] OS-Native Xom Dropdownlarni To‘liq Custom, Animatsiyali va Foydalanishga Qulay Komponentga O‘tkazish

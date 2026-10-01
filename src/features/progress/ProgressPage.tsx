@@ -4,7 +4,7 @@
 
 import { useState, useMemo } from 'react';
 import {
-  TrendingUp, Plus
+  TrendingUp, Plus, Activity, FileText, ClipboardCheck
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate } from '@/utils';
@@ -184,7 +184,7 @@ export function ProgressPage() {
               <div key={evt.id} className="relative group">
                 {/* Timeline node icon */}
                 <div
-                  className={`absolute -left-6 sm:-left-8 top-1.5 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ring-4 ring-[#FFFDF9] ${
+                  className={`absolute -left-6 sm:-left-8 top-1.5 w-7 h-7 rounded-full flex items-center justify-center ring-4 ring-[#FFFDF9] shadow-xs ${
                     evt.type === 'NOTE'
                       ? 'bg-brand-500 text-white'
                       : evt.type === 'SESSION'
@@ -192,7 +192,13 @@ export function ProgressPage() {
                       : 'bg-gold-500 text-white'
                   }`}
                 >
-                  {evt.type === 'NOTE' ? '✍️' : evt.type === 'SESSION' ? '✨' : '📊'}
+                  {evt.type === 'NOTE' ? (
+                    <FileText className="w-3.5 h-3.5" />
+                  ) : evt.type === 'SESSION' ? (
+                    <Activity className="w-3.5 h-3.5" />
+                  ) : (
+                    <ClipboardCheck className="w-3.5 h-3.5" />
+                  )}
                 </div>
 
                 {/* Card */}

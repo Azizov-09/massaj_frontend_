@@ -7,8 +7,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Heart, Shield, Calendar, Clock, MapPin, Phone,
-  ChevronDown, ArrowRight, CheckCircle2, Sparkles, Stethoscope,
-  Activity, Star, Menu, X
+  ChevronDown, ArrowRight, CheckCircle2, Award, Stethoscope,
+  Activity, Star, Menu, X, Baby
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatCurrencyCompact } from '@/utils';
@@ -226,7 +226,7 @@ export function LandingPage() {
               className="lg:col-span-7 space-y-6"
             >
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-50 border border-brand-200/60 text-brand-600 text-xs font-semibold">
-                <Sparkles className="w-3.5 h-3.5" />
+                <Award className="w-3.5 h-3.5" />
                 <span>Professional bolalar massaji va jismoniy reabilitatsiya</span>
               </div>
 
@@ -289,8 +289,8 @@ export function LandingPage() {
               <div className="relative mx-auto max-w-md bg-white rounded-3xl p-6 shadow-xl border border-warm-200/80 space-y-6">
                 <div className="flex items-center justify-between pb-4 border-b border-warm-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-brand-50 flex items-center justify-center text-brand-500 font-bold text-xl">
-                      👶
+                    <div className="w-12 h-12 rounded-2xl bg-brand-50 flex items-center justify-center text-brand-500">
+                      <Baby className="w-6 h-6" />
                     </div>
                     <div>
                       <h4 className="font-bold text-charcoal-900 text-sm">Markaz ish tartibi</h4>

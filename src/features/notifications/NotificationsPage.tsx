@@ -1,5 +1,5 @@
 // Notifications Page
-import { Bell, BellOff, CheckCheck } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, CreditCard, Calendar, Activity, ClipboardCheck, Clock } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatRelativeTime, cn } from '@/utils';
 import { Card, EmptyState } from '@/components/ui/primitives';
@@ -51,8 +51,20 @@ export function NotificationsPage() {
             {userNotifs.map(notif => (
               <div key={notif.id}
                 className={cn('flex items-start gap-4 px-5 py-4 hover:bg-warm-50/50 transition-colors group', !notif.isRead && 'bg-brand-50/30')}>
-                <div className={cn('w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 text-sm font-bold', typeColors[notif.type] ?? 'bg-warm-100 text-charcoal-700')}>
-                  {notif.type === 'payment' ? '💳' : notif.type === 'appointment' ? '📅' : notif.type === 'session' ? '✨' : notif.type === 'assessment' ? '📊' : notif.type === 'schedule' ? '🕒' : '🔔'}
+                <div className={cn('w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0', typeColors[notif.type] ?? 'bg-warm-100 text-charcoal-700')}>
+                  {notif.type === 'payment' ? (
+                    <CreditCard className="w-4 h-4" />
+                  ) : notif.type === 'appointment' ? (
+                    <Calendar className="w-4 h-4" />
+                  ) : notif.type === 'session' ? (
+                    <Activity className="w-4 h-4" />
+                  ) : notif.type === 'assessment' ? (
+                    <ClipboardCheck className="w-4 h-4" />
+                  ) : notif.type === 'schedule' ? (
+                    <Clock className="w-4 h-4" />
+                  ) : (
+                    <Bell className="w-4 h-4" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
