@@ -103,23 +103,27 @@ export function ParentDashboard() {
         <KpiCard
           label="Mening farzandlarim"
           value={myChildren.length}
-          icon={<Heart className="w-5 h-5 text-brand-500" />}
+          accentColor="brand"
+          icon={<Heart className="w-4 h-4 text-brand-600" />}
         />
         <KpiCard
           label="Navbatdagi uchrashuvlar"
           value={upcomingAppointments.length}
-          icon={<Calendar className="w-5 h-5 text-blue-500" />}
+          accentColor="blue"
+          icon={<Calendar className="w-4 h-4 text-blue-600" />}
         />
         <KpiCard
           label="Joriy balans (Depozit)"
           value={formatCurrency(finance.balance)}
-          icon={<CheckCircle2 className="w-5 h-5 text-sage-600" />}
+          accentColor="sage"
+          icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />}
           changeType="positive"
         />
         <KpiCard
           label="Qarzdorlik"
           value={formatCurrency(finance.debt)}
-          icon={<AlertCircle className="w-5 h-5 text-danger-main" />}
+          accentColor="danger"
+          icon={<AlertCircle className="w-4 h-4 text-rose-600" />}
           changeType={finance.debt > 0 ? 'negative' : 'positive'}
         />
       </div>

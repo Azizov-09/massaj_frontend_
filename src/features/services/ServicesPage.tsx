@@ -1,6 +1,6 @@
 // Services Page
 import { useState, useMemo } from 'react';
-import { Plus, Heart, Archive, RotateCcw } from 'lucide-react';
+import { Plus, Heart, Archive, RotateCcw, Activity, DollarSign } from 'lucide-react';
 import { useStore } from '@/store';
 import { formatCurrencyCompact } from '@/utils';
 import { Card } from '@/components/ui/primitives';
@@ -106,10 +106,41 @@ export function ServicesPage() {
         description={`${activeServices.length} ta faol xizmat`}
         actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>Xizmat qo'shish</Button>}
       />
-      <div className="grid grid-cols-3 gap-3">
-        <KpiCard label="Faol xizmatlar" value={activeServices.length} icon={<Heart className="w-4 h-4" />} accentColor="brand" index={0} />
-        <KpiCard label="Jami tushum" value={totalRevenue} format="currency" accentColor="sage" index={1} />
-        <KpiCard label="Arxivlangan" value={archivedServices.length} accentColor="gold" index={2} />
+      {/* 4 Balanced KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <KpiCard
+          label="Faol xizmatlar"
+          value={activeServices.length}
+          description="Amaldagi muolajalar"
+          icon={<Heart className="w-4 h-4 text-brand-600" />}
+          accentColor="brand"
+          index={0}
+        />
+        <KpiCard
+          label="O‘tkazilgan seanslar"
+          value={sessions.filter(s => s.status === 'COMPLETED').length}
+          description="Barcha xizmatlar bo‘yicha"
+          icon={<Activity className="w-4 h-4 text-blue-600" />}
+          accentColor="blue"
+          index={1}
+        />
+        <KpiCard
+          label="Jami tushum"
+          value={totalRevenue}
+          format="currency"
+          description="Xizmatlar daromadi"
+          icon={<DollarSign className="w-4 h-4 text-emerald-600" />}
+          accentColor="sage"
+          index={2}
+        />
+        <KpiCard
+          label="Arxivlangan"
+          value={archivedServices.length}
+          description="Nofaol xizmat turlari"
+          icon={<Archive className="w-4 h-4 text-amber-600" />}
+          accentColor="gold"
+          index={3}
+        />
       </div>
 
       {/* Services Grid */}

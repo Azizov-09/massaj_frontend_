@@ -2,7 +2,7 @@
 //  Sessions Page — With complete workflow
 // ═══════════════════════════════════════
 import { useState, useMemo } from 'react';
-import { Activity, CheckCircle2, XCircle, Search } from 'lucide-react';
+import { Activity, CheckCircle2, XCircle, Search, Calendar } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDateTime, formatCurrencyCompact, getSessionStatusColor, getSessionStatusLabel } from '@/utils';
 import { DataTable, Column } from '@/components/tables/DataTable';
@@ -129,10 +129,40 @@ export function SessionsPage() {
         description={isParent ? `Farzandlaringizning ${baseSessions.length} ta seansi` : isSpecialist ? `Sizning ${baseSessions.length} ta seansingiz` : `Jami ${allSessions.length} ta seans`}
       />
 
-      <div className="grid grid-cols-3 gap-3">
-        <KpiCard label="Yakunlangan" value={completed} icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />} accentColor="sage" index={0} />
-        <KpiCard label="Jarayonda" value={inProgress} icon={<Activity className="w-4 h-4 text-brand-600" />} accentColor="brand" index={1} />
-        <KpiCard label="Bekor qilingan" value={cancelled} icon={<XCircle className="w-4 h-4 text-rose-500" />} accentColor="danger" index={2} />
+      {/* 4 Balanced KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <KpiCard
+          label="Jami seanslar"
+          value={baseSessions.length}
+          description="Rejalashtirilgan barcha"
+          icon={<Calendar className="w-4 h-4 text-blue-500" />}
+          accentColor="blue"
+          index={0}
+        />
+        <KpiCard
+          label="Yakunlangan"
+          value={completed}
+          description="Muvaffaqiyatli yakunlandi"
+          icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />}
+          accentColor="sage"
+          index={1}
+        />
+        <KpiCard
+          label="Jarayonda"
+          value={inProgress}
+          description="Ayni vaqtda faol"
+          icon={<Activity className="w-4 h-4 text-brand-600" />}
+          accentColor="brand"
+          index={2}
+        />
+        <KpiCard
+          label="Bekor qilingan"
+          value={cancelled}
+          description="O‘tkazilmagan seanslar"
+          icon={<XCircle className="w-4 h-4 text-rose-500" />}
+          accentColor="danger"
+          index={3}
+        />
       </div>
 
       <Card>

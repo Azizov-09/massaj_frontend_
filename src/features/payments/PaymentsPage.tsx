@@ -2,7 +2,7 @@
 //  Payments Page — Manual payment recording
 // ═══════════════════════════════════════════════════════
 import { useState, useMemo } from 'react';
-import { Plus, Search, Wallet, TrendingUp } from 'lucide-react';
+import { Plus, Search, Wallet, TrendingUp, Receipt, Calendar } from 'lucide-react';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -139,11 +139,44 @@ export function PaymentsPage() {
         }
       />
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-3 gap-3">
-        <KpiCard label="Jami to'lovlar" value={totalPayments} format="currency" icon={<Wallet className="w-4 h-4 text-brand-600" />} accentColor="brand" index={0} />
-        <KpiCard label="Bu oy" value={thisMonthPayments} format="currency" icon={<TrendingUp className="w-4 h-4 text-emerald-600" />} accentColor="sage" index={1} />
-        <KpiCard label="Bugun" value={todayPayments} format="currency" icon={<TrendingUp className="w-4 h-4 text-amber-500" />} accentColor="gold" index={2} />
+      {/* 4 Balanced KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <KpiCard
+          label="Jami tushum"
+          value={totalPayments}
+          format="currency"
+          description="Barcha to'lovlar"
+          icon={<Wallet className="w-4 h-4 text-brand-600" />}
+          accentColor="brand"
+          index={0}
+        />
+        <KpiCard
+          label="Bu oy"
+          value={thisMonthPayments}
+          format="currency"
+          description="Joriy oy tushumi"
+          icon={<TrendingUp className="w-4 h-4 text-emerald-600" />}
+          accentColor="sage"
+          index={1}
+        />
+        <KpiCard
+          label="Bugun"
+          value={todayPayments}
+          format="currency"
+          description="Bugungi to'lovlar"
+          icon={<Calendar className="w-4 h-4 text-amber-500" />}
+          accentColor="gold"
+          index={2}
+        />
+        <KpiCard
+          label="To'lovlar soni"
+          value={basePayments.length}
+          format="number"
+          description="Tranzaksiyalar soni"
+          icon={<Receipt className="w-4 h-4 text-blue-500" />}
+          accentColor="blue"
+          index={3}
+        />
       </div>
 
       {/* Table */}

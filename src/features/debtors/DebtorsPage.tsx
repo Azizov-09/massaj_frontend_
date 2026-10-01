@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { TrendingDown, Phone } from 'lucide-react';
+import { TrendingDown, Phone, Users, DollarSign, AlertCircle } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { getTopDebtors } from '@/services/finance.service';
 import { formatCurrencyCompact } from '@/utils';
@@ -32,11 +32,20 @@ export function DebtorsPage() {
         description={isParent ? "Hisob-kitob va qarzdorlik bo'yicha ma'lumot" : "Balans va qarz holati"}
       />
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <KpiCard label={isParent ? "Sizning qarzingiz" : "Jami qarz"} value={totalDebt} format="currency" icon={<TrendingDown className="w-4 h-4" />} accentColor="danger" index={0} />
-        <KpiCard label={isParent ? "Qarz bo'lgan bolalar" : "Qarzdorlar soni"} value={debtors.length} icon={<TrendingDown className="w-4 h-4" />} accentColor="gold" index={1} />
-        <KpiCard label={isParent ? "Status" : "O'rtacha qarz"} value={isParent ? (totalDebt > 0 ? "Qarzdorlik mavjud" : "Qarz yo'q") : avgDebt} format={isParent ? "text" : "currency"} accentColor="brand" index={2} />
-      </div>
+      {isParent ? (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          <KpiCard label="Sizning qarzingiz" value={totalDebt} format="currency" icon={<TrendingDown className="w-4 h-4 text-rose-600" />} accentColor="danger" index={0} />
+          <KpiCard label="Qarz bo'lgan bolalar" value={debtors.length} icon={<Users className="w-4 h-4 text-amber-600" />} accentColor="gold" index={1} />
+          <KpiCard label="Status" value={totalDebt > 0 ? "Qarzdorlik mavjud" : "Qarz yo'q"} format="text" icon={<AlertCircle className="w-4 h-4 text-brand-600" />} accentColor="brand" index={2} />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <KpiCard label="Jami qarz" value={totalDebt} format="currency" description="Umumiy qarz summasi" icon={<TrendingDown className="w-4 h-4 text-rose-600" />} accentColor="danger" index={0} />
+          <KpiCard label="Qarzdorlar soni" value={debtors.length} description="Qarzdor mijozlar" icon={<Users className="w-4 h-4 text-amber-600" />} accentColor="gold" index={1} />
+          <KpiCard label="O'rtacha qarz" value={avgDebt} format="currency" description="Har bir mijozga" icon={<DollarSign className="w-4 h-4 text-blue-600" />} accentColor="blue" index={2} />
+          <KpiCard label="Maksimal qarz" value={maxDebt} format="currency" description="Eng katta qarzdorlik" icon={<AlertCircle className="w-4 h-4 text-brand-600" />} accentColor="brand" index={3} />
+        </div>
+      )}
 
       <Card>
         {debtors.length === 0 ? (

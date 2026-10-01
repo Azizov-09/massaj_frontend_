@@ -84,23 +84,27 @@ export function SpecialistDashboard() {
         <KpiCard
           label="Bugungi muolajalar"
           value={todayAppointments.length}
-          icon={<Clock className="w-5 h-5 text-brand-500" />}
+          accentColor="brand"
+          icon={<Clock className="w-4 h-4 text-brand-600" />}
           change={`${todayAppointments.filter(a => a.status === 'COMPLETED').length} tasi yakunlandi`}
         />
         <KpiCard
           label="Biriktirilgan bolalar"
           value={assignedChildren.length}
-          icon={<Users className="w-5 h-5 text-sage-600" />}
+          accentColor="sage"
+          icon={<Users className="w-4 h-4 text-emerald-600" />}
         />
         <KpiCard
           label="Bajarilgan seanslar"
           value={completedSessions.length}
-          icon={<CheckCircle2 className="w-5 h-5 text-gold-500" />}
+          accentColor="gold"
+          icon={<CheckCircle2 className="w-4 h-4 text-amber-500" />}
         />
         <KpiCard
           label="Kasbiy reyting"
           value="4.95"
-          icon={<Award className="w-5 h-5 text-blue-500" />}
+          accentColor="blue"
+          icon={<Award className="w-4 h-4 text-blue-600" />}
           change="A’lo darajada"
           changeType="positive"
         />
