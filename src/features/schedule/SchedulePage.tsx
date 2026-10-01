@@ -17,9 +17,9 @@ import { Modal } from '@/components/ui/Modal';
 import { CreateAppointmentForm } from '@/features/appointments/CreateAppointmentForm';
 import type { Appointment } from '@/types';
 
-const TIME_SLOTS = [
-  '09:00', '10:00', '11:00', '12:00',
-  '13:00', '14:00', '15:00', '16:00', '17:00'
+const DEFAULT_TIME_SLOTS = [
+  '08:00', '09:00', '10:00', '11:00', '12:00',
+  '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'
 ];
 
 function getPeriodInfo(time: string) {
@@ -28,8 +28,10 @@ function getPeriodInfo(time: string) {
     return { label: 'Ertalab', badgeClass: 'bg-amber-50 text-amber-700 border-amber-200/80' };
   } else if (hour <= 13) {
     return { label: 'Tushlik', badgeClass: 'bg-warm-100 text-charcoal-700 border-warm-200' };
-  } else {
+  } else if (hour < 18) {
     return { label: 'Tushdan so‘ng', badgeClass: 'bg-blue-50 text-blue-700 border-blue-200/80' };
+  } else {
+    return { label: 'Kechki', badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200/80' };
   }
 }
 
@@ -42,6 +44,17 @@ export function SchedulePage() {
   const confirmAppointment = useStore(s => s.confirmAppointment);
   const startSession = useStore(s => s.startSession);
   const cancelAppointment = useStore(s => s.cancelAppointment);
+  const clinicSettings = useStore(s => s.clinicSettings);
+
+  const timeSlots = useMemo(() => {
+    const startH = parseInt((clinicSettings?.workStart || '08:00').split(':')[0], 10);
+    const endH = parseInt((clinicSettings?.workEnd || '18:00').split(':')[0], 10);
+    const slots: string[] = [];
+    for (let h = startH; h <= endH; h++) {
+      slots.push(`${String(h).padStart(2, '0')}:00`);
+    }
+    return slots.length > 0 ? slots : DEFAULT_TIME_SLOTS;
+  }, [clinicSettings?.workStart, clinicSettings?.workEnd]);
 
   // Today string
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
@@ -150,22 +163,22 @@ export function SchedulePage() {
     let freeSlots = 0;
     if (viewMode === 'day') {
       const occupiedHours = new Set(filteredAppointments.map(a => a.startTime.split(':')[0]));
-      freeSlots = TIME_SLOTS.filter(t => !occupiedHours.has(t.split(':')[0])).length;
+      freeSlots = timeSlots.filter(t => !occupiedHours.has(t.split(':')[0])).length;
     } else {
       const occupiedPairs = new Set(filteredAppointments.map(a => `${a.date}_${a.startTime.split(':')[0]}`));
       let totalOccupied = 0;
       weekDates.forEach(w => {
-        TIME_SLOTS.forEach(t => {
+        timeSlots.forEach(t => {
           if (occupiedPairs.has(`${w.dateStr}_${t.split(':')[0]}`)) {
             totalOccupied++;
           }
         });
       });
-      freeSlots = Math.max(0, weekDates.length * TIME_SLOTS.length - totalOccupied);
+      freeSlots = Math.max(0, weekDates.length * timeSlots.length - totalOccupied);
     }
 
     return { total, pending, completed, freeSlots };
-  }, [filteredAppointments, viewMode, weekDates]);
+  }, [filteredAppointments, viewMode, weekDates, timeSlots]);
 
   // Appointment action handlers
   const handleConfirm = (id: string) => {
@@ -376,7 +389,7 @@ export function SchedulePage() {
       {viewMode === 'day' && (
         <Card className="overflow-hidden border border-warm-200 shadow-2xs">
           <div className="divide-y divide-warm-100">
-            {TIME_SLOTS.map(time => {
+            {timeSlots.map(time => {
               const slotApts = filteredAppointments.filter(a => a.startTime.startsWith(time.split(':')[0]));
               const period = getPeriodInfo(time);
               const isToday = selectedDate === todayStr;
@@ -537,7 +550,7 @@ export function SchedulePage() {
 
             {/* Time Slot Rows */}
             <div className="divide-y divide-warm-100">
-              {TIME_SLOTS.map(time => (
+              {timeSlots.map(time => (
                 <div key={time} className="grid grid-cols-7 min-h-[80px]">
                   <div className="p-2 text-center text-xs font-bold text-charcoal-500 border-r border-warm-100 flex flex-col items-center justify-center bg-warm-50/20">
                     <span>{time}</span>

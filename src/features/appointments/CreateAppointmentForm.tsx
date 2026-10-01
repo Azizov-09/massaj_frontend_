@@ -1,6 +1,7 @@
 // ═══════════════════════════════════════════════════════
 //  Create Appointment Form
 // ═══════════════════════════════════════════════════════
+import { useEffect } from 'react';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,6 +9,7 @@ import { useStore, useAuth } from '@/store';
 import { Select, Textarea, DatePicker, TimePicker, Badge, Avatar } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { Clock } from 'lucide-react';
+import { cn } from '@/utils';
 
 const schema = z.object({
   childId: z.string().min(1, 'Bolani tanlang'),
@@ -36,13 +38,14 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
   const appointments = useStore(s => s.appointments);
   const createAppointment = useStore(s => s.createAppointment);
   const addToast = useStore(s => s.addToast);
+  const clinicSettings = useStore(s => s.clinicSettings);
 
   const isParent = currentUser?.role === 'PARENT';
   const availableChildren = isParent && currentUser
     ? allChildren.filter(c => c.parentId === currentUser.id)
     : allChildren;
 
-  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { register, handleSubmit, control, setValue, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       childId: '',
@@ -55,6 +58,11 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
 
   const selectedServiceId = useWatch({ control, name: 'serviceId' });
   const selectedChildId = useWatch({ control, name: 'childId' });
+  const selectedSpecialistId = useWatch({ control, name: 'specialistId' });
+
+  const selectedSpecialist = specialists.find(s => s.id === selectedSpecialistId);
+  const workStart = selectedSpecialist?.workingHours?.start || clinicSettings?.workStart || '08:00';
+  const workEnd = selectedSpecialist?.workingHours?.end || clinicSettings?.workEnd || '18:00';
 
   const getEndTime = (start: string, serviceId: string) => {
     const svc = services.find(s => s.id === serviceId);
@@ -66,6 +74,14 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
 
   const startTime = useWatch({ control, name: 'startTime' }) || '09:00';
   const endTime = getEndTime(startTime, selectedServiceId);
+  const isOvertime = Boolean(endTime && endTime > workEnd);
+
+  // Auto-adjust start time if it falls outside the active specialist's working hours
+  useEffect(() => {
+    if (startTime && (startTime < workStart || startTime > workEnd)) {
+      setValue('startTime', workStart);
+    }
+  }, [workStart, workEnd, startTime, setValue]);
 
   const selectedService = services.find(s => s.id === selectedServiceId);
   const selectedChild = allChildren.find(c => c.id === selectedChildId);
@@ -74,6 +90,38 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
 
   const onSubmit = async (data: FormValues) => {
     await new Promise(r => setTimeout(r, 300));
+
+    // Working hours validation
+    if (data.startTime < workStart || data.startTime > workEnd) {
+      addToast({
+        type: 'error',
+        title: 'Ish vaqtidan tashqari!',
+        description: `Uchrashuv vaqti ish vaqti oralig‘ida (${workStart} — ${workEnd}) bo‘lishi kerak.`,
+      });
+      return;
+    }
+
+    if (endTime && endTime > workEnd) {
+      addToast({
+        type: 'error',
+        title: 'Ish vaqtidan oshib ketdi!',
+        description: `Uchrashuv tugash vaqti (${endTime}) ish vaqtidan (${workEnd}) oshib ketmasligi kerak. Iltimos, ertaroq vaqt tanlang.`,
+      });
+      return;
+    }
+
+    // Specialist working days check
+    if (selectedSpecialist && data.date) {
+      const dayOfWeek = new Date(data.date).getDay();
+      if (!selectedSpecialist.workingDays.includes(dayOfWeek)) {
+        addToast({
+          type: 'error',
+          title: 'Ish kuni emas!',
+          description: `${selectedSpecialist.fullName} tanlangan haftaning ushbu kunida qabul qilmaydi.`,
+        });
+        return;
+      }
+    }
 
     // Conflict check
     const hasConflict = appointments.some(a =>
@@ -132,13 +180,26 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
               label="Mutaxassis"
               required
               placeholder="Mutaxassisni tanlang"
-              options={specialists.filter(s => s.status === 'ACTIVE').map(s => ({ value: s.id, label: `${s.fullName} — ${s.specialization}` }))}
+              options={specialists.filter(s => s.status === 'ACTIVE').map(s => ({
+                value: s.id,
+                label: `${s.fullName} — ${s.specialization} (${s.workingHours.start}–${s.workingHours.end})`
+              }))}
               error={errors.specialistId?.message}
               value={field.value}
               onChange={field.onChange}
             />
           )}
         />
+        {selectedSpecialist && (
+          <div className="sm:col-span-2 flex items-center justify-between gap-2 px-3 py-1.5 rounded-[8px] bg-brand-50/50 border border-brand-200/60 text-xs text-brand-900">
+            <span className="font-medium">
+              Mutaxassis ish vaqti:
+            </span>
+            <span className="font-mono font-bold text-brand-700">
+              {workStart} — {workEnd}
+            </span>
+          </div>
+        )}
         {selectedChild && (
           <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-[12px] bg-warm-50/80 border border-warm-200/80 text-xs">
             <div className="flex items-center gap-2.5 min-w-0">
@@ -199,6 +260,9 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
             <TimePicker
               label="Boshlanish vaqti"
               required
+              min={workStart}
+              max={workEnd}
+              hint={`Ish vaqti: ${workStart} — ${workEnd}`}
               error={errors.startTime?.message}
               value={field.value}
               onChange={field.onChange}
@@ -209,23 +273,32 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
           <label className="block text-xs font-semibold text-charcoal-700 uppercase tracking-wider mb-1.5">
             Tugash vaqti
           </label>
-          <div className="flex items-center justify-between px-3.5 h-[42px] bg-warm-50/60 border border-warm-200/80 rounded-[10px] text-charcoal-700">
+          <div className={cn(
+            "flex items-center justify-between px-3.5 h-[42px] rounded-[10px] text-charcoal-700 transition-colors",
+            isOvertime
+              ? "bg-danger-light/30 border border-danger-main/60 text-danger-dark"
+              : "bg-warm-50/60 border border-warm-200/80"
+          )}>
             <div className="flex items-center gap-2 text-sm font-semibold">
-              <Clock className="w-4 h-4 text-charcoal-400" />
-              <span className={endTime ? 'text-charcoal-900 font-mono font-bold' : 'text-charcoal-400 font-normal italic'}>
+              <Clock className={cn("w-4 h-4", isOvertime ? "text-danger-main" : "text-charcoal-400")} />
+              <span className={endTime ? (isOvertime ? 'text-danger-dark font-mono font-bold' : 'text-charcoal-900 font-mono font-bold') : 'text-charcoal-400 font-normal italic'}>
                 {endTime || '--:--'}
               </span>
             </div>
             {selectedService ? (
-              <Badge variant="neutral" className="text-[11px] py-0 px-2 font-medium">
-                {selectedService.durationMinutes} daq seans
+              <Badge variant={isOvertime ? "danger" : "neutral"} className="text-[11px] py-0 px-2 font-medium">
+                {isOvertime ? `Ish vaqtidan oshdi (${workEnd})` : `${selectedService.durationMinutes} daq seans`}
               </Badge>
             ) : (
               <span className="text-[11px] text-charcoal-400">Xizmat kutilmoqda</span>
             )}
           </div>
-          <p className="text-[11px] text-charcoal-500 mt-1">
-            {endTime ? 'Boshlanish vaqti va davomiylikka asosan' : 'Xizmat tanlanganda avtomatik hisoblanadi'}
+          <p className={cn("text-[11px] mt-1", isOvertime ? "text-danger-main font-medium" : "text-charcoal-500")}>
+            {isOvertime
+              ? `Uchrashuv ish vaqtidan (${workEnd}) keyin tugaydi. Ertaroq vaqt tanlang.`
+              : endTime
+              ? 'Boshlanish vaqti va davomiylikka asosan'
+              : 'Xizmat tanlanganda avtomatik hisoblanadi'}
           </p>
         </div>
         <div className="sm:col-span-2">

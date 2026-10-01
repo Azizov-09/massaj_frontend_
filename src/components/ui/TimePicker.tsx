@@ -51,16 +51,12 @@ const sizeStyles = {
   },
 };
 
-// Preset popular times for clinic workflows
-const DEFAULT_PRESETS = [
-  '08:00', '08:30', '09:00', '09:30',
-  '10:00', '10:30', '11:00', '11:30',
-  '12:00', '12:30', '13:00', '13:30',
-  '14:00', '14:30', '15:00', '15:30',
-  '16:00', '16:30', '17:00', '17:30',
-  '18:00', '18:30', '19:00', '19:30',
-  '20:00'
-];
+// All possible half-hour slots — filtered at render time by min/max props
+const ALL_HALF_HOUR_SLOTS: string[] = [];
+for (let h = 6; h <= 23; h++) {
+  ALL_HALF_HOUR_SLOTS.push(`${String(h).padStart(2, '0')}:00`);
+  if (h < 23) ALL_HALF_HOUR_SLOTS.push(`${String(h).padStart(2, '0')}:30`);
+}
 
 export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
   (
@@ -138,6 +134,43 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
       }
       return list;
     }, [stepMinutes]);
+
+    // Generate presets filtered by min and max
+    const presets = useMemo(() => {
+      const list = ALL_HALF_HOUR_SLOTS.filter(slot => {
+        if (min && slot < min) return false;
+        if (max && slot > max) return false;
+        return true;
+      });
+      if (min && !list.includes(min)) {
+        list.unshift(min);
+        list.sort();
+      }
+      if (max && !list.includes(max)) {
+        list.push(max);
+        list.sort();
+      }
+      return list;
+    }, [min, max]);
+
+    const isMinuteDisabled = (h: string, m: string) => {
+      const timeStr = `${h}:${m}`;
+      if (min && timeStr < min) return true;
+      if (max && timeStr > max) return true;
+      return false;
+    };
+
+    const handleSelectHour = (h: string) => {
+      setTempHour(h);
+      const currentTime = `${h}:${tempMinute}`;
+      if (min && currentTime < min) {
+        const minM = min.split(':')[1] || '00';
+        setTempMinute(minM);
+      } else if (max && currentTime > max) {
+        const maxM = max.split(':')[1] || '00';
+        setTempMinute(maxM);
+      }
+    };
 
     const handleToggle = () => {
       if (disabled) return;
@@ -221,7 +254,9 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
     };
 
     const handleApply = () => {
-      const finalTime = `${tempHour}:${tempMinute}`;
+      let finalTime = `${tempHour}:${tempMinute}`;
+      if (min && finalTime < min) finalTime = min;
+      if (max && finalTime > max) finalTime = max;
       commitTime(finalTime);
       setIsOpen(false);
       triggerRef.current?.focus();
@@ -240,9 +275,12 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
       const rawM = now.getMinutes();
       const roundedM = Math.round(rawM / stepMinutes) * stepMinutes;
       const finalM = String(roundedM >= 60 ? 0 : roundedM).padStart(2, '0');
-      const timeStr = `${h}:${finalM}`;
-      setTempHour(h);
-      setTempMinute(finalM);
+      let timeStr = `${h}:${finalM}`;
+      if (min && timeStr < min) timeStr = min;
+      if (max && timeStr > max) timeStr = max;
+      const [newH, newM] = timeStr.split(':');
+      setTempHour(newH);
+      setTempMinute(newM);
       commitTime(timeStr);
       setIsOpen(false);
       triggerRef.current?.focus();
@@ -402,7 +440,7 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                 <div className="p-2.5">
                   <span className="sr-only">Mashhur vaqtlar:</span>
                   <div className="grid grid-cols-4 gap-1.5 max-h-[190px] overflow-y-auto pr-0.5 [scrollbar-width:thin] [scrollbar-color:#d4cfc7_transparent]">
-                    {DEFAULT_PRESETS.map(preset => {
+                    {presets.map(preset => {
                       const isMatch = currentVal === preset;
                       return (
                         <button
@@ -450,7 +488,7 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                             key={h}
                             type="button"
                             aria-label={`Soat ${h}`}
-                            onClick={() => setTempHour(h)}
+                            onClick={() => handleSelectHour(h)}
                             className={cn(
                               'w-full py-1 text-xs font-semibold rounded-[6px] transition-colors font-mono',
                               isSelected
@@ -468,16 +506,20 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                     <div className="overflow-y-auto space-y-0.5 pr-0.5 [scrollbar-width:thin] [scrollbar-color:#d4cfc7_transparent]">
                       {minutes.map(m => {
                         const isSelected = tempMinute === m;
+                        const isDisabled = isMinuteDisabled(tempHour, m);
                         return (
                           <button
                             key={m}
                             type="button"
+                            disabled={isDisabled}
                             aria-label={`${m} daqiqa`}
                             onClick={() => setTempMinute(m)}
                             className={cn(
                               'w-full py-1 text-xs font-semibold rounded-[6px] transition-colors font-mono',
                               isSelected
                                 ? 'bg-brand-500 text-white shadow-xs'
+                                : isDisabled
+                                ? 'text-charcoal-300 opacity-40 cursor-not-allowed hover:bg-transparent'
                                 : 'text-charcoal-700 hover:bg-warm-100 hover:text-charcoal-900'
                             )}
                           >
