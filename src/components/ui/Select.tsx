@@ -189,9 +189,16 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       if (disabled) return;
       if (!isOpen && containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
-        const spaceBelow = window.innerHeight - rect.bottom;
+        const modal = containerRef.current.closest('[role="dialog"]') as HTMLElement | null;
+        const modalRect = modal?.getBoundingClientRect();
+
+        const bottomLimit = modalRect ? modalRect.bottom : window.innerHeight;
+        const topLimit = modalRect ? modalRect.top : 0;
+        const spaceBelow = bottomLimit - rect.bottom;
+        const spaceAbove = rect.top - topLimit;
         const estimatedHeight = Math.min(allOptions.length * 36 + 40, 260);
-        setOpenUpward(spaceBelow < estimatedHeight && rect.top > estimatedHeight);
+
+        setOpenUpward(spaceBelow < estimatedHeight && spaceAbove > spaceBelow);
       }
       setIsOpen(prev => {
         const next = !prev;

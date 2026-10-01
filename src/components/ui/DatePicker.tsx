@@ -145,6 +145,7 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
 
     const [isOpen, setIsOpen] = useState(false);
     const [openUpward, setOpenUpward] = useState(false);
+    const [alignRight, setAlignRight] = useState(false);
 
     // Sub-pickers for Month and Year
     const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
@@ -214,9 +215,19 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
         }
         if (containerRef.current) {
           const rect = containerRef.current.getBoundingClientRect();
-          const spaceBelow = window.innerHeight - rect.bottom;
-          const estimatedHeight = 340;
-          setOpenUpward(spaceBelow < estimatedHeight && rect.top > estimatedHeight);
+          const modal = containerRef.current.closest('[role="dialog"]') as HTMLElement | null;
+          const modalRect = modal?.getBoundingClientRect();
+
+          const bottomLimit = modalRect ? modalRect.bottom : window.innerHeight;
+          const topLimit = modalRect ? modalRect.top : 0;
+          const spaceBelow = bottomLimit - rect.bottom;
+          const spaceAbove = rect.top - topLimit;
+          const estimatedHeight = 320;
+
+          setOpenUpward(spaceBelow < estimatedHeight && spaceAbove > spaceBelow);
+
+          const rightLimit = modalRect ? modalRect.right : window.innerWidth;
+          setAlignRight(rect.left + 300 > rightLimit);
         }
         setIsOpen(true);
       }
@@ -498,9 +509,10 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
               exit={{ opacity: 0, y: openUpward ? 4 : -4, scale: 0.98 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
               className={cn(
-                'absolute z-50 left-0 bg-white rounded-[16px] w-[280px] sm:w-[300px]',
+                'absolute z-50 bg-white rounded-[16px] w-[280px] sm:w-[300px]',
                 'shadow-[0_12px_36px_-6px_rgba(0,0,0,0.14),0_4px_12px_-2px_rgba(0,0,0,0.06)]',
                 'border border-warm-200/90 p-3.5 select-none',
+                alignRight ? 'right-0' : 'left-0',
                 openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
                 popupClassName
               )}

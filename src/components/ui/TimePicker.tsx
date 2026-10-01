@@ -113,6 +113,7 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
 
     const [isOpen, setIsOpen] = useState(false);
     const [openUpward, setOpenUpward] = useState(false);
+    const [alignRight, setAlignRight] = useState(false);
 
     // Generate hours array (07 to 21 or 00 to 23 based on min/max)
     const hours = useMemo(() => {
@@ -144,9 +145,21 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
 
         if (containerRef.current) {
           const rect = containerRef.current.getBoundingClientRect();
-          const spaceBelow = window.innerHeight - rect.bottom;
-          const estimatedHeight = 320;
-          setOpenUpward(spaceBelow < estimatedHeight && rect.top > estimatedHeight);
+          const modal = containerRef.current.closest('[role="dialog"]') as HTMLElement | null;
+          const modalRect = modal?.getBoundingClientRect();
+
+          const bottomLimit = modalRect ? modalRect.bottom : window.innerHeight;
+          const topLimit = modalRect ? modalRect.top : 0;
+          const spaceBelow = bottomLimit - rect.bottom;
+          const spaceAbove = rect.top - topLimit;
+          const estimatedHeight = 310;
+
+          // Open upward if constrained below and more space is available above
+          setOpenUpward(spaceBelow < estimatedHeight && spaceAbove > spaceBelow);
+
+          // Align to right edge if opening towards right exceeds container
+          const rightLimit = modalRect ? modalRect.right : window.innerWidth;
+          setAlignRight(rect.left + 320 > rightLimit);
         }
         setIsOpen(true);
       }
@@ -329,7 +342,8 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
               exit={{ opacity: 0, y: openUpward ? 6 : -6, scale: 0.98 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
               className={cn(
-                'absolute left-0 z-50 w-full sm:w-[320px] bg-white rounded-[14px] border border-warm-200 shadow-xl overflow-hidden',
+                'absolute z-50 w-full sm:w-[320px] bg-white rounded-[14px] border border-warm-200 shadow-xl overflow-hidden',
+                alignRight ? 'right-0' : 'left-0',
                 openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
                 popupClassName
               )}

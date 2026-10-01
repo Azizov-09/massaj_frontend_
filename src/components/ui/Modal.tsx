@@ -15,7 +15,9 @@ interface ModalProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   className?: string;
+  bodyClassName?: string;
   hideClose?: boolean;
+  scrollable?: boolean;
 }
 
 const sizeClasses = {
@@ -26,7 +28,19 @@ const sizeClasses = {
   full: 'max-w-[95vw]',
 };
 
-export function Modal({ isOpen, onClose, title, description, size = 'md', children, footer, className, hideClose }: ModalProps) {
+export function Modal({
+  isOpen,
+  onClose,
+  title,
+  description,
+  size = 'md',
+  children,
+  footer,
+  className,
+  bodyClassName,
+  hideClose,
+  scrollable = false,
+}: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -72,14 +86,19 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" role="dialog" aria-modal aria-label={title}>
+        <div
+          className="fixed inset-0 z-[70] overflow-y-auto p-4 flex min-h-full items-center justify-center"
+          role="dialog"
+          aria-modal
+          aria-label={title}
+        >
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-charcoal-900/30 backdrop-blur-sm"
+            className="fixed inset-0 bg-charcoal-900/30 backdrop-blur-sm"
             onClick={onClose}
             aria-hidden
           />
@@ -92,14 +111,15 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             tabIndex={-1}
             className={cn(
-              'relative z-10 w-full bg-white rounded-[16px] border border-warm-200/90 shadow-[0_20px_60px_-10px_rgb(0_0_0/0.18)] flex flex-col max-h-[90vh]',
+              'relative z-10 w-full bg-white rounded-[16px] border border-warm-200/90 shadow-[0_20px_60px_-10px_rgb(0_0_0/0.18)] flex flex-col my-auto',
+              scrollable && 'max-h-[90vh]',
               sizeClasses[size],
               className
             )}
           >
             {/* Header */}
             {(title || !hideClose) && (
-              <div className="flex items-start justify-between px-6 py-5 border-b border-warm-100">
+              <div className="flex items-start justify-between px-6 py-5 border-b border-warm-100 rounded-t-[16px]">
                 <div>
                   {title && <h2 className="text-base font-semibold text-charcoal-900">{title}</h2>}
                   {description && <p className="text-sm text-charcoal-400 mt-0.5">{description}</p>}
@@ -116,7 +136,9 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
               </div>
             )}
             {/* Body */}
-            <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
+            <div className={cn('flex-1 px-6 py-5', scrollable ? 'overflow-y-auto max-h-[70vh]' : 'overflow-visible', bodyClassName)}>
+              {children}
+            </div>
             {/* Footer */}
             {footer && (
               <div className="px-6 py-4 border-t border-warm-100 bg-warm-50/50 rounded-b-[16px] flex items-center justify-end gap-2">
