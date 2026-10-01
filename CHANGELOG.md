@@ -2,25 +2,16 @@
 
 Ushbu hujjatda **Senior Frontend Engineer** va **AGENTS.md** arxitektura qoidalari asosida loyihada amalga oshirilgan barcha tizimli tuzatishlar, refaktoringlar, xavfsizlik va optimallashtirish ishlari bosqichma-bosqich qayd etib boriladi.
 
-## 📌 2026-10-01: KPI Metrika Kartalari (KpiCard) Dizaynida Ikonkalarni O‘ng Tomonga Joylashtirish (Foydalanuvchi Ko‘rsatmasi Asosida)
+## 📌 2026-10-01: KPI Metrika Kartalari Burchaklarini Tizimdagi Boshqa Kartalar Bilan Bir Xil Qilish (`rounded-[14px]`)
 
-### [P0] KPI Metrika Kartalarida Ikonka O‘rni va Gorizontal Mutanosiblikni Mukammallashtirish
+### [P0] KPI Metrika Kartalarining Burchak Radiusini Tizim Standartiga Keltirish (`rounded-[14px]`)
 - **Fayllar:**
-  - [`src/components/ui/KpiCard.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/KpiCard.tsx) — Foydalanuvchi skrinshotdagi qizil strelka orqali ko‘rsatgan joylashuvga aniq amal qilindi: ikonka kartaning o‘ng tomoniga (`w-12 h-12 rounded-xl flex items-center justify-center shrink-0`) vertikal markazlashtirilib joylashtirildi; matn va metrika ma’lumotlari (Sarlavha, Yirik raqam, Trend nishoni va Tavsif) chap tomonga to‘liq tekislandi (`flex items-center justify-between gap-3.5`).
-  - [`src/features/appointments/AppointmentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/appointments/AppointmentsPage.tsx) — Barcha 4 ta KPI kartaga (`Bugun`, `Kutilmoqda`, `Yakunlangan`, `Bekor qilingan`) tushunarli kontekst izohlari (`description`), `w-5 h-5` vektor ikonkalari va `gap-3.5` to‘r o‘lchami o‘rnatildi.
-  - [`src/features/attendance/AttendancePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/attendance/AttendancePage.tsx) — 5 ta kartaga mos pastel rang aktsentlari (`brand`, `sage`, `gold`, `blue`, `danger`), tartibli `index` va kontekst tavsiflari qo‘shildi.
-  - [`src/features/admins/AdminsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/admins/AdminsPage.tsx) — 4 ta kartaga rang tokenlari, aniq tavsiflar va silliq yuklanish animatsiyalari berildi.
-  - [`src/features/employees/EmployeesPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/employees/EmployeesPage.tsx) — Xodimlar statistikasi kartalariga to‘liq rang va tavsiflar ulandi.
-  - [`src/features/goals/GoalsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/goals/GoalsPage.tsx) — Maqsadlar sahifasidagi 4 ta kartaga ranglar va tavsiflar biriktirildi.
-  - [`src/features/analytics/AnalyticsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/analytics/AnalyticsPage.tsx) — Analitika ko‘rsatkich kartalari ranglari va matnlari unifikatsiya qilindi.
-  - [`src/features/balance/BalancePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/balance/BalancePage.tsx) — Balans va depozit kartalariga rang va tavsiflar ulandi.
-  - [`src/features/dashboard/SuperAdminDashboard.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/dashboard/SuperAdminDashboard.tsx) — Boshqaruv paneli to‘ri `gap-3.5` standartiga keltirildi.
+  - [`src/components/ui/KpiCard.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/KpiCard.tsx) — Tailwind v4 dagi `--radius-xl: 30px` ga olib keluvchi `rounded-xl` sinfi tizimdagi asosiy `Card` komponenti (`primitives.tsx:78`) standarti bo‘lgan `rounded-[14px]` ga o‘zgartirildi; chegara va soya ham `border border-warm-200 shadow-[0_1px_3px_0_rgb(0_0_0/0.06)]` bilan to‘liq birlashtirildi; ichidagi ikonka esa `rounded-[10px]` qilib tekislandi.
+  - Ikonkalar foydalanuvchi ko‘rsatganidek o‘ng tomonda, sarlavha va sonlar esa chap tomonda mutanosib joylashtirilgan holda saqlandi.
 
 - **Bajarilgan Tizimli Yechim va Natija:**
-  1. **Ikonka O‘ng Tomonda (Foydalanuvchi Talabi):** Ikonka aynan foydalanuvchi strelka bilan ko‘rsatgan o‘ng tomonda, zamonaviy pastel squircle fonida vertikal markazlashtirildi.
-  2. **Chapda Tabiiy O‘qish Tartibi (L-to-R):** Foydalanuvchi ko‘zi avval sarlavha va asosiy sonni o‘qiydi, o‘ng tomonda esa kartaning vizual ramzi (ikonkasi) muvozanat hosil qiladi.
-  3. **Sun’iy Chegaralar Yo‘q:** Karta toza oq `bg-white`, nozik `border-warm-200/90`, `rounded-xl` va `shadow-2xs hover:shadow-xs hover:border-warm-300` bilan professional darajada.
-  4. **Ixcham va Balandligi Bir Xil To‘r:** Barcha sahifalardagi kartalar bir xil simmetrik to‘rda (`grid-cols-2 lg:grid-cols-4 gap-3.5`) mukammal tekislandi.
+  1. **Yagona Burchak Radiusi (`rounded-[14px]`):** Tizimdagi jadval kartasi (`<Card>`), statistik bloklar va modal oynalar bilan 100% bir xil burchak egriligiga keltirildi. "Sovun" yoki ortiqcha yumaloqlangan bubble effekti yo‘qotildi.
+  2. **Yagona Soya va Chegara:** `border-warm-200` va `shadow-[0_1px_3px_0_rgb(0_0_0/0.06)]` butun CRM bo‘ylab vizual bir butunlik hosil qildi.
 
 ---
 

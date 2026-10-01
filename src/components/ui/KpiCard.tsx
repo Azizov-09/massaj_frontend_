@@ -68,9 +68,9 @@ export function KpiCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.22, delay: index * 0.04, ease: 'easeOut' }}
       className={cn(
-        'relative bg-white rounded-xl border border-warm-200/90 shadow-2xs hover:shadow-xs hover:border-warm-300 transition-all duration-200 p-4 sm:p-4.5 flex items-center justify-between gap-3.5 group',
-        size === 'sm' && 'p-3 gap-2.5',
-        size === 'lg' && 'p-5 gap-4',
+        'relative bg-white rounded-[14px] border border-warm-200 shadow-[0_1px_3px_0_rgb(0_0_0/0.06)] hover:border-warm-300 hover:shadow-xs transition-all duration-200 p-4 sm:p-4.5 flex items-center justify-between gap-3.5 group',
+        size === 'sm' && 'p-3 gap-2.5 rounded-[12px]',
+        size === 'lg' && 'p-5 gap-4 rounded-[16px]',
         className
       )}
     >
@@ -133,10 +133,10 @@ export function KpiCard({
       {icon && (
         <div
           className={cn(
-            'w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105 shadow-2xs [&>svg]:w-5 [&>svg]:h-5',
+            'w-11 h-11 rounded-[10px] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105 shadow-2xs [&>svg]:w-5 [&>svg]:h-5',
             iconBgMap[accentColor] ?? iconBgMap.brand,
-            size === 'sm' && 'w-9 h-9 rounded-[10px] [&>svg]:w-4 [&>svg]:h-4',
-            size === 'lg' && 'w-14 h-14 rounded-2xl [&>svg]:w-6 [&>svg]:h-6'
+            size === 'sm' && 'w-9 h-9 rounded-[8px] [&>svg]:w-4 [&>svg]:h-4',
+            size === 'lg' && 'w-13 h-13 rounded-[12px] [&>svg]:w-6 [&>svg]:h-6'
           )}
         >
           {icon}
