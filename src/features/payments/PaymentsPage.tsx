@@ -158,16 +158,19 @@ export function PaymentsPage() {
               className="w-full pl-9 pr-3 py-2 text-sm border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 placeholder:text-charcoal-400 transition-colors"
             />
           </div>
-          <select
-            value={methodFilter}
-            onChange={e => setMethodFilter(e.target.value)}
-            className="px-3 py-2 text-sm border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 text-charcoal-700 cursor-pointer"
-          >
-            <option value="">Barcha usullar</option>
-            <option value="CASH">Naqd</option>
-            <option value="CARD">Karta</option>
-            <option value="TRANSFER">Bank o'tkazma</option>
-          </select>
+          <div className="w-48">
+            <Select
+              value={methodFilter}
+              onChange={e => setMethodFilter(e.target.value)}
+              options={[
+                { value: '', label: 'Barcha usullar' },
+                { value: 'CASH', label: 'Naqd' },
+                { value: 'CARD', label: 'Karta' },
+                { value: 'TRANSFER', label: "Bank o'tkazma" },
+              ]}
+              aria-label="To'lov usuli bo'yicha filter"
+            />
+          </div>
           <span className="ml-auto text-xs text-charcoal-400">{filtered.length} ta to'lov</span>
         </div>
         <DataTable

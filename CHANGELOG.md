@@ -4,6 +4,44 @@ Ushbu hujjatda **Senior Frontend Engineer** va **AGENTS.md** arxitektura qoidala
 
 ---
 
+## 📌 2026-10-01: Barcha Dropdownlar Dizayni va UX'ini Mukammallashtirish (Custom Accessible Select Component)
+
+### [P1] OS-Native Xom Dropdownlarni To‘liq Custom, Animatsiyali va Foydalanishga Qulay Komponentga O‘tkazish
+- **Fayllar:**
+  - [`src/components/ui/Select.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/Select.tsx) — Yangi universal, animatsiyali va qulay custom Select komponenti.
+  - [`src/components/ui/Select.test.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/Select.test.tsx) — 8 ta to‘liq qamrovli unit testlar.
+  - [`src/components/ui/primitives.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/primitives.tsx) — Yangi `Select` komponentini umumiy eksportga ulash.
+  - [`src/features/payments/PaymentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/payments/PaymentsPage.tsx) — Skrinshotda ko‘rsatilgan to‘lov usuli filtri va modal formalarini custom Select'ga o‘tkazish.
+  - [`src/features/appointments/AppointmentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/appointments/AppointmentsPage.tsx) — Qabullar holati filtrini custom Select'ga o‘tkazish.
+  - [`src/features/children/ChildrenPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/children/ChildrenPage.tsx) — Bolalar holati va mutaxassis filtrlarini custom Select'ga o‘tkazish.
+  - [`src/features/sessions/SessionsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/sessions/SessionsPage.tsx) — Seanslar holati filtrini custom Select'ga o‘tkazish.
+  - [`src/features/settings/SettingsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/settings/SettingsPage.tsx) — Eslatma yuborish vaqti sozlamasini custom Select'ga o‘tkazish.
+  - [`src/components/tables/DataTable.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/tables/DataTable.tsx) — Jadvallardagi sahifalash (Pagination) tanlovini custom Select'ga o‘tkazish.
+
+- **Muammo va Sabab:**
+  - Brauzerning standart `<select>` elementi operatsion tizim (Windows, macOS, Linux) tomonidan chiziladigan o‘ta qo‘pol, to‘rtburchak va ko‘k (`#0078d7`) fonga ega popup oynani chiqarar edi. Uni CSS orqali brend dizayn tizimiga moslab bezab bo‘lmasdi.
+  - Loyihaning 30 dan ortiq joyida ishlatiladigan `primitives.tsx` dagi `<Select>` ham ichida shunchaki o‘sha xom `<select>` elementini ishlatayotgan edi.
+
+- **Yechim (Senior Frontend Standard):**
+  1. **To‘liq Custom `Select` Komponenti Yaratildi:**
+     - **Dizayn & Tipografika:** Massaj CRM iliq dizayn tizimiga mos: yumaloqlangan burchaklar (`rounded-[10px]` va `rounded-[14px]`), nozik iliq hoshiyalar (`border-warm-200/90`), yumshoq ko‘p qatlamli soya (`shadow-[0_12px_36px_-6px_rgba(0,0,0,0.14)]`), va tanlangan bandda nafis yashil belgi (`Check` belgisi + `bg-brand-50/90 text-brand-700`).
+     - **Silliq Animatsiya:** `framer-motion` orqali silliq ochilish/yopilish (`opacity`, `scale: 0.98 -> 1`, `y: -4 -> 0`) va aylanuvchi `ChevronDown` strelkasi.
+     - **Aqlli Joylashuv (Viewport Boundary Detection):** Agar dropdown ekranning pastki qismiga yaqin bo‘lsa va pastda joy yetarli bo‘lmasa, avtomatik ravishda yuqoriga qarab ochiladi (`openUpward`).
+     - **Tezkor Qidiruv (Auto-Searchable):** Variantlar soni 10 tadan oshganda (masalan, ota-onalar yoki mutaxassislar ro‘yxati) avtomatik ravishda qidiruv maydoni ochiladi va tezkor filtrlanadi.
+     - **100% Moslik (Dual API & Backward Compatibility):** Ham `options={[{ value, label }]}` massivi bilan, ham `<option value="...">...</option>` teglarini bola (`children`) sifatida qabul qila oladi.
+     - **Formalar va React Hook Form Integratsiyasi:** Ichki yashirin `<select>` orqali React Hook Form (`{...register('field')}`) va oddiy formalar bilan uzluksiz, bir marta toza chaqiriladigan `onChange` va `onValueChange` sinxronizatsiyasi ta'minlandi.
+     - **A11y va Klaviatura Boshqaruvi:** WAI-ARIA talablariga muvofiq: `role="combobox"`, `role="listbox"`, `role="option"`, `ArrowDown`, `ArrowUp`, `Enter`, `Space`, `Escape`, va tashqi bosish (`click outside`) orqali boshqarish to‘liq joriy etildi.
+  2. **Barcha Xom `<select>` Teglari Almashtirildi:**
+     - To‘lovlar sahifasidagi to‘lov usuli filtri (`PaymentsPage.tsx`), qabullar filtri (`AppointmentsPage.tsx`), bolalar ro‘yxati filtri (`ChildrenPage.tsx`), seanslar filtri (`SessionsPage.tsx`), sozlamalar (`SettingsPage.tsx`) va jadvallar paginatsiyasi (`DataTable.tsx`) yangi `Select` komponentiga o‘tkazildi.
+
+- **Tekshiruv va Natijalar:**
+  - `src/components/ui/Select.test.tsx` orqali 8 ta yangi unit test qo‘shildi.
+  - Vitest: Barcha 39 ta test (6 ta test fayli) 100% muvaffaqiyatli o‘tdi.
+  - Oxlint: 0 ta xato, 0 ta ogohlantirish (63 ta fayl).
+  - TypeScript & Vite build: 0 ta xato bilan toza yig‘ildi.
+
+---
+
 ## 📌 2026-10-01: Arxitektura, Xavfsizlik va Unumdorlik Tuzatishlari (Audit Fixes)
 
 ### 1. [P1] Mutaxassis (SPECIALIST) 403 Xatoligi va Dead Routing

@@ -6,11 +6,10 @@ import { Activity, CheckCircle, Search } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDateTime, formatCurrencyCompact, getSessionStatusColor, getSessionStatusLabel } from '@/utils';
 import { DataTable, Column } from '@/components/tables/DataTable';
-import { Card, Avatar, Badge } from '@/components/ui/primitives';
+import { Card, Avatar, Badge, Select, Textarea } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
-import { Textarea } from '@/components/ui/primitives';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -143,13 +142,19 @@ export function SessionsPage() {
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Bola ismi..."
               className="w-full pl-9 pr-3 py-2 text-sm border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 placeholder:text-charcoal-400 transition-colors" />
           </div>
-          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-            className="px-3 py-2 text-sm border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 text-charcoal-700 cursor-pointer">
-            <option value="">Barcha holatlar</option>
-            <option value="IN_PROGRESS">Jarayonda</option>
-            <option value="COMPLETED">Yakunlangan</option>
-            <option value="CANCELLED">Bekor qilingan</option>
-          </select>
+          <div className="w-48">
+            <Select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              options={[
+                { value: '', label: 'Barcha holatlar' },
+                { value: 'IN_PROGRESS', label: 'Jarayonda' },
+                { value: 'COMPLETED', label: 'Yakunlangan' },
+                { value: 'CANCELLED', label: 'Bekor qilingan' },
+              ]}
+              aria-label="Holat bo'yicha filter"
+            />
+          </div>
           <span className="ml-auto text-xs text-charcoal-400">{filtered.length} ta</span>
         </div>
         <DataTable

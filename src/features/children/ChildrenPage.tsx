@@ -11,7 +11,7 @@ import {
   getEntityStatusColor, getEntityStatusLabel,
 } from '@/utils';
 import { DataTable, Column } from '@/components/tables/DataTable';
-import { Card, Avatar, Badge } from '@/components/ui/primitives';
+import { Card, Avatar, Badge, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
@@ -209,30 +209,34 @@ export function ChildrenPage() {
           </div>
 
           {/* Status filter */}
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            className="px-3 py-2 text-sm border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 text-charcoal-700 cursor-pointer"
-            aria-label="Holat bo'yicha filter"
-          >
-            <option value="">Barcha holatlar</option>
-            <option value="ACTIVE">Faol</option>
-            <option value="INACTIVE">Nofaol</option>
-            <option value="ARCHIVED">Arxivlangan</option>
-          </select>
+          <div className="w-44">
+            <Select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              options={[
+                { value: '', label: 'Barcha holatlar' },
+                { value: 'ACTIVE', label: 'Faol' },
+                { value: 'INACTIVE', label: 'Nofaol' },
+                { value: 'ARCHIVED', label: 'Arxivlangan' },
+              ]}
+              aria-label="Holat bo'yicha filter"
+            />
+          </div>
 
           {/* Specialist filter */}
-          <select
-            value={specialistFilter}
-            onChange={e => setSpecialistFilter(e.target.value)}
-            className="px-3 py-2 text-sm border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 text-charcoal-700 cursor-pointer max-w-[200px]"
-            aria-label="Mutaxassis bo'yicha filter"
-          >
-            <option value="">Barcha mutaxassislar</option>
-            {specialists.filter(s => s.status === 'ACTIVE').map(s => (
-              <option key={s.id} value={s.id}>{s.fullName}</option>
-            ))}
-          </select>
+          <div className="w-52">
+            <Select
+              value={specialistFilter}
+              onChange={e => setSpecialistFilter(e.target.value)}
+              options={[
+                { value: '', label: 'Barcha mutaxassislar' },
+                ...specialists
+                  .filter(s => s.status === 'ACTIVE')
+                  .map(s => ({ value: s.id, label: s.fullName })),
+              ]}
+              aria-label="Mutaxassis bo'yicha filter"
+            />
+          </div>
 
           {activeFilterCount > 0 && (
             <button

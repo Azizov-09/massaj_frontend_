@@ -158,51 +158,7 @@ Input.displayName = 'Input';
 
 // ─── Select ───────────────────────────────────────────────
 
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  label?: string;
-  error?: string;
-  hint?: string;
-  options?: { value: string; label: string }[];
-  placeholder?: string;
-  children?: React.ReactNode;
-}
-
-export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, error, hint, options, placeholder, id, required, children, ...props }, ref) => {
-    const selectId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
-    return (
-      <div className="w-full">
-        {label && (
-          <label htmlFor={selectId} className="block text-sm font-medium text-charcoal-700 mb-1.5">
-            {label}{required && <span className="text-danger-main ml-1" aria-hidden>*</span>}
-          </label>
-        )}
-        <select
-          ref={ref}
-          id={selectId}
-          aria-invalid={!!error}
-          required={required}
-          className={cn(
-            'w-full bg-white border rounded-[10px] px-3 py-2 text-sm text-charcoal-900',
-            'transition-colors duration-150 outline-none appearance-none cursor-pointer',
-            'hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100',
-            error ? 'border-danger-main' : 'border-warm-300',
-            className
-          )}
-          {...props}
-        >
-          {placeholder && <option value="">{placeholder}</option>}
-          {options ? options.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          )) : children}
-        </select>
-        {error && <p className="mt-1 text-xs text-danger-main">{error}</p>}
-        {hint && !error && <p className="mt-1 text-xs text-charcoal-400">{hint}</p>}
-      </div>
-    );
-  }
-);
-Select.displayName = 'Select';
+export { Select, type SelectProps, type SelectOption } from './Select';
 
 // ─── Textarea ─────────────────────────────────────────────
 

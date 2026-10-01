@@ -8,7 +8,7 @@ import {
   formatDate, getAppointmentStatusColor, getAppointmentStatusLabel,
 } from '@/utils';
 import { DataTable, Column } from '@/components/tables/DataTable';
-import { Card, Avatar, Badge } from '@/components/ui/primitives';
+import { Card, Avatar, Badge, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
@@ -224,19 +224,22 @@ export function AppointmentsPage() {
               className="w-full pl-9 pr-3 py-2 text-sm border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 placeholder:text-charcoal-400 transition-colors"
             />
           </div>
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            className="px-3 py-2 text-sm border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 text-charcoal-700 cursor-pointer"
-          >
-            <option value="">Barcha holatlar</option>
-            <option value="SCHEDULED">Rejalashtirilgan</option>
-            <option value="CONFIRMED">Tasdiqlangan</option>
-            <option value="IN_PROGRESS">Jarayonda</option>
-            <option value="COMPLETED">Yakunlangan</option>
-            <option value="CANCELLED">Bekor qilingan</option>
-            <option value="NO_SHOW">Kelmagan</option>
-          </select>
+          <div className="w-52">
+            <Select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              options={[
+                { value: '', label: 'Barcha holatlar' },
+                { value: 'SCHEDULED', label: 'Rejalashtirilgan' },
+                { value: 'CONFIRMED', label: 'Tasdiqlangan' },
+                { value: 'IN_PROGRESS', label: 'Jarayonda' },
+                { value: 'COMPLETED', label: 'Yakunlangan' },
+                { value: 'CANCELLED', label: 'Bekor qilingan' },
+                { value: 'NO_SHOW', label: 'Kelmagan' },
+              ]}
+              aria-label="Holat bo'yicha filter"
+            />
+          </div>
           <input
             type="date"
             value={dateFilter}

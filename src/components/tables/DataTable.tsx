@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn, sortBy, paginate } from '@/utils';
-import { EmptyState, Skeleton } from '@/components/ui/primitives';
+import { EmptyState, Skeleton, Select } from '@/components/ui/primitives';
 
 export interface Column<T> {
   key: keyof T | string;
@@ -148,14 +148,15 @@ export function DataTable<T>({
         <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-warm-100 bg-warm-50/50">
           <div className="flex items-center gap-2 text-sm text-charcoal-500">
             <span>Sahifada:</span>
-            <select
-              value={pageSize}
-              onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
-              className="border border-warm-300 rounded-[8px] px-2 py-1 text-sm bg-white text-charcoal-700 focus:outline-none focus:border-brand-500"
-              aria-label="Sahifadagi yozuvlar soni"
-            >
-              {PAGE_SIZES.map(ps => <option key={ps} value={ps}>{ps}</option>)}
-            </select>
+            <div className="w-20">
+              <Select
+                value={String(pageSize)}
+                onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
+                size="sm"
+                options={PAGE_SIZES.map(ps => ({ value: String(ps), label: String(ps) }))}
+                aria-label="Sahifadagi yozuvlar soni"
+              />
+            </div>
             <span className="text-charcoal-400">
               {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, sorted.length)} / {sorted.length}
             </span>

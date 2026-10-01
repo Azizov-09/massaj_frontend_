@@ -7,7 +7,7 @@ import {
   Building2, Bell, Save, RefreshCw, AlertTriangle
 } from 'lucide-react';
 import { useStore } from '@/store';
-import { Card, CardHeader, CardBody, Input } from '@/components/ui/primitives';
+import { Card, CardHeader, CardBody, Input, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
 import { ConfirmDialog } from '@/components/ui/Modal';
@@ -151,16 +151,20 @@ export function SettingsPage() {
               <span className="text-xs sm:text-sm font-bold text-charcoal-900 block">Eslatma yuborish vaqti</span>
               <span className="text-xs text-charcoal-500">Seans boshlanishidan necha soat oldin yuboriladi</span>
             </div>
-            <select
-              value={reminderHours}
-              onChange={e => setReminderHours(e.target.value)}
-              className="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-warm-300 bg-white outline-none focus:border-brand-500 text-charcoal-800 cursor-pointer"
-            >
-              <option value="2">2 soat oldin</option>
-              <option value="12">12 soat oldin</option>
-              <option value="24">24 soat oldin</option>
-              <option value="48">48 soat oldin</option>
-            </select>
+            <div className="w-40">
+              <Select
+                value={reminderHours}
+                onChange={e => setReminderHours(e.target.value)}
+                size="sm"
+                options={[
+                  { value: '2', label: '2 soat oldin' },
+                  { value: '12', label: '12 soat oldin' },
+                  { value: '24', label: '24 soat oldin' },
+                  { value: '48', label: '48 soat oldin' },
+                ]}
+                aria-label="Eslatma yuborish vaqti"
+              />
+            </div>
           </div>
         </CardBody>
       </Card>
