@@ -5,7 +5,8 @@
 import { useState, useMemo } from 'react';
 import {
   Target, Plus, CheckCircle2, Clock,
-  Edit2, BarChart, Sparkles, Check
+  Edit2, BarChart, Sparkles, Check,
+  TrendingUp, MessageSquare, Calendar
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate, cn } from '@/utils';
@@ -131,11 +132,26 @@ export function GoalsPage() {
   const getStatusBadge = (status: GoalStatus) => {
     switch (status) {
       case 'COMPLETED':
-        return <Badge variant="success">Bajarildi</Badge>;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[8px] text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            Bajarildi
+          </span>
+        );
       case 'ACTIVE':
-        return <Badge variant="warning">Faol</Badge>;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[8px] text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            Faol
+          </span>
+        );
       case 'PAUSED':
-        return <Badge variant="danger">To‘xtatilgan</Badge>;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[8px] text-[11px] font-bold bg-warm-100 text-charcoal-600 border border-warm-200/80 shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-charcoal-400" />
+            To‘xtatilgan
+          </span>
+        );
       default:
         return <Badge variant="neutral">{status}</Badge>;
     }
@@ -254,65 +270,108 @@ export function GoalsPage() {
             return (
               <Card
                 key={goal.id}
-                className="p-5 h-full flex flex-col justify-between hover:border-warm-300 transition-all group"
+                className="p-5 h-full flex flex-col justify-between hover:border-warm-300 hover:shadow-md transition-all group rounded-[16px] bg-white border border-warm-200/90 shadow-2xs"
               >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                <div className="space-y-3.5">
+                  {/* Card Header: Child Avatar + Name + Status */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <Avatar name={child?.fullName ?? 'Bola'} size="xs" />
-                      <span className="text-xs font-bold text-charcoal-700 truncate max-w-[130px]">
+                      <span className="text-xs font-bold text-charcoal-800 truncate max-w-[150px]">
                         {child?.fullName}
                       </span>
                     </div>
                     {getStatusBadge(goal.status)}
                   </div>
 
+                  {/* Goal Title & Description */}
                   <div>
-                    <h4 className="text-sm font-bold text-charcoal-900 group-hover:text-brand-600 transition-colors">
+                    <h4 className="text-sm font-bold text-charcoal-900 group-hover:text-brand-600 transition-colors line-clamp-1">
                       {goal.title}
                     </h4>
-                    <p className="text-xs text-charcoal-500 mt-1 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-charcoal-500 mt-1 line-clamp-2 leading-relaxed min-h-[32px]">
                       {goal.description}
                     </p>
                   </div>
 
-                  {/* Progress Bar */}
-                  <div className="space-y-1.5 pt-1">
+                  {/* Progress Bar with rich gradient & badge */}
+                  <div className="space-y-1.5 pt-0.5">
                     <div className="flex items-center justify-between text-xs font-semibold">
-                      <span className="text-charcoal-500">Progress</span>
-                      <span className="text-brand-600 font-extrabold">{goal.progress}%</span>
-                    </div>
-                    <div className="w-full h-2 rounded-full bg-warm-100 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${
+                      <span className="text-charcoal-500 flex items-center gap-1 font-medium">
+                        <TrendingUp className="w-3 h-3 text-charcoal-400" />
+                        Progress
+                      </span>
+                      <span
+                        className={cn(
+                          'px-2 py-0.5 rounded-full text-[11px] font-extrabold border',
                           goal.progress >= 100
-                            ? 'bg-sage-600'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
                             : goal.progress >= 50
-                            ? 'bg-brand-500'
-                            : 'bg-gold-500'
-                        }`}
+                            ? 'bg-brand-50 text-brand-700 border-brand-200/80'
+                            : 'bg-amber-50 text-amber-800 border-amber-200/80'
+                        )}
+                      >
+                        {goal.progress}%
+                      </span>
+                    </div>
+
+                    <div className="w-full h-2.5 rounded-full bg-warm-100 shadow-inner border border-warm-200/60 overflow-hidden">
+                      <div
+                        className={cn(
+                          'h-full rounded-full transition-all duration-500',
+                          goal.progress >= 100
+                            ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                            : goal.progress >= 50
+                            ? 'bg-gradient-to-r from-brand-400 to-brand-600'
+                            : 'bg-gradient-to-r from-amber-400 to-amber-500'
+                        )}
                         style={{ width: `${Math.min(100, goal.progress)}%` }}
                       />
                     </div>
                   </div>
 
-                  {goal.specialistNote && (
-                    <div className="p-2.5 rounded-[10px] bg-warm-50/80 text-[11px] text-charcoal-600 border border-warm-200/80 shadow-2xs italic">
-                      "{goal.specialistNote}"
-                    </div>
-                  )}
+                  {/* Specialist Note Slot (Solves empty hole problem with uniform min-height) */}
+                  <div className="pt-0.5">
+                    {goal.specialistNote ? (
+                      <div className="p-2.5 rounded-[10px] bg-warm-50/90 text-[11px] text-charcoal-600 border border-warm-200/80 shadow-2xs flex items-start gap-2 min-h-[46px]">
+                        <MessageSquare className="w-3.5 h-3.5 text-brand-500 mt-0.5 flex-shrink-0" />
+                        <p className="italic line-clamp-2 leading-relaxed">
+                          "{goal.specialistNote}"
+                        </p>
+                      </div>
+                    ) : (
+                      !isParent ? (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(goal)}
+                          className="w-full p-2.5 rounded-[10px] border border-dashed border-warm-200/90 hover:border-brand-300 hover:bg-brand-50/40 text-[11px] text-charcoal-400 hover:text-brand-600 flex items-center justify-center gap-1.5 transition-all min-h-[46px] group/note"
+                          title="Mutaxassis izohini qo‘shish"
+                        >
+                          <Plus className="w-3 h-3 text-charcoal-400 group-hover/note:text-brand-500 transition-colors" />
+                          <span className="font-medium">Izoh kiritilmagan · Qo‘shish</span>
+                        </button>
+                      ) : (
+                        <div className="p-2.5 rounded-[10px] bg-warm-50/40 border border-warm-200/40 text-[11px] text-charcoal-400 flex items-center justify-center min-h-[46px] italic">
+                          Hozircha izoh kiritilmagan
+                        </div>
+                      )
+                    )}
+                  </div>
                 </div>
 
-                <div className="mt-5 pt-3.5 border-t border-warm-100 flex items-center justify-between">
-                  <span className="text-[11px] text-charcoal-400">
-                    Muddat: {formatDate(goal.targetDate)}
-                  </span>
+                {/* Card Footer */}
+                <div className="mt-4 pt-3 border-t border-warm-100 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-[11px] text-charcoal-400 font-medium">
+                    <Calendar className="w-3.5 h-3.5 text-charcoal-400" />
+                    <span>Muddat: {formatDate(goal.targetDate)}</span>
+                  </div>
                   {!isParent && (
                     <Button
                       size="xs"
                       variant="secondary"
                       leftIcon={<Edit2 className="w-3 h-3" />}
                       onClick={() => handleOpenEdit(goal)}
+                      className="h-7 text-xs px-2.5 rounded-[8px] font-semibold hover:border-brand-300 hover:text-brand-600"
                     >
                       Yangilash
                     </Button>
