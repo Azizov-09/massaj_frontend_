@@ -6,7 +6,7 @@ import { useState, useMemo } from 'react';
 import {
   Target, Plus, CheckCircle2, Clock,
   Edit2, BarChart, Sparkles, Check,
-  TrendingUp, MessageSquare, Calendar
+  TrendingUp, Quote, Calendar
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate, cn } from '@/utils';
@@ -340,7 +340,7 @@ export function GoalsPage() {
                       <div className="rounded-xl bg-warm-50/80 border border-warm-200/75 p-2.5 shadow-2xs transition-colors hover:border-brand-200 min-h-[64px] flex flex-col justify-between">
                         <div className="flex items-center justify-between mb-1">
                           <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-charcoal-500">
-                            <MessageSquare className="w-3 h-3 text-brand-500" />
+                            <Quote className="w-3.5 h-3.5 text-brand-500 shrink-0" />
                             Mutaxassis sharhi
                           </span>
                           <span className="text-[10px] text-charcoal-400 font-medium italic">
@@ -364,7 +364,7 @@ export function GoalsPage() {
                         >
                           <div className="flex items-center justify-between mb-1">
                             <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-charcoal-500 group-hover/add:text-brand-600 transition-colors">
-                              <MessageSquare className="w-3 h-3 text-charcoal-400 group-hover/add:text-brand-500 transition-colors" />
+                              <Quote className="w-3.5 h-3.5 text-charcoal-400 group-hover/add:text-brand-500 transition-colors shrink-0" />
                               Mutaxassis sharhi
                             </span>
                             <span className="text-[10px] font-semibold text-brand-600 group-hover/add:text-brand-700 flex items-center gap-0.5 transition-colors">
@@ -379,7 +379,7 @@ export function GoalsPage() {
                       ) : (
                         <div className="w-full rounded-xl bg-warm-50/30 border border-warm-200/40 p-2.5 min-h-[64px] flex flex-col justify-between">
                           <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-charcoal-500 mb-1">
-                            <MessageSquare className="w-3 h-3 text-charcoal-400" />
+                            <Quote className="w-3.5 h-3.5 text-charcoal-400 shrink-0" />
                             Mutaxassis sharhi
                           </span>
                           <p className="text-xs text-charcoal-400 italic">
