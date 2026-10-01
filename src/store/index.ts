@@ -465,7 +465,14 @@ export const useStore = create<Store>()(
       // ── Attendance ───────────────────────────────────────
       recordAttendance: (data) => {
         const record: AttendanceRecord = { ...data, id: `att-${generateId()}`, createdAt: new Date().toISOString() };
-        set(s => ({ attendance: [...s.attendance, record] }));
+        set(s => ({
+          attendance: [
+            ...s.attendance.filter(
+              a => !(a.appointmentId === data.appointmentId || (a.childId === data.childId && a.date === data.date))
+            ),
+            record,
+          ],
+        }));
         get().addToast({ type: 'success', title: 'Davomat belgilandi' });
       },
 

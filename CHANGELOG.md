@@ -2,6 +2,42 @@
 
 Ushbu hujjatda **Senior Frontend Engineer** va **AGENTS.md** arxitektura qoidalari asosida loyihada amalga oshirilgan barcha tizimli tuzatishlar, refaktoringlar, xavfsizlik va optimallashtirish ishlari bosqichma-bosqich qayd etib boriladi.
 
+## 📌 2026-10-01: Davomat Jurnali (Attendance) va Jadval (Schedule) Boshqaruvlari Dizayni, Tekislanishi va Takrorlanuvchi Sanalarni Bartaraf Etish
+
+### [P0] Davomat Boshqaruvlarini Bir Xil Tekislash ("Bir xil tekisdan"), Holat Belgilarining Takrorlanishini Olib Tashlash va Sana Navigatorini Bir Butun Qilish
+- **Fayllar:**
+  - [`src/features/attendance/AttendancePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/attendance/AttendancePage.tsx) — Davomat satrlari, boshqaruv paneli va holat tugmalari to‘liq qayta ishlandi.
+  - [`src/features/schedule/SchedulePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/schedule/SchedulePage.tsx) — Sana navigatsiyasi va haftalik rejim oylari sarlavhasi to‘liq unifikatsiya qilindi.
+  - [`src/store/index.ts`](file:///home/Bekzod/Desktop/massaj_frontend_/src/store/index.ts) — `recordAttendance` da eski davomat yozuvini almashtirish va holatni bir zumda yangilanishini ta'minlash.
+
+- **Muammo va Sabab (Foydalanuvchi Skrinshotidagi Qizil Strelka Muammolari):**
+  1. **Takrorlanuvchi Holat Nomi:** Har bir qatorda `Holati: [ Keldi ]` yashil nishoni va uning yonida darhol `[ Keldi ] [ Kechikdi ] [ Sababli ] [ Sababsiz ]` tugmalar guruhi joylashgan edi. Foydalanuvchi qizil strelka bilan aynan shu takrorlanishni ko‘rsatgan.
+  2. **Ustunlar Tekislanmaganligi ("Tekis emas"):** Turli xil holatlar ("Keldi" ~55px, "Kechikdi" ~75px, "Sababli kelmadi" ~125px) har xil kenglikka ega bo‘lgani sababli, har bir satrdagi tugmalar turli gorizontal X-koordinatada boshlanib, zinapoya kabi qiyshiq ko‘rinardi.
+  3. **Vertikal Noaniqlik:** Nishon ustidagi `<span className="block mb-0.5">Holati</span>` yozuvi sababli holat bloki tugmalardan balandroq bo‘lib, vertikal o‘q bo‘yicha siljigan edi.
+  4. **Qoramtir Faol Rang:** `status === 'PRESENT'` holatida `bg-sage-600` qo‘llangan bo‘lib, u ekranda deyarli qora/xira ko‘rinardi.
+  5. **Filtr Panellaridagi Takroriy Sana:** `[ < 05.10.2026 > ]` va uning ro‘parasida yana `[ 📅 05.10.2026 ]` bir-birining yonida ikki marta ko‘rsatilar edi.
+  6. **Elementlar Balandligining Turliligi:** Izlash maydoni, Select va sanalar turlicha balandlik va burchaklarga ega edi.
+
+- **Yechim (Senior Frontend Standard):**
+  1. **Tizimli 4 Ustunli Segmented Control (`grid grid-cols-4`, `sm:w-[380px]`):**
+     - Har bir qatorda interaktiv davomat boshqaruvi alohida, qat'iy o‘lchamli (`sm:w-[380px]`) konteynerga joylashtirildi.
+     - 4 ta tugmaning har biri teng kenglikka (`1/4`) ega bo‘lib, ekranda yuqoridan pastgacha barcha qatorlarda 100% bir xil tekis ustun ("bir xil tekisdan") hosil qiladi.
+     - Takrorlanuvchi ortiqcha `Holati: [ Keldi ]` nishoni olib tashlandi. Segmented control'ning o‘zi faol holatni tibbiy zamonaviy ranglar bilan ajratib ko‘rsatadi (`bg-emerald-600 text-white` Keldi, `bg-amber-500` Kechikdi, `bg-blue-600` Sababli, `bg-rose-600` Sababsiz) va har birida mos vektor ikonkasi (`CheckCircle2`, `Clock`, `AlertCircle`, `XCircle`) mavjud.
+     - Tahrirlash huquqi bo‘lmagan mutaxassislar uchun faqat toza, ixcham holat nishoni (`Badge`) ko‘rsatiladi.
+  2. **Jadval Sarlavhasi (Header Strip):**
+     - Ro‘yxat tepasiga `Bola va mashg‘ulot ma’lumotlari` hamda `Davomat holati` sarlavha satri qo‘shildi.
+  3. **Birlashgan Sana Navigatori (Unified Date Navigator):**
+     - Takroriy sana matni olib tashlanib, `[ Bugun ]` + `[ < ] [ 📅 DatePicker ] [ > ]` bir butun, ixcham va estetik boshqaruv moduliga aylantirildi.
+     - Barcha filtr elementlari (Bugun, Sana, Izlash, Mutaxassis Select) yagona `h-9`, `rounded-[10px]`, `border-warm-300` va `shadow-2xs` standartiga keltirildi.
+  4. **Jadval (Schedule) Sahifasidagi Sana Boshqaruvi:**
+     - Kunlik rejimda takroriy sana olib tashlandi, haftalik rejimda esa oy va yil sarlavhasi (`selectedMonthName`) to‘g‘ri o‘zbek tilida chiqarilishi ta'minlandi.
+  5. **Sifat Kafolati:**
+     - `oxlint`: 0 xato, 0 ogohlantirish.
+     - `vitest`: Barcha 7 ta test fayli (49/49 test) muvaffaqiyatli o‘tdi.
+     - `tsc && vite build`: Ishlab chiqarish paketi xatosiz yig‘ildi.
+
+---
+
 ## 📌 2026-10-01: Barcha Sana Kiritish Maydonlari (Date Pickers) va Kalendar Oylar/Yillar Tanlagichlari Dizaynini To‘liq Custom, Animatsiyali va Foydalanishga Qulay Komponentga O‘tkazish (Custom Accessible DatePicker)
 
 ### [P1] OS-Native Xom Kalendarlar va Oylar/Yillar Select Menyularini To‘liq Custom, Animatsiyali va Brend Dizayn Tizimiga Mos Komponentga O‘tkazish

@@ -81,6 +81,16 @@ export function SchedulePage() {
     return days;
   }, [selectedDate]);
 
+  // Selected month name for week mode
+  const selectedMonthName = useMemo(() => {
+    const d = new Date(selectedDate);
+    const monthNames = [
+      'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+      'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'
+    ];
+    return `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+  }, [selectedDate]);
+
   // Filtered appointments
   const filteredAppointments = useMemo(() => {
     return appointments.filter(apt => {
@@ -127,47 +137,72 @@ export function SchedulePage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           {/* Date Controls */}
           <div className="flex items-center gap-2">
-            <Button variant="secondary" size="sm" onClick={handleToday}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleToday}
+              className="h-9 px-3 rounded-[10px] text-xs font-semibold text-charcoal-700 bg-white border border-warm-300 hover:bg-warm-50 shadow-2xs"
+            >
               Bugun
             </Button>
-            <div className="flex items-center gap-1 bg-warm-100/70 p-1 rounded-xl">
+            <div className="flex items-center bg-white border border-warm-300 rounded-[10px] shadow-2xs hover:border-warm-400 transition-colors h-9">
               <button
+                type="button"
                 onClick={handlePrevDay}
-                className="p-1.5 hover:bg-white rounded-lg text-charcoal-700 transition-colors"
-                title="Oldingi"
+                className="h-full px-2.5 flex items-center justify-center text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 rounded-l-[9px] transition-colors"
+                title={viewMode === 'day' ? 'Oldingi kun' : 'Oldingi hafta'}
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="px-3 text-sm font-semibold text-charcoal-900 min-w-[120px] text-center">
-                {viewMode === 'day' ? formatDate(selectedDate) : `${weekDates[0]?.dayNum} - ${weekDates[5]?.dayNum} ${formatDate(selectedDate).split(' ')[1]}`}
-              </span>
+
+              {viewMode === 'day' ? (
+                <div className="w-36 border-x border-warm-200">
+                  <DatePicker
+                    size="sm"
+                    value={selectedDate}
+                    onChange={e => setSelectedDate(e.target.value)}
+                    clearable={false}
+                    aria-label="Sanani tanlash"
+                    triggerClassName="border-0 shadow-none rounded-none py-1.5 focus:ring-0 bg-transparent text-center font-medium"
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center border-x border-warm-200">
+                  <span className="px-3 text-xs font-semibold text-charcoal-800 whitespace-nowrap min-w-[120px] text-center">
+                    {weekDates[0]?.dayNum} - {weekDates[5]?.dayNum} {selectedMonthName}
+                  </span>
+                  <div className="w-32 border-l border-warm-200">
+                    <DatePicker
+                      size="sm"
+                      value={selectedDate}
+                      onChange={e => setSelectedDate(e.target.value)}
+                      clearable={false}
+                      aria-label="Sanani tanlash"
+                      triggerClassName="border-0 shadow-none rounded-none py-1.5 focus:ring-0 bg-transparent text-center font-medium"
+                    />
+                  </div>
+                </div>
+              )}
+
               <button
+                type="button"
                 onClick={handleNextDay}
-                className="p-1.5 hover:bg-white rounded-lg text-charcoal-700 transition-colors"
-                title="Keyingi"
+                className="h-full px-2.5 flex items-center justify-center text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 rounded-r-[9px] transition-colors"
+                title={viewMode === 'day' ? 'Keyingi kun' : 'Keyingi hafta'}
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
-            </div>
-            <div className="w-36">
-              <DatePicker
-                size="sm"
-                value={selectedDate}
-                onChange={e => setSelectedDate(e.target.value)}
-                clearable={false}
-                aria-label="Sanani tanlash"
-              />
             </div>
           </div>
 
           {/* Filters & View switcher */}
           <div className="flex items-center gap-3">
             {currentUser?.role !== 'SPECIALIST' && (
-              <div className="w-56">
+              <div className="w-48 sm:w-56">
                 <Select
                   value={specialistFilter}
                   onChange={e => setSpecialistFilter(e.target.value)}
-                  className="py-1.5 text-xs"
+                  className="h-9 text-xs rounded-[10px] shadow-2xs border-warm-300"
                 >
                   <option value="">Barcha mutaxassislar</option>
                   {specialists.map(s => (
@@ -177,20 +212,22 @@ export function SchedulePage() {
               </div>
             )}
 
-            <div className="flex rounded-xl bg-warm-100 p-1">
+            <div className="flex items-center h-9 p-1 rounded-[10px] bg-warm-100/90 border border-warm-200/80 shadow-2xs gap-1">
               <button
+                type="button"
                 onClick={() => setViewMode('day')}
                 className={cn(
-                  'px-3 py-1 text-xs font-semibold rounded-lg transition-all',
+                  'h-7 px-3 text-xs font-semibold rounded-[7px] transition-all cursor-pointer',
                   viewMode === 'day' ? 'bg-white shadow-xs text-charcoal-900' : 'text-charcoal-500 hover:text-charcoal-900'
                 )}
               >
                 Kunlik
               </button>
               <button
+                type="button"
                 onClick={() => setViewMode('week')}
                 className={cn(
-                  'px-3 py-1 text-xs font-semibold rounded-lg transition-all',
+                  'h-7 px-3 text-xs font-semibold rounded-[7px] transition-all cursor-pointer',
                   viewMode === 'week' ? 'bg-white shadow-xs text-charcoal-900' : 'text-charcoal-500 hover:text-charcoal-900'
                 )}
               >
