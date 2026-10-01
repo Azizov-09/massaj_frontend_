@@ -66,6 +66,10 @@
   --color-charcoal-800: #3d3935;
   --color-charcoal-900: #2a2724;
 
+  /* shadcn compatible tokens */
+  --color-foreground: #2a2724;
+  --color-muted-foreground: #797269;
+
   /* Semantic */
   --color-success-light: #f0fdf4;
   --color-success-main: #22c55e;
