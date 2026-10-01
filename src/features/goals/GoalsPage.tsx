@@ -13,7 +13,7 @@ import { Card, Badge, Avatar, Select, EmptyState } from '@/components/ui/primiti
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
-import { Input, Textarea, DatePicker } from '@/components/ui/primitives';
+import { Input, Textarea, DatePicker, Slider } from '@/components/ui/primitives';
 import type { Goal, GoalStatus } from '@/types';
 
 export function GoalsPage() {
@@ -356,28 +356,19 @@ export function GoalsPage() {
             onChange={e => setNewGoal({ ...newGoal, description: e.target.value })}
           />
 
-          <div className="grid grid-cols-2 gap-4">
-            <DatePicker
-              label="Kutilayotgan muddat"
-              required
-              value={newGoal.targetDate}
-              onChange={e => setNewGoal({ ...newGoal, targetDate: e.target.value })}
-            />
-            <div>
-              <label className="block text-xs font-semibold text-charcoal-700 mb-1">
-                Boshlang‘ich progress: {newGoal.progress}%
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="5"
-                value={newGoal.progress}
-                onChange={e => setNewGoal({ ...newGoal, progress: Number(e.target.value) })}
-                className="w-full accent-brand-500 mt-2"
-              />
-            </div>
-          </div>
+          <DatePicker
+            label="Kutilayotgan muddat"
+            required
+            value={newGoal.targetDate}
+            onChange={e => setNewGoal({ ...newGoal, targetDate: e.target.value })}
+          />
+
+          <Slider
+            label="Boshlang‘ich progress"
+            value={newGoal.progress}
+            onChange={val => setNewGoal({ ...newGoal, progress: val })}
+            presets={[0, 25, 50, 75, 100]}
+          />
 
           <Textarea
             label="Mutaxassis izohi (ixtiyoriy)"
@@ -405,58 +396,80 @@ export function GoalsPage() {
         title="Maqsad taraqqiyotini yangilash"
         size="md"
       >
-        {editingGoal && (
-          <form onSubmit={handleEditSubmit} className="space-y-4">
-            <div className="p-3.5 rounded-[14px] bg-warm-50/80 border border-warm-200/90 shadow-2xs">
-              <h4 className="text-sm font-bold text-charcoal-900">{editingGoal.title}</h4>
-              <p className="text-xs text-charcoal-500 mt-0.5">{editingGoal.description}</p>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between text-xs font-bold text-charcoal-800 mb-1">
-                <span>Progress:</span>
-                <span className="text-brand-600 text-sm">{editData.progress}%</span>
+        {editingGoal && (() => {
+          const editingChild = children.find(c => c.id === editingGoal.childId);
+          return (
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div className="p-3.5 rounded-[14px] bg-warm-50/80 border border-warm-200/90 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Avatar name={editingChild?.fullName ?? 'Bola'} size="xs" />
+                    <span className="text-xs font-bold text-charcoal-800 truncate">
+                      {editingChild?.fullName}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-medium text-charcoal-400">
+                    Muddat: {formatDate(editingGoal.targetDate)}
+                  </span>
+                </div>
+                <div className="pt-1.5 border-t border-warm-200/60">
+                  <h4 className="text-sm font-bold text-charcoal-900">{editingGoal.title}</h4>
+                  {editingGoal.description && (
+                    <p className="text-xs text-charcoal-500 mt-0.5 leading-relaxed">{editingGoal.description}</p>
+                  )}
+                </div>
               </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="5"
+
+              <Slider
+                label="Reabilitatsiya progressi"
                 value={editData.progress}
-                onChange={e => setEditData({ ...editData, progress: Number(e.target.value) })}
-                className="w-full accent-brand-500"
+                onChange={val => {
+                  const nextStatus: GoalStatus = val >= 100
+                    ? 'COMPLETED'
+                    : (editData.status === 'COMPLETED' ? 'ACTIVE' : editData.status);
+                  setEditData({ ...editData, progress: val, status: nextStatus });
+                }}
+                step={5}
+                presets={[0, 25, 50, 75, 100]}
               />
-            </div>
 
-            <Select
-              label="Holat"
-              value={editData.status}
-              onChange={e => setEditData({ ...editData, status: e.target.value as GoalStatus })}
-              options={[
-                { value: 'ACTIVE', label: 'Faol (Jarayonda)' },
-                { value: 'COMPLETED', label: 'Bajarildi (100%)' },
-                { value: 'PAUSED', label: 'To‘xtatilgan' },
-              ]}
-            />
+              <Select
+                label="Holat"
+                value={editData.status}
+                onChange={e => {
+                  const newStatus = e.target.value as GoalStatus;
+                  setEditData({
+                    ...editData,
+                    status: newStatus,
+                    progress: newStatus === 'COMPLETED' && editData.progress < 100 ? 100 : editData.progress,
+                  });
+                }}
+                options={[
+                  { value: 'ACTIVE', label: 'Faol (Jarayonda)' },
+                  { value: 'COMPLETED', label: 'Bajarildi (100%)' },
+                  { value: 'PAUSED', label: 'To‘xtatilgan' },
+                ]}
+              />
 
-            <Textarea
-              label="Mutaxassis izohi va natija"
-              rows={3}
-              placeholder="O‘zgarishlar va keyingi qadamlar haqida..."
-              value={editData.specialistNote}
-              onChange={e => setEditData({ ...editData, specialistNote: e.target.value })}
-            />
+              <Textarea
+                label="Mutaxassis izohi va natija"
+                rows={3}
+                placeholder="O‘zgarishlar va keyingi qadamlar haqida..."
+                value={editData.specialistNote}
+                onChange={e => setEditData({ ...editData, specialistNote: e.target.value })}
+              />
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-warm-100">
-              <Button variant="secondary" type="button" onClick={() => setEditingGoal(null)}>
-                Bekor qilish
-              </Button>
-              <Button type="submit">
-                O‘zgarishlarni saqlash
-              </Button>
-            </div>
-          </form>
-        )}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-warm-100">
+                <Button variant="secondary" type="button" onClick={() => setEditingGoal(null)}>
+                  Bekor qilish
+                </Button>
+                <Button type="submit">
+                  O‘zgarishlarni saqlash
+                </Button>
+              </div>
+            </form>
+          );
+        })()}
       </Modal>
     </div>
   );
