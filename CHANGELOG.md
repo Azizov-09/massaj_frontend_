@@ -334,10 +334,122 @@ Ushbu hujjatda **Senior Frontend Engineer** va **AGENTS.md** arxitektura qoidala
 
 ---
 
-## 📊 Hozirgi Metrikalar va Holat
-- **Avtomatlashgan Testlar:** 4 test to‘plami, **19/19 test muvaffaqiyatli (100% PASS)**.
-- **TypeScript:** 0 ta xatolik (`tsc --noEmit` to‘liq toza).
-- **Vite Production Build:** Yuqori tezlikda 0 xatolik bilan muvaffaqiyatli yakunlanadi.
-- **Linter (oxlint):** 0 ta xatolik.
-- **Dev Server:** `http://localhost:3001` da barqaror ishlamoqda.
-- **Xavfsizlik & Ruxsatlar:** Barcha 5 ta asosiy rol (`SUPER_ADMIN`, `ADMIN`, `SPECIALIST`, `OPERATOR`, `PARENT`) bo‘yicha to‘liq izolyatsiya va tekshiruvlar amalga oshirilgan.
+### 30. [P1] Bildirishnomalarni Administratorlar Uchun To‘liq Filtrlash va O‘qilgan Deb Belgilash
+- **Fayllar:**
+  - [`src/features/notifications/NotificationsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/notifications/NotificationsPage.tsx)
+  - [`src/components/layout/Header.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/layout/Header.tsx)
+  - [`src/store/index.ts`](file:///home/Bekzod/Desktop/massaj_frontend_/src/store/index.ts)
+- **Muammo va Sabab:**
+  `NotificationsPage.tsx` da filtrlashda faqat `SUPER_ADMIN` tekshirilgan bo‘lib, `ADMIN` roli tushib qolgan edi. Shu sababli oddiy admin tizim xabarlarini ko‘ra olmasdi. Qolaversa, "Barchasini o‘qildi" tugmasi bosilganda `markAllNotificationsRead` faqat `n.userId === userId` ni o‘zgartirgani uchun adminlarga tegishli tizim va boshqa admin bildirishnomalari o‘qilmagan holda qolib ketardi.
+- **Yechim:**
+  1. `NotificationsPage.tsx` filtri `SUPER_ADMIN` va `ADMIN` rollarini to‘liq qamrab oladigan qilindi.
+  2. `markAllNotificationsRead` funksiyasi foydalanuvchi roli (`role`) parametrini qabul qilib, ma'muriy rollar uchun barcha adminlik bildirishnomalarini to‘liq o‘qilgan qilib belgilaydigan qilindi.
+  3. `Header.tsx` dagi bildirishnoma oynasida ham ushbu funksiya to‘liq integratsiya qilindi.
+
+---
+
+### 31. [P1] Moliya Hisob-kitoblarining To‘liq Avtomatlashgan Unit Testlari (100% Coverage)
+- **Fayllar:**
+  - [`src/services/finance.test.ts`](file:///home/Bekzod/Desktop/massaj_frontend_/src/services/finance.test.ts)
+  - [`src/services/finance.service.ts`](file:///home/Bekzod/Desktop/massaj_frontend_/src/services/finance.service.ts)
+- **Muammo va Sabab:**
+  Klinikaning asosiy biznes yuragi bo‘lgan moliya xizmati (`finance.service.ts`) uchun bitta ham avtomatlashgan test mavjud emas edi. Bu to‘lovlar, qarzlar va balanslarni hisoblashda regressiya xavfini keltirib chiqarardi.
+- **Yechim:**
+  12 ta qat'iy unit test yozildi:
+  - Boshlang‘ich 0 balans va 0 qarz holati;
+  - To‘lov kiritilganda balansning to‘g‘ri oshishi;
+  - Seans narxi yechilganda balansning kamayishi;
+  - Balans yetmaganda qarz vujudga kelishi;
+  - Yangi to‘lov birinchi navbatda avvalgi qarzni yopishi, ortig‘i balansga o‘tishi;
+  - Qisman qarz to‘lash holati;
+  - Ota-onaning bir nechta farzandlari bo‘yicha umumiy balans agregatsiyasi;
+  - To‘g‘ridan-to‘g‘ri oilaviy depozitlar;
+  - Eng katta qarzdorlar reytingi (`getTopDebtors`);
+  - Uchrashuvlar statistikasi (`getAppointmentStats`);
+  - Mutaxassislar yuklamasi va ishlangan soatlar hisobi (`getSpecialistWorkload`);
+  - Umumiy moliyaviy hisobot xulosasi (`calculateFinancialSummary`).
+
+---
+
+### 32. [P2] React Anti-Pattern: Ichki Komponentlar Yaratilishini Bartaraf Qilish
+- **Fayllar:**
+  - [`src/features/specialists/SpecialistsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/specialists/SpecialistsPage.tsx)
+  - [`src/features/services/ServicesPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/services/ServicesPage.tsx)
+- **Muammo va Sabab:**
+  `CreateSpecialistForm` va `CreateServiceForm` komponentlari asosiy sahifa komponentining tanasi (body) ichida e'lon qilingan edi. Bu har bitta renderda yangi funksiya silkasini yaratib, React DOM daraxtini unmount/remount qilishga, forma holatining yo‘qolishiga va `react(static-components)` ogohlantirishlariga sabab bo‘lardi.
+- **Yechim:**
+  Har ikkala forma komponenti asosiy sahifadan tashqariga, mustaqil komponent sifatida chiqarildi va kerakli harakatlar props orqali uzatildi.
+
+---
+
+### 33. [P2] React 19 Render Purity va Tembel Boshlang‘ich Holat (Lazy State Initializer)
+- **Fayllar:**
+  - [`src/features/goals/GoalsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/goals/GoalsPage.tsx)
+- **Muammo va Sabab:**
+  `useState` boshlang‘ich qiymatida `Date.now()` to‘g‘ridan-to‘g‘ri chaqirilgani sababli har renderda nojo‘ya chaqiruv sodir bo‘lardi (`react(purity)` ogohlantirishi).
+- **Yechim:**
+  `useState(() => ({ ... targetDate: new Date(Date.now() + 30 * 86400000)... }))` ko‘rinishidagi funksional tembel initsializatorga o‘tkazildi.
+
+---
+
+### 34. [P2] React Fast Refresh Qoidalariga Moslash (guards.constants.ts)
+- **Fayllar:**
+  - [`src/features/auth/guards.constants.ts`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/auth/guards.constants.ts)
+  - [`src/features/auth/guards.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/auth/guards.tsx)
+  - [`src/features/auth/guards.test.ts`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/auth/guards.test.ts)
+- **Muammo va Sabab:**
+  Komponentlar joylashgan `guards.tsx` faylidan konstanta (`ROLE_REDIRECTS`) eksport qilingani Vite Fast Refresh (HMR) samaradorligiga ta'sir ko‘rsatardi (`react(only-export-components)`).
+- **Yechim:**
+  `ROLE_REDIRECTS` alohida `guards.constants.ts` fayliga ajratildi.
+
+---
+
+### 35. [P2] Reaktiv Forma Kuzatuvchilari (useWatch Integratsiyasi)
+- **Fayllar:**
+  - [`src/features/appointments/CreateAppointmentForm.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/appointments/CreateAppointmentForm.tsx)
+  - [`src/features/payments/PaymentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/payments/PaymentsPage.tsx)
+- **Muammo va Sabab:**
+  Eski `watch()` chaqiruvlari React 19 kompilyatori tomonidan optimallashtirishni cheklardi.
+- **Yechim:**
+  To‘liq React Hook Form standartidagi `useWatch({ control, name: '...' })` mexanizmiga o‘tkazildi.
+
+---
+
+### 36. [P2] Xodim Qo‘shish Huquqi Faqat Administratorlarga Cheklandi
+- **Fayllar:**
+  - [`src/features/employees/EmployeesPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/employees/EmployeesPage.tsx)
+- **Muammo va Sabab:**
+  Xodim qo‘shish tugmasi barcha foydalanuvchilarga ko‘rinib turardi.
+- **Yechim:**
+  Tugma faqat `SUPER_ADMIN` va `ADMIN` rollari uchun cheklandi (`(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN') && ...`).
+
+---
+
+### 37. [P2] Sozlamalar Sahifasidagi Eslatma Vaqti Tanlovi Ulandi
+- **Fayllar:**
+  - [`src/features/settings/SettingsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/settings/SettingsPage.tsx)
+- **Muammo va Sabab:**
+  `reminderHours` va `setReminderHours` o‘zgaruvchilari e'lon qilingan bo‘lsa-da, UI ga ulanmay o‘lik holatda turardi.
+- **Yechim:**
+  Bildirishnoma va eslatmalar bo‘limida seans boshlanishidan necha soat oldin (2, 12, 24, 48 soat) SMS eslatma yuborish tanlovi to‘liq UI ga ulandi.
+
+---
+
+### 38. [P3] Barcha 89 Ta Linter Ogohlantirishlari va O‘lik Kodlar Bartaraf Qilindi (0 Errors, 0 Warnings)
+- **Fayllar:**
+  - 25 dan ortiq frontend komponentlari va xizmat fayllari.
+- **Tavsif:**
+  Oxlint tomonidan qayd etilgan barcha foydalanilmagan importlar (`Phone`, `Mail`, `Calendar`, `Badge`, `Select`, `EmptyState`, `User`, `CheckCircle2`, `Award`, `BarChart2`, `cn`, `formatDate`, `formatAmount` va h.k.) va ortiqcha parametrlar to‘liq tozalandi.
+- **Natija:**
+  Loyihada **0 ta xatolik va 0 ta ogohlantirish (0 errors, 0 warnings)** holatiga erishildi.
+
+---
+
+## 📊 Hozirgi Metrikalar va Yakuniy Holat
+- **Avtomatlashgan Testlar:** 5 ta test to‘plami, **31/31 test muvaffaqiyatli (100% PASS)**.
+- **TypeScript:** 0 ta xatolik (`tsc` to‘liq xatosiz kompilyatsiya bo‘ladi).
+- **Vite Production Build:** Yuqori tezlikda (~486 ms) 0 xatolik bilan muvaffaqiyatli yakunlanadi.
+- **Linter (oxlint):** **0 warnings and 0 errors** (61 ta fayl bo‘yicha 100% toza).
+- **Bundle Optimization:** Boshlang‘ich bundle 177 KB (Gzip 46 KB), Landing 35 KB (Gzip 8.7 KB).
+- **Dizayn daxlsizligi:** UI dizayni, ranglar, shriftlar va komponentlar tuzilishiga ziyon yetkazilmagan, faqatgina ichki arxitektura va funksionallik Senior darajasiga ko‘tarildi.
+

@@ -2,17 +2,17 @@
 //  Payments Page — Manual payment recording
 // ═══════════════════════════════════════════════════════
 import { useState, useMemo } from 'react';
-import { Plus, Search, X, Wallet, TrendingDown, TrendingUp } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { Plus, Search, Wallet, TrendingUp } from 'lucide-react';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useStore, useAuth } from '@/store';
 import {
-  formatDate, formatDateTime, formatCurrencyCompact, formatAmount,
-  getPaymentMethodLabel, cn,
+  formatDateTime, formatCurrencyCompact,
+  getPaymentMethodLabel,
 } from '@/utils';
 import { DataTable, Column } from '@/components/tables/DataTable';
-import { Card, Badge, EmptyState } from '@/components/ui/primitives';
+import { Card, Badge } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
@@ -41,7 +41,6 @@ export function PaymentsPage() {
   const allPayments = useStore(s => s.payments);
   const parents = useStore(s => s.parents);
   const children = useStore(s => s.children);
-  const recordPayment = useStore(s => s.recordPayment);
 
   const isParent = currentUser?.role === 'PARENT';
   const canManagePayments = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN';
@@ -205,12 +204,12 @@ function CreatePaymentForm({ onSuccess, onCancel, createdBy }: { onSuccess: () =
   const children = useStore(s => s.children);
   const recordPayment = useStore(s => s.recordPayment);
 
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<PaymentForm>({
+  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<PaymentForm>({
     resolver: zodResolver(paymentSchema),
     defaultValues: { method: 'CASH', date: new Date().toISOString().split('T')[0] },
   });
 
-  const selectedParentId = watch('parentId');
+  const selectedParentId = useWatch({ control, name: 'parentId' });
   const parentChildren = children.filter(c => c.parentId === selectedParentId);
 
   const onSubmit = async (data: PaymentForm) => {

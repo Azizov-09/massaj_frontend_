@@ -5,7 +5,7 @@
 import { useState, useMemo } from 'react';
 import {
   Calendar, CheckCircle2, Clock, XCircle, AlertCircle,
-  Users, ChevronLeft, ChevronRight, UserCheck, Search, Filter
+  ChevronLeft, ChevronRight, UserCheck, Search
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate, cn } from '@/utils';

@@ -4,11 +4,9 @@
 
 import { useState } from 'react';
 import {
-  User, Mail, Phone, Shield, Lock,
-  Save, CheckCircle2, Award, Calendar
+  User, Lock, Save
 } from 'lucide-react';
 import { useAuth, useStore } from '@/store';
-import { formatDate } from '@/utils';
 import { Card, CardHeader, CardBody, Badge, Avatar, Input } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';

@@ -4,12 +4,12 @@
 
 import { useState, useMemo } from 'react';
 import {
-  Users, Plus, Search, Phone, Mail,
-  Briefcase, Calendar, CheckCircle2, UserCheck
+  Users, Plus, Search,
+  Briefcase, CheckCircle2, UserCheck
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate } from '@/utils';
-import { Card, Badge, Avatar, Select, EmptyState } from '@/components/ui/primitives';
+import { Card, Badge, Avatar, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { DataTable, Column } from '@/components/tables/DataTable';
@@ -120,9 +120,11 @@ export function EmployeesPage() {
         title="Xodimlar tarkibi"
         description="Markaz ma’muriyati, parvarish va texnik personal hisobi"
         actions={
-          <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreateModal(true)}>
-            Xodim qo‘shish
-          </Button>
+          (currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN') && (
+            <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreateModal(true)}>
+              Xodim qo‘shish
+            </Button>
+          )
         }
       />
 

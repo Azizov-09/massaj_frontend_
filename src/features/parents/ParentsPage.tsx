@@ -1,9 +1,9 @@
 // Parents Page
 import { useState, useMemo } from 'react';
-import { Plus, Search, Users, X } from 'lucide-react';
+import { Plus, Search, Users } from 'lucide-react';
 import { useStore } from '@/store';
 import { calculateParentBalance } from '@/services/finance.service';
-import { formatCurrencyCompact, getEntityStatusColor, getEntityStatusLabel, cn } from '@/utils';
+import { formatCurrencyCompact, getEntityStatusColor, getEntityStatusLabel } from '@/utils';
 import { DataTable, Column } from '@/components/tables/DataTable';
 import { Card, Avatar, Badge } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';

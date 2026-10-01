@@ -14,7 +14,7 @@ export function NotificationsPage() {
   const markAll = useStore(s => s.markAllNotificationsRead);
 
   const userNotifs = notifications
-    .filter(n => n.userId === currentUser?.id || currentUser?.role === 'SUPER_ADMIN')
+    .filter(n => n.userId === currentUser?.id || currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN')
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const unread = userNotifs.filter(n => !n.isRead).length;
@@ -36,7 +36,7 @@ export function NotificationsPage() {
         actions={
           unread > 0 && (
             <Button variant="secondary" size="sm" leftIcon={<CheckCheck className="w-4 h-4" />}
-              onClick={() => markAll(currentUser?.id ?? '')}>
+              onClick={() => markAll(currentUser?.id, currentUser?.role)}>
               Barchasini o'qildi
             </Button>
           )

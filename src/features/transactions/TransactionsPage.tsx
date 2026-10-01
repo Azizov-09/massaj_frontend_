@@ -5,7 +5,7 @@
 import { useState, useMemo } from 'react';
 import {
   CreditCard, ArrowDownLeft, ArrowUpRight, Search,
-  Download, Filter, RefreshCw
+  Download, RefreshCw
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { formatCurrency, formatCurrencyCompact, formatDate, cn } from '@/utils';
@@ -13,7 +13,7 @@ import { Card, Badge, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { DataTable, Column } from '@/components/tables/DataTable';
-import type { Transaction, TransactionType, TransactionDirection } from '@/types';
+import type { Transaction, TransactionType } from '@/types';
 
 export function TransactionsPage() {
   const transactions = useStore(s => s.transactions);

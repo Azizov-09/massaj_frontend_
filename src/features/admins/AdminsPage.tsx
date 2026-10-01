@@ -5,11 +5,11 @@
 import { useState, useMemo } from 'react';
 import {
   ShieldCheck, Plus, Search, Shield, User,
-  Mail, Phone, Clock, CheckCircle2
+  CheckCircle2
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate } from '@/utils';
-import { Card, Badge, Avatar, Select, EmptyState } from '@/components/ui/primitives';
+import { Card, Badge, Avatar, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { DataTable, Column } from '@/components/tables/DataTable';

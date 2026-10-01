@@ -9,7 +9,7 @@ import { formatDate, formatRelativeTime } from '@/utils';
 import { Card, Badge, Avatar, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
-import type { ActivityLog, ActivityAction } from '@/types';
+import type { ActivityAction } from '@/types';
 
 export function ActivityLogsPage() {
   const activityLogs = useStore(s => s.activityLogs);

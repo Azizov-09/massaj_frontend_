@@ -5,12 +5,12 @@
 import { useState, useMemo } from 'react';
 import {
   Wallet, TrendingUp, AlertTriangle, CheckCircle2,
-  Search, ArrowRight, Plus, User, CreditCard
+  Search, CreditCard
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatCurrency, formatCurrencyCompact, cn } from '@/utils';
 import { calculateParentBalance } from '@/services/finance.service';
-import { Card, Badge, Avatar, Select, EmptyState } from '@/components/ui/primitives';
+import { Card, Badge, Avatar, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { DataTable, Column } from '@/components/tables/DataTable';

@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════
 //  Create Appointment Form
 // ═══════════════════════════════════════════════════════
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useStore, useAuth } from '@/store';
@@ -40,7 +40,7 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate }: Prop
     ? allChildren.filter(c => c.parentId === currentUser.id)
     : allChildren;
 
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       childId: availableChildren[0]?.id || '',
@@ -49,8 +49,8 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate }: Prop
     },
   });
 
-  const selectedServiceId = watch('serviceId');
-  const selectedChildId = watch('childId');
+  const selectedServiceId = useWatch({ control, name: 'serviceId' });
+  const selectedChildId = useWatch({ control, name: 'childId' });
 
   const getEndTime = (start: string, serviceId: string) => {
     const svc = services.find(s => s.id === serviceId);
@@ -60,7 +60,7 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate }: Prop
     return `${String(Math.floor(totalMins / 60)).padStart(2, '0')}:${String(totalMins % 60).padStart(2, '0')}`;
   };
 
-  const startTime = watch('startTime');
+  const startTime = useWatch({ control, name: 'startTime' }) || '09:00';
   const endTime = getEndTime(startTime, selectedServiceId);
 
   const selectedChild = allChildren.find(c => c.id === selectedChildId);

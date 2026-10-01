@@ -285,7 +285,7 @@ export function SuperAdminDashboard() {
               {todayAppointments.length === 0 ? (
                 <EmptyState title="Bugun uchrashuvlar yo'q" icon={<Calendar className="w-5 h-5" />} className="py-8" />
               ) : (
-                todayAppointments.slice(0, 6).map((apt, i) => {
+                todayAppointments.slice(0, 6).map(apt => {
                   const child = children.find(c => c.id === apt.childId);
                   const spec = specialists.find(s => s.id === apt.specialistId);
                   return (

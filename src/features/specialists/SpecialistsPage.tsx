@@ -78,42 +78,6 @@ export function SpecialistsPage() {
     },
   ];
 
-  function CreateSpecialistForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: () => void }) {
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({ resolver: zodResolver(schema) });
-    const onSubmit = async (data: FormValues) => {
-      await new Promise(r => setTimeout(r, 300));
-      createSpecialist({
-        fullName: data.fullName,
-        phone: data.phone,
-        email: data.email || '',
-        specialization: data.specialization,
-        experience: Number(data.experienceYears) || 0,
-        status: 'ACTIVE',
-        role: 'SPECIALIST',
-        workingDays: [1, 2, 3, 4, 5],
-        workingHours: { start: '09:00', end: '18:00' },
-        bio: data.bio || '',
-      });
-      onSuccess();
-    };
-    return (
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-        <Input label="To'liq ism" required placeholder="Masalan: Dr. Aziz Nazarov" error={errors.fullName?.message} {...register('fullName')} />
-        <Input label="Mutaxassislik" required placeholder="Massaj terapevti, Fizioterapevt..." error={errors.specialization?.message} {...register('specialization')} />
-        <div className="grid grid-cols-2 gap-4">
-          <Input label="Telefon" required type="tel" placeholder="+998901234567" error={errors.phone?.message} {...register('phone')} />
-          <Input label="Email" type="email" placeholder="doctor@massaj.uz" {...register('email')} />
-        </div>
-        <Input label="Tajriba (yil)" type="number" placeholder="5" min="0" {...register('experienceYears')} />
-        <Textarea label="Qisqacha bio" placeholder="Mutaxassis haqida ma'lumot..." rows={2} {...register('bio')} />
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-warm-100">
-          <Button variant="secondary" type="button" onClick={onCancel}>Bekor qilish</Button>
-          <Button type="submit" loading={isSubmitting}>Saqlash</Button>
-        </div>
-      </form>
-    );
-  }
-
   const active = specialists.filter(s => s.status === 'ACTIVE').length;
 
   return (
@@ -140,8 +104,54 @@ export function SpecialistsPage() {
           keyExtractor={r => r.id} emptyTitle="Mutaxassislar topilmadi" emptyIcon={<Stethoscope className="w-5 h-5" />} />
       </Card>
       <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Yangi mutaxassis" size="md">
-        <CreateSpecialistForm onSuccess={() => setShowCreate(false)} onCancel={() => setShowCreate(false)} />
+        <CreateSpecialistForm
+          createSpecialist={createSpecialist}
+          onSuccess={() => setShowCreate(false)}
+          onCancel={() => setShowCreate(false)}
+        />
       </Modal>
     </div>
+  );
+}
+
+interface CreateSpecialistFormProps {
+  onSuccess: () => void;
+  onCancel: () => void;
+  createSpecialist: (data: Omit<Specialist, 'id' | 'createdAt'>) => Specialist;
+}
+
+function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateSpecialistFormProps) {
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({ resolver: zodResolver(schema) });
+  const onSubmit = async (data: FormValues) => {
+    await new Promise(r => setTimeout(r, 300));
+    createSpecialist({
+      fullName: data.fullName,
+      phone: data.phone,
+      email: data.email || '',
+      specialization: data.specialization,
+      experience: Number(data.experienceYears) || 0,
+      status: 'ACTIVE',
+      role: 'SPECIALIST',
+      workingDays: [1, 2, 3, 4, 5],
+      workingHours: { start: '09:00', end: '18:00' },
+      bio: data.bio || '',
+    });
+    onSuccess();
+  };
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+      <Input label="To'liq ism" required placeholder="Masalan: Dr. Aziz Nazarov" error={errors.fullName?.message} {...register('fullName')} />
+      <Input label="Mutaxassislik" required placeholder="Massaj terapevti, Fizioterapevt..." error={errors.specialization?.message} {...register('specialization')} />
+      <div className="grid grid-cols-2 gap-4">
+        <Input label="Telefon" required type="tel" placeholder="+998901234567" error={errors.phone?.message} {...register('phone')} />
+        <Input label="Email" type="email" placeholder="doctor@massaj.uz" {...register('email')} />
+      </div>
+      <Input label="Tajriba (yil)" type="number" placeholder="5" min="0" {...register('experienceYears')} />
+      <Textarea label="Qisqacha bio" placeholder="Mutaxassis haqida ma'lumot..." rows={2} {...register('bio')} />
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-warm-100">
+        <Button variant="secondary" type="button" onClick={onCancel}>Bekor qilish</Button>
+        <Button type="submit" loading={isSubmitting}>Saqlash</Button>
+      </div>
+    </form>
   );
 }

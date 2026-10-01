@@ -1,17 +1,18 @@
 // Services Page
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Heart, Archive, RotateCcw } from 'lucide-react';
 import { useStore } from '@/store';
 import { formatCurrencyCompact } from '@/utils';
-import { Card, Badge } from '@/components/ui/primitives';
+import { Card } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { Modal, ConfirmDialog } from '@/components/ui/Modal';
-import { Input, Select, Textarea } from '@/components/ui/primitives';
+import { Input, Textarea } from '@/components/ui/primitives';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
+import type { Service } from '@/types';
 
 const schema = z.object({
   name: z.string().min(2, 'Nom kamida 2 ta belgi'),
@@ -24,11 +25,55 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
+interface CreateServiceFormProps {
+  onSuccess: () => void;
+  onCancel: () => void;
+  createService: (data: Omit<Service, 'id' | 'createdAt'>) => Service;
+}
+
+function CreateServiceForm({ onSuccess, onCancel, createService }: CreateServiceFormProps) {
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
+    resolver: zodResolver(schema), defaultValues: { durationMinutes: '45' }
+  });
+  const onSubmit = async (data: FormValues) => {
+    await new Promise(r => setTimeout(r, 300));
+    createService({
+      name: data.name,
+      description: data.description || '',
+      price: Number(data.price),
+      durationMinutes: Number(data.durationMinutes),
+      status: 'ACTIVE',
+      category: data.category,
+      ageMin: Number(data.ageMin) || undefined,
+      ageMax: Number(data.ageMax) || undefined,
+    });
+    onSuccess();
+  };
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+      <Input label="Xizmat nomi" required placeholder="Terapevtik massaj" error={errors.name?.message} {...register('name')} />
+      <Textarea label="Tavsif" placeholder="Xizmat haqida qisqacha..." rows={2} {...register('description')} />
+      <div className="grid grid-cols-2 gap-4">
+        <Input label="Narx (so'm)" required type="number" placeholder="150000" min="1000" error={errors.price?.message} {...register('price')} />
+        <Input label="Davomiyligi (daqiqa)" required type="number" placeholder="45" min="15" max="120" error={errors.durationMinutes?.message} {...register('durationMinutes')} />
+      </div>
+      <div className="grid grid-cols-3 gap-4">
+        <Input label="Kategoriya" placeholder="Massaj, LFK..." {...register('category')} />
+        <Input label="Min yosh" type="number" placeholder="1" min="0" max="18" {...register('ageMin')} />
+        <Input label="Max yosh" type="number" placeholder="18" min="0" max="18" {...register('ageMax')} />
+      </div>
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-warm-100">
+        <Button variant="secondary" type="button" onClick={onCancel}>Bekor qilish</Button>
+        <Button type="submit" loading={isSubmitting}>Saqlash</Button>
+      </div>
+    </form>
+  );
+}
+
 export function ServicesPage() {
   const services = useStore(s => s.services);
   const sessions = useStore(s => s.sessions);
   const createService = useStore(s => s.createService);
-  const updateService = useStore(s => s.updateService);
   const archiveService = useStore(s => s.archiveService);
   const restoreService = useStore(s => s.restoreService);
   const [showCreate, setShowCreate] = useState(false);
@@ -37,42 +82,22 @@ export function ServicesPage() {
   const activeServices = services.filter(s => s.status === 'ACTIVE');
   const archivedServices = services.filter(s => s.status === 'ARCHIVED');
 
+  const sessionCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const s of sessions) {
+      if (s.status === 'COMPLETED') {
+        map.set(s.serviceId, (map.get(s.serviceId) || 0) + 1);
+      }
+    }
+    return map;
+  }, [sessions]);
+
   const totalRevenue = sessions
     .filter(s => s.status === 'COMPLETED')
     .reduce((sum, s) => {
       const svc = services.find(sv => sv.id === s.serviceId);
       return sum + (svc?.price ?? 0);
     }, 0);
-
-  function CreateServiceForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: () => void }) {
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
-      resolver: zodResolver(schema), defaultValues: { durationMinutes: '45' }
-    });
-    const onSubmit = async (data: FormValues) => {
-      await new Promise(r => setTimeout(r, 300));
-      createService({ name: data.name, description: data.description || '', price: Number(data.price), durationMinutes: Number(data.durationMinutes), status: 'ACTIVE', category: data.category, ageMin: Number(data.ageMin) || undefined, ageMax: Number(data.ageMax) || undefined });
-      onSuccess();
-    };
-    return (
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-        <Input label="Xizmat nomi" required placeholder="Terapevtik massaj" error={errors.name?.message} {...register('name')} />
-        <Textarea label="Tavsif" placeholder="Xizmat haqida qisqacha..." rows={2} {...register('description')} />
-        <div className="grid grid-cols-2 gap-4">
-          <Input label="Narx (so'm)" required type="number" placeholder="150000" min="1000" error={errors.price?.message} {...register('price')} />
-          <Input label="Davomiyligi (daqiqa)" required type="number" placeholder="45" min="15" max="120" error={errors.durationMinutes?.message} {...register('durationMinutes')} />
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-          <Input label="Kategoriya" placeholder="Massaj, LFK..." {...register('category')} />
-          <Input label="Min yosh" type="number" placeholder="1" min="0" max="18" {...register('ageMin')} />
-          <Input label="Max yosh" type="number" placeholder="18" min="0" max="18" {...register('ageMax')} />
-        </div>
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-warm-100">
-          <Button variant="secondary" type="button" onClick={onCancel}>Bekor qilish</Button>
-          <Button type="submit" loading={isSubmitting}>Saqlash</Button>
-        </div>
-      </form>
-    );
-  }
 
   return (
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
@@ -92,7 +117,7 @@ export function ServicesPage() {
         <h3 className="text-sm font-semibold text-charcoal-700 mb-3">Faol xizmatlar</h3>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {activeServices.map((svc, i) => {
-            const svcSessions = sessions.filter(s => s.serviceId === svc.id && s.status === 'COMPLETED').length;
+            const svcSessions = sessionCountMap.get(svc.id) || 0;
             return (
               <motion.div key={svc.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                 <Card className="p-4">
@@ -146,7 +171,11 @@ export function ServicesPage() {
       )}
 
       <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Yangi xizmat" size="md">
-        <CreateServiceForm onSuccess={() => setShowCreate(false)} onCancel={() => setShowCreate(false)} />
+        <CreateServiceForm
+          createService={createService}
+          onSuccess={() => setShowCreate(false)}
+          onCancel={() => setShowCreate(false)}
+        />
       </Modal>
 
       <ConfirmDialog isOpen={!!archiveTarget} onClose={() => setArchiveTarget(null)}

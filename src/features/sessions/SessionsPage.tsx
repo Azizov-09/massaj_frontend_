@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { Activity, CheckCircle, Search } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
-import { formatDateTime, formatCurrencyCompact, getSessionStatusColor, getSessionStatusLabel, cn } from '@/utils';
+import { formatDateTime, formatCurrencyCompact, getSessionStatusColor, getSessionStatusLabel } from '@/utils';
 import { DataTable, Column } from '@/components/tables/DataTable';
 import { Card, Avatar, Badge } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';

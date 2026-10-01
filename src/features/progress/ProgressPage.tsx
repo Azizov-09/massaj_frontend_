@@ -4,8 +4,7 @@
 
 import { useState, useMemo } from 'react';
 import {
-  TrendingUp, Plus, Calendar, User, MessageSquare,
-  Activity, CheckCircle2, AlertCircle, FileText
+  TrendingUp, Plus
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate } from '@/utils';

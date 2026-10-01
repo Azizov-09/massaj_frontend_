@@ -4,8 +4,8 @@
 
 import { useState, useMemo } from 'react';
 import {
-  Target, Plus, Calendar, CheckCircle2, Clock,
-  AlertCircle, Edit2, ChevronRight, BarChart
+  Target, Plus, CheckCircle2, Clock,
+  Edit2, BarChart
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate } from '@/utils';
@@ -38,14 +38,14 @@ export function GoalsPage() {
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 
   // New goal form
-  const [newGoal, setNewGoal] = useState({
+  const [newGoal, setNewGoal] = useState(() => ({
     childId: availableChildren[0]?.id ?? '',
     title: '',
     description: '',
     targetDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
     progress: 0,
     specialistNote: '',
-  });
+  }));
 
   // Edit goal state
   const [editData, setEditData] = useState<{

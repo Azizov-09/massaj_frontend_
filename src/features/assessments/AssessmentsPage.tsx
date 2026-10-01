@@ -4,17 +4,16 @@
 
 import { useState, useMemo } from 'react';
 import {
-  Activity, Plus, Calendar, AlertCircle, TrendingUp,
-  User, CheckCircle2, Award, ArrowRight, BarChart2
+  Activity, Plus, AlertCircle, TrendingUp, ArrowRight
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate } from '@/utils';
-import { Card, Badge, Avatar, Select, EmptyState } from '@/components/ui/primitives';
+import { Card, Avatar, Select, EmptyState } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
-import { Input, Textarea } from '@/components/ui/primitives';
-import type { Assessment, AssessmentScores } from '@/types';
+import { Textarea } from '@/components/ui/primitives';
+import type { AssessmentScores } from '@/types';
 
 export function AssessmentsPage() {
   const { currentUser } = useAuth();

@@ -46,7 +46,7 @@ function MobileBottomNav({ onMoreClick }: { onMoreClick: () => void }) {
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-warm-200 safe-bottom" aria-label="Pastki navigatsiya">
       <div className="flex">
-        {items.map((item, i) => {
+        {items.map(item => {
           const isActive = item.path ? (item.path === location.pathname || location.pathname.startsWith(item.path + '/')) : false;
           return (
             <button

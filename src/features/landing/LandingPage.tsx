@@ -6,9 +6,9 @@ import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Heart, Shield, Award, Users, Calendar, Clock, MapPin, Phone, Mail,
-  ChevronDown, ArrowRight, CheckCircle2, Sparkles, Stethoscope, Baby,
-  Activity, Star, Menu, X, ArrowUpRight
+  Heart, Shield, Calendar, Clock, MapPin, Phone,
+  ChevronDown, ArrowRight, CheckCircle2, Sparkles, Stethoscope,
+  Activity, Star, Menu, X
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatCurrencyCompact } from '@/utils';

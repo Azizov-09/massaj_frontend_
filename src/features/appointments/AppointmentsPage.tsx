@@ -2,14 +2,13 @@
 //  Appointments Page — Full CRUD with status workflow
 // ═══════════════════════════════════════════════════════
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { Plus, Search, Calendar, X, CheckCircle, XCircle, Play, UserX, ArrowRight } from 'lucide-react';
+import { Plus, Search, Calendar, CheckCircle, XCircle, Play, UserX, X } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import {
-  formatDate, formatTime, getAppointmentStatusColor, getAppointmentStatusLabel, cn,
+  formatDate, getAppointmentStatusColor, getAppointmentStatusLabel,
 } from '@/utils';
 import { DataTable, Column } from '@/components/tables/DataTable';
-import { Card, Avatar, Badge, EmptyState } from '@/components/ui/primitives';
+import { Card, Avatar, Badge } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';

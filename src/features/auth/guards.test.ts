@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ROLE_REDIRECTS } from './guards';
+import { ROLE_REDIRECTS } from './guards.constants';
 
 describe('Auth Guards and Role Redirects', () => {
   it('maps SUPER_ADMIN to /dashboard/super-admin', () => {

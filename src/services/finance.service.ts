@@ -118,7 +118,7 @@ export function calculateParentBalance(
 
 export function calculateFinancialSummary(
   transactions: Transaction[],
-  preset: DateFilterPreset = 'thisMonth'
+  _preset: DateFilterPreset = 'thisMonth'
 ): FinancialSummary {
   const allPayments = transactions.filter(t => t.type === 'PAYMENT' || t.type === 'REFUND');
   const allCharges = transactions.filter(t => t.type === 'SESSION_CHARGE');

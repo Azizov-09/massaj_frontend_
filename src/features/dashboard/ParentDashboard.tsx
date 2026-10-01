@@ -4,15 +4,15 @@
 
 import { useState, useMemo } from 'react';
 import {
-  Heart, Calendar, CheckCircle2, Clock,
-  CreditCard, TrendingUp, AlertCircle, FileText, ChevronRight, Plus
+  Heart, Calendar, CheckCircle2,
+  CreditCard, AlertCircle, Plus
 } from 'lucide-react';
 import { useAuth, useStore } from '@/store';
 import { formatCurrency, formatDate } from '@/utils';
 import { calculateParentBalance } from '@/services/finance.service';
 import { Card, CardHeader, CardBody, Badge, Avatar, EmptyState } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
-import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
+import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
 import { CreateAppointmentForm } from '@/features/appointments/CreateAppointmentForm';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +22,7 @@ export function ParentDashboard() {
   const navigate = useNavigate();
   const [showBookModal, setShowBookModal] = useState(false);
 
+  const parentId = currentUser?.id ?? '';
   const children = useStore(s => s.children);
   const appointments = useStore(s => s.appointments);
   const sessions = useStore(s => s.sessions);
@@ -33,16 +34,16 @@ export function ParentDashboard() {
 
   // Parent's children
   const myChildren = useMemo(() => {
-    return children.filter(c => c.parentId === currentUser?.id);
-  }, [children, currentUser?.id]);
+    return children.filter(c => c.parentId === parentId);
+  }, [children, parentId]);
 
   const childIds = useMemo(() => myChildren.map(c => c.id), [myChildren]);
 
   // Financial status
   const finance = useMemo(() => {
-    if (!currentUser?.id) return { balance: 0, debt: 0 };
-    return calculateParentBalance(currentUser.id, childIds, transactions);
-  }, [currentUser?.id, childIds, transactions]);
+    if (!parentId) return { balance: 0, debt: 0 };
+    return calculateParentBalance(parentId, childIds, transactions);
+  }, [parentId, childIds, transactions]);
 
   // Upcoming appointments for my children
   const upcomingAppointments = useMemo(() => {

@@ -136,7 +136,7 @@ interface Actions {
   // Notifications
   markNotificationRead: (id: string) => void;
   markNotificationUnread: (id: string) => void;
-  markAllNotificationsRead: (userId: string) => void;
+  markAllNotificationsRead: (userId?: string, role?: UserRole) => void;
 
   // Admins
   createAdmin: (data: Omit<AdminUser, 'id' | 'createdAt'>) => AdminUser;
@@ -553,8 +553,19 @@ export const useStore = create<Store>()(
       markNotificationUnread: (id) => {
         set(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, isRead: false } : n) }));
       },
-      markAllNotificationsRead: (userId) => {
-        set(s => ({ notifications: s.notifications.map(n => n.userId === userId ? { ...n, isRead: true } : n) }));
+      markAllNotificationsRead: (userId, role) => {
+        const isAdmin = role === 'SUPER_ADMIN' || role === 'ADMIN';
+        set(s => ({
+          notifications: s.notifications.map(n => {
+            if (isAdmin && (n.userId === 'admin-1' || n.userId === 'admin-2' || n.userId === userId || !n.userId)) {
+              return { ...n, isRead: true };
+            }
+            if (n.userId === userId) {
+              return { ...n, isRead: true };
+            }
+            return n;
+          }),
+        }));
       },
 
       // ── Admins ───────────────────────────────────────────

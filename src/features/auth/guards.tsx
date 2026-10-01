@@ -5,14 +5,8 @@ import { Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShieldAlert, Home, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/store';
+import { ROLE_REDIRECTS } from './guards.constants';
 import type { UserRole } from '@/types';
-
-export const ROLE_REDIRECTS: Record<UserRole, string> = {
-  SUPER_ADMIN: '/dashboard/super-admin',
-  ADMIN: '/dashboard/super-admin',
-  SPECIALIST: '/dashboard/specialist',
-  PARENT: '/dashboard/parent',
-};
 
 // ─── Protected Route ──────────────────────────────────────
 

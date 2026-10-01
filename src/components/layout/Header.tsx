@@ -217,7 +217,7 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
                   <span className="text-sm font-semibold text-charcoal-900">Bildirishnomalar</span>
                   {unreadCount > 0 && (
                     <button
-                      onClick={() => markAll(currentUser?.id ?? '')}
+                      onClick={() => markAll(currentUser?.id, currentUser?.role)}
                       className="text-xs text-brand-600 hover:text-brand-700 font-medium"
                     >
                       Barchasini o'qildi deb belgilash
