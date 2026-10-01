@@ -400,7 +400,7 @@ export function SchedulePage() {
                 <div
                   key={time}
                   className={cn(
-                    'flex min-h-[92px] group transition-colors relative',
+                    'flex min-h-[116px] group transition-colors relative',
                     isCurrentSlot ? 'bg-brand-50/25' : 'hover:bg-warm-50/30'
                   )}
                 >
@@ -425,12 +425,12 @@ export function SchedulePage() {
                   </div>
 
                   {/* Slot Content Area */}
-                  <div className="flex-1 p-3 flex items-center">
+                  <div className="flex-1 p-3 flex items-stretch">
                     {slotApts.length === 0 ? (
                       <button
                         type="button"
                         onClick={() => handleOpenCreate(selectedDate, time)}
-                        className="w-full h-full min-h-[66px] border-2 border-dashed border-warm-200/90 hover:border-brand-400 bg-warm-50/20 hover:bg-brand-50/30 rounded-[14px] px-4 py-3 flex items-center justify-between transition-all duration-150 group/slot cursor-pointer text-left focus:outline-hidden focus:ring-2 focus:ring-brand-400"
+                        className="w-full min-h-[92px] h-full border-2 border-dashed border-warm-200/90 hover:border-brand-400 bg-warm-50/20 hover:bg-brand-50/30 rounded-[14px] px-4 py-3 flex items-center justify-between transition-all duration-150 group/slot cursor-pointer text-left focus:outline-hidden focus:ring-2 focus:ring-brand-400"
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-warm-100 group-hover/slot:bg-brand-100 text-charcoal-400 group-hover/slot:text-brand-600 flex items-center justify-center transition-colors shadow-2xs">
@@ -451,7 +451,7 @@ export function SchedulePage() {
                         </span>
                       </button>
                     ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 w-full">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 w-full items-stretch">
                         {slotApts.map(apt => {
                           const child = children.find(c => c.id === apt.childId);
                           const spec = specialists.find(s => s.id === apt.specialistId);
@@ -460,7 +460,7 @@ export function SchedulePage() {
                             <div
                               key={apt.id}
                               onClick={() => setActiveAppointment(apt)}
-                              className="p-3.5 rounded-[14px] border border-warm-200/90 bg-white hover:border-brand-400 hover:shadow-xs shadow-[0_1px_3px_0_rgb(0_0_0/0.06)] transition-all cursor-pointer flex flex-col justify-between group/card relative"
+                              className="p-3.5 rounded-[14px] border border-warm-200/90 bg-white hover:border-brand-400 hover:shadow-xs shadow-[0_1px_3px_0_rgb(0_0_0/0.06)] transition-all cursor-pointer flex flex-col justify-between group/card relative min-h-[92px] h-full"
                             >
                               <div>
                                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -494,7 +494,7 @@ export function SchedulePage() {
                           <button
                             type="button"
                             onClick={() => handleOpenCreate(selectedDate, time)}
-                            className="border border-dashed border-warm-200 hover:border-brand-300 bg-warm-50/20 hover:bg-brand-50/30 rounded-[12px] p-3 flex items-center justify-center gap-1.5 text-xs font-medium text-charcoal-400 hover:text-brand-700 transition-all cursor-pointer min-h-[66px]"
+                            className="border border-dashed border-warm-200 hover:border-brand-300 bg-warm-50/20 hover:bg-brand-50/30 rounded-[14px] p-3 flex items-center justify-center gap-1.5 text-xs font-medium text-charcoal-400 hover:text-brand-700 transition-all cursor-pointer min-h-[92px] h-full"
                             title="Ushbu soatga yana uchrashuv qo‘shish"
                           >
                             <Plus className="w-3.5 h-3.5" />
@@ -584,7 +584,7 @@ export function SchedulePage() {
                               <div
                                 key={apt.id}
                                 onClick={() => setActiveAppointment(apt)}
-                                className="p-2 rounded-[10px] border border-warm-200 bg-white hover:border-brand-400 hover:shadow-xs shadow-2xs cursor-pointer transition-all text-[11px]"
+                                className="p-2 rounded-[10px] border border-warm-200 bg-white hover:border-brand-400 hover:shadow-xs shadow-2xs cursor-pointer transition-all text-[11px] min-h-[58px] flex flex-col justify-between"
                               >
                                 <div className="flex items-center gap-1.5 mb-1">
                                   <Avatar name={child?.fullName ?? 'Bola'} size="xs" />

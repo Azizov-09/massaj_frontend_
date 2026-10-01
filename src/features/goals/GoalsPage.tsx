@@ -254,7 +254,7 @@ export function GoalsPage() {
             return (
               <Card
                 key={goal.id}
-                className="p-5 flex flex-col justify-between hover:border-warm-300 transition-all group"
+                className="p-5 h-full flex flex-col justify-between hover:border-warm-300 transition-all group"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">

@@ -68,9 +68,9 @@ export function KpiCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.22, delay: index * 0.04, ease: 'easeOut' }}
       className={cn(
-        'relative bg-white rounded-[14px] border border-warm-200 shadow-[0_1px_3px_0_rgb(0_0_0/0.06)] hover:border-warm-300 hover:shadow-xs transition-all duration-200 p-4 sm:p-4.5 flex items-center justify-between gap-3.5 group',
-        size === 'sm' && 'p-3 gap-2.5 rounded-[12px]',
-        size === 'lg' && 'p-5 gap-4 rounded-[16px]',
+        'relative h-full min-h-[96px] bg-white rounded-[14px] border border-warm-200 shadow-[0_1px_3px_0_rgb(0_0_0/0.06)] hover:border-warm-300 hover:shadow-xs transition-all duration-200 p-4 sm:p-4.5 flex items-center justify-between gap-3.5 group',
+        size === 'sm' && 'p-3 gap-2.5 rounded-[12px] min-h-[80px]',
+        size === 'lg' && 'p-5 gap-4 rounded-[16px] min-h-[110px]',
         className
       )}
     >
@@ -157,7 +157,7 @@ interface StatCardProps {
 
 export function StatCard({ label, value, icon, className }: StatCardProps) {
   return (
-    <div className={cn('flex items-center gap-3 bg-white rounded-[14px] border border-warm-200 p-3.5', className)}>
+    <div className={cn('flex items-center gap-3 bg-white rounded-[14px] border border-warm-200 p-3.5 h-full', className)}>
       {icon && (
         <div className="w-9 h-9 rounded-[10px] bg-warm-100 flex items-center justify-center text-charcoal-500 flex-shrink-0">
           {icon}

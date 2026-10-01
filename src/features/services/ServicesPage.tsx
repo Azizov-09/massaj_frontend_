@@ -150,30 +150,34 @@ export function ServicesPage() {
           {activeServices.map((svc, i) => {
             const svcSessions = sessionCountMap.get(svc.id) || 0;
             return (
-              <motion.div key={svc.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                <Card className="p-4">
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <div className="w-9 h-9 rounded-[10px] bg-brand-100 flex items-center justify-center flex-shrink-0">
-                      <Heart className="w-4 h-4 text-brand-600" />
+              <motion.div key={svc.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="h-full">
+                <Card className="p-4 h-full flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <div className="w-9 h-9 rounded-[10px] bg-brand-100 flex items-center justify-center flex-shrink-0">
+                        <Heart className="w-4 h-4 text-brand-600" />
+                      </div>
+                      <button onClick={() => setArchiveTarget(svc.id)}
+                        className="p-1.5 text-charcoal-300 hover:text-charcoal-600 hover:bg-warm-100 rounded-[6px] transition-colors"
+                        title="Arxivlash">
+                        <Archive className="w-3.5 h-3.5" />
+                      </button>
                     </div>
-                    <button onClick={() => setArchiveTarget(svc.id)}
-                      className="p-1.5 text-charcoal-300 hover:text-charcoal-600 hover:bg-warm-100 rounded-[6px] transition-colors"
-                      title="Arxivlash">
-                      <Archive className="w-3.5 h-3.5" />
-                    </button>
+                    <p className="text-sm font-semibold text-charcoal-900 mb-0.5">{svc.name}</p>
+                    {svc.description && <p className="text-xs text-charcoal-400 mb-3 line-clamp-2">{svc.description}</p>}
                   </div>
-                  <p className="text-sm font-semibold text-charcoal-900 mb-0.5">{svc.name}</p>
-                  {svc.description && <p className="text-xs text-charcoal-400 mb-3 line-clamp-2">{svc.description}</p>}
-                  <div className="flex items-center justify-between">
-                    <p className="text-base font-bold text-brand-600 tabular-nums">{formatCurrencyCompact(svc.price)}</p>
-                    <div className="text-right">
-                      <p className="text-xs text-charcoal-400">{svc.durationMinutes} daq</p>
-                      <p className="text-xs text-charcoal-400">{svcSessions} seans</p>
+                  <div className="pt-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-base font-bold text-brand-600 tabular-nums">{formatCurrencyCompact(svc.price)}</p>
+                      <div className="text-right">
+                        <p className="text-xs text-charcoal-400">{svc.durationMinutes} daq</p>
+                        <p className="text-xs text-charcoal-400">{svcSessions} seans</p>
+                      </div>
                     </div>
+                    {(svc.ageMin || svc.ageMax) && (
+                      <p className="text-[10px] text-charcoal-400 mt-2">Yosh: {svc.ageMin ?? 0}–{svc.ageMax ?? 18}</p>
+                    )}
                   </div>
-                  {(svc.ageMin || svc.ageMax) && (
-                    <p className="text-[10px] text-charcoal-400 mt-2">Yosh: {svc.ageMin ?? 0}–{svc.ageMax ?? 18}</p>
-                  )}
                 </Card>
               </motion.div>
             );

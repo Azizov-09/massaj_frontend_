@@ -145,7 +145,7 @@ export function ParentDashboard() {
             const childSessions = sessions.filter(s => s.childId === c.id && s.status === 'COMPLETED').length;
 
             return (
-              <Card key={c.id} className="p-5 hover:border-warm-300 transition-colors">
+              <Card key={c.id} className="p-5 hover:border-warm-300 transition-colors h-full flex flex-col justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar name={c.fullName} size="md" />
                   <div>
