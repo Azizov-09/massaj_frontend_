@@ -290,10 +290,10 @@ export function GoalsPage() {
 
                   {/* Goal Title & Description */}
                   <div>
-                    <h4 className="text-sm font-semibold text-charcoal-900 group-hover:text-brand-600 transition-colors line-clamp-1">
+                    <h4 className="text-sm font-semibold text-charcoal-900 group-hover:text-brand-600 transition-colors line-clamp-1 break-words">
                       {goal.title}
                     </h4>
-                    <p className="text-xs text-charcoal-500 mt-1 line-clamp-2 leading-relaxed min-h-[32px]">
+                    <p className="text-xs text-charcoal-500 mt-1 line-clamp-2 leading-relaxed min-h-[32px] break-words">
                       {goal.description}
                     </p>
                   </div>
@@ -337,19 +337,30 @@ export function GoalsPage() {
                   {/* Specialist Sharh / Note Slot (Senior-level clinical observation design) */}
                   <div className="pt-0.5">
                     {goal.specialistNote ? (
-                      <div className="rounded-xl bg-warm-50/80 border border-warm-200/75 p-2.5 shadow-2xs transition-colors hover:border-brand-200 min-h-[44px] flex flex-col justify-between">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-charcoal-500">
-                            <Quote className="w-3.5 h-3.5 text-brand-500 shrink-0" />
-                            Mutaxassis sharhi
-                          </span>
-                          <span className="text-[10px] text-charcoal-400 font-medium italic">
-                            Klinik xulosa
-                          </span>
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          !isParent && handleOpenEdit(goal);
+                        }}
+                        title={`Mutaxassis sharhi: ${goal.specialistNote}`}
+                        className={cn(
+                          'w-full rounded-xl bg-warm-50/80 border border-warm-200/75 p-2.5 min-h-[44px] flex items-start gap-2.5 shadow-2xs transition-all',
+                          !isParent && 'hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer'
+                        )}
+                      >
+                        <div className="w-6 h-6 rounded-lg bg-brand-50 border border-brand-100/80 flex items-center justify-center shrink-0 mt-0.5 text-brand-600">
+                          <Quote className="w-3.5 h-3.5 text-brand-500" />
                         </div>
-                        <p className="text-xs text-charcoal-700 italic line-clamp-2 leading-relaxed">
-                          “{goal.specialistNote}”
-                        </p>
+                        <div className="flex-1 min-w-0 pt-0.5">
+                          <p className="text-xs leading-relaxed break-words line-clamp-2">
+                            <span className="text-[11px] font-bold text-charcoal-800 not-italic mr-1.5">
+                              Sharh:
+                            </span>
+                            <span className="italic text-charcoal-700">
+                              “{goal.specialistNote}”
+                            </span>
+                          </p>
+                        </div>
                       </div>
                     ) : (
                       !isParent ? (
