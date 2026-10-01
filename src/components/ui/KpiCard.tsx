@@ -68,30 +68,32 @@ export function KpiCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.22, delay: index * 0.04, ease: 'easeOut' }}
       className={cn(
-        'relative bg-white rounded-xl border border-warm-200/90 shadow-2xs hover:shadow-xs hover:border-warm-300 transition-all duration-200 p-3.5 sm:p-4 flex items-center gap-3.5 group',
-        size === 'sm' && 'p-2.5 sm:p-3 gap-2.5',
-        size === 'lg' && 'p-4 sm:p-5 gap-4',
+        'relative bg-white rounded-xl border border-warm-200/90 shadow-2xs hover:shadow-xs hover:border-warm-300 transition-all duration-200 p-4 sm:p-4.5 flex items-center justify-between gap-3.5 group',
+        size === 'sm' && 'p-3 gap-2.5',
+        size === 'lg' && 'p-5 gap-4',
         className
       )}
     >
-      {icon && (
-        <div
-          className={cn(
-            'w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105 shadow-2xs [&>svg]:w-5 [&>svg]:h-5',
-            iconBgMap[accentColor] ?? iconBgMap.brand,
-            size === 'sm' && 'w-9 h-9 rounded-[10px] [&>svg]:w-4 [&>svg]:h-4',
-            size === 'lg' && 'w-13 h-13 rounded-2xl [&>svg]:w-6 [&>svg]:h-6'
-          )}
-        >
-          {icon}
-        </div>
-      )}
-
+      {/* Content on Left */}
       <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <span className="text-xs font-medium text-charcoal-500 truncate">
-            {label}
-          </span>
+        <p className="text-xs font-medium text-charcoal-500 truncate mb-1">
+          {label}
+        </p>
+
+        <div className="flex items-baseline gap-2">
+          <motion.span
+            key={String(value)}
+            initial={{ opacity: 0, y: 2 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className={cn(
+              'font-extrabold text-charcoal-900 tabular-nums tracking-tight leading-none',
+              size === 'sm' ? 'text-lg sm:text-xl' : size === 'lg' ? 'text-3xl' : 'text-2xl sm:text-[28px]'
+            )}
+          >
+            {formatValue()}
+          </motion.span>
+
           {trend && (
             <span
               className={cn(
@@ -107,6 +109,7 @@ export function KpiCard({
               {trend.value > 0 ? '+' : ''}{trend.value}%
             </span>
           )}
+
           {!trend && change && (
             <span
               className={cn(
@@ -119,32 +122,26 @@ export function KpiCard({
           )}
         </div>
 
-        <div className="flex items-baseline gap-2">
-          <motion.span
-            key={String(value)}
-            initial={{ opacity: 0, y: 2 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-            className={cn(
-              'font-extrabold text-charcoal-900 tabular-nums tracking-tight leading-none',
-              size === 'sm' ? 'text-lg sm:text-xl' : size === 'lg' ? 'text-3xl' : 'text-2xl sm:text-[26px]'
-            )}
-          >
-            {formatValue()}
-          </motion.span>
-          {trend?.label && (
-            <span className="text-[11px] text-charcoal-400 font-normal truncate hidden sm:inline">
-              {trend.label}
-            </span>
-          )}
-        </div>
-
-        {description && (
-          <p className="text-[11px] text-charcoal-400 mt-1 font-normal leading-tight truncate">
-            {description}
+        {(description || trend?.label) && (
+          <p className="text-[11px] text-charcoal-400 mt-1.5 font-normal leading-tight truncate">
+            {description ?? trend?.label}
           </p>
         )}
       </div>
+
+      {/* Icon on Right */}
+      {icon && (
+        <div
+          className={cn(
+            'w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105 shadow-2xs [&>svg]:w-5 [&>svg]:h-5',
+            iconBgMap[accentColor] ?? iconBgMap.brand,
+            size === 'sm' && 'w-9 h-9 rounded-[10px] [&>svg]:w-4 [&>svg]:h-4',
+            size === 'lg' && 'w-14 h-14 rounded-2xl [&>svg]:w-6 [&>svg]:h-6'
+          )}
+        >
+          {icon}
+        </div>
+      )}
     </motion.div>
   );
 }

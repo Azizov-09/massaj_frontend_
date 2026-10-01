@@ -2,11 +2,11 @@
 
 Ushbu hujjatda **Senior Frontend Engineer** va **AGENTS.md** arxitektura qoidalari asosida loyihada amalga oshirilgan barcha tizimli tuzatishlar, refaktoringlar, xavfsizlik va optimallashtirish ishlari bosqichma-bosqich qayd etib boriladi.
 
-## 📌 2026-10-01: KPI Metrika Kartalari (KpiCard) Dizaynini To‘liq Premium Gorizontal Arxitekturaga O‘tkazish (Top Accent Chiziqlari va Bo‘shliqlarni Yo‘qotish)
+## 📌 2026-10-01: KPI Metrika Kartalari (KpiCard) Dizaynida Ikonkalarni O‘ng Tomonga Joylashtirish (Foydalanuvchi Ko‘rsatmasi Asosida)
 
-### [P0] KPI Metrika Kartalari Dizayni va Joylashuvini "Senior Frontend" Mukammal Standartiga Keltirish
+### [P0] KPI Metrika Kartalarida Ikonka O‘rni va Gorizontal Mutanosiblikni Mukammallashtirish
 - **Fayllar:**
-  - [`src/components/ui/KpiCard.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/KpiCard.tsx) — Kartalarning yuqori qismidagi sun’iy rangli chiziq (`h-[2.5px]`) butunlay olib tashlandi; qulay va professional gorizontal arxitektura (`flex items-center gap-3.5`) joriy etildi; chap tomonga `w-11 h-11 rounded-xl` pastel fonli zamonaviy squircle ikonka konteyneri joylashtirildi; o‘ng tomonga sarlavha, yirik raqam, foizli trend nishoni va tushuntirish yozuvi mutanosib birlashtirildi; burchakdagi bo‘shliqlar (empty void) va baqiruvchi all-caps (katta harflar) butunlay bartaraf etildi.
+  - [`src/components/ui/KpiCard.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/KpiCard.tsx) — Foydalanuvchi skrinshotdagi qizil strelka orqali ko‘rsatgan joylashuvga aniq amal qilindi: ikonka kartaning o‘ng tomoniga (`w-12 h-12 rounded-xl flex items-center justify-center shrink-0`) vertikal markazlashtirilib joylashtirildi; matn va metrika ma’lumotlari (Sarlavha, Yirik raqam, Trend nishoni va Tavsif) chap tomonga to‘liq tekislandi (`flex items-center justify-between gap-3.5`).
   - [`src/features/appointments/AppointmentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/appointments/AppointmentsPage.tsx) — Barcha 4 ta KPI kartaga (`Bugun`, `Kutilmoqda`, `Yakunlangan`, `Bekor qilingan`) tushunarli kontekst izohlari (`description`), `w-5 h-5` vektor ikonkalari va `gap-3.5` to‘r o‘lchami o‘rnatildi.
   - [`src/features/attendance/AttendancePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/attendance/AttendancePage.tsx) — 5 ta kartaga mos pastel rang aktsentlari (`brand`, `sage`, `gold`, `blue`, `danger`), tartibli `index` va kontekst tavsiflari qo‘shildi.
   - [`src/features/admins/AdminsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/admins/AdminsPage.tsx) — 4 ta kartaga rang tokenlari, aniq tavsiflar va silliq yuklanish animatsiyalari berildi.
@@ -17,10 +17,10 @@ Ushbu hujjatda **Senior Frontend Engineer** va **AGENTS.md** arxitektura qoidala
   - [`src/features/dashboard/SuperAdminDashboard.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/dashboard/SuperAdminDashboard.tsx) — Boshqaruv paneli to‘ri `gap-3.5` standartiga keltirildi.
 
 - **Bajarilgan Tizimli Yechim va Natija:**
-  1. **Sun’iy Chegaralar va Chiziqlarsiz Tabiiy Oq Karta:** Kartaning na chapida va na tepasida hech qanday sun’iy rangli chiziq qolmadi. Karta toza oq `bg-white`, nozik `border-warm-200/90`, `rounded-xl` va `shadow-2xs hover:shadow-xs hover:border-warm-300` bilan professional tibbiy SaaS dasturiga moslandi.
-  2. **Gorizontal Mutanosiblik (Zero Dead Space):** Chapda chiroyli pastel squircle ikonka (`w-11 h-11`), uning yonida darhol toza sarlavha va yirik son. Hech qanday bo‘sh qolgan oq dog‘lar yo‘q.
-  3. **Yumshoq Tipografiya:** Qattiq va xunuk katta harflar (`BUGUN`, `KUTILMOQDA`) o‘rniga insoniy yumshoq Sentence case (`Bugun`, `Kutilmoqda`, `Yakunlangan`, `Bekor qilingan`) o‘rnatildi.
-  4. **Ixcham va Balandligi Bir Xil To‘r:** Kartalar vertikaliga haddan tashqari cho‘zilmaydi (`p-3.5 sm:p-4`, balandligi ~76px), ekranda kam joy olib, maksimal axborot beradi.
+  1. **Ikonka O‘ng Tomonda (Foydalanuvchi Talabi):** Ikonka aynan foydalanuvchi strelka bilan ko‘rsatgan o‘ng tomonda, zamonaviy pastel squircle fonida vertikal markazlashtirildi.
+  2. **Chapda Tabiiy O‘qish Tartibi (L-to-R):** Foydalanuvchi ko‘zi avval sarlavha va asosiy sonni o‘qiydi, o‘ng tomonda esa kartaning vizual ramzi (ikonkasi) muvozanat hosil qiladi.
+  3. **Sun’iy Chegaralar Yo‘q:** Karta toza oq `bg-white`, nozik `border-warm-200/90`, `rounded-xl` va `shadow-2xs hover:shadow-xs hover:border-warm-300` bilan professional darajada.
+  4. **Ixcham va Balandligi Bir Xil To‘r:** Barcha sahifalardagi kartalar bir xil simmetrik to‘rda (`grid-cols-2 lg:grid-cols-4 gap-3.5`) mukammal tekislandi.
 
 ---
 
