@@ -327,7 +327,7 @@ export function AppointmentsPage() {
           actionTarget?.action === 'confirm' ? 'Uchrashuv tasdiqlangan holatiga o\'tkaziladi.' :
           'Seans boshlanadi va holat "Jarayonda" ga o\'zgaradi.'
         }
-        variant={actionTarget?.action === 'cancel' ? 'danger' : 'default'}
+        variant={actionTarget?.action === 'cancel' ? 'danger' : actionTarget?.action === 'confirm' ? 'success' : actionTarget?.action === 'noshow' ? 'warning' : 'default'}
         confirmLabel={
           actionTarget?.action === 'cancel' ? 'Ha, bekor qilish' :
           actionTarget?.action === 'noshow' ? 'Ha, kelmagan' :

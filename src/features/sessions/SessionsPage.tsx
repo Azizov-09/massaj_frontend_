@@ -113,6 +113,7 @@ export function SessionsPage() {
       cell: (row) => (!isParent && row.status === 'IN_PROGRESS' && (currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN' || row.specialistId === currentUser?.id)) ? (
         <Button
           size="xs"
+          variant="success"
           onClick={e => { e.stopPropagation(); setCompleteTarget(row.id); }}
           leftIcon={<CheckCircle2 className="w-3 h-3" />}
         >
@@ -239,7 +240,7 @@ function CompleteSessionForm({ sessionId, onSuccess, onCancel, onComplete }: {
       </div>
       <div className="flex items-center justify-end gap-3 pt-2">
         <Button variant="secondary" type="button" onClick={onCancel}>Bekor qilish</Button>
-        <Button type="submit" loading={isSubmitting} leftIcon={<CheckCircle2 className="w-4 h-4" />}>Yakunlash</Button>
+        <Button type="submit" variant="success" loading={isSubmitting} leftIcon={<CheckCircle2 className="w-4 h-4" />}>Yakunlash</Button>
       </div>
     </form>
   );

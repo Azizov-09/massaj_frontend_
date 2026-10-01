@@ -5,7 +5,7 @@ import { forwardRef } from 'react';
 import { cn } from '@/utils';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline' | 'link';
+  variant?: 'primary' | 'secondary' | 'success' | 'ghost' | 'danger' | 'outline' | 'link';
   size?: 'xs' | 'sm' | 'md' | 'lg';
   loading?: boolean;
   leftIcon?: React.ReactNode;
@@ -17,6 +17,7 @@ const base = 'inline-flex items-center justify-center gap-2 font-medium rounded-
 const variants = {
   primary: 'bg-brand-500 text-white hover:bg-brand-600 active:scale-[0.98] shadow-sm',
   secondary: 'bg-warm-100 text-charcoal-800 hover:bg-warm-200 active:scale-[0.98] border border-warm-300',
+  success: 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.98] shadow-sm',
   ghost: 'text-charcoal-700 hover:bg-warm-100 active:scale-[0.98]',
   danger: 'bg-danger-main text-white hover:bg-danger-dark active:scale-[0.98] shadow-sm',
   outline: 'border border-brand-500 text-brand-600 hover:bg-brand-50 active:scale-[0.98]',

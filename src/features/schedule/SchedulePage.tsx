@@ -347,15 +347,19 @@ export function SchedulePage() {
         <div className="flex flex-wrap items-center gap-4">
           <span className="text-charcoal-400 font-medium">Holat:</span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            <span className="w-2 h-2 rounded-full bg-blue-500" />
             Kutilmoqda
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className="w-2 h-2 rounded-full bg-sage-600" />
             Tasdiqlangan
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="w-2 h-2 rounded-full bg-brand-500" />
+            Jarayonda
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-600" />
             Yakunlangan
           </span>
           <span className="inline-flex items-center gap-1.5">
@@ -649,31 +653,62 @@ export function SchedulePage() {
               )}
 
               {/* Actions */}
-              <div className="flex flex-wrap items-center justify-end gap-2 pt-4 border-t border-warm-100">
+              <div className="flex flex-wrap items-center justify-end gap-2.5 pt-4 border-t border-warm-100">
                 {activeAppointment.status === 'SCHEDULED' && (
                   <Button
                     size="sm"
-                    variant="secondary"
-                    leftIcon={<CheckCircle2 className="w-3.5 h-3.5 text-sage-600" />}
+                    variant="success"
+                    leftIcon={<CheckCircle2 className="w-4 h-4" />}
                     onClick={() => handleConfirm(activeAppointment.id)}
+                    className="shadow-2xs font-semibold"
                   >
                     Tasdiqlash
                   </Button>
                 )}
-                {['SCHEDULED', 'CONFIRMED'].includes(activeAppointment.status) && (
+                {activeAppointment.status === 'CONFIRMED' && (
                   <Button
                     size="sm"
+                    variant="primary"
                     leftIcon={<Play className="w-3.5 h-3.5" />}
+                    onClick={() => handleStart(activeAppointment.id)}
+                    className="shadow-2xs font-semibold"
+                  >
+                    Seansni boshlash
+                  </Button>
+                )}
+                {activeAppointment.status === 'SCHEDULED' && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    leftIcon={<Play className="w-3.5 h-3.5 text-brand-600" />}
                     onClick={() => handleStart(activeAppointment.id)}
                   >
                     Seansni boshlash
                   </Button>
                 )}
+                {activeAppointment.status === 'IN_PROGRESS' && (
+                  <div className="flex items-center gap-2 text-xs font-semibold text-brand-700 bg-brand-50 px-3 py-1.5 rounded-[10px] border border-brand-200">
+                    <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
+                    Seans ayni paytda davom etmoqda
+                  </div>
+                )}
+                {activeAppointment.status === 'COMPLETED' && (
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-[10px] border border-emerald-200">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    Seans muvaffaqiyatli yakunlangan
+                  </div>
+                )}
+                {activeAppointment.status === 'CANCELLED' && (
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-700 bg-rose-50 px-3 py-1.5 rounded-[10px] border border-rose-200">
+                    <XCircle className="w-4 h-4 text-rose-600" />
+                    Uchrashuv bekor qilingan
+                  </div>
+                )}
                 {['SCHEDULED', 'CONFIRMED'].includes(activeAppointment.status) && (
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="text-danger-main hover:bg-danger-50"
+                    className="text-danger-main hover:bg-danger-50 ml-auto sm:ml-0"
                     leftIcon={<XCircle className="w-3.5 h-3.5" />}
                     onClick={() => handleCancel(activeAppointment.id)}
                   >

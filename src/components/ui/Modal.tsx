@@ -142,7 +142,7 @@ interface ConfirmDialogProps {
   confirmText?: string;
   cancelLabel?: string;
   cancelText?: string;
-  variant?: 'danger' | 'warning' | 'default';
+  variant?: 'danger' | 'warning' | 'success' | 'default';
   loading?: boolean;
 }
 
@@ -161,7 +161,14 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const finalConfirmLabel = confirmLabel || confirmText || 'Tasdiqlash';
   const finalCancelLabel = cancelLabel || cancelText || 'Bekor qilish';
-  const confirmColor = variant === 'danger' ? 'bg-danger-main hover:bg-danger-dark text-white' : variant === 'warning' ? 'bg-warning-main hover:bg-warning-dark text-white' : 'bg-brand-500 hover:bg-brand-600 text-white';
+  const confirmColor =
+    variant === 'danger'
+      ? 'bg-danger-main hover:bg-danger-dark text-white shadow-sm'
+      : variant === 'warning'
+      ? 'bg-warning-main hover:bg-warning-dark text-white shadow-sm'
+      : variant === 'success'
+      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+      : 'bg-brand-500 hover:bg-brand-600 text-white shadow-sm';
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm" hideClose>
       <p className="text-sm text-charcoal-600">{message}</p>

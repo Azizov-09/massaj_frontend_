@@ -2,6 +2,26 @@
 
 Ushbu hujjatda **Senior Frontend Engineer** va **AGENTS.md** arxitektura qoidalari asosida loyihada amalga oshirilgan barcha tizimli tuzatishlar, refaktoringlar, xavfsizlik va optimallashtirish ishlari bosqichma-bosqich qayd etib boriladi.
 
+## 📌 2026-10-01: Tasdiqlash ("Confirm") Amallarini Yashil Semantik Rangga O‘tkazish va Tizim Bo‘yicha Tugmalar Iyerarxiyasi Xatoliklarini Bartaraf Etish (Senior Button & Semantic Flow Architecture)
+
+### [P0] "Tasdiqlash" Tugmasini Yashil (`variant="success"`) Qilish va Harakatlar Iyerarxiyasidagi Mantiqiy Kamchiliklarni Tuzatish
+- **Muammo:**
+  - Jadval (Schedule) modali va dialog oynalarida "Tasdiqlash" (tasdiq / ma'qullash) kabi ijobiy, muvaffaqiyatli harakat oq/kulrang ikkinchi darajali (`variant="secondary"`) passiv tugma sifatida qolib ketgan edi; uning yonida esa "Seansni boshlash" to‘q sariq rangda turib, harakatlar iyerarxiyasini chalkashtirayotgan edi.
+  - Shuningdek, `Button` komponentida semantik `success` varianti mavjud emas edi.
+  - Jadval legendasida status nishonlarining ranglari (ko‘k, to‘q yashil) bilan legendadagi doirachalar ranglari (sariq, ko‘k) bir-biriga mos kelmay, teskari bo‘lib qolgan edi.
+- **Fayllar:**
+  - [`src/components/ui/Button.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/Button.tsx) — Tizim darajasida yangi `variant="success"` (`bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.98] shadow-sm`) qo‘shildi.
+  - [`src/components/ui/Modal.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/Modal.tsx) — `ConfirmDialog` komponentiga `variant="success"` qo‘shildi va tasdiqlash dialoglarida yashil tugma chiqishi ta'minlandi.
+  - [`src/features/schedule/SchedulePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/schedule/SchedulePage.tsx) —
+    1. Uchrashuv tafsilotlari modalida **"Tasdiqlash"** tugmasi to‘liq yashil (`variant="success"`) qilindi (`CheckCircle2` ikonka bilan birga).
+    2. Agar uchrashuv holati `SCHEDULED` bo‘lsa, asosiy (yashil) harakat "Tasdiqlash", "Seansni boshlash" esa yordamchi tugma sifatida namoyon bo‘ladi; agar `CONFIRMED` bo‘lsa, "Seansni boshlash" asosiy (to‘q sariq) tugmaga aylanadi.
+    3. `IN_PROGRESS`, `COMPLETED`, `CANCELLED` holatlaridagi uchrashuvlar ochilganda bo‘sh bo‘lib qolgan footer o‘rniga aniq status axborot bloklari joylashtirildi.
+    4. Jadval pastidagi Legenda (Holat ko‘rsatkichlari) nishonlar ranglari (`SCHEDULED` - ko‘k, `CONFIRMED` - yashil, `IN_PROGRESS` - sariq/to‘q sariq, `COMPLETED` - zumrad, `CANCELLED` - qizil) bilan 100% mutanosiblashtirildi.
+  - [`src/features/appointments/AppointmentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/appointments/AppointmentsPage.tsx) — Uchrashuvni tasdiqlash dialogida `variant="success"` bilan yashil "Tasdiqlash" tugmasi ulandi.
+  - [`src/features/sessions/SessionsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/sessions/SessionsPage.tsx) — Jadval va modal oynasidagi "Yakunlash" (muvaffaqiyatli yakunlash) harakati `variant="success"` (yashil) tugmasiga o‘tkazildi.
+
+---
+
 ## 📌 2026-10-01: Barcha Ichki Kartalar, Modal Bloklari va Ma'lumot Qutilari Burchaklarini Tizimdagi Boshqa Kartalar Bilan Bir Xil Qilish (Global Card Corner & Design Token Normalization)
 
 ### [P0] Modal Oynalari va Ichki Ma'lumot Bloklarining O‘ta Yumaloqlangan ("Pill / Stadium") Burchaklarini Tizim Standartiga Keltirish (`rounded-[14px]` va `rounded-[12px]`)
