@@ -17,6 +17,7 @@ import {
   Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   X,
   RotateCcw,
 } from 'lucide-react';
@@ -145,15 +146,68 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
     const [isOpen, setIsOpen] = useState(false);
     const [openUpward, setOpenUpward] = useState(false);
 
+    // Sub-pickers for Month and Year
+    const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
+    const [isYearPickerOpen, setIsYearPickerOpen] = useState(false);
+
+    const monthTriggerRef = useRef<HTMLButtonElement>(null);
+    const monthDropdownRef = useRef<HTMLDivElement>(null);
+    const yearTriggerRef = useRef<HTMLButtonElement>(null);
+    const yearDropdownRef = useRef<HTMLDivElement>(null);
+    const selectedYearRef = useRef<HTMLButtonElement>(null);
+
     // View month and year for calendar navigation
     const today = useMemo(() => new Date(), []);
     const [viewYear, setViewYear] = useState<number>(() => currentDate?.getFullYear() ?? today.getFullYear());
     const [viewMonth, setViewMonth] = useState<number>(() => currentDate?.getMonth() ?? today.getMonth());
 
+    // Close month & year pickers on outside click
+    useEffect(() => {
+      if (!isMonthPickerOpen && !isYearPickerOpen) return;
+      const handleClickOutsidePickers = (e: MouseEvent) => {
+        const target = e.target as Node;
+        if (
+          isMonthPickerOpen &&
+          monthDropdownRef.current &&
+          !monthDropdownRef.current.contains(target) &&
+          monthTriggerRef.current &&
+          !monthTriggerRef.current.contains(target)
+        ) {
+          setIsMonthPickerOpen(false);
+        }
+        if (
+          isYearPickerOpen &&
+          yearDropdownRef.current &&
+          !yearDropdownRef.current.contains(target) &&
+          yearTriggerRef.current &&
+          !yearTriggerRef.current.contains(target)
+        ) {
+          setIsYearPickerOpen(false);
+        }
+      };
+      document.addEventListener('mousedown', handleClickOutsidePickers);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutsidePickers);
+      };
+    }, [isMonthPickerOpen, isYearPickerOpen]);
+
+    // Center active year in year picker scroll view
+    useEffect(() => {
+      if (isYearPickerOpen && yearDropdownRef.current && selectedYearRef.current) {
+        const container = yearDropdownRef.current;
+        const target = selectedYearRef.current;
+        container.scrollTop = target.offsetTop - container.clientHeight / 2 + target.clientHeight / 2;
+      }
+    }, [isYearPickerOpen]);
+
     // Viewport position and view alignment calculation
     const handleToggle = () => {
       if (disabled) return;
-      if (!isOpen) {
+      if (isOpen) {
+        setIsMonthPickerOpen(false);
+        setIsYearPickerOpen(false);
+        setIsOpen(false);
+      } else {
         if (currentDate) {
           setViewYear(currentDate.getFullYear());
           setViewMonth(currentDate.getMonth());
@@ -164,8 +218,8 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
           const estimatedHeight = 340;
           setOpenUpward(spaceBelow < estimatedHeight && rect.top > estimatedHeight);
         }
+        setIsOpen(true);
       }
-      setIsOpen(prev => !prev);
     };
 
     // Close on outside click & Escape key
@@ -173,11 +227,18 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
       if (!isOpen) return;
       const handleClickOutside = (e: MouseEvent) => {
         if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+          setIsMonthPickerOpen(false);
+          setIsYearPickerOpen(false);
           setIsOpen(false);
         }
       };
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
+          if (isMonthPickerOpen || isYearPickerOpen) {
+            setIsMonthPickerOpen(false);
+            setIsYearPickerOpen(false);
+            return;
+          }
           setIsOpen(false);
           triggerRef.current?.focus();
         }
@@ -188,7 +249,7 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
         document.removeEventListener('mousedown', handleClickOutside);
         document.removeEventListener('keydown', handleKeyDown);
       };
-    }, [isOpen]);
+    }, [isOpen, isMonthPickerOpen, isYearPickerOpen]);
 
     // Value update dispatch
     const handleSelectDate = (date: Date) => {
@@ -196,6 +257,8 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
       if (!isControlled) {
         setInternalVal(ymd);
       }
+      setIsMonthPickerOpen(false);
+      setIsYearPickerOpen(false);
       setIsOpen(false);
       triggerRef.current?.focus();
 
@@ -225,6 +288,8 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
       if (!isControlled) {
         setInternalVal('');
       }
+      setIsMonthPickerOpen(false);
+      setIsYearPickerOpen(false);
       if (hiddenInputRef.current) {
         hiddenInputRef.current.value = '';
       }
@@ -252,6 +317,8 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
     // Month navigation
     const prevMonth = (e: React.MouseEvent) => {
       e.stopPropagation();
+      setIsMonthPickerOpen(false);
+      setIsYearPickerOpen(false);
       if (viewMonth === 0) {
         setViewMonth(11);
         setViewYear(y => y - 1);
@@ -262,6 +329,8 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
 
     const nextMonth = (e: React.MouseEvent) => {
       e.stopPropagation();
+      setIsMonthPickerOpen(false);
+      setIsYearPickerOpen(false);
       if (viewMonth === 11) {
         setViewMonth(0);
         setViewYear(y => y + 1);
@@ -431,39 +500,69 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
               className={cn(
                 'absolute z-50 left-0 bg-white rounded-[16px] w-[280px] sm:w-[300px]',
                 'shadow-[0_12px_36px_-6px_rgba(0,0,0,0.14),0_4px_12px_-2px_rgba(0,0,0,0.06)]',
-                'border border-warm-200/90 p-3.5 overflow-hidden select-none',
+                'border border-warm-200/90 p-3.5 select-none',
                 openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
                 popupClassName
               )}
             >
               {/* Header: Month/Year navigation */}
-              <div className="flex items-center justify-between gap-1 pb-3 mb-2 border-b border-warm-100">
+              <div className="relative flex items-center justify-between gap-1 pb-3 mb-2 border-b border-warm-100">
                 <div className="flex items-center gap-1.5">
-                  {/* Month selector */}
-                  <select
-                    value={viewMonth}
-                    onChange={e => setViewMonth(parseInt(e.target.value, 10))}
-                    className="text-xs font-bold text-charcoal-900 bg-transparent rounded-lg py-1 px-1.5 hover:bg-warm-100 outline-none cursor-pointer"
+                  {/* Custom Month selector button */}
+                  <button
+                    ref={monthTriggerRef}
+                    type="button"
+                    data-testid="datepicker-month-trigger"
+                    aria-label="Oyni tanlash"
+                    aria-expanded={isMonthPickerOpen}
+                    onClick={() => {
+                      setIsMonthPickerOpen(prev => !prev);
+                      setIsYearPickerOpen(false);
+                    }}
+                    className={cn(
+                      'text-xs font-bold rounded-lg py-1 px-2 transition-all flex items-center gap-1 cursor-pointer outline-none border',
+                      isMonthPickerOpen
+                        ? 'bg-brand-50 border-brand-300 text-brand-700 shadow-xs'
+                        : 'bg-warm-50/70 border-warm-200/80 text-charcoal-800 hover:bg-warm-100 hover:border-warm-300'
+                    )}
                   >
-                    {MONTH_NAMES.map((name, idx) => (
-                      <option key={name} value={idx}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
+                    <span>{MONTH_NAMES[viewMonth]}</span>
+                    <ChevronDown
+                      className={cn(
+                        'w-3 h-3 text-charcoal-400 transition-transform duration-150',
+                        isMonthPickerOpen && 'rotate-180 text-brand-600'
+                      )}
+                      aria-hidden
+                    />
+                  </button>
 
-                  {/* Year selector */}
-                  <select
-                    value={viewYear}
-                    onChange={e => setViewYear(parseInt(e.target.value, 10))}
-                    className="text-xs font-bold text-charcoal-900 bg-transparent rounded-lg py-1 px-1.5 hover:bg-warm-100 outline-none cursor-pointer"
+                  {/* Custom Year selector button */}
+                  <button
+                    ref={yearTriggerRef}
+                    type="button"
+                    data-testid="datepicker-year-trigger"
+                    aria-label="Yilni tanlash"
+                    aria-expanded={isYearPickerOpen}
+                    onClick={() => {
+                      setIsYearPickerOpen(prev => !prev);
+                      setIsMonthPickerOpen(false);
+                    }}
+                    className={cn(
+                      'text-xs font-bold rounded-lg py-1 px-2 transition-all flex items-center gap-1 cursor-pointer outline-none border',
+                      isYearPickerOpen
+                        ? 'bg-brand-50 border-brand-300 text-brand-700 shadow-xs'
+                        : 'bg-warm-50/70 border-warm-200/80 text-charcoal-800 hover:bg-warm-100 hover:border-warm-300'
+                    )}
                   >
-                    {yearOptions.map(y => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
+                    <span>{viewYear}</span>
+                    <ChevronDown
+                      className={cn(
+                        'w-3 h-3 text-charcoal-400 transition-transform duration-150',
+                        isYearPickerOpen && 'rotate-180 text-brand-600'
+                      )}
+                      aria-hidden
+                    />
+                  </button>
                 </div>
 
                 <div className="flex items-center gap-1">
@@ -486,6 +585,87 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
+
+                {/* Animated Custom Month Dropdown Menu */}
+                <AnimatePresence>
+                  {isMonthPickerOpen && (
+                    <motion.div
+                      ref={monthDropdownRef}
+                      role="listbox"
+                      aria-label="Oylar ro'yxati"
+                      initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                      transition={{ duration: 0.12 }}
+                      className="absolute z-30 left-0 top-full mt-1 w-48 bg-white rounded-[14px] border border-warm-200/90 shadow-[0_12px_32px_-4px_rgba(0,0,0,0.15)] p-1.5 grid grid-cols-2 gap-1"
+                    >
+                      {MONTH_NAMES.map((name, idx) => {
+                        const isSelected = viewMonth === idx;
+                        return (
+                          <button
+                            key={name}
+                            type="button"
+                            role="option"
+                            aria-selected={isSelected}
+                            onClick={() => {
+                              setViewMonth(idx);
+                              setIsMonthPickerOpen(false);
+                            }}
+                            className={cn(
+                              'text-xs font-medium py-1.5 px-2 rounded-lg text-left transition-colors cursor-pointer outline-none',
+                              isSelected
+                                ? 'bg-brand-500 text-white font-bold shadow-xs hover:bg-brand-600'
+                                : 'text-charcoal-700 hover:bg-warm-100 hover:text-charcoal-900'
+                            )}
+                          >
+                            {name}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Animated Custom Year Dropdown Menu */}
+                <AnimatePresence>
+                  {isYearPickerOpen && (
+                    <motion.div
+                      ref={yearDropdownRef}
+                      role="listbox"
+                      aria-label="Yillar ro'yxati"
+                      initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                      transition={{ duration: 0.12 }}
+                      className="absolute z-30 right-0 top-full mt-1 w-52 bg-white rounded-[14px] border border-warm-200/90 shadow-[0_12px_32px_-4px_rgba(0,0,0,0.15)] p-2 max-h-52 overflow-y-auto grid grid-cols-3 gap-1 [scrollbar-width:thin] [scrollbar-color:#d4cfc7_transparent]"
+                    >
+                      {yearOptions.map(y => {
+                        const isSelected = viewYear === y;
+                        return (
+                          <button
+                            key={y}
+                            ref={isSelected ? selectedYearRef : undefined}
+                            type="button"
+                            role="option"
+                            aria-selected={isSelected}
+                            onClick={() => {
+                              setViewYear(y);
+                              setIsYearPickerOpen(false);
+                            }}
+                            className={cn(
+                              'text-xs font-medium py-1.5 px-1 rounded-lg text-center transition-colors cursor-pointer outline-none',
+                              isSelected
+                                ? 'bg-brand-500 text-white font-bold shadow-xs hover:bg-brand-600'
+                                : 'text-charcoal-700 hover:bg-warm-100 hover:text-charcoal-900'
+                            )}
+                          >
+                            {y}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Day-of-week headers */}

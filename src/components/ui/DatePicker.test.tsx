@@ -113,6 +113,76 @@ describe('Custom DatePicker Component', () => {
       );
     });
   });
+
+  it('allows picking a month via custom animated month dropdown', async () => {
+    render(<DatePicker value="2026-10-01" />);
+    fireEvent.click(screen.getByTestId('datepicker-trigger'));
+
+    const monthTrigger = screen.getByTestId('datepicker-month-trigger');
+    expect(monthTrigger).toHaveTextContent('Oktabr');
+    expect(screen.queryByRole('listbox', { name: "Oylar ro'yxati" })).not.toBeInTheDocument();
+
+    // Open month picker
+    fireEvent.click(monthTrigger);
+    expect(screen.getByRole('listbox', { name: "Oylar ro'yxati" })).toBeInTheDocument();
+
+    // Select Aprel
+    const aprelOption = screen.getByRole('option', { name: 'Aprel' });
+    fireEvent.click(aprelOption);
+
+    // Month picker closes and header reflects Aprel
+    await waitFor(() => {
+      expect(screen.queryByRole('listbox', { name: "Oylar ro'yxati" })).not.toBeInTheDocument();
+    });
+    expect(screen.getByTestId('datepicker-month-trigger')).toHaveTextContent('Aprel');
+  });
+
+  it('allows picking a year via custom animated year dropdown', async () => {
+    render(<DatePicker value="2026-10-01" />);
+    fireEvent.click(screen.getByTestId('datepicker-trigger'));
+
+    const yearTrigger = screen.getByTestId('datepicker-year-trigger');
+    expect(yearTrigger).toHaveTextContent('2026');
+    expect(screen.queryByRole('listbox', { name: "Yillar ro'yxati" })).not.toBeInTheDocument();
+
+    // Open year picker
+    fireEvent.click(yearTrigger);
+    expect(screen.getByRole('listbox', { name: "Yillar ro'yxati" })).toBeInTheDocument();
+
+    // Select 2024
+    const y2024Option = screen.getByRole('option', { name: '2024' });
+    fireEvent.click(y2024Option);
+
+    // Year picker closes and header reflects 2024
+    await waitFor(() => {
+      expect(screen.queryByRole('listbox', { name: "Yillar ro'yxati" })).not.toBeInTheDocument();
+    });
+    expect(screen.getByTestId('datepicker-year-trigger')).toHaveTextContent('2024');
+  });
+
+  it('closes sub-picker on Escape without closing main calendar', async () => {
+    render(<DatePicker value="2026-10-01" />);
+    fireEvent.click(screen.getByTestId('datepicker-trigger'));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // Open month picker
+    fireEvent.click(screen.getByTestId('datepicker-month-trigger'));
+    expect(screen.getByRole('listbox', { name: "Oylar ro'yxati" })).toBeInTheDocument();
+
+    // Press Escape -> closes month picker, but dialog stays open
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() => {
+      expect(screen.queryByRole('listbox', { name: "Oylar ro'yxati" })).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // Press Escape again -> closes main calendar dialog
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
 });
+
 
 
