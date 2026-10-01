@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { formatCurrency, formatCurrencyCompact, formatDate, cn } from '@/utils';
-import { Card, Badge, Select } from '@/components/ui/primitives';
+import { Card, Badge, Select, DatePicker } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { DataTable, Column } from '@/components/tables/DataTable';
@@ -274,20 +274,26 @@ export function TransactionsPage() {
             </div>
 
             {/* Date Range */}
-            <div className="flex items-center gap-1.5 text-xs">
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={e => setDateFrom(e.target.value)}
-                className="border border-warm-300 rounded-xl px-2.5 py-1.5 bg-white text-charcoal-700 outline-none"
-              />
+            <div className="flex items-center gap-2 text-xs">
+              <div className="w-36">
+                <DatePicker
+                  size="sm"
+                  value={dateFrom}
+                  onChange={e => setDateFrom(e.target.value)}
+                  placeholder="Boshlanish"
+                  aria-label="Boshlanish sanasi"
+                />
+              </div>
               <span className="text-charcoal-400">—</span>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={e => setDateTo(e.target.value)}
-                className="border border-warm-300 rounded-xl px-2.5 py-1.5 bg-white text-charcoal-700 outline-none"
-              />
+              <div className="w-36">
+                <DatePicker
+                  size="sm"
+                  value={dateTo}
+                  onChange={e => setDateTo(e.target.value)}
+                  placeholder="Tugash"
+                  aria-label="Tugash sanasi"
+                />
+              </div>
             </div>
           </div>
 

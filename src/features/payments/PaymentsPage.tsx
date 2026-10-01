@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════
 import { useState, useMemo } from 'react';
 import { Plus, Search, Wallet, TrendingUp } from 'lucide-react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useStore, useAuth } from '@/store';
@@ -16,7 +16,7 @@ import { Card, Badge } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
-import { Input, Select, Textarea } from '@/components/ui/primitives';
+import { Input, Select, Textarea, DatePicker } from '@/components/ui/primitives';
 import type { Payment } from '@/types';
 
 const paymentSchema = z.object({
@@ -270,12 +270,18 @@ function CreatePaymentForm({ onSuccess, onCancel, createdBy }: { onSuccess: () =
           {...register('method')}
         />
       </div>
-      <Input
-        type="date"
-        label="To'lov sanasi"
-        required
-        error={errors.date?.message}
-        {...register('date')}
+      <Controller
+        control={control}
+        name="date"
+        render={({ field }) => (
+          <DatePicker
+            label="To'lov sanasi"
+            required
+            error={errors.date?.message}
+            value={field.value}
+            onChange={field.onChange}
+          />
+        )}
       />
       <Textarea
         label="Izoh (ixtiyoriy)"

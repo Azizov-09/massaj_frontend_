@@ -13,7 +13,7 @@ import { Card, Badge, Avatar, Select, EmptyState } from '@/components/ui/primiti
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
-import { Input, Textarea } from '@/components/ui/primitives';
+import { Input, Textarea, DatePicker } from '@/components/ui/primitives';
 import type { Goal, GoalStatus } from '@/types';
 
 export function GoalsPage() {
@@ -344,9 +344,8 @@ export function GoalsPage() {
           />
 
           <div className="grid grid-cols-2 gap-4">
-            <Input
+            <DatePicker
               label="Kutilayotgan muddat"
-              type="date"
               required
               value={newGoal.targetDate}
               onChange={e => setNewGoal({ ...newGoal, targetDate: e.target.value })}

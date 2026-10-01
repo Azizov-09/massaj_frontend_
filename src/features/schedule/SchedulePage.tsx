@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate, getAppointmentStatusColor, getAppointmentStatusLabel, cn } from '@/utils';
-import { Card, Badge, Select } from '@/components/ui/primitives';
+import { Card, Badge, Select, DatePicker } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
@@ -149,12 +149,15 @@ export function SchedulePage() {
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={e => setSelectedDate(e.target.value)}
-              className="text-xs border border-warm-300 rounded-xl px-2.5 py-1.5 bg-white text-charcoal-700 outline-none focus:border-brand-500"
-            />
+            <div className="w-36">
+              <DatePicker
+                size="sm"
+                value={selectedDate}
+                onChange={e => setSelectedDate(e.target.value)}
+                clearable={false}
+                aria-label="Sanani tanlash"
+              />
+            </div>
           </div>
 
           {/* Filters & View switcher */}

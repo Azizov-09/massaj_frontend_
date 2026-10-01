@@ -1,11 +1,11 @@
 // ═══════════════════════════════════════════════════════
 //  Create Child Form — React Hook Form + Zod
 // ═══════════════════════════════════════════════════════
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useStore } from '@/store';
-import { Input, Select, Textarea } from '@/components/ui/primitives';
+import { Input, Select, Textarea, DatePicker } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 
 const schema = z.object({
@@ -34,7 +34,7 @@ export function CreateChildForm({ onSuccess, onCancel }: Props) {
   const specialists = useStore(s => s.specialists);
   const createChild = useStore(s => s.createChild);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { gender: 'MALE' },
   });
@@ -61,13 +61,20 @@ export function CreateChildForm({ onSuccess, onCancel }: Props) {
             {...register('fullName')}
           />
         </div>
-        <Input
-          type="date"
-          label="Tug'ilgan sana"
-          required
-          error={errors.dateOfBirth?.message}
-          max={new Date().toISOString().split('T')[0]}
-          {...register('dateOfBirth')}
+        <Controller
+          control={control}
+          name="dateOfBirth"
+          render={({ field }) => (
+            <DatePicker
+              label="Tug'ilgan sana"
+              required
+              placeholder="KK.OO.YYYY"
+              error={errors.dateOfBirth?.message}
+              max={new Date().toISOString().split('T')[0]}
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
         />
         <Select
           label="Jinsi"

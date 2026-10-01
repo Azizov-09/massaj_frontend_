@@ -8,7 +8,7 @@ import {
   formatDate, getAppointmentStatusColor, getAppointmentStatusLabel,
 } from '@/utils';
 import { DataTable, Column } from '@/components/tables/DataTable';
-import { Card, Avatar, Badge, Select } from '@/components/ui/primitives';
+import { Card, Avatar, Badge, Select, DatePicker } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
@@ -240,13 +240,15 @@ export function AppointmentsPage() {
               aria-label="Holat bo'yicha filter"
             />
           </div>
-          <input
-            type="date"
-            value={dateFilter}
-            onChange={e => setDateFilter(e.target.value)}
-            className="px-3 py-2 text-sm border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 text-charcoal-700 cursor-pointer"
-            aria-label="Sana bo'yicha filter"
-          />
+          <div className="w-44">
+            <DatePicker
+              size="sm"
+              value={dateFilter}
+              onChange={e => setDateFilter(e.target.value)}
+              placeholder="Sana bo'yicha..."
+              aria-label="Sana bo'yicha filter"
+            />
+          </div>
           {(statusFilter || dateFilter) && (
             <button
               onClick={() => { setStatusFilter(''); setDateFilter(''); }}

@@ -1,11 +1,11 @@
 // ═══════════════════════════════════════════════════════
 //  Create Appointment Form
 // ═══════════════════════════════════════════════════════
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useStore, useAuth } from '@/store';
-import { Input, Select, Textarea } from '@/components/ui/primitives';
+import { Input, Select, Textarea, DatePicker } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 
 const schema = z.object({
@@ -127,13 +127,19 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate }: Prop
           error={errors.serviceId?.message}
           {...register('serviceId')}
         />
-        <Input
-          type="date"
-          label="Sana"
-          required
-          error={errors.date?.message}
-          min={new Date().toISOString().split('T')[0]}
-          {...register('date')}
+        <Controller
+          control={control}
+          name="date"
+          render={({ field }) => (
+            <DatePicker
+              label="Sana"
+              required
+              error={errors.date?.message}
+              min={new Date().toISOString().split('T')[0]}
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
         />
         <Input
           type="time"

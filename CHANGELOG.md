@@ -2,6 +2,44 @@
 
 Ushbu hujjatda **Senior Frontend Engineer** va **AGENTS.md** arxitektura qoidalari asosida loyihada amalga oshirilgan barcha tizimli tuzatishlar, refaktoringlar, xavfsizlik va optimallashtirish ishlari bosqichma-bosqich qayd etib boriladi.
 
+## 📌 2026-10-01: Barcha Sana Kiritish Maydonlari (Date Pickers) Dizaynini To‘liq Custom, Animatsiyali va Foydalanishga Qulay Komponentga O‘tkazish (Custom Accessible DatePicker)
+
+### [P1] OS-Native Xom Kalendarlarni To‘liq Custom, Animatsiyali va Brend Dizayn Tizimiga Mos DatePicker Komponentiga O‘tkazish
+- **Fayllar:**
+  - [`src/components/ui/DatePicker.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/DatePicker.tsx) — Yangi universal, animatsiyali va qulay custom DatePicker komponenti.
+  - [`src/components/ui/DatePicker.test.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/DatePicker.test.tsx) — 7 ta to‘liq qamrovli unit testlar (WAI-ARIA, tanlash, tozalash, Escape, React Hook Form Controller).
+  - [`src/components/ui/primitives.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/ui/primitives.tsx) — `DatePicker` va `DatePickerProps` ni umumiy eksportga qo‘shish.
+  - [`src/features/appointments/AppointmentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/appointments/AppointmentsPage.tsx) — Skrinshotda ko‘rsatilgan qabullar sanasi filtrini custom DatePicker'ga o‘tkazish.
+  - [`src/features/appointments/CreateAppointmentForm.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/appointments/CreateAppointmentForm.tsx) — Qabul yaratish formasidagi sana kiritish maydonini custom DatePicker va Controller integratsiyasiga o‘tkazish.
+  - [`src/features/attendance/AttendancePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/attendance/AttendancePage.tsx) — Davomat jurnali kunlik sana tanlash maydonini custom DatePicker'ga o‘tkazish.
+  - [`src/features/children/CreateChildForm.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/children/CreateChildForm.tsx) — Yangi bola qo‘shish formasidagi tug‘ilgan sana maydonini custom DatePicker va Controller integratsiyasiga o‘tkazish.
+  - [`src/features/goals/GoalsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/goals/GoalsPage.tsx) — Reabilitatsiya maqsadlari muddatini belgilash maydonini custom DatePicker'ga o‘tkazish.
+  - [`src/features/payments/PaymentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/payments/PaymentsPage.tsx) — To‘lov qayd etish formasidagi to‘lov sanasi maydonini custom DatePicker va Controller integratsiyasiga o‘tkazish.
+  - [`src/features/reports/ReportsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/reports/ReportsPage.tsx) — Hisobotlar sahifasidagi sana oralig‘i (`dateFrom` va `dateTo`) filtrlarini custom DatePicker'larga o‘tkazish.
+  - [`src/features/schedule/SchedulePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/schedule/SchedulePage.tsx) — Jadval sahifasidagi sana tanlash maydonini custom DatePicker'ga o‘tkazish.
+  - [`src/features/transactions/TransactionsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/transactions/TransactionsPage.tsx) — Moliya va tranzaksiyalar sahifasidagi sana oralig‘i (`dateFrom` va `dateTo`) filtrlarini custom DatePicker'larga o‘tkazish.
+
+- **Muammo va Sabab:**
+  - Foydalanuvchi skrinshotida ko‘rsatilganidek, brauzerning standart `<input type="date">` elementi operatsion tizim (Windows, Chrome, OS) tomonidan chiziladigan o‘ta qo‘pol, inglizcha (`mm/dd/yyyy`) formatdagi, oq-ko‘k xom kalendar oynasini chiqarar edi. Uni CSS orqali brend dizayn tizimiga moslab bezab bo‘lmasdi.
+  - Tizimda 11 xil joyda xom `<input type="date">` ishlatilgan bo‘lib, ilovaning umumiy premium ko‘rinishiga putur yetkazayotgan edi.
+
+- **Yechim (Senior Frontend Standard):**
+  1. **To‘liq Custom `DatePicker` Komponenti Yaratildi:**
+     - **Dizayn & Tipografika:** Massaj CRM iliq dizayn tizimiga mos: yumaloqlangan burchaklar (`rounded-[10px]` va `rounded-[16px]`), iliq hoshiyalar (`border-warm-200/90`), yumshoq ko‘p qatlamli soya (`shadow-[0_12px_36px_-6px_rgba(0,0,0,0.14)]`), o‘zbekcha oylar (`Yanvar`–`Dekabr`) va hafta kunlari (`Du`–`Ya`).
+     - **Sana Formati:** Ekranda o‘zbek va xalqaro qulay formatda (`dd.MM.yyyy`, masalan `23.06.2027`) ko‘rsatiladi, ichki backend va formalarga esa standart ISO `YYYY-MM-DD` ko‘rinishida uzatiladi.
+     - **Tezkor Tanlash (Month & Year Jumps):** Ayniqsa bolalar tug‘ilgan sanasini tanlashda 10-20 yil orqaga oylab bosib o‘tirmaslik uchun oylar va yillar (`viewMonth`, `viewYear`) to‘g‘ridan-to‘g‘ri selektor orqali bir harakat bilan o‘zgartiriladi.
+     - **Tezkor Tugmalar (Quick Actions):** Bugungi kunga bir zumda qaytish ("Bugun") va qiymatni tozalash ("Tozalash" / X icon) tugmalari.
+     - **Aqlli Joylashuv (Viewport Boundary Detection):** Pastda joy kam bo‘lganda avtomatik yuqoriga ochilish (`openUpward`).
+     - **Silliq Animatsiya:** `framer-motion` orqali silliq ochilish va yopilish (`opacity`, `scale: 0.98 -> 1`, `y: -4 -> 0`).
+     - **React Hook Form va Formalar Bilan 100% Moslik:** Ham oddiy `value` va `onChange`/`onValueChange`, ham `Controller` (`render={({ field }) => ...}`) bilan uzluksiz integratsiya.
+     - **A11y va Klaviatura Boshqaruvi:** WAI-ARIA talablariga muvofiq: `aria-haspopup="dialog"`, `role="dialog"`, `Escape` orqali yopish, va tashqi bosish (`click outside`) orqali toza yopilish.
+  2. **Loyihadagi Barcha 11 ta Xom `type="date"` Maydonlari Almashtirildi:**
+     - Tizimda bitta ham xom brauzer kalendari qolmadi.
+  3. **Sifat Tekshiruvlari:**
+     - `oxlint`: 0 xato, 0 ogohlantirish.
+     - `vitest`: Barcha 7 ta test fayllari (46 ta test) 100% muvaffaqiyatli o‘tdi.
+     - `tsc && vite build`: Ishlab chiqarish (production) paketi 2.41 soniyada xatosiz yig‘ildi.
+
 ---
 
 ## 📌 2026-10-01: AI/Emoji Belgilarini Tibbiy Professional Vektor Ikonkalariga Almashtirish
