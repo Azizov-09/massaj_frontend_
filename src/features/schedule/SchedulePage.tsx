@@ -413,7 +413,7 @@ export function SchedulePage() {
                     <span className="text-sm font-bold text-charcoal-900 tracking-tight">
                       {time}
                     </span>
-                    <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full border mt-1.5 whitespace-nowrap', period.badgeClass)}>
+                    <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-[6px] border mt-1.5 whitespace-nowrap', period.badgeClass)}>
                       {period.label}
                     </span>
                     {isCurrentSlot && (
@@ -483,7 +483,7 @@ export function SchedulePage() {
 
                               <div className="flex items-center justify-between text-[11px] pt-2.5 mt-1 border-t border-warm-100 text-charcoal-600">
                                 <span className="truncate font-medium text-charcoal-700">{svc?.name ?? 'Xizmat'}</span>
-                                <span className="font-semibold text-charcoal-800 bg-warm-100/70 px-2 py-0.5 rounded text-[10px] whitespace-nowrap">
+                                <span className="font-semibold text-charcoal-800 bg-warm-100/70 px-2 py-0.5 rounded-[6px] text-[10px] whitespace-nowrap">
                                   {apt.startTime} - {apt.endTime}
                                 </span>
                               </div>

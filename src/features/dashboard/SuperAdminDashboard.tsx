@@ -300,7 +300,7 @@ export function SuperAdminDashboard() {
                         <p className="text-sm font-medium text-charcoal-900 truncate">{child?.fullName}</p>
                         <p className="text-xs text-charcoal-400 truncate">{spec?.fullName}</p>
                       </div>
-                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${getAppointmentStatusColor(apt.status)}`}>
+                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-[6px] border ${getAppointmentStatusColor(apt.status)}`}>
                         {getAppointmentStatusLabel(apt.status)}
                       </span>
                     </div>

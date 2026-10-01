@@ -173,7 +173,7 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
                           else if (r.type === 'specialist') navigate(`${basePath}/specialists`);
                         }}
                       >
-                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-brand-100 text-brand-700 uppercase">
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-[6px] bg-brand-100 text-brand-700 uppercase">
                           {r.type === 'child' ? 'Bola' : r.type === 'parent' ? 'Ota-ona' : 'Mutaxassis'}
                         </span>
                         <span className="text-sm text-charcoal-800">{r.label}</span>
