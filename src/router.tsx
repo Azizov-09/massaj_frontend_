@@ -6,11 +6,12 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ProtectedRoute, RoleRedirect, NotFoundPage, ForbiddenPage } from '@/features/auth/guards';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { Orb } from '@/components/ui/thinking-orbs';
 
 // Loading fallback component
 const PageLoader = () => (
   <div className="min-h-[50vh] flex flex-col items-center justify-center gap-3">
-    <div className="w-9 h-9 rounded-full border-3 border-brand-200 border-t-brand-500 animate-spin" />
+    <Orb state="working" size={40} className="text-brand-500" label="Yuklanmoqda" />
     <span className="text-xs font-medium text-charcoal-400">Yuklanmoqda...</span>
   </div>
 );

@@ -1,6 +1,7 @@
 // Badge, StatusPill, Avatar, Card, Input, Select, Textarea components
 import { cn, getInitials, getAvatarColor } from '@/utils';
 import { forwardRef } from 'react';
+import { Orb, type OrbState } from '@/components/ui/thinking-orbs';
 
 // ─── Badge ────────────────────────────────────────────────
 
@@ -286,5 +287,33 @@ export function Spinner({ className }: { className?: string }) {
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
     </svg>
+  );
+}
+
+// ─── LoadingState (Thinking Orb) ──────────────────────────
+
+export { Orb, type OrbState };
+
+export function LoadingState({
+  message = "Yuklanmoqda...",
+  subMessage,
+  size = 36,
+  state = "working",
+  className,
+}: {
+  message?: string;
+  subMessage?: string;
+  size?: number;
+  state?: OrbState;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex flex-col items-center justify-center gap-3 py-10 text-center", className)}>
+      <Orb state={state} size={size} className="text-brand-500" label={message} />
+      <div>
+        <p className="text-sm font-semibold text-charcoal-800">{message}</p>
+        {subMessage && <p className="text-xs text-charcoal-500 mt-0.5">{subMessage}</p>}
+      </div>
+    </div>
   );
 }
