@@ -3,16 +3,13 @@
 // ═══════════════════════════════════════════════════════
 
 import { useState, useMemo } from 'react';
-import {
-  History, Search, Filter, Shield, User,
-  Clock, CheckCircle2, ArrowRight, Download
-} from 'lucide-react';
+import { Search, Download } from 'lucide-react';
 import { useStore } from '@/store';
-import { formatDate, formatRelativeTime, cn } from '@/utils';
+import { formatDate, formatRelativeTime } from '@/utils';
 import { Card, Badge, Avatar, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
-import type { ActivityLog, ActivityAction, ActivityEntity } from '@/types';
+import type { ActivityLog, ActivityAction } from '@/types';
 
 export function ActivityLogsPage() {
   const activityLogs = useStore(s => s.activityLogs);
@@ -59,13 +56,16 @@ export function ActivityLogsPage() {
   };
 
   const handleExportJSON = () => {
-    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(filteredLogs, null, 2))}`;
+    const jsonString = JSON.stringify(filteredLogs, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', jsonString);
+    link.href = url;
     link.setAttribute('download', `audit_logs_${new Date().toISOString().split('T')[0]}.json`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (

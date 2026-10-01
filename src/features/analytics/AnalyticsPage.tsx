@@ -4,8 +4,7 @@
 
 import { useState, useMemo } from 'react';
 import {
-  TrendingUp, Users, Calendar, DollarSign,
-  PieChart as PieIcon, BarChart3, Activity, Download
+  TrendingUp, Users, DollarSign, Activity
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -13,8 +12,7 @@ import {
 } from 'recharts';
 import { useStore } from '@/store';
 import { formatCurrency, formatCurrencyCompact } from '@/utils';
-import { Card, CardHeader, CardBody, Badge, Select } from '@/components/ui/primitives';
-import { Button } from '@/components/ui/Button';
+import { Card, CardHeader, CardBody } from '@/components/ui/primitives';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 
 const COLORS = ['#f97316', '#4a8063', '#d97706', '#2563eb', '#8b5cf6', '#ec4899'];

@@ -2,16 +2,16 @@
 //  Specialist Dashboard — Daily Clinical Workspace
 // ═══════════════════════════════════════════════════════
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   Calendar, CheckCircle2, Clock, Play, Award,
-  Users, Activity, ChevronRight, FileText, Plus
+  Users, Activity, ChevronRight, FileText
 } from 'lucide-react';
 import { useAuth, useStore } from '@/store';
-import { formatDate, formatTime } from '@/utils';
+import { formatDate } from '@/utils';
 import { Card, CardHeader, CardBody, Badge, Avatar, EmptyState } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
-import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
+import { KpiCard } from '@/components/ui/KpiCard';
 import { useNavigate } from 'react-router-dom';
 
 export function SpecialistDashboard() {

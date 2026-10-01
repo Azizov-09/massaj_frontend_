@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useStore } from '@/store';
-import { Input, Select, Textarea } from '@/components/ui/primitives';
+import { Input, Textarea } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 
 const schema = z.object({
@@ -22,7 +22,16 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
 
   const onSubmit = async (data: FormValues) => {
     await new Promise(r => setTimeout(r, 300));
-    createParent({ fullName: data.fullName, phone: data.phone, email: data.email || `${data.phone.replace(/\D/g, '')}@parent.uz`, address: data.address, status: 'ACTIVE', role: 'PARENT', childrenIds: [] });
+    createParent({
+      fullName: data.fullName,
+      phone: data.phone,
+      email: data.email || `${data.phone.replace(/\D/g, '')}@parent.uz`,
+      address: data.address,
+      notes: data.notes,
+      status: 'ACTIVE',
+      role: 'PARENT',
+      childrenIds: [],
+    });
     onSuccess();
   };
 

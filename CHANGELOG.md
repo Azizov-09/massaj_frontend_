@@ -233,10 +233,111 @@ Ushbu hujjatda **Senior Frontend Engineer** va **AGENTS.md** arxitektura qoidala
 
 ---
 
+### 20. [P1] Ota-Onaning Boshqa Bolalar Maqsadlariga Kirishi va Klinik Huquqlar Himoyasi
+- **Fayllar:**
+  - [`src/features/goals/GoalsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/goals/GoalsPage.tsx)
+- **Muammo va Sabab:**
+  Ota-ona (`PARENT`) reabilitatsiya maqsadlari sahifasiga kirganida butun klinikadagi barcha bolalarning shaxsiy maqsadlarini ko‘ra olar, shuningdek shifokorlar nomidan maqsad yaratish va yangilash tugmalariga ega edi.
+- **Yechim:**
+  Ota-ona uchun maqsadlar va bolalar filtri faqat o‘z farzandlariga (`parentId === currentUser.id`) cheklandi. "Yangi maqsad" va "Yangilash" klinik tahrir tugmalari ota-onadan yashirildi (faqat shifokorlar va adminlarga berildi).
+
+---
+
+### 21. [P1] Baholashlarda Mutaxassis Nomidan Soxta Yozuv Kiritish (Impersonation) Himoyasi
+- **Fayllar:**
+  - [`src/features/assessments/AssessmentsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/assessments/AssessmentsPage.tsx)
+- **Muammo va Sabab:**
+  Mutaxassis yangi baholash kiritishda ochiladigan ro‘yxatdan boshqa istalgan shifokorni tanlab, uning nomidan professional tashxis/kuzatuv qayd etishi mumkin edi.
+- **Yechim:**
+  Tizimga kirgan mutaxassis uchun shifokor tanlash maydoni muzlatildi (`currentUser.fullName (Siz)`) va submit paytida `specialistId` qat'iy ravishda `currentUser.id` bilan cheklandi.
+
+---
+
+### 22. [P1] Qidiruv Tizimida Maxfiylik va Bosilganda Yo‘naltirish (Navigation) Tuzatildi
+- **Fayllar:**
+  - [`src/components/layout/Header.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/layout/Header.tsx)
+- **Muammo va Sabab:**
+  Headerdagi qidiruv orqali ota-onalar butun klinikadagi barcha boshqa ota-onalar va bolalarni qidira olar edi. Shuningdek, qidiruv natijasi bosilganda hech qanday harakat bo‘lmay, modal shunchaki yopilardi.
+- **Yechim:**
+  Ota-ona faqat o‘z farzandlarini, mutaxassis esa o‘ziga biriktirilgan bolalar va hamkasblarini qidira olishi belgilandi. Natija bosilganda mos sahifaga (`/dashboard/<role>/children`, `/parents`, `/specialists`) o‘tish to‘liq ulandi.
+
+---
+
+### 23. [P1] Balanslar Sahifasida Kassa Ruxsatlari Himoyasi
+- **Fayllar:**
+  - [`src/features/balance/BalancePage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/balance/BalancePage.tsx)
+- **Muammo va Sabab:**
+  "To‘lov olish" tugmasi kassa va buxgalteriyaga aloqador bo‘lmagan shifokorlar uchun ham ko‘rinib turardi.
+- **Yechim:**
+  Amal ustunidagi to‘lov olish tugmasi faqat `canManagePayments` (`SUPER_ADMIN` va `ADMIN`) roli bilan cheklandi.
+
+---
+
+### 24. [P2] Ota-Ona Qo‘shishda Izohlarni (Notes) Yo‘qotish Xatosi Tuzatildi
+- **Fayllar:**
+  - [`src/types/index.ts`](file:///home/Bekzod/Desktop/massaj_frontend_/src/types/index.ts)
+  - [`src/features/parents/CreateParentForm.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/parents/CreateParentForm.tsx)
+- **Muammo va Sabab:**
+  `CreateParentForm` da foydalanuvchi "Izoh" (notes) maydonini to‘ldirgan bo‘lsa-da, submit funksiyasi bu maydonni store ga uzatmay, ma'lumot yo‘qolib ketardi.
+- **Yechim:**
+  `Parent` interfeysiga `notes?: string` maydoni kiritildi va `createParent` chaqiruvida saqlab qolindi.
+
+---
+
+### 25. [P2] Audit Jurnalida Xotira Xavfsiz Blob Eksporti
+- **Fayllar:**
+  - [`src/features/activity-logs/ActivityLogsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/activity-logs/ActivityLogsPage.tsx)
+- **Muammo va Sabab:**
+  Katta hajmli audit yozuvlarini eksport qilishda brauzer URL limitiga to‘qnash keluvchi `data:text/json` ishlatilgan edi.
+- **Yechim:**
+  Standart binary `Blob` va `URL.createObjectURL(blob)` orqali xotiradan to‘g‘ri tozalash (`revokeObjectURL`) mexanizmi joriy etildi.
+
+---
+
+### 26. [P2] Mutaxassislar Jadvalida $O(1)$ Hash Map Unumdorligi
+- **Fayllar:**
+  - [`src/features/specialists/SpecialistsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/specialists/SpecialistsPage.tsx)
+- **Muammo va Sabab:**
+  Jadval har bir qatorida seanslar sonini hisoblashda barcha seanslarni boshidan qayta elab chiqardi ($O(N \times S)$ render penalty).
+- **Yechim:**
+  `useMemo` orqali `sessionsCountMap` oldindan bir marta yig‘ilib, har bir qatorda bir lahzalik $O(1)$ vaqtda ko‘rsatish yo‘lga qo‘yildi.
+
+---
+
+### 27. [P2] Header va Sidebar Bildirishnomalar Belgisi (Badge) Sinxronizatsiyasi
+- **Fayllar:**
+  - [`src/components/layout/Header.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/layout/Header.tsx)
+  - [`src/components/layout/Sidebar.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/components/layout/Sidebar.tsx)
+- **Muammo va Sabab:**
+  Adminlar uchun tizim xabarlari `NotificationsPage` da tursa ham, yuqori Header qo‘ng‘iroqchasi va Sidebardagi badge faqat `userId` bo‘yicha hisoblangani sababli 0 ko‘rsatib turardi.
+- **Yechim:**
+  Sinxronizatsiya to‘g‘rilanib, administratorlar uchun tizim darajasidagi o‘qilmagan xabarlar to‘g‘ri hisoblanishi ta'minlandi.
+
+---
+
+### 28. [P2] Bolaning Tug‘ilgan Sanasini Kelajak Bo‘lmasligini Tekshirish
+- **Fayllar:**
+  - [`src/features/children/CreateChildForm.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/children/CreateChildForm.tsx)
+- **Muammo va Sabab:**
+  Tug‘ilgan sana faqat HTML attributi orqali cheklangan, Zod validatsiyasida esa kelajakdagi sanalar o‘tib ketishi mumkin edi.
+- **Yechim:**
+  Zod sxemasiga `.refine(d => new Date(d) <= new Date(), ...)` kiritildi.
+
+---
+
+### 29. [P2] Ishlatilmaydigan O‘lik Importlar Tozalandi
+- **Fayllar:**
+  - [`src/features/dashboard/SpecialistDashboard.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/dashboard/SpecialistDashboard.tsx)
+  - [`src/features/analytics/AnalyticsPage.tsx`](file:///home/Bekzod/Desktop/massaj_frontend_/src/features/analytics/AnalyticsPage.tsx)
+- **Tavsif:**
+  Oxlint tomonidan ko‘rsatilgan barcha ortiqcha importlar (`useState`, `Plus`, `EmptyState`, `PageHeader`, `Badge`, `Select`, `Button`) olib tashlandi.
+
+---
+
 ## 📊 Hozirgi Metrikalar va Holat
 - **Avtomatlashgan Testlar:** 4 test to‘plami, **19/19 test muvaffaqiyatli (100% PASS)**.
 - **TypeScript:** 0 ta xatolik (`tsc --noEmit` to‘liq toza).
-- **Vite Production Build:** 1.91 soniyada 0 xatolik bilan muvaffaqiyatli yakunlanadi.
+- **Vite Production Build:** Yuqori tezlikda 0 xatolik bilan muvaffaqiyatli yakunlanadi.
 - **Linter (oxlint):** 0 ta xatolik.
 - **Dev Server:** `http://localhost:3001` da barqaror ishlamoqda.
 - **Xavfsizlik & Ruxsatlar:** Barcha 5 ta asosiy rol (`SUPER_ADMIN`, `ADMIN`, `SPECIALIST`, `OPERATOR`, `PARENT`) bo‘yicha to‘liq izolyatsiya va tekshiruvlar amalga oshirilgan.

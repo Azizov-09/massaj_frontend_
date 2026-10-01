@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/Button';
 
 const schema = z.object({
   fullName: z.string().min(2, 'Ism kamida 2 ta belgidan iborat bo\'lishi kerak'),
-  dateOfBirth: z.string().min(1, 'Tug\'ilgan sanani kiriting'),
+  dateOfBirth: z.string().min(1, 'Tug\'ilgan sanani kiriting').refine(d => new Date(d) <= new Date(), 'Tug\'ilgan sana kelajakda bo\'lishi mumkin emas'),
   gender: z.enum(['MALE', 'FEMALE'], { required_error: 'Jinsini tanlang' }),
   parentId: z.string().min(1, 'Ota-onani tanlang'),
   assignedSpecialistId: z.string().optional(),

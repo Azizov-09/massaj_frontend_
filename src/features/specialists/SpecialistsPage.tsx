@@ -8,7 +8,7 @@ import { Card, Avatar, Badge } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
-import { Input, Select, Textarea } from '@/components/ui/primitives';
+import { Input, Textarea } from '@/components/ui/primitives';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -30,6 +30,16 @@ export function SpecialistsPage() {
   const createSpecialist = useStore(s => s.createSpecialist);
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
+
+  const sessionsCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const s of sessions) {
+      if (s.status === 'COMPLETED') {
+        map.set(s.specialistId, (map.get(s.specialistId) || 0) + 1);
+      }
+    }
+    return map;
+  }, [sessions]);
 
   const filtered = useMemo(() => {
     if (!search) return specialists;
@@ -54,7 +64,7 @@ export function SpecialistsPage() {
     {
       key: 'sessionsCount', header: 'Seanslar',
       cell: (row) => {
-        const count = sessions.filter(s => s.specialistId === row.id && s.status === 'COMPLETED').length;
+        const count = sessionsCountMap.get(row.id) || 0;
         return <span className="text-sm font-semibold text-charcoal-800 tabular-nums">{count}</span>;
       }
     },

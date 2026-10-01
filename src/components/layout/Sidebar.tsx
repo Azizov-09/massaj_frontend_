@@ -162,7 +162,9 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   const { collapsed, toggle } = useSidebar();
   const navigate = useNavigate();
   const notifications = useStore(s => s.notifications);
-  const unreadCount = notifications.filter(n => n.userId === currentUser?.id && !n.isRead).length;
+  const unreadCount = notifications.filter(
+    n => (n.userId === currentUser?.id || currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN') && !n.isRead
+  ).length;
 
   const navGroups = useMemo(() => {
     if (!currentUser) return [];

@@ -33,7 +33,7 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
   const specialists = useStore(s => s.specialists);
 
   const userNotifs = notifications
-    .filter(n => n.userId === currentUser?.id)
+    .filter(n => n.userId === currentUser?.id || currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN')
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 8);
 
@@ -50,11 +50,26 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
   }, []);
 
   // Search results
-  const searchResults = searchQuery.length >= 2 ? [
-    ...children.filter(c => c.fullName.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3).map(c => ({ type: 'child', label: c.fullName, id: c.id })),
-    ...parents.filter(p => p.fullName.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 2).map(p => ({ type: 'parent', label: p.fullName, id: p.id })),
-    ...specialists.filter(s => s.fullName.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 2).map(s => ({ type: 'specialist', label: s.fullName, id: s.id })),
-  ] : [];
+  const searchResults = searchQuery.length >= 2 ? (() => {
+    const q = searchQuery.toLowerCase();
+    if (currentUser?.role === 'PARENT') {
+      return children
+        .filter(c => c.parentId === currentUser.id && c.fullName.toLowerCase().includes(q))
+        .slice(0, 5)
+        .map(c => ({ type: 'child', label: c.fullName, id: c.id }));
+    }
+    if (currentUser?.role === 'SPECIALIST') {
+      return [
+        ...children.filter(c => c.assignedSpecialistId === currentUser.id && c.fullName.toLowerCase().includes(q)).slice(0, 3).map(c => ({ type: 'child', label: c.fullName, id: c.id })),
+        ...specialists.filter(s => s.fullName.toLowerCase().includes(q)).slice(0, 2).map(s => ({ type: 'specialist', label: s.fullName, id: s.id })),
+      ];
+    }
+    return [
+      ...children.filter(c => c.fullName.toLowerCase().includes(q)).slice(0, 3).map(c => ({ type: 'child', label: c.fullName, id: c.id })),
+      ...parents.filter(p => p.fullName.toLowerCase().includes(q)).slice(0, 2).map(p => ({ type: 'parent', label: p.fullName, id: p.id })),
+      ...specialists.filter(s => s.fullName.toLowerCase().includes(q)).slice(0, 2).map(s => ({ type: 'specialist', label: s.fullName, id: s.id })),
+    ];
+  })() : [];
 
   const handleLogout = () => {
     logout();
@@ -149,7 +164,14 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
                       <button
                         key={i}
                         className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-warm-50 text-left transition-colors"
-                        onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+                        onClick={() => {
+                          setSearchOpen(false);
+                          setSearchQuery('');
+                          const basePath = getDashboardPath();
+                          if (r.type === 'child') navigate(`${basePath}/children`);
+                          else if (r.type === 'parent') navigate(`${basePath}/parents`);
+                          else if (r.type === 'specialist') navigate(`${basePath}/specialists`);
+                        }}
                       >
                         <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-brand-100 text-brand-700 uppercase">
                           {r.type === 'child' ? 'Bola' : r.type === 'parent' ? 'Ota-ona' : 'Mutaxassis'}

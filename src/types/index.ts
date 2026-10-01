@@ -89,6 +89,7 @@ export interface Parent extends BaseUser {
   childrenIds: string[];
   address?: string;
   email: string;
+  notes?: string;
 }
 
 // ─── Child ────────────────────────────────────────────────

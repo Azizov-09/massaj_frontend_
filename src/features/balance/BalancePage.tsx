@@ -5,11 +5,11 @@
 import { useState, useMemo } from 'react';
 import {
   Wallet, TrendingUp, AlertTriangle, CheckCircle2,
-  Search, ArrowRight, Plus, User, Phone, CreditCard
+  Search, ArrowRight, Plus, User, CreditCard
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatCurrency, formatCurrencyCompact, cn } from '@/utils';
-import { calculateParentBalance, calculateChildBalance } from '@/services/finance.service';
+import { calculateParentBalance } from '@/services/finance.service';
 import { Card, Badge, Avatar, Select, EmptyState } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
@@ -188,21 +188,28 @@ export function BalancePage() {
     {
       key: 'parentId',
       title: 'Amal',
-      render: (r) => !isParent ? (
-        <Button
-          size="xs"
-          variant="secondary"
-          leftIcon={<CreditCard className="w-3.5 h-3.5" />}
-          onClick={() => {
-            setPaymentModalParent(r);
-            setPayAmount(r.totalDebt > 0 ? String(r.totalDebt) : '');
-          }}
-        >
-          To‘lov olish
-        </Button>
-      ) : (
-        <span className="text-xs text-charcoal-400">Mening hisobim</span>
-      ),
+      render: (r) => {
+        const canManagePayments = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN';
+        if (canManagePayments) {
+          return (
+            <Button
+              size="xs"
+              variant="secondary"
+              leftIcon={<CreditCard className="w-3.5 h-3.5" />}
+              onClick={() => {
+                setPaymentModalParent(r);
+                setPayAmount(r.totalDebt > 0 ? String(r.totalDebt) : '');
+              }}
+            >
+              To‘lov olish
+            </Button>
+          );
+        }
+        if (isParent) {
+          return <span className="text-xs text-charcoal-400">Mening hisobim</span>;
+        }
+        return <span className="text-xs text-charcoal-400">—</span>;
+      },
     },
   ];
 

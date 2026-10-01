@@ -68,11 +68,12 @@ export function AssessmentsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.childId || !formData.specialistId) return;
+    const finalSpecialistId = currentUser?.role === 'SPECIALIST' ? currentUser.id : formData.specialistId;
+    if (!formData.childId || !finalSpecialistId) return;
 
     createAssessment({
       childId: formData.childId,
-      specialistId: formData.specialistId,
+      specialistId: finalSpecialistId,
       scores: formData.scores,
       professionalObservation: formData.professionalObservation,
       date: new Date().toISOString().split('T')[0],
@@ -286,16 +287,25 @@ export function AssessmentsPage() {
               ))}
             </Select>
 
-            <Select
-              label="Mutaxassis"
-              required
-              value={formData.specialistId}
-              onChange={e => setFormData({ ...formData, specialistId: e.target.value })}
-            >
-              {specialists.map(s => (
-                <option key={s.id} value={s.id}>{s.fullName}</option>
-              ))}
-            </Select>
+            {currentUser?.role === 'SPECIALIST' ? (
+              <div>
+                <label className="block text-xs font-semibold text-charcoal-700 mb-1.5">Mutaxassis</label>
+                <div className="px-3 py-2 text-xs rounded-xl bg-warm-100 border border-warm-200 text-charcoal-700 font-medium">
+                  {currentUser.fullName} (Siz)
+                </div>
+              </div>
+            ) : (
+              <Select
+                label="Mutaxassis"
+                required
+                value={formData.specialistId}
+                onChange={e => setFormData({ ...formData, specialistId: e.target.value })}
+              >
+                {specialists.map(s => (
+                  <option key={s.id} value={s.id}>{s.fullName}</option>
+                ))}
+              </Select>
+            )}
           </div>
 
           <div className="pt-2">

@@ -3,15 +3,15 @@
 // ═══════════════════════════════════════════════════════
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Filter, Baby, ArrowRight, X } from 'lucide-react';
+import { Plus, Search, Baby, ArrowRight, X } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { calculateChildBalance } from '@/services/finance.service';
 import {
   formatAge, formatDate, formatCurrencyCompact,
-  getEntityStatusColor, getEntityStatusLabel, cn,
+  getEntityStatusColor, getEntityStatusLabel,
 } from '@/utils';
 import { DataTable, Column } from '@/components/tables/DataTable';
-import { Card, Avatar, Badge, EmptyState } from '@/components/ui/primitives';
+import { Card, Avatar, Badge } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';

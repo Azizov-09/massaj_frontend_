@@ -17,10 +17,20 @@ import { Input, Textarea } from '@/components/ui/primitives';
 import type { Goal, GoalStatus } from '@/types';
 
 export function GoalsPage() {
+  const { currentUser } = useAuth();
   const children = useStore(s => s.children);
   const goals = useStore(s => s.goals);
   const createGoal = useStore(s => s.createGoal);
   const updateGoal = useStore(s => s.updateGoal);
+
+  const isParent = currentUser?.role === 'PARENT';
+  const availableChildren = useMemo(() => {
+    if (isParent && currentUser) {
+      return children.filter(c => c.parentId === currentUser.id);
+    }
+    return children;
+  }, [children, isParent, currentUser]);
+  const parentChildIds = useMemo(() => availableChildren.map(c => c.id), [availableChildren]);
 
   const [selectedChildId, setSelectedChildId] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
@@ -29,7 +39,7 @@ export function GoalsPage() {
 
   // New goal form
   const [newGoal, setNewGoal] = useState({
-    childId: children[0]?.id ?? '',
+    childId: availableChildren[0]?.id ?? '',
     title: '',
     description: '',
     targetDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
@@ -50,11 +60,12 @@ export function GoalsPage() {
 
   const filteredGoals = useMemo(() => {
     return goals.filter(g => {
+      if (isParent && !parentChildIds.includes(g.childId)) return false;
       if (selectedChildId && g.childId !== selectedChildId) return false;
       if (selectedStatus && g.status !== selectedStatus) return false;
       return true;
     });
-  }, [goals, selectedChildId, selectedStatus]);
+  }, [goals, selectedChildId, selectedStatus, isParent, parentChildIds]);
 
   // Statistics
   const stats = useMemo(() => {
@@ -136,9 +147,11 @@ export function GoalsPage() {
         title="Reabilitatsiya maqsadlari"
         description="Har bir bolaning rivojlanish maqsadlari va ularga erishish foizlari"
         actions={
-          <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreateModal(true)}>
-            Yangi maqsad
-          </Button>
+          !isParent ? (
+            <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreateModal(true)}>
+              Yangi maqsad
+            </Button>
+          ) : undefined
         }
       />
 
@@ -177,7 +190,7 @@ export function GoalsPage() {
                 className="py-1.5 text-xs"
               >
                 <option value="">Barcha bolalar</option>
-                {children.map(c => (
+                {availableChildren.map(c => (
                   <option key={c.id} value={c.id}>{c.fullName}</option>
                 ))}
               </Select>
@@ -278,14 +291,16 @@ export function GoalsPage() {
                   <span className="text-[11px] text-charcoal-400">
                     Muddat: {formatDate(goal.targetDate)}
                   </span>
-                  <Button
-                    size="xs"
-                    variant="secondary"
-                    leftIcon={<Edit2 className="w-3 h-3" />}
-                    onClick={() => handleOpenEdit(goal)}
-                  >
-                    Yangilash
-                  </Button>
+                  {!isParent && (
+                    <Button
+                      size="xs"
+                      variant="secondary"
+                      leftIcon={<Edit2 className="w-3 h-3" />}
+                      onClick={() => handleOpenEdit(goal)}
+                    >
+                      Yangilash
+                    </Button>
+                  )}
                 </div>
               </Card>
             );
@@ -307,7 +322,7 @@ export function GoalsPage() {
             value={newGoal.childId}
             onChange={e => setNewGoal({ ...newGoal, childId: e.target.value })}
           >
-            {children.map(c => (
+            {availableChildren.map(c => (
               <option key={c.id} value={c.id}>{c.fullName}</option>
             ))}
           </Select>

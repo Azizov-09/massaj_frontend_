@@ -4,12 +4,12 @@
 
 import { useState, useMemo } from 'react';
 import {
-  Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus,
-  Clock, CheckCircle, Play, XCircle, User, Filter, AlertCircle
+  ChevronLeft, ChevronRight, Plus,
+  CheckCircle, Play, XCircle
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
-import { formatTime, formatDate, getAppointmentStatusColor, getAppointmentStatusLabel, cn } from '@/utils';
-import { Card, Badge, Avatar, Select } from '@/components/ui/primitives';
+import { formatDate, getAppointmentStatusColor, getAppointmentStatusLabel, cn } from '@/utils';
+import { Card, Badge, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
