@@ -334,17 +334,36 @@ export function GoalsPage() {
                     </div>
                   </div>
 
-                  {/* Specialist Note (Clean clinical quote, only when present) */}
-                  {goal.specialistNote ? (
-                    <div className="pt-0.5">
-                      <div className="px-3 py-2 rounded-xl bg-warm-50/80 border border-warm-200/60 text-xs text-charcoal-600 flex items-start gap-2">
+                  {/* Specialist Note Slot (Restored uniform slot for notes/add-note action) */}
+                  <div className="pt-0.5">
+                    {goal.specialistNote ? (
+                      <div className="p-2.5 rounded-xl bg-warm-50/90 text-[11px] text-charcoal-700 border border-warm-200/80 shadow-2xs flex items-start gap-2 min-h-[44px]">
                         <MessageSquare className="w-3.5 h-3.5 text-brand-500 mt-0.5 shrink-0" />
-                        <p className="italic line-clamp-2 leading-relaxed text-[11px]">
+                        <p className="italic line-clamp-2 leading-relaxed text-charcoal-600">
                           "{goal.specialistNote}"
                         </p>
                       </div>
-                    </div>
-                  ) : null}
+                    ) : (
+                      !isParent ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenEdit(goal);
+                          }}
+                          className="w-full p-2.5 rounded-xl border border-dashed border-warm-200/90 hover:border-brand-300 hover:bg-brand-50/40 text-[11px] text-charcoal-400 hover:text-brand-600 flex items-center justify-center gap-1.5 transition-all min-h-[44px] group/note"
+                          title="Mutaxassis izohini qo‘shish"
+                        >
+                          <Plus className="w-3.5 h-3.5 text-charcoal-400 group-hover/note:text-brand-500 transition-colors" />
+                          <span className="font-medium">Izoh kiritilmagan · Qo‘shish</span>
+                        </button>
+                      ) : (
+                        <div className="p-2.5 rounded-xl bg-warm-50/40 border border-warm-200/40 text-[11px] text-charcoal-400 flex items-center justify-center min-h-[44px] italic">
+                          Hozircha izoh kiritilmagan
+                        </div>
+                      )
+                    )}
+                  </div>
                 </div>
 
                 {/* Card Footer */}
