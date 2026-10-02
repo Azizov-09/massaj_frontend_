@@ -91,7 +91,7 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-warm-200 px-4 lg:px-6 h-14 flex items-center gap-4">
+    <header className="sticky top-0 z-40 shrink-0 bg-white/95 backdrop-blur-md border-b border-warm-200/90 px-4 lg:px-6 h-14 flex items-center gap-4 shadow-2xs safe-top">
       {/* Mobile menu button */}
       <button
         onClick={onMobileMenuOpen}
