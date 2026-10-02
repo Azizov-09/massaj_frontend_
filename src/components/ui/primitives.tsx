@@ -69,10 +69,11 @@ interface CardProps {
   children: React.ReactNode;
   hoverable?: boolean;
   onClick?: () => void;
+  as?: 'div' | 'button';
 }
 
-export function Card({ className, children, hoverable, onClick }: CardProps) {
-  const Comp = onClick ? 'button' : 'div';
+export function Card({ className, children, hoverable, onClick, as = 'div' }: CardProps) {
+  const Comp = as;
   return (
     <Comp
       className={cn(
@@ -82,6 +83,14 @@ export function Card({ className, children, hoverable, onClick }: CardProps) {
         className
       )}
       onClick={onClick}
+      role={onClick && Comp === 'div' ? 'button' : undefined}
+      tabIndex={onClick && Comp === 'div' ? 0 : undefined}
+      onKeyDown={onClick && Comp === 'div' ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      } : undefined}
     >
       {children}
     </Comp>
