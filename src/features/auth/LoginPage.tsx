@@ -1,29 +1,69 @@
 // ═══════════════════════════════════════════════════════
-//  Login Page — Premium split-screen authentication
+//  Login Page — Senior Healthcare/Pediatric CRM Split-Screen Authentication
 // ═══════════════════════════════════════════════════════
+
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { motion } from 'framer-motion';
-import { Eye, EyeOff, Heart, ArrowRight, Shield, Activity, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Eye, EyeOff, Heart, ArrowRight, ArrowLeft, ShieldCheck,
+  Activity, Users, Lock, Mail, Stethoscope, Baby,
+  Sparkles, CheckCircle2, Phone, HelpCircle, Shield
+} from 'lucide-react';
 import { cn } from '@/utils';
-import { useAuth } from '@/store';
+import { useAuth, useStore } from '@/store';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 
 const loginSchema = z.object({
-  email: z.string().email("Noto'g'ri email manzil"),
-  password: z.string().min(6, 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak'),
+  email: z.string().email("Noto'g'ri email manzil kiritildi"),
+  password: z.string().min(6, 'Parol kamida 6 ta belgidan iborat bo‘lishi kerak'),
   rememberMe: z.boolean().optional(),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-const DEMO_ACCOUNTS = [
-  { email: 'superadmin@demo.com', password: 'demo123', role: 'Bosh Admin (Super Admin)', color: 'brand' },
-  { email: 'specialist@demo.com', password: 'demo123', role: 'Mutaxassis (Specialist)', color: 'gold' },
-  { email: 'parent@demo.com', password: 'demo123', role: 'Ota-ona (Parent)', color: 'sage' },
+interface DemoAccount {
+  email: string;
+  password: string;
+  role: string;
+  shortRole: string;
+  tag: string;
+  icon: typeof ShieldCheck;
+  theme: 'brand' | 'sage' | 'gold';
+}
+
+const DEMO_ACCOUNTS: DemoAccount[] = [
+  {
+    email: 'superadmin@demo.com',
+    password: 'demo123',
+    role: 'Bosh Admin (Super Admin)',
+    shortRole: 'Bosh Admin',
+    tag: 'To‘liq boshqaruv',
+    icon: ShieldCheck,
+    theme: 'brand',
+  },
+  {
+    email: 'specialist@demo.com',
+    password: 'demo123',
+    role: 'Mutaxassis (Specialist)',
+    shortRole: 'Mutaxassis',
+    tag: 'Klinik seanslar',
+    icon: Stethoscope,
+    theme: 'sage',
+  },
+  {
+    email: 'parent@demo.com',
+    password: 'demo123',
+    role: 'Ota-ona (Parent)',
+    shortRole: 'Ota-ona',
+    tag: 'Bola kabineti',
+    icon: Baby,
+    theme: 'gold',
+  },
 ];
 
 const ROLE_REDIRECTS: Record<string, string> = {
@@ -36,245 +76,501 @@ const ROLE_REDIRECTS: Record<string, string> = {
 export function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const addToast = useStore(s => s.addToast);
+
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState('');
+  const [selectedDemoRole, setSelectedDemoRole] = useState<string>('superadmin@demo.com');
+  const [showForgotModal, setShowForgotModal] = useState(false);
 
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<LoginForm>({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: 'superadmin@demo.com',
+      password: 'demo123',
+      rememberMe: true,
+    },
   });
 
   const onSubmit = async (data: LoginForm) => {
     setServerError('');
     const result = await login(data.email, data.password);
     if (result.success) {
-      // Determine role from current user - we'll get it from the store
-      const role = localStorage.getItem('massaj-crm-store');
-      if (role) {
+      const storeStr = localStorage.getItem('massaj-crm-store');
+      if (storeStr) {
         try {
-          const parsed = JSON.parse(role);
+          const parsed = JSON.parse(storeStr);
           const userRole = parsed?.state?.currentUser?.role;
           if (userRole && ROLE_REDIRECTS[userRole]) {
             navigate(ROLE_REDIRECTS[userRole], { replace: true });
             return;
           }
-        } catch {}
+        } catch {
+          // fallback below
+        }
       }
       navigate('/dashboard/super-admin', { replace: true });
     } else {
-      setServerError(result.error ?? "Xatolik yuz berdi");
+      setServerError(result.error ?? "Login yoki parol noto'g'ri");
     }
   };
 
-  const fillDemo = (email: string, password: string) => {
-    setValue('email', email);
-    setValue('password', password);
+  const handleSelectDemo = (acc: DemoAccount) => {
+    setSelectedDemoRole(acc.email);
+    setValue('email', acc.email, { shouldValidate: true });
+    setValue('password', acc.password, { shouldValidate: true });
   };
 
-  const accentColors: Record<string, string> = {
-    brand: 'bg-brand-50 text-brand-700 border-brand-200 hover:bg-brand-100',
-    sage: 'bg-sage-50 text-sage-700 border-sage-200 hover:bg-sage-100',
-    gold: 'bg-gold-50 text-gold-700 border-gold-200 hover:bg-gold-100',
-    warm: 'bg-warm-100 text-warm-700 border-warm-300 hover:bg-warm-200',
+  const handleForgotHelp = () => {
+    setShowForgotModal(true);
   };
 
   return (
-    <div className="min-h-screen flex bg-warm-100">
-      {/* Left panel — Brand */}
-      <div className="hidden lg:flex flex-col w-[480px] flex-shrink-0 bg-charcoal-900 relative overflow-hidden">
-        {/* Background patterns */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-20 left-10 w-64 h-64 rounded-full border-2 border-white" />
-          <div className="absolute bottom-32 right-5 w-40 h-40 rounded-full border border-white" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border border-white opacity-20" />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-600/20 to-transparent" />
+    <div className="min-h-screen flex flex-col lg:flex-row bg-warm-50 text-charcoal-900 selection:bg-brand-500 selection:text-white">
+      {/* ═══════════════════════════════════════════════════════
+          LEFT SHOWCASE PANEL (Desktop & Tablet Large)
+      ═════════════════════════════════════════════════════════ */}
+      <div className="hidden lg:flex flex-col w-[480px] xl:w-[560px] 2xl:w-[620px] shrink-0 bg-[#0e141b] text-white relative overflow-hidden border-r border-charcoal-800/80">
+        {/* Ambient atmospheric medical lighting */}
+        <div className="absolute top-[-10%] left-[-15%] w-[420px] h-[420px] rounded-full bg-brand-500/18 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[5%] right-[-10%] w-[380px] h-[380px] rounded-full bg-emerald-500/12 blur-[100px] pointer-events-none" />
+        <div className="absolute top-[45%] right-[-5%] w-[260px] h-[260px] rounded-full bg-amber-500/10 blur-[90px] pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col h-full px-12 py-12">
-          {/* Logo */}
-          <motion.div
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex items-center gap-3"
+        {/* Subtle geometric grid background */}
+        <div
+          className="absolute inset-0 opacity-[0.035] pointer-events-none"
+          style={{
+            backgroundImage: `radial-gradient(circle, #ffffff 1px, transparent 1px)`,
+            backgroundSize: '24px 24px',
+          }}
+        />
+
+        <div className="relative z-10 flex flex-col h-full p-10 xl:p-14 justify-between">
+          {/* Top Brand Block */}
+          <div>
+            <Link
+              to="/landing"
+              className="inline-flex items-center gap-3.5 group transition-transform active:scale-95"
+            >
+              <div className="w-11 h-11 rounded-[12px] bg-gradient-to-tr from-brand-600 via-brand-500 to-amber-500 flex items-center justify-center shadow-lg shadow-brand-500/25 group-hover:scale-105 transition-all">
+                <Heart className="w-6 h-6 text-white fill-white/20" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-extrabold text-xl tracking-tight text-white">MASSAJ</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-500/20 text-brand-300 border border-brand-400/30">
+                    CRM v2.5
+                  </span>
+                </div>
+                <p className="text-white/50 text-[11px] font-medium tracking-wide">
+                  Bolalar massaj va reabilitatsiya markazi
+                </p>
+              </div>
+            </Link>
+          </div>
+
+          {/* Center Clinical Telemetry & Hero Highlight */}
+          <div className="my-auto py-8 space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs text-white/90 font-medium mb-4 shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Klinik telemetriya va real-vaqt monitoringi
+              </div>
+              <h2 className="text-3xl xl:text-4xl font-extrabold text-white leading-tight">
+                Bolajonlar salomatligi uchun{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-amber-300 to-emerald-400">
+                  professional CRM
+                </span>
+              </h2>
+              <p className="text-white/65 text-sm xl:text-base leading-relaxed mt-3 max-w-md">
+                Muolajalar jadvali, klinik baholash, mutaxassis tavsiyalari va shaffof moliyaviy hisob-kitoblar bir tizimda.
+              </p>
+            </motion.div>
+
+            {/* Elevated Interactive Showcase Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="p-5 rounded-2xl bg-white/[0.07] backdrop-blur-xl border border-white/10 shadow-2xl space-y-4"
+            >
+              {/* Telemetry pill row */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-white/[0.05] border border-white/5">
+                  <div className="flex items-center gap-2 text-white/50 text-xs mb-1">
+                    <Users className="w-3.5 h-3.5 text-brand-400" />
+                    <span>Mijoz bolalar</span>
+                  </div>
+                  <p className="text-lg font-bold text-white">1,200+ nafar</p>
+                  <span className="text-[11px] text-emerald-400 font-medium">99.2% tiklanish ko‘rsatkichi</span>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.05] border border-white/5">
+                  <div className="flex items-center gap-2 text-white/50 text-xs mb-1">
+                    <Stethoscope className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Mutaxassislar</span>
+                  </div>
+                  <p className="text-lg font-bold text-white">14 nafar shifokor</p>
+                  <span className="text-[11px] text-brand-300 font-medium">Nevrolog & Ortoped</span>
+                </div>
+              </div>
+
+              {/* Patient progress simulation snippet */}
+              <div className="p-3 rounded-xl bg-white/[0.05] border border-white/5 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-brand-500/30 text-brand-300 flex items-center justify-center font-bold text-[10px]">
+                      AA
+                    </div>
+                    <span className="font-semibold text-white/90">Amir Aliyev (6 yosh)</span>
+                  </div>
+                  <span className="text-emerald-400 font-bold tabular-nums">85% natija</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+                  <div className="h-full rounded-full bg-gradient-to-r from-brand-500 to-emerald-400 w-[85%]" />
+                </div>
+                <p className="text-[11px] text-white/50 truncate">
+                  Muolaja kursi: Umumiy rivojlantiruvchi bolalar massaji
+                </p>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Bottom Trust & Compliance Strip */}
+          <div className="pt-6 border-t border-white/10 flex items-center justify-between text-xs text-white/50">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-emerald-400" />
+              <span>256-bit shifrlangan klinik audit</span>
+            </div>
+            <span className="text-white/30">Tibbiy standart</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════
+          RIGHT AUTHENTICATION FORM AREA
+      ═════════════════════════════════════════════════════════ */}
+      <div className="flex-1 flex flex-col justify-between p-4 sm:p-6 md:p-10 lg:p-12 relative overflow-y-auto">
+        {/* Top navigation helper row */}
+        <div className="flex items-center justify-between w-full max-w-md mx-auto mb-6">
+          <Link
+            to="/landing"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-charcoal-500 hover:text-brand-600 transition-colors p-1 -ml-1 rounded-[8px]"
           >
-            <div className="w-10 h-10 rounded-[12px] bg-brand-500 flex items-center justify-center">
-              <Heart className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-4 h-4" />
+            <span>Asosiy sahifaga qaytish</span>
+          </Link>
+          <div className="flex items-center gap-1.5 text-xs text-charcoal-400">
+            <Phone className="w-3.5 h-3.5 text-brand-500" />
+            <span className="hidden sm:inline">Qo‘llab-quvvatlash:</span>
+            <a href="tel:+998712000000" className="font-semibold text-charcoal-700 hover:text-brand-600">
+              +998 71 200 00 00
+            </a>
+          </div>
+        </div>
+
+        {/* Center Container Card */}
+        <div className="w-full max-w-md mx-auto my-auto">
+          {/* Mobile Top Brand Header */}
+          <div className="flex items-center gap-3 mb-6 lg:hidden">
+            <div className="w-10 h-10 rounded-[12px] bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center shadow-md shadow-brand-500/20">
+              <Heart className="w-5 h-5 text-white fill-white/20" />
             </div>
             <div>
-              <p className="text-white font-bold text-lg leading-none">MASSAJ</p>
-              <p className="text-white/40 text-[10px] tracking-widest uppercase font-medium">Bolalar reabilitatsiya markazi</p>
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-lg text-charcoal-900">MASSAJ CRM</span>
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
+                  Bolalar Klinikasi
+                </span>
+              </div>
+              <p className="text-xs text-charcoal-400">Reabilitatsiya va massaj markazi</p>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Main message */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15 }}
-            className="mt-auto mb-12"
-          >
-            <h2 className="text-3xl font-bold text-white leading-tight mb-4">
-              Bolalar salomatligi uchun<br />
-              <span className="text-brand-400">professional yondashuv</span>
-            </h2>
-            <p className="text-white/60 text-base leading-relaxed max-w-sm">
-              Massaj va reabilitatsiya xizmatlarini professional boshqarish uchun maxsus yaratilgan tizim
-            </p>
-          </motion.div>
-
-          {/* Trust indicators */}
+          {/* Elevated Card */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="grid grid-cols-3 gap-4"
+            transition={{ duration: 0.4 }}
+            className="bg-white rounded-2xl border border-warm-200/90 shadow-xl shadow-warm-900/[0.04] p-6 sm:p-8"
           >
-            {[
-              { icon: <Shield className="w-4 h-4" />, label: 'Xavfsiz tizim' },
-              { icon: <Activity className="w-4 h-4" />, label: 'Real vaqt' },
-              { icon: <Users className="w-4 h-4" />, label: 'Ko\'p foydalanuvchi' },
-            ].map((item, i) => (
-              <div key={i} className="flex flex-col items-center gap-2 p-3 rounded-[12px] bg-white/5 text-center">
-                <span className="text-brand-400">{item.icon}</span>
-                <span className="text-white/60 text-xs font-medium">{item.label}</span>
+            {/* Header Titles */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-1.5">
+                <h1 className="text-2xl font-black text-charcoal-900 tracking-tight">
+                  Tizimga kirish
+                </h1>
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                  Xavfsiz ulanish
+                </span>
               </div>
-            ))}
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Right panel — Login form */}
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="w-full max-w-md"
-        >
-          {/* Mobile logo */}
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-9 h-9 rounded-[10px] bg-brand-500 flex items-center justify-center">
-              <Heart className="w-4 h-4 text-white" />
+              <p className="text-xs sm:text-sm text-charcoal-500 leading-relaxed">
+                Klinik boshqaruv, qabullar monitoringi va shaxsiy kabinetga kirish uchun ma’lumotlaringizni kiriting
+              </p>
             </div>
-            <span className="text-base font-bold text-charcoal-900">MASSAJ CRM</span>
-          </div>
 
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-charcoal-900">Xush kelibsiz</h1>
-            <p className="text-sm text-charcoal-400 mt-1">Tizimga kirish uchun ma'lumotlaringizni kiriting</p>
-          </div>
+            {/* ─── Interactive Quick Role Switcher (Senior standard) ─── */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-charcoal-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-brand-500" />
+                  Tezkor demo hisoblar
+                </span>
+                <span className="text-[11px] text-charcoal-400">Rolni tanlang:</span>
+              </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-charcoal-700 mb-1.5">
-                Email manzil <span className="text-danger-main" aria-hidden>*</span>
-              </label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                placeholder="email@massaj.uz"
-                {...register('email')}
-                className={cn(
-                  'w-full bg-white border rounded-[10px] px-4 py-2.5 text-sm text-charcoal-900 placeholder:text-charcoal-400',
-                  'transition-colors outline-none',
-                  'hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100',
-                  errors.email ? 'border-danger-main' : 'border-warm-300'
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {DEMO_ACCOUNTS.map(acc => {
+                  const Icon = acc.icon;
+                  const isSelected = selectedDemoRole === acc.email;
+                  return (
+                    <button
+                      key={acc.email}
+                      type="button"
+                      onClick={() => handleSelectDemo(acc)}
+                      className={cn(
+                        'relative p-2.5 rounded-[12px] border text-left transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[64px] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+                        isSelected
+                          ? acc.theme === 'brand'
+                            ? 'bg-brand-50/80 border-brand-400 shadow-sm shadow-brand-500/10 ring-1 ring-brand-400'
+                            : acc.theme === 'sage'
+                            ? 'bg-emerald-50/80 border-emerald-400 shadow-sm shadow-emerald-500/10 ring-1 ring-emerald-400'
+                            : 'bg-amber-50/80 border-amber-400 shadow-sm shadow-amber-500/10 ring-1 ring-amber-400'
+                          : 'bg-warm-50/60 border-warm-200/80 hover:bg-white hover:border-warm-300'
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-1 w-full">
+                        <span
+                          className={cn(
+                            'w-6 h-6 rounded-[7px] flex items-center justify-center shrink-0',
+                            isSelected
+                              ? acc.theme === 'brand'
+                                ? 'bg-brand-600 text-white'
+                                : acc.theme === 'sage'
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-amber-600 text-white'
+                              : 'bg-warm-200/80 text-charcoal-600 group-hover:text-charcoal-900'
+                          )}
+                        >
+                          <Icon className="w-3.5 h-3.5" />
+                        </span>
+                        {isSelected && (
+                          <CheckCircle2
+                            className={cn(
+                              'w-4 h-4',
+                              acc.theme === 'brand'
+                                ? 'text-brand-600'
+                                : acc.theme === 'sage'
+                                ? 'text-emerald-600'
+                                : 'text-amber-600'
+                            )}
+                          />
+                        )}
+                      </div>
+
+                      <div className="mt-2">
+                        <p
+                          className={cn(
+                            'text-xs font-bold leading-tight truncate',
+                            isSelected ? 'text-charcoal-900' : 'text-charcoal-700'
+                          )}
+                        >
+                          {acc.role}
+                        </p>
+                        <p className="text-[10px] text-charcoal-400 mt-0.5">demo123</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ─── Login Form ─── */}
+            <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+              {/* Email Input */}
+              <div>
+                <label htmlFor="email" className="block text-xs font-bold text-charcoal-700 mb-1.5">
+                  Email manzil <span className="text-danger-main" aria-hidden>*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="email@massaj.uz"
+                    {...register('email')}
+                    className={cn(
+                      'w-full bg-white border rounded-[10px] pl-10 pr-4 py-2.5 text-xs sm:text-sm text-charcoal-900 placeholder:text-charcoal-400 shadow-2xs',
+                      'transition-all outline-none',
+                      'hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100',
+                      errors.email ? 'border-danger-main' : 'border-warm-300'
+                    )}
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? 'email-error' : undefined}
+                  />
+                </div>
+                {errors.email && (
+                  <p id="email-error" className="mt-1 text-xs text-danger-main font-medium">
+                    {errors.email.message}
+                  </p>
                 )}
-                aria-invalid={!!errors.email}
-                aria-describedby={errors.email ? 'email-error' : undefined}
-              />
-              {errors.email && <p id="email-error" className="mt-1 text-xs text-danger-main">{errors.email.message}</p>}
-            </div>
-
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-charcoal-700 mb-1.5">
-                Parol <span className="text-danger-main" aria-hidden>*</span>
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  placeholder="••••••••"
-                  {...register('password')}
-                  className={cn(
-                    'w-full bg-white border rounded-[10px] px-4 py-2.5 pr-11 text-sm text-charcoal-900 placeholder:text-charcoal-400',
-                    'transition-colors outline-none',
-                    'hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100',
-                    errors.password ? 'border-danger-main' : 'border-warm-300'
-                  )}
-                  aria-invalid={!!errors.password}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700 transition-colors"
-                  aria-label={showPassword ? 'Parolni yashirish' : 'Parolni ko\'rsatish'}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
               </div>
-              {errors.password && <p className="mt-1 text-xs text-danger-main">{errors.password.message}</p>}
-            </div>
 
-            {/* Remember me */}
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                {...register('rememberMe')}
-                className="w-4 h-4 rounded border-warm-300 text-brand-500 focus:ring-brand-100"
-              />
-              <label htmlFor="rememberMe" className="text-sm text-charcoal-600">Meni eslab qol</label>
-            </div>
+              {/* Password Input */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="password" className="block text-xs font-bold text-charcoal-700">
+                    Parol <span className="text-danger-main" aria-hidden>*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleForgotHelp}
+                    className="text-xs font-semibold text-brand-600 hover:text-brand-700 hover:underline transition-colors"
+                  >
+                    Parolni unutdingizmi?
+                  </button>
+                </div>
+                <div className="relative">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    placeholder="••••••••"
+                    {...register('password')}
+                    className={cn(
+                      'w-full bg-white border rounded-[10px] pl-10 pr-11 py-2.5 text-xs sm:text-sm text-charcoal-900 placeholder:text-charcoal-400 shadow-2xs',
+                      'transition-all outline-none',
+                      'hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100',
+                      errors.password ? 'border-danger-main' : 'border-warm-300'
+                    )}
+                    aria-invalid={!!errors.password}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700 p-1 rounded transition-colors cursor-pointer"
+                    aria-label={showPassword ? 'Parolni yashirish' : 'Parolni ko‘rsatish'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="mt-1 text-xs text-danger-main font-medium">{errors.password.message}</p>
+                )}
+              </div>
 
-            {/* Server error */}
-            {serverError && (
-              <motion.div
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-3 rounded-[10px] bg-red-50 border border-red-200 text-sm text-danger-main"
-                role="alert"
+              {/* Remember me checkbox */}
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-charcoal-600 select-none">
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    {...register('rememberMe')}
+                    className="w-4 h-4 rounded-[4px] border-warm-300 text-brand-600 focus:ring-brand-500/20 cursor-pointer"
+                  />
+                  <span>Meni eslab qol</span>
+                </label>
+                <span className="text-[11px] text-charcoal-400 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  Xavfsiz sessiya
+                </span>
+              </div>
+
+              {/* Server-side Error Alert */}
+              <AnimatePresence>
+                {serverError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    className="p-3.5 rounded-[10px] bg-red-50 border border-red-200 text-xs font-semibold text-danger-main flex items-center gap-2"
+                    role="alert"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-danger-main shrink-0" />
+                    <span>{serverError}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Main Submit Button */}
+              <Button
+                type="submit"
+                loading={isSubmitting}
+                className="w-full h-11 text-sm font-bold shadow-sm shadow-brand-500/20 cursor-pointer justify-center"
+                rightIcon={!isSubmitting ? <ArrowRight className="w-4 h-4" /> : undefined}
               >
-                {serverError}
-              </motion.div>
-            )}
+                {isSubmitting ? 'Tizimga ulanmoqda...' : 'Kirish'}
+              </Button>
+            </form>
+          </motion.div>
 
-            <Button
-              type="submit"
-              loading={isSubmitting}
-              className="w-full h-11 text-base"
-              rightIcon={!isSubmitting ? <ArrowRight className="w-4 h-4" /> : undefined}
-            >
-              {isSubmitting ? 'Kirish...' : 'Kirish'}
-            </Button>
-          </form>
+          {/* Bottom Security Notice */}
+          <div className="text-center mt-5 space-y-1">
+            <p className="text-[11px] text-charcoal-400">
+              © {new Date().getFullYear()} Bolalar Massaj va Reabilitatsiya Markazi. Barcha huquqlar himoyalangan.
+            </p>
+          </div>
+        </div>
 
-          {/* Demo accounts */}
-          <div className="mt-8">
-            <p className="text-xs text-charcoal-400 font-medium text-center mb-3 uppercase tracking-wide">Demo hisoblar</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {DEMO_ACCOUNTS.map(acc => (
-                <button
-                  key={acc.email}
-                  type="button"
-                  onClick={() => fillDemo(acc.email, acc.password)}
-                  className={cn(
-                    'flex sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-1.5 px-3 py-2 rounded-[10px] border text-left transition-colors text-xs cursor-pointer',
-                    accentColors[acc.color]
-                  )}
-                >
-                  <p className="font-bold leading-tight truncate">{acc.role}</p>
-                  <p className="text-[10px] opacity-70">demo123</p>
-                </button>
-              ))}
+        {/* Bottom empty placeholder for spacing */}
+        <div className="hidden lg:block h-2" />
+      </div>
+
+      {/* ─── Forgot Password Information Modal ─── */}
+      <Modal
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+        title="Parolni qayta tiklash"
+        size="sm"
+      >
+        <div className="p-5 space-y-4 text-xs text-charcoal-600">
+          <div className="p-3.5 rounded-xl bg-warm-100/70 border border-warm-200/80 flex items-start gap-3">
+            <HelpCircle className="w-5 h-5 text-brand-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-charcoal-900 text-sm">Xavfsizlik eslatmasi</p>
+              <p className="mt-1 leading-relaxed">
+                Tibbiy va klinik ma'lumotlar xavfsizligi sababli, foydalanuvchi hisobi paroli faqat markaz administratsiyasi tomonidan tasdiqlanadi.
+              </p>
             </div>
           </div>
-        </motion.div>
-      </div>
+
+          <div className="space-y-2">
+            <p className="font-bold text-charcoal-800">Qayta tiklash tartibi:</p>
+            <ol className="list-decimal list-inside space-y-1 text-charcoal-600 leading-relaxed">
+              <li>Markaz operatori yoki administratoriga qo‘ng‘iroq qiling.</li>
+              <li>Tizimda ro‘yxatdan o‘tgan telefon raqamingizni tasdiqlang.</li>
+              <li>SMS orqali kelgan bir martalik kod yordamida yangi parol o‘rnating.</li>
+            </ol>
+          </div>
+
+          <div className="p-3 rounded-xl bg-white border border-warm-200 flex items-center justify-between">
+            <span className="font-medium text-charcoal-500">Administrator telefoni:</span>
+            <a href="tel:+998712000000" className="font-bold text-brand-600 hover:underline">
+              +998 71 200 00 00
+            </a>
+          </div>
+
+          <div className="pt-2 flex justify-end">
+            <Button variant="secondary" onClick={() => setShowForgotModal(false)}>
+              Tushunarli
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
