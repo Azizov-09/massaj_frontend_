@@ -355,8 +355,8 @@ export function GoalsPage() {
                           <span className="block text-[11px] font-semibold text-charcoal-800 leading-tight mb-0.5">
                             Mutaxassis sharhi
                           </span>
-                          <p className="text-xs text-charcoal-600 italic leading-relaxed break-words line-clamp-2">
-                            “{goal.specialistNote}”
+                          <p className="text-xs text-charcoal-600 leading-relaxed break-words line-clamp-2">
+                            {goal.specialistNote}
                           </p>
                         </div>
                       </div>
@@ -375,7 +375,7 @@ export function GoalsPage() {
                           <span className="font-medium">Izoh kiritilmagan · Qo‘shish</span>
                         </button>
                       ) : (
-                        <div className="w-full p-2.5 rounded-xl bg-warm-50/40 border border-warm-200/40 text-[11px] text-charcoal-400 flex items-center justify-center min-h-[44px] italic">
+                        <div className="w-full p-2.5 rounded-xl bg-warm-50/40 border border-warm-200/40 text-[11px] text-charcoal-400 flex items-center justify-center min-h-[44px]">
                           Hozircha izoh kiritilmagan
                         </div>
                       )
