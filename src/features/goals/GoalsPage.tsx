@@ -394,11 +394,11 @@ export function GoalsPage() {
                         e.stopPropagation();
                         handleOpenEdit(goal);
                       }}
-                      className="inline-flex items-center gap-1.5 h-7.5 px-3 rounded-lg text-xs font-semibold text-charcoal-700 bg-white hover:bg-brand-500 hover:text-white border border-warm-200/90 hover:border-brand-500 shadow-2xs hover:shadow-xs transition-all duration-150 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/20 group/btn"
+                      className="w-[30px] h-[30px] rounded-lg bg-white hover:bg-brand-500 text-charcoal-500 hover:text-white border border-warm-200/90 hover:border-brand-500 flex items-center justify-center shadow-2xs hover:shadow-xs transition-all duration-150 active:scale-90 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/20"
                       title="Maqsadni tahrirlash"
+                      aria-label="Maqsadni tahrirlash"
                     >
-                      <Edit2 className="w-3.5 h-3.5 text-charcoal-400 group-hover/btn:text-white transition-colors shrink-0" />
-                      <span>Yangilash</span>
+                      <Edit2 className="w-3.5 h-3.5 transition-colors shrink-0" />
                     </button>
                   )}
                 </div>
