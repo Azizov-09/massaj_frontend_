@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import {
   Plus, Search, Calendar, CheckCircle2, XCircle, Play, UserX, X,
-  Clock, Eye, Sparkles, Users, CheckCheck, Phone
+  Clock, Eye, Users, CheckCheck, Phone
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import {
@@ -252,9 +252,8 @@ export function AppointmentsPage() {
         const svc = services.find(s => s.id === row.serviceId);
         return svc ? (
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[6px] bg-brand-50 text-brand-800 border border-brand-200/80 text-xs font-semibold shadow-2xs">
-              <Sparkles className="w-3 h-3 text-brand-600 shrink-0" />
-              <span className="truncate max-w-[170px]">{svc.name}</span>
+            <div className="inline-flex items-center px-2.5 py-0.5 rounded-[6px] bg-brand-50 text-brand-800 border border-brand-200/80 text-xs font-semibold shadow-2xs">
+              <span className="truncate max-w-[190px]">{svc.name}</span>
             </div>
             <div className="flex items-center gap-1.5 text-[11px] text-charcoal-500 font-medium mt-1">
               <span>{svc.durationMinutes} daq</span>
