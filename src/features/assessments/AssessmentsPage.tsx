@@ -528,8 +528,8 @@ export function AssessmentsPage() {
       {/* Main Table & Controls Card */}
       <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
         {/* Top Status Tabs */}
-        <div className="px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+        <div className="px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
             {[
               { key: 'ALL', label: 'Barchasi', count: tabCounts.all },
               { key: 'HIGH', label: 'Optimal (4-5 ball)', count: tabCounts.high },
@@ -563,7 +563,7 @@ export function AssessmentsPage() {
             })}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
             {/* View Mode Toggle */}
             <div className="flex items-center bg-white p-0.5 rounded-[8px] border border-warm-200/90 shadow-2xs">
               <button

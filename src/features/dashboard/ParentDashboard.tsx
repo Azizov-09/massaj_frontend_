@@ -165,14 +165,14 @@ export function ParentDashboard() {
 
       {/* ─── Financial Status Callout Banner (if debt or deposit) ─── */}
       {finance.debt > 0 ? (
-        <div className="p-4 rounded-xl bg-rose-50/80 border border-rose-200/90 shadow-2xs flex items-center justify-between gap-4 flex-wrap text-xs">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+        <div className="p-3.5 sm:p-4 rounded-xl bg-rose-50/80 border border-rose-200/90 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 text-xs">
+          <div className="flex items-start sm:items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5 sm:mt-0" />
             <div>
               <p className="font-bold text-rose-950 text-sm">
                 Hisobingizda {formatCurrency(finance.debt)} qarzdorlik mavjud
               </p>
-              <p className="text-rose-700 text-xs">
+              <p className="text-rose-700 text-xs mt-0.5">
                 Keyingi qabullarning kechikishini oldini olish uchun to‘lovni amalga oshirishni tavsiya qilamiz
               </p>
             </div>
@@ -180,21 +180,21 @@ export function ParentDashboard() {
           <Button
             size="sm"
             variant="secondary"
-            className="bg-white text-rose-800 border-rose-200 hover:bg-rose-100"
+            className="bg-white text-rose-800 border-rose-200 hover:bg-rose-100 w-full sm:w-auto shrink-0"
             onClick={() => navigate('/dashboard/parent/balance')}
           >
             To‘lovni ko‘rish
           </Button>
         </div>
       ) : (
-        <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200/80 shadow-2xs flex items-center justify-between gap-4 flex-wrap text-xs">
-          <div className="flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+        <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-50/70 border border-emerald-200/80 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 text-xs">
+          <div className="flex items-start sm:items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5 sm:mt-0" />
             <div>
               <p className="font-bold text-emerald-950 text-sm">
                 Barcha to‘lovlar muvozanatda • Depozit: {formatCurrency(finance.balance)}
               </p>
-              <p className="text-emerald-700 text-xs">
+              <p className="text-emerald-700 text-xs mt-0.5">
                 Farzandlaringiz uchun barcha reabilitatsiya seanslari jadval bo‘yicha to‘siqlarsiz davom etmoqda
               </p>
             </div>
@@ -202,7 +202,7 @@ export function ParentDashboard() {
           <Button
             size="sm"
             variant="secondary"
-            className="bg-white text-emerald-800 border-emerald-200 hover:bg-emerald-100"
+            className="bg-white text-emerald-800 border-emerald-200 hover:bg-emerald-100 w-full sm:w-auto shrink-0"
             onClick={() => navigate('/dashboard/parent/balance')}
           >
             Hisob tafsiloti
@@ -230,7 +230,8 @@ export function ParentDashboard() {
         />
         <KpiCard
           label="Joriy depozit balansi"
-          value={formatCurrency(finance.balance)}
+          value={finance.balance}
+          format="currency"
           description="Hisobdagi erkin mablag'"
           accentColor="sage"
           icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />}
@@ -239,7 +240,8 @@ export function ParentDashboard() {
         />
         <KpiCard
           label="Qarzdorlik holati"
-          value={formatCurrency(finance.debt)}
+          value={finance.debt}
+          format="currency"
           description={finance.debt > 0 ? "To'lov amalga oshirish lozim" : "Qarzdorlik mavjud emas"}
           accentColor="danger"
           icon={<AlertCircle className="w-5 h-5 text-rose-600" />}
@@ -471,7 +473,7 @@ export function ParentDashboard() {
                       className="p-3.5 rounded-[12px] bg-white border border-warm-200/90 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition-all space-y-2.5"
                     >
                       {/* Top Header of Item: Child + Specialist + Date + Copy Button */}
-                      <div className="flex items-center justify-between gap-2.5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <Avatar
                             name={child?.fullName ?? 'Bola'}
@@ -496,7 +498,7 @@ export function ParentDashboard() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
                           <span className="text-[10px] font-bold text-charcoal-500 bg-warm-50 px-2 py-0.5 rounded-[6px] border border-warm-200/80 tabular-nums">
                             {formatDate(n.date)}
                           </span>

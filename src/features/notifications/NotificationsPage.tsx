@@ -50,7 +50,7 @@ export function NotificationsPage() {
           <div className="divide-y divide-warm-50">
             {userNotifs.map(notif => (
               <div key={notif.id}
-                className={cn('flex items-start gap-4 px-5 py-4 hover:bg-warm-50/50 transition-colors group', !notif.isRead && 'bg-brand-50/30')}>
+                className={cn('flex items-start gap-3 sm:gap-4 px-3.5 sm:px-5 py-3.5 sm:py-4 hover:bg-warm-50/50 transition-colors group', !notif.isRead && 'bg-brand-50/30')}>
                 <div className={cn('w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0', typeColors[notif.type] ?? 'bg-warm-100 text-charcoal-700')}>
                   {notif.type === 'payment' ? (
                     <CreditCard className="w-4 h-4" />
@@ -76,7 +76,7 @@ export function NotificationsPage() {
                 </div>
                 <button
                   onClick={() => notif.isRead ? markUnread(notif.id) : markRead(notif.id)}
-                  className="opacity-0 group-hover:opacity-100 p-1.5 rounded-[6px] text-charcoal-400 hover:text-charcoal-700 hover:bg-warm-100 transition-all"
+                  className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 p-1.5 rounded-[6px] text-charcoal-400 hover:text-charcoal-700 hover:bg-warm-100 transition-all shrink-0 cursor-pointer"
                   title={notif.isRead ? "O'qilmagan qilish" : "O'qilgan qilish"}
                 >
                   {notif.isRead ? <BellOff className="w-3.5 h-3.5" /> : <Bell className="w-3.5 h-3.5" />}

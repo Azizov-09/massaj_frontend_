@@ -104,7 +104,7 @@ export function SettingsPage() {
             </div>
 
             <div className="pt-2 flex justify-end">
-              <Button type="submit" leftIcon={<Save className="w-4 h-4" />}>
+              <Button type="submit" leftIcon={<Save className="w-4 h-4" />} className="w-full sm:w-auto justify-center">
                 O‘zgarishlarni saqlash
               </Button>
             </div>
@@ -124,7 +124,7 @@ export function SettingsPage() {
           </div>
         </CardHeader>
         <CardBody className="space-y-4">
-          <div className="flex items-center justify-between p-3.5 rounded-[12px] border border-warm-200 shadow-2xs hover:bg-warm-50/50 transition-colors">
+          <div className="flex items-center justify-between p-3.5 rounded-[12px] border border-warm-200 shadow-2xs hover:bg-warm-50/50 transition-colors gap-3">
             <div>
               <span className="text-xs sm:text-sm font-bold text-charcoal-900 block">SMS Eslatmalar</span>
               <span className="text-xs text-charcoal-500">Seansdan oldin ota-onaga SMS xabarnoma yuborish</span>
@@ -136,7 +136,7 @@ export function SettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3.5 rounded-[12px] border border-warm-200 shadow-2xs hover:bg-warm-50/50 transition-colors">
+          <div className="flex items-center justify-between p-3.5 rounded-[12px] border border-warm-200 shadow-2xs hover:bg-warm-50/50 transition-colors gap-3">
             <div>
               <span className="text-xs sm:text-sm font-bold text-charcoal-900 block">Ovozli signallar</span>
               <span className="text-xs text-charcoal-500">Yangi uchrashuv yoki to‘lov kiritilganda ovoz chiqarish</span>
@@ -148,12 +148,12 @@ export function SettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3.5 rounded-[12px] border border-warm-200 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-[12px] border border-warm-200 shadow-2xs">
             <div>
               <span className="text-xs sm:text-sm font-bold text-charcoal-900 block">Eslatma yuborish vaqti</span>
               <span className="text-xs text-charcoal-500">Seans boshlanishidan necha soat oldin yuboriladi</span>
             </div>
-            <div className="w-40">
+            <div className="w-full sm:w-40">
               <Select
                 value={reminderHours}
                 onChange={e => setReminderHours(e.target.value)}
@@ -192,6 +192,7 @@ export function SettingsPage() {
               variant="danger"
               leftIcon={<RefreshCw className="w-4 h-4" />}
               onClick={() => setShowResetConfirm(true)}
+              className="w-full sm:w-auto justify-center shrink-0"
             >
               Ma’lumotlarni qayta tiklash
             </Button>

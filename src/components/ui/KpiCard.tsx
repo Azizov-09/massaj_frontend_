@@ -68,18 +68,34 @@ export function KpiCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.22, delay: index * 0.04, ease: 'easeOut' }}
       className={cn(
-        'relative h-full min-h-[96px] bg-white rounded-[14px] border border-warm-200 shadow-[0_1px_3px_0_rgb(0_0_0/0.06)] hover:border-warm-300 hover:shadow-xs transition-all duration-200 p-4 sm:p-4.5 flex items-center justify-between gap-3.5 group',
-        size === 'sm' && 'p-3 gap-2.5 rounded-[12px] min-h-[80px]',
-        size === 'lg' && 'p-5 gap-4 rounded-[16px] min-h-[110px]',
+        'relative h-full min-h-[96px] bg-white rounded-[14px] border border-warm-200/90 shadow-[0_1px_3px_0_rgb(0_0_0/0.06)] hover:border-warm-300 hover:shadow-xs transition-all duration-200 p-3.5 sm:p-4 flex flex-col justify-between group overflow-hidden',
+        size === 'sm' && 'p-2.5 sm:p-3 rounded-[12px] min-h-[80px]',
+        size === 'lg' && 'p-4 sm:p-5 rounded-[16px] min-h-[110px]',
         className
       )}
     >
-      {/* Content on Left */}
-      <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium text-charcoal-500 truncate mb-1">
+      {/* Top Row: Label & Icon */}
+      <div className="flex items-start justify-between gap-2 w-full">
+        <p className="text-xs font-medium text-charcoal-500 line-clamp-1 flex-1 min-w-0" title={label}>
           {label}
         </p>
 
+        {icon && (
+          <div
+            className={cn(
+              'w-8 h-8 sm:w-9 sm:h-9 rounded-[8px] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105 shadow-2xs [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-4.5 sm:[&>svg]:h-4.5',
+              iconBgMap[accentColor] ?? iconBgMap.brand,
+              size === 'sm' && 'w-7 h-7 rounded-[6px] [&>svg]:w-3.5 [&>svg]:h-3.5',
+              size === 'lg' && 'w-9 h-9 sm:w-11 sm:h-11 rounded-[10px] [&>svg]:w-4.5 [&>svg]:h-4.5 sm:[&>svg]:w-5.5 sm:[&>svg]:h-5.5'
+            )}
+          >
+            {icon}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Area: Full-width Metric Value + Trend/Change */}
+      <div className="mt-2 w-full min-w-0">
         <div className="flex items-baseline gap-x-2 gap-y-0.5 flex-wrap">
           <motion.span
             key={String(value)}
@@ -87,9 +103,10 @@ export function KpiCard({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
             className={cn(
-              'font-extrabold text-charcoal-900 tabular-nums tracking-tight leading-none',
-              size === 'sm' ? 'text-lg sm:text-xl' : size === 'lg' ? 'text-3xl' : 'text-2xl sm:text-[28px]'
+              'font-extrabold text-charcoal-900 tabular-nums tracking-tight leading-none truncate max-w-full block',
+              size === 'sm' ? 'text-base sm:text-lg' : size === 'lg' ? 'text-2xl sm:text-3xl' : 'text-lg sm:text-2xl'
             )}
+            title={typeof value === 'number' && format === 'currency' ? `${value.toLocaleString('uz-UZ')} so'm` : String(value)}
           >
             {formatValue()}
           </motion.span>
@@ -97,7 +114,7 @@ export function KpiCard({
           {trend && (
             <span
               className={cn(
-                'inline-flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-[5px] shrink-0',
+                'inline-flex items-center gap-0.5 text-[10px] sm:text-[11px] font-bold px-1.5 py-0.5 rounded-[5px] shrink-0',
                 trendPositive
                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-100/80'
                   : trendNeutral
@@ -113,7 +130,7 @@ export function KpiCard({
           {!trend && change && (
             <span
               className={cn(
-                'text-[11px] font-semibold truncate max-w-full',
+                'text-[10px] sm:text-[11px] font-semibold truncate max-w-full',
                 changeType === 'positive' ? 'text-emerald-600' : changeType === 'negative' ? 'text-rose-600' : 'text-charcoal-500'
               )}
               title={typeof change === 'string' ? change : undefined}
@@ -125,27 +142,13 @@ export function KpiCard({
 
         {(description || trend?.label) && (
           <p
-            className="text-[11px] text-charcoal-400 mt-1.5 font-normal leading-tight truncate"
+            className="text-[10px] sm:text-[11px] text-charcoal-400 mt-1 font-normal leading-tight truncate"
             title={typeof (description ?? trend?.label) === 'string' ? (description ?? trend?.label) : undefined}
           >
             {description ?? trend?.label}
           </p>
         )}
       </div>
-
-      {/* Icon on Right */}
-      {icon && (
-        <div
-          className={cn(
-            'w-11 h-11 rounded-[10px] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105 shadow-2xs [&>svg]:w-5 [&>svg]:h-5',
-            iconBgMap[accentColor] ?? iconBgMap.brand,
-            size === 'sm' && 'w-9 h-9 rounded-[8px] [&>svg]:w-4 [&>svg]:h-4',
-            size === 'lg' && 'w-13 h-13 rounded-[12px] [&>svg]:w-6 [&>svg]:h-6'
-          )}
-        >
-          {icon}
-        </div>
-      )}
     </motion.div>
   );
 }

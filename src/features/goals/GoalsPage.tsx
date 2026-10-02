@@ -216,8 +216,8 @@ export function GoalsPage() {
       {/* Filter strip */}
       <Card className="p-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="w-56">
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <div className="w-full sm:w-56">
               <Select
                 size="sm"
                 triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
@@ -231,7 +231,7 @@ export function GoalsPage() {
               />
             </div>
 
-            <div className="w-48">
+            <div className="w-full sm:w-48">
               <Select
                 size="sm"
                 triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
@@ -248,7 +248,7 @@ export function GoalsPage() {
             </div>
           </div>
 
-          <span className="text-xs text-charcoal-400 font-medium">
+          <span className="text-xs text-charcoal-400 font-medium self-end sm:self-auto">
             {filteredGoals.length} ta maqsad
           </span>
         </div>

@@ -165,12 +165,13 @@ export function ReportsPage() {
           title="Tizimli hisobotlar va tahlillar"
           description="Barcha yo‘nalishlar bo‘yicha batafsil ma’lumotlar va eksport qilish moduli"
         />
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
           <Button
             variant="secondary"
             leftIcon={<Download className="w-4 h-4" />}
             onClick={handleExportCSV}
             disabled={reportData.length === 0}
+            className="w-full sm:w-auto justify-center"
           >
             CSV Eksport
           </Button>
@@ -179,6 +180,7 @@ export function ReportsPage() {
             leftIcon={<FileText className="w-4 h-4" />}
             onClick={handleExportJSON}
             disabled={reportData.length === 0}
+            className="w-full sm:w-auto justify-center"
           >
             JSON Eksport
           </Button>
@@ -186,7 +188,7 @@ export function ReportsPage() {
       </div>
 
       {/* Report Type Switcher Tabs */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-nowrap sm:flex-wrap overflow-x-auto scrollbar-none gap-2 pb-1 sm:pb-0 -mx-0.5 px-0.5">
         {REPORT_TABS.map(item => {
           const Icon = item.icon;
           const isActive = reportType === item.type;
@@ -195,7 +197,7 @@ export function ReportsPage() {
               key={item.type}
               onClick={() => setReportType(item.type)}
               className={cn(
-                "px-3.5 py-2 rounded-[10px] font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer",
+                "px-3.5 py-2 rounded-[10px] font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0",
                 isActive
                   ? "bg-brand-600 text-white shadow-xs"
                   : "bg-white border border-warm-200/90 text-charcoal-700 hover:border-brand-300 hover:bg-warm-50/50"
@@ -210,27 +212,27 @@ export function ReportsPage() {
 
       {/* Filter strip */}
       <Card className="p-4 border border-warm-200/90 shadow-xs">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-xs font-semibold text-charcoal-500">Filtr parametrlar:</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+            <span className="text-xs font-semibold text-charcoal-500 whitespace-nowrap">Filtr parametrlar:</span>
 
             {/* Date Range */}
-            <div className="flex items-center gap-1.5 text-xs">
-              <div className="w-36">
+            <div className="flex items-center gap-1.5 text-xs w-full sm:w-auto">
+              <div className="flex-1 sm:w-36">
                 <DatePicker
                   size="sm"
-                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 w-full"
                   value={dateFrom}
                   onChange={e => setDateFrom(e.target.value)}
                   placeholder="Dan boshlab"
                   aria-label="Boshlanish sanasi"
                 />
               </div>
-              <span className="text-charcoal-400">—</span>
-              <div className="w-36">
+              <span className="text-charcoal-400 shrink-0">—</span>
+              <div className="flex-1 sm:w-36">
                 <DatePicker
                   size="sm"
-                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 w-full"
                   value={dateTo}
                   onChange={e => setDateTo(e.target.value)}
                   placeholder="Gacha"
@@ -241,10 +243,10 @@ export function ReportsPage() {
 
             {/* Specialist filter for sessions and attendance */}
             {(reportType === 'SESSIONS' || reportType === 'ATTENDANCE') && (
-              <div className="w-56">
+              <div className="w-full sm:w-56">
                 <Select
                   size="sm"
-                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 w-full"
                   value={specialistFilter}
                   onChange={e => setSpecialistFilter(e.target.value)}
                   options={[

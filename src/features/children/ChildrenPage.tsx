@@ -262,8 +262,8 @@ export function ChildrenPage() {
       {/* Main Table Card */}
       <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
         {/* Status Tabs Bar */}
-        <div className="px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+        <div className="px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
             {[
               { key: '', label: 'Barchasi', count: statusCounts.all },
               { key: 'ACTIVE', label: 'Faol', count: statusCounts.active },
@@ -297,7 +297,7 @@ export function ChildrenPage() {
             })}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
             <span className="text-xs font-medium text-charcoal-500 bg-white px-2.5 py-1 rounded-[8px] border border-warm-200/80 shadow-2xs">
               Ko‘rsatilmoqda: <strong className="text-charcoal-900 font-bold">{filtered.length}</strong> / {baseChildren.length}
             </span>

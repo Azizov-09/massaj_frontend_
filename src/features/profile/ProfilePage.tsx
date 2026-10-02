@@ -115,7 +115,7 @@ export function ProfilePage() {
             </div>
 
             <div className="pt-2 flex justify-end">
-              <Button type="submit" leftIcon={<Save className="w-4 h-4" />}>
+              <Button type="submit" leftIcon={<Save className="w-4 h-4" />} className="w-full sm:w-auto justify-center">
                 Saqlash
               </Button>
             </div>
@@ -162,7 +162,7 @@ export function ProfilePage() {
             </div>
 
             <div className="pt-2 flex justify-end">
-              <Button type="submit" variant="secondary">
+              <Button type="submit" variant="secondary" className="w-full sm:w-auto justify-center">
                 Parolni o‘zgartirish
               </Button>
             </div>

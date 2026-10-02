@@ -333,7 +333,7 @@ export function BalancePage() {
 
       <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
         {/* Quick Tabs */}
-        <div className="flex items-center gap-1.5 px-4 pt-3.5 pb-2 border-b border-warm-200/70 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto scrollbar-none w-full">
           <button
             onClick={() => setStatusFilter('ALL')}
             className={cn(

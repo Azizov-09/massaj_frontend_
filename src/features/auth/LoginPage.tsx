@@ -144,7 +144,7 @@ export function LoginPage() {
       </div>
 
       {/* Right panel — Login form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-10">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -256,22 +256,19 @@ export function LoginPage() {
           {/* Demo accounts */}
           <div className="mt-8">
             <p className="text-xs text-charcoal-400 font-medium text-center mb-3 uppercase tracking-wide">Demo hisoblar</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {DEMO_ACCOUNTS.map(acc => (
                 <button
                   key={acc.email}
                   type="button"
                   onClick={() => fillDemo(acc.email, acc.password)}
                   className={cn(
-                    'flex items-center gap-2 px-3 py-2.5 rounded-[10px] border text-left transition-colors text-xs',
+                    'flex sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-1.5 px-3 py-2 rounded-[10px] border text-left transition-colors text-xs cursor-pointer',
                     accentColors[acc.color]
                   )}
                 >
-                  <div className={cn('w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0', `bg-current opacity-20`)} />
-                  <div>
-                    <p className="font-semibold leading-none">{acc.role}</p>
-                    <p className="text-[10px] opacity-70 mt-0.5">demo123</p>
-                  </div>
+                  <p className="font-bold leading-tight truncate">{acc.role}</p>
+                  <p className="text-[10px] opacity-70">demo123</p>
                 </button>
               ))}
             </div>

@@ -79,6 +79,7 @@ export function ActivityLogsPage() {
           variant="secondary"
           leftIcon={<Download className="w-4 h-4" />}
           onClick={handleExportJSON}
+          className="w-full sm:w-auto justify-center"
         >
           Auditni yuklab olish
         </Button>
@@ -86,9 +87,9 @@ export function ActivityLogsPage() {
 
       {/* Control Strip */}
       <Card className="p-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative w-64">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none" />
               <input
                 type="text"
@@ -99,12 +100,12 @@ export function ActivityLogsPage() {
               />
             </div>
 
-            <div className="w-44">
+            <div className="w-full sm:w-44">
               <Select
                 value={actionFilter}
                 onChange={e => setActionFilter(e.target.value)}
                 size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 w-full"
               >
                 <option value="">Barcha harakatlar</option>
                 <option value="CREATE">Yaratish</option>
@@ -116,12 +117,12 @@ export function ActivityLogsPage() {
               </Select>
             </div>
 
-            <div className="w-44">
+            <div className="w-full sm:w-44">
               <Select
                 value={entityFilter}
                 onChange={e => setEntityFilter(e.target.value)}
                 size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 w-full"
               >
                 <option value="">Barcha ob’ektlar</option>
                 <option value="appointment">Uchrashuv</option>

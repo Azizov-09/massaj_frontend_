@@ -115,10 +115,10 @@ export function AnalyticsPage() {
           title="Biznes analitika"
           description="Moliyaviy ko‘rsatkichlar, seanslar samaradorligi va xodimlar yuklamasi"
         />
-        <div className="inline-flex items-center h-9 p-1 rounded-[10px] bg-warm-100/90 border border-warm-200/80 shadow-2xs gap-1">
+        <div className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start h-9 p-1 rounded-[10px] bg-warm-100/90 border border-warm-200/80 shadow-2xs gap-1">
           <button
             onClick={() => setTimeRange('7days')}
-            className={`h-7 px-3 text-xs font-semibold rounded-[7px] transition-all ${
+            className={`flex-1 sm:flex-initial text-center h-7 px-3 text-xs font-semibold rounded-[7px] transition-all ${
               timeRange === '7days' ? 'bg-white shadow-2xs text-charcoal-900 font-bold' : 'text-charcoal-500 hover:text-charcoal-900'
             }`}
           >
@@ -126,7 +126,7 @@ export function AnalyticsPage() {
           </button>
           <button
             onClick={() => setTimeRange('month')}
-            className={`h-7 px-3 text-xs font-semibold rounded-[7px] transition-all ${
+            className={`flex-1 sm:flex-initial text-center h-7 px-3 text-xs font-semibold rounded-[7px] transition-all ${
               timeRange === 'month' ? 'bg-white shadow-2xs text-charcoal-900 font-bold' : 'text-charcoal-500 hover:text-charcoal-900'
             }`}
           >
@@ -134,7 +134,7 @@ export function AnalyticsPage() {
           </button>
           <button
             onClick={() => setTimeRange('year')}
-            className={`h-7 px-3 text-xs font-semibold rounded-[7px] transition-all ${
+            className={`flex-1 sm:flex-initial text-center h-7 px-3 text-xs font-semibold rounded-[7px] transition-all ${
               timeRange === 'year' ? 'bg-white shadow-2xs text-charcoal-900 font-bold' : 'text-charcoal-500 hover:text-charcoal-900'
             }`}
           >
