@@ -394,9 +394,10 @@ export function GoalsPage() {
                         e.stopPropagation();
                         handleOpenEdit(goal);
                       }}
-                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-semibold text-charcoal-600 group-hover:text-brand-600 bg-warm-50 group-hover:bg-brand-50/80 border border-warm-200/80 group-hover:border-brand-200 shadow-2xs transition-all duration-150"
+                      className="inline-flex items-center gap-1.5 h-7.5 px-3 rounded-lg text-xs font-semibold text-charcoal-700 bg-white hover:bg-brand-500 hover:text-white border border-warm-200/90 hover:border-brand-500 shadow-2xs hover:shadow-xs transition-all duration-150 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/20 group/btn"
+                      title="Maqsadni tahrirlash"
                     >
-                      <Edit2 className="w-3 h-3 text-charcoal-400 group-hover:text-brand-500 transition-colors" />
+                      <Edit2 className="w-3.5 h-3.5 text-charcoal-400 group-hover/btn:text-white transition-colors shrink-0" />
                       <span>Yangilash</span>
                     </button>
                   )}
