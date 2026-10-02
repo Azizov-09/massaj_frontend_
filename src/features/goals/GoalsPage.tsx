@@ -344,20 +344,20 @@ export function GoalsPage() {
                         }}
                         title={`Mutaxassis sharhi: ${goal.specialistNote}`}
                         className={cn(
-                          'w-full rounded-xl bg-warm-50/80 border border-warm-200/75 p-2.5 min-h-[44px] flex items-start gap-2.5 shadow-2xs transition-all',
+                          'w-full rounded-xl bg-warm-50/80 border border-warm-200/75 p-2.5 min-h-[44px] flex items-center gap-2.5 shadow-2xs transition-all',
                           !isParent && 'hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer'
                         )}
                       >
-                        <div className="w-6 h-6 rounded-lg bg-brand-50 border border-brand-100/80 flex items-center justify-center shrink-0 mt-0.5 text-brand-600">
+                        <div className="w-6 h-6 rounded-lg bg-brand-50 border border-brand-100/80 flex items-center justify-center shrink-0 text-brand-600">
                           <Quote className="w-3.5 h-3.5 text-brand-500" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <span className="block text-[11px] font-semibold text-charcoal-800 leading-tight mb-0.5">
-                            Mutaxassis sharhi
+                        <div className="flex-1 min-w-0 flex items-center gap-1.5 text-xs">
+                          <span className="text-[11px] font-semibold text-charcoal-800 shrink-0">
+                            Sharh:
                           </span>
-                          <p className="text-xs text-charcoal-600 leading-relaxed break-words line-clamp-2">
+                          <span className="text-xs text-charcoal-600 truncate font-normal">
                             {goal.specialistNote}
-                          </p>
+                          </span>
                         </div>
                       </div>
                     ) : (
