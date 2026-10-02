@@ -344,19 +344,24 @@ export function GoalsPage() {
                         }}
                         title={`Mutaxassis sharhi: ${goal.specialistNote}`}
                         className={cn(
-                          'w-full rounded-xl bg-warm-50/80 border border-warm-200/75 px-3 h-11 flex items-center gap-2.5 shadow-2xs transition-all overflow-hidden',
-                          !isParent && 'hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer'
+                          'w-full rounded-xl bg-warm-50/80 border border-warm-200/75 px-3 h-11 flex items-center gap-2.5 shadow-2xs transition-all overflow-hidden group/note',
+                          !isParent && 'hover:border-brand-300 hover:bg-brand-50/30 cursor-pointer active:scale-[0.99]'
                         )}
                       >
-                        <div className="w-6 h-6 rounded-lg bg-brand-50 border border-brand-100/80 flex items-center justify-center shrink-0 text-brand-600">
-                          <Quote className="w-3.5 h-3.5 text-brand-500" />
+                        <div className="w-6 h-6 rounded-lg bg-brand-50 border border-brand-200/70 flex items-center justify-center shrink-0 text-brand-600 group-hover/note:bg-brand-100 group-hover/note:border-brand-300 transition-colors">
+                          <Quote className="w-3.5 h-3.5 text-brand-500 group-hover/note:text-brand-600 transition-colors" />
                         </div>
-                        <p className="flex-1 min-w-0 text-xs text-charcoal-600 truncate leading-normal font-normal">
+                        <p className="flex-1 min-w-0 text-xs text-charcoal-600 group-hover/note:text-charcoal-900 truncate leading-normal font-normal transition-colors">
                           <span className="font-semibold text-charcoal-800 mr-1.5">
                             Sharh:
                           </span>
                           <span>{goal.specialistNote}</span>
                         </p>
+                        {!isParent && (
+                          <span className="text-[11px] font-semibold text-brand-600 opacity-0 group-hover/note:opacity-100 transition-all duration-150 shrink-0 transform translate-x-1 group-hover/note:translate-x-0">
+                            Tahrirlash →
+                          </span>
+                        )}
                       </div>
                     ) : (
                       !isParent ? (
@@ -366,15 +371,29 @@ export function GoalsPage() {
                             e.stopPropagation();
                             handleOpenEdit(goal);
                           }}
-                          className="w-full px-3 h-11 rounded-xl border border-dashed border-warm-200/90 hover:border-brand-300 hover:bg-brand-50/40 text-xs text-charcoal-400 hover:text-brand-600 flex items-center justify-center gap-1.5 transition-all overflow-hidden group/note cursor-pointer"
-                          title="Mutaxassis izohini qo‘shish"
+                          className="w-full px-3 h-11 rounded-xl bg-warm-50/60 hover:bg-brand-50/50 border border-warm-200/80 hover:border-brand-300 flex items-center gap-2.5 transition-all duration-150 overflow-hidden group/btn cursor-pointer shadow-2xs text-left active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/20"
+                          title="Mutaxassis sharhini qo‘shish"
                         >
-                          <Plus className="w-3.5 h-3.5 text-charcoal-400 group-hover/note:text-brand-500 transition-colors shrink-0" />
-                          <span className="font-medium">Izoh kiritilmagan · Qo‘shish</span>
+                          <div className="w-6 h-6 rounded-lg bg-warm-100/80 border border-warm-200/70 flex items-center justify-center shrink-0 text-charcoal-500 group-hover/btn:bg-brand-100/80 group-hover/btn:border-brand-300 group-hover/btn:text-brand-600 transition-colors">
+                            <Plus className="w-3.5 h-3.5" />
+                          </div>
+                          <div className="flex-1 min-w-0 flex items-center justify-between text-xs">
+                            <span className="text-charcoal-600 group-hover/btn:text-charcoal-900 font-medium transition-colors truncate">
+                              Mutaxassis sharhini qo‘shish
+                            </span>
+                            <span className="text-[11px] font-semibold text-brand-600 opacity-0 group-hover/btn:opacity-100 transition-all duration-150 shrink-0 transform translate-x-1 group-hover/btn:translate-x-0">
+                              Kiritish →
+                            </span>
+                          </div>
                         </button>
                       ) : (
-                        <div className="w-full px-3 h-11 rounded-xl bg-warm-50/40 border border-warm-200/40 text-xs text-charcoal-400 flex items-center justify-center overflow-hidden">
-                          Hozircha izoh kiritilmagan
+                        <div className="w-full px-3 h-11 rounded-xl bg-warm-50/40 border border-warm-200/40 text-xs text-charcoal-400 flex items-center gap-2.5 overflow-hidden">
+                          <div className="w-6 h-6 rounded-lg bg-warm-100/50 border border-warm-200/40 flex items-center justify-center shrink-0 text-charcoal-300">
+                            <Quote className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="text-xs text-charcoal-400 font-normal">
+                            Hozircha izoh kiritilmagan
+                          </span>
                         </div>
                       )
                     )}
@@ -394,9 +413,9 @@ export function GoalsPage() {
                         e.stopPropagation();
                         handleOpenEdit(goal);
                       }}
-                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-semibold text-charcoal-600 group-hover:text-brand-600 bg-warm-50 group-hover:bg-brand-50/80 border border-warm-200/80 group-hover:border-brand-200 shadow-2xs transition-all duration-150"
+                      className="inline-flex items-center gap-1.5 h-7.5 px-3 rounded-lg text-xs font-semibold text-charcoal-700 bg-white hover:bg-brand-50 hover:text-brand-600 border border-warm-200/90 hover:border-brand-300 shadow-2xs hover:shadow-xs transition-all duration-150 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/20 group/edit"
                     >
-                      <Edit2 className="w-3 h-3 text-charcoal-400 group-hover:text-brand-500 transition-colors" />
+                      <Edit2 className="w-3 h-3 text-charcoal-400 group-hover/edit:text-brand-500 transition-colors" />
                       <span>Yangilash</span>
                     </button>
                   )}
