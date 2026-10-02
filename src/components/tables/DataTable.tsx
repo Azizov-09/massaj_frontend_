@@ -76,9 +76,18 @@ export function DataTable<T>({
 
   if (loading) {
     return (
-      <div className="space-y-2 p-4">
+      <div className="overflow-x-auto p-4 space-y-3">
+        <div className="flex items-center gap-4 py-2 border-b border-warm-200">
+          {columns.map((col, i) => (
+            <Skeleton key={i} className="h-4 rounded-[6px]" style={{ width: col.width || '120px' }} />
+          ))}
+        </div>
         {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-12 w-full" />
+          <div key={i} className="flex items-center gap-4 py-3 border-b border-warm-100">
+            {columns.map((col, j) => (
+              <Skeleton key={j} className="h-4 rounded-[6px]" style={{ width: col.width || '100px' }} />
+            ))}
+          </div>
         ))}
       </div>
     );
@@ -94,31 +103,37 @@ export function DataTable<T>({
       <div className="overflow-x-auto">
         <table className={cn('w-full border-collapse min-w-[600px]', tableClassName)}>
           <thead className={cn(stickyHeader && 'sticky top-0 z-10')}>
-            <tr className="bg-warm-50 border-b border-warm-200">
-              {columns.map(col => (
-                <th
-                  key={String(col.key)}
-                  className={cn(
-                    'px-4 py-3 text-left text-xs font-semibold text-charcoal-500 uppercase tracking-wide whitespace-nowrap',
-                    col.sortable && 'cursor-pointer select-none hover:text-charcoal-800 transition-colors',
-                    col.headerClassName
-                  )}
-                  style={col.width ? { width: col.width } : undefined}
-                  onClick={col.sortable ? () => handleSort(String(col.key)) : undefined}
-                  aria-sort={sortKey === String(col.key) ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
-                >
-                  <div className="flex items-center gap-1.5">
-                    {col.header || col.title}
-                    {col.sortable && (
-                      <span className="text-charcoal-300">
-                        {sortKey === String(col.key) ? (
-                          sortOrder === 'asc' ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />
-                        ) : <ChevronsUpDown className="w-3.5 h-3.5" />}
-                      </span>
+            <tr className="bg-warm-50/80 border-b border-warm-200/90">
+              {columns.map(col => {
+                const isSorted = sortKey === String(col.key);
+                return (
+                  <th
+                    key={String(col.key)}
+                    className={cn(
+                      'px-4.5 py-3 text-left text-[11px] font-bold text-charcoal-500 uppercase tracking-wider whitespace-nowrap',
+                      col.sortable && 'cursor-pointer select-none hover:text-charcoal-900 hover:bg-warm-100/60 transition-colors',
+                      isSorted && 'text-brand-800 bg-brand-50/40',
+                      col.headerClassName
                     )}
-                  </div>
-                </th>
-              ))}
+                    style={col.width ? { width: col.width } : undefined}
+                    onClick={col.sortable ? () => handleSort(String(col.key)) : undefined}
+                    aria-sort={isSorted ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>{col.header || col.title}</span>
+                      {col.sortable && (
+                        <span className={cn('transition-colors', isSorted ? 'text-brand-600' : 'text-charcoal-300')}>
+                          {isSorted ? (
+                            sortOrder === 'asc' ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />
+                          ) : (
+                            <ChevronsUpDown className="w-3.5 h-3.5" />
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
@@ -126,15 +141,17 @@ export function DataTable<T>({
               <tr
                 key={keyExtractor(row)}
                 className={cn(
-                  'border-b border-warm-100 transition-colors duration-100',
-                  onRowClick ? 'hover:bg-warm-50 cursor-pointer' : 'hover:bg-warm-50/50'
+                  'border-b border-warm-100/80 transition-colors duration-150',
+                  onRowClick
+                    ? 'hover:bg-brand-50/20 active:bg-brand-50/40 cursor-pointer'
+                    : 'hover:bg-warm-50/60'
                 )}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
               >
                 {columns.map(col => (
                   <td
                     key={String(col.key)}
-                    className={cn('px-4 py-3 text-sm text-charcoal-700', col.className)}
+                    className={cn('px-4.5 py-3.5 text-sm text-charcoal-700', col.className)}
                   >
                     {(col.cell || col.render || ((r: any) => String(r[col.key] ?? '')))(row, i)}
                   </td>
@@ -147,28 +164,28 @@ export function DataTable<T>({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-warm-100 bg-warm-50/50">
-          <div className="flex items-center gap-2 text-sm text-charcoal-500">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4.5 py-3 border-t border-warm-100 bg-warm-50/60">
+          <div className="flex items-center gap-2 text-xs font-medium text-charcoal-600">
             <span>Sahifada:</span>
             <div className="w-20">
               <Select
                 value={String(pageSize)}
                 onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
                 size="sm"
-                triggerClassName="h-8 rounded-[8px] text-xs shadow-2xs border-warm-300"
+                triggerClassName="h-8 rounded-[8px] text-xs font-semibold shadow-2xs border-warm-300"
                 options={PAGE_SIZES.map(ps => ({ value: String(ps), label: String(ps) }))}
                 aria-label="Sahifadagi yozuvlar soni"
               />
             </div>
-            <span className="text-charcoal-400">
-              {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, sorted.length)} / {sorted.length}
+            <span className="text-charcoal-400 tabular-nums">
+              {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, sorted.length)} / <strong className="text-charcoal-800 font-bold">{sorted.length}</strong>
             </span>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="p-1.5 rounded-[8px] hover:bg-warm-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-[8px] text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
               aria-label="Oldingi sahifa"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -194,8 +211,10 @@ export function DataTable<T>({
                     key={item}
                     onClick={() => setPage(item)}
                     className={cn(
-                      'w-8 h-8 rounded-[8px] text-sm font-medium transition-colors',
-                      page === item ? 'bg-brand-500 text-white shadow-sm' : 'hover:bg-warm-200 text-charcoal-600'
+                      'w-8 h-8 rounded-[8px] text-xs font-bold transition-all cursor-pointer',
+                      page === item
+                        ? 'bg-brand-500 text-white shadow-xs'
+                        : 'hover:bg-warm-100 text-charcoal-600 hover:text-charcoal-900'
                     )}
                     aria-current={page === item ? 'page' : undefined}
                   >
@@ -207,7 +226,7 @@ export function DataTable<T>({
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="p-1.5 rounded-[8px] hover:bg-warm-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-[8px] text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
               aria-label="Keyingi sahifa"
             >
               <ChevronRight className="w-4 h-4" />

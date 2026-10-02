@@ -1,23 +1,27 @@
 // ═══════════════════════════════════════════════════════
-//  Payments Page — Manual payment recording
+//  Payments Page — Senior Medical/Wellness CRM Table standard
 // ═══════════════════════════════════════════════════════
 import { useState, useMemo } from 'react';
-import { Plus, Search, Wallet, TrendingUp, Receipt, Calendar } from 'lucide-react';
+import {
+  Plus, Search, Wallet, TrendingUp, Receipt, Calendar,
+  CreditCard, Banknote, ArrowLeftRight, Clock, X, Eye,
+  CheckCircle2, Printer, Baby, User
+} from 'lucide-react';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useStore, useAuth } from '@/store';
 import {
-  formatDateTime, formatCurrencyCompact,
-  getPaymentMethodLabel,
+  formatDateTime, formatCurrency, formatCurrencyCompact,
+  getPaymentMethodLabel, cn
 } from '@/utils';
 import { DataTable, Column } from '@/components/tables/DataTable';
-import { Card, Badge } from '@/components/ui/primitives';
+import { Card, Badge, Avatar } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { Input, Select, Textarea, DatePicker } from '@/components/ui/primitives';
-import type { Payment } from '@/types';
+import type { Payment, PaymentMethod } from '@/types';
 
 const paymentSchema = z.object({
   parentId: z.string().min(1, 'Ota-onani tanlang'),
@@ -30,11 +34,7 @@ const paymentSchema = z.object({
 
 type PaymentForm = z.infer<typeof paymentSchema>;
 
-const METHOD_COLORS: Record<string, string> = {
-  CASH: 'bg-green-100 text-green-700 border-green-200',
-  CARD: 'bg-blue-100 text-blue-700 border-blue-200',
-  TRANSFER: 'bg-gold-100 text-gold-700 border-gold-200',
-};
+type MethodFilter = 'ALL' | 'CASH' | 'CARD' | 'TRANSFER';
 
 export function PaymentsPage() {
   const { currentUser } = useAuth();
@@ -52,8 +52,14 @@ export function PaymentsPage() {
   }, [allPayments, isParent, currentUser]);
 
   const [search, setSearch] = useState('');
-  const [methodFilter, setMethodFilter] = useState('');
+  const [activeTab, setActiveTab] = useState<MethodFilter>('ALL');
   const [showCreate, setShowCreate] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+
+  // Tab counts
+  const cashCount = useMemo(() => basePayments.filter(p => p.method === 'CASH').length, [basePayments]);
+  const cardCount = useMemo(() => basePayments.filter(p => p.method === 'CARD').length, [basePayments]);
+  const transferCount = useMemo(() => basePayments.filter(p => p.method === 'TRANSFER').length, [basePayments]);
 
   const filtered = useMemo(() => {
     let result = [...basePayments].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -62,12 +68,19 @@ export function PaymentsPage() {
       result = result.filter(p => {
         const parent = parents.find(pa => pa.id === p.parentId);
         const child = children.find(c => c.id === p.childId);
-        return parent?.fullName.toLowerCase().includes(q) || child?.fullName.toLowerCase().includes(q);
+        return (
+          parent?.fullName.toLowerCase().includes(q) ||
+          child?.fullName.toLowerCase().includes(q) ||
+          p.id.toLowerCase().includes(q) ||
+          p.notes?.toLowerCase().includes(q)
+        );
       });
     }
-    if (methodFilter) result = result.filter(p => p.method === methodFilter);
+    if (activeTab !== 'ALL') {
+      result = result.filter(p => p.method === activeTab);
+    }
     return result;
-  }, [basePayments, search, methodFilter, parents, children]);
+  }, [basePayments, search, activeTab, parents, children]);
 
   // KPI metrics
   const totalPayments = basePayments.reduce((sum, p) => sum + p.amount, 0);
@@ -77,14 +90,63 @@ export function PaymentsPage() {
     return p.date.startsWith(m);
   }).reduce((sum, p) => sum + p.amount, 0);
 
+  const filteredSum = useMemo(() => filtered.reduce((s, p) => s + p.amount, 0), [filtered]);
+
+  const hasActiveFilters = search !== '' || activeTab !== 'ALL';
+
+  const resetFilters = () => {
+    setSearch('');
+    setActiveTab('ALL');
+  };
+
+  const getMethodBadge = (method: PaymentMethod) => {
+    switch (method) {
+      case 'CASH':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[6px] text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+            <Banknote className="w-3 h-3 text-emerald-600 shrink-0" />
+            Naqd pul
+          </span>
+        );
+      case 'CARD':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[6px] text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+            <CreditCard className="w-3 h-3 text-blue-600 shrink-0" />
+            Plastik karta
+          </span>
+        );
+      case 'TRANSFER':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[6px] text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200/60">
+            <ArrowLeftRight className="w-3 h-3 text-amber-600 shrink-0" />
+            Bank o'tkazma
+          </span>
+        );
+      default:
+        return <Badge>{getPaymentMethodLabel(method)}</Badge>;
+    }
+  };
+
   const columns: Column<Payment>[] = [
     {
       key: 'parentId',
-      header: 'Ota-ona',
+      header: 'To\'lovchi (Ota-ona)',
       sortable: true,
       cell: (row) => {
         const parent = parents.find(p => p.id === row.parentId);
-        return <span className="text-sm font-medium text-charcoal-900">{parent?.fullName ?? '—'}</span>;
+        return (
+          <div className="flex items-center gap-2.5">
+            <Avatar name={parent?.fullName || 'Ota-ona'} size="sm" className="font-semibold" />
+            <div className="min-w-0">
+              <p className="font-semibold text-charcoal-900 text-sm tracking-tight truncate hover:text-brand-700 transition-colors">
+                {parent?.fullName ?? 'Noma\'lum ota-ona'}
+              </p>
+              {parent?.phone && (
+                <p className="text-xs text-charcoal-400">{parent.phone}</p>
+              )}
+            </div>
+          </div>
+        );
       },
     },
     {
@@ -92,36 +154,78 @@ export function PaymentsPage() {
       header: 'Bola',
       cell: (row) => {
         const child = children.find(c => c.id === row.childId);
-        return <span className="text-sm text-charcoal-700">{child?.fullName ?? '—'}</span>;
+        return child ? (
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[6px] bg-brand-50/70 border border-brand-200/50 text-xs font-medium text-brand-800">
+            <Baby className="w-3 h-3 text-brand-600 shrink-0" />
+            <span className="truncate max-w-[130px]">{child.fullName}</span>
+          </div>
+        ) : (
+          <span className="text-xs text-charcoal-400 font-medium">Umumiy hisobga</span>
+        );
       },
     },
     {
       key: 'amount',
-      header: 'Summa',
+      header: 'To\'langan summa',
       sortable: true,
       cell: (row) => (
-        <span className="text-sm font-bold text-green-600 tabular-nums">{formatCurrencyCompact(row.amount)}</span>
+        <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 tabular-nums">
+          + {formatCurrency(row.amount)}
+        </span>
       ),
     },
     {
       key: 'method',
-      header: 'Usul',
-      cell: (row) => (
-        <Badge className={METHOD_COLORS[row.method] ?? ''}>
-          {getPaymentMethodLabel(row.method)}
-        </Badge>
-      ),
+      header: 'To\'lov usuli',
+      sortable: true,
+      cell: (row) => getMethodBadge(row.method),
     },
     {
       key: 'date',
-      header: 'Sana',
+      header: 'Sana va Vaqt',
       sortable: true,
-      cell: (row) => <span className="text-sm text-charcoal-600">{formatDateTime(row.date)}</span>,
+      cell: (row) => (
+        <div className="space-y-0.5">
+          <div className="inline-flex items-center gap-1.5 text-xs text-charcoal-800 font-medium">
+            <Calendar className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+            <span>{formatDateTime(row.date).split(' ')[0]}</span>
+          </div>
+          <p className="text-[11px] text-charcoal-400 flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            <span>{formatDateTime(row.date).split(' ')[1] || ''}</span>
+          </p>
+        </div>
+      ),
     },
     {
       key: 'notes',
       header: 'Izoh',
-      cell: (row) => <span className="text-xs text-charcoal-400">{row.notes ?? '—'}</span>,
+      cell: (row) => (
+        <span className="text-xs text-charcoal-500 max-w-[150px] truncate block" title={row.notes}>
+          {row.notes || '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions' as any,
+      header: 'Kvitansiya',
+      cell: (row) => (
+        <div className="flex items-center justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedPayment(row);
+            }}
+            className="h-8 px-2.5 text-xs text-charcoal-600 hover:text-brand-700 hover:bg-brand-50/60"
+            title="Kvitansiyani ko'rish"
+          >
+            <Receipt className="w-3.5 h-3.5 mr-1 text-brand-600" />
+            Chek
+          </Button>
+        </div>
+      ),
     },
   ];
 
@@ -129,7 +233,11 @@ export function PaymentsPage() {
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
       <PageHeader
         title={isParent ? "To'lovlarim tarixi" : "To'lovlar"}
-        description={isParent ? `Siz tomondan amalga oshirilgan jami to'lovlar` : "Barcha manual to'lovlarni boshqarish"}
+        description={
+          isParent
+            ? "Farzandlaringiz uchun amalga oshirilgan to'lovlar va kvitansiyalar"
+            : `Tizimdagi barcha to'lovlar ro'yxati va kvitansiyalar`
+        }
         actions={
           canManagePayments ? (
             <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>
@@ -145,25 +253,25 @@ export function PaymentsPage() {
           label="Jami tushum"
           value={totalPayments}
           format="currency"
-          description="Barcha to'lovlar"
+          description="Barcha to'lovlar summasi"
           icon={<Wallet className="w-4 h-4 text-brand-600" />}
           accentColor="brand"
           index={0}
         />
         <KpiCard
-          label="Bu oy"
+          label="Bu oy tushumi"
           value={thisMonthPayments}
           format="currency"
-          description="Joriy oy tushumi"
+          description="Joriy oydagi to'lovlar"
           icon={<TrendingUp className="w-4 h-4 text-emerald-600" />}
           accentColor="sage"
           index={1}
         />
         <KpiCard
-          label="Bugun"
+          label="Bugungi to'lovlar"
           value={todayPayments}
           format="currency"
-          description="Bugungi to'lovlar"
+          description="Bugungi tushum"
           icon={<Calendar className="w-4 h-4 text-amber-500" />}
           accentColor="gold"
           index={2}
@@ -179,50 +287,254 @@ export function PaymentsPage() {
         />
       </div>
 
-      {/* Table */}
-      <Card>
-        <div className="px-4 py-3 flex flex-wrap items-center gap-3 border-b border-warm-100">
-          <div className="relative flex-1 min-w-[180px] max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Ota-ona yoki bola bo'yicha..."
-              className="w-full h-9 pl-9 pr-3 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 outline-none transition-all"
-            />
-          </div>
-          <div className="w-48">
-            <Select
-              size="sm"
-              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
-              value={methodFilter}
-              onChange={e => setMethodFilter(e.target.value)}
-              options={[
-                { value: '', label: 'Barcha usullar' },
-                { value: 'CASH', label: 'Naqd' },
-                { value: 'CARD', label: 'Karta' },
-                { value: 'TRANSFER', label: "Bank o'tkazma" },
-              ]}
-              aria-label="To'lov usuli bo'yicha filter"
-            />
-          </div>
-          <span className="ml-auto text-xs text-charcoal-400 font-medium">{filtered.length} ta to'lov</span>
+      <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
+        {/* Quick Tabs */}
+        <div className="flex items-center gap-1.5 px-4 pt-3.5 pb-2 border-b border-warm-200/70 overflow-x-auto no-scrollbar">
+          <button
+            onClick={() => setActiveTab('ALL')}
+            className={cn(
+              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              activeTab === 'ALL'
+                ? "bg-brand-600 text-white shadow-xs"
+                : "text-charcoal-600 hover:bg-warm-100 hover:text-charcoal-900"
+            )}
+          >
+            Barchasi
+            <span className={cn(
+              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              activeTab === 'ALL' ? "bg-white/20 text-white" : "bg-warm-200 text-charcoal-600"
+            )}>
+              {basePayments.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('CASH')}
+            className={cn(
+              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              activeTab === 'CASH'
+                ? "bg-emerald-600 text-white shadow-xs"
+                : "text-charcoal-600 hover:bg-emerald-50 hover:text-emerald-800"
+            )}
+          >
+            Naqd pul
+            <span className={cn(
+              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              activeTab === 'CASH' ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800"
+            )}>
+              {cashCount}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('CARD')}
+            className={cn(
+              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              activeTab === 'CARD'
+                ? "bg-blue-600 text-white shadow-xs"
+                : "text-charcoal-600 hover:bg-blue-50 hover:text-blue-800"
+            )}
+          >
+            Plastik karta
+            <span className={cn(
+              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              activeTab === 'CARD' ? "bg-white/20 text-white" : "bg-blue-100 text-blue-800"
+            )}>
+              {cardCount}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('TRANSFER')}
+            className={cn(
+              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              activeTab === 'TRANSFER'
+                ? "bg-amber-600 text-white shadow-xs"
+                : "text-charcoal-600 hover:bg-amber-50 hover:text-amber-800"
+            )}
+          >
+            Bank o'tkazma
+            <span className={cn(
+              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              activeTab === 'TRANSFER' ? "bg-white/20 text-white" : "bg-amber-100 text-amber-800"
+            )}>
+              {transferCount}
+            </span>
+          </button>
         </div>
+
+        {/* Filter bar */}
+        <div className="p-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-warm-100 bg-warm-50/40">
+          <div className="flex flex-1 items-center gap-2.5">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Ota-ona, bola yoki to'lov izohi..."
+                className="w-full h-9 pl-9 pr-8 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none transition-all"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-charcoal-400 hover:text-charcoal-600 hover:bg-warm-100 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetFilters}
+                className="h-9 px-2.5 text-xs text-charcoal-500 hover:text-charcoal-800"
+              >
+                Filtrni tozalash
+              </Button>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between md:justify-end gap-3 text-xs text-charcoal-500">
+            <span>
+              Ko'rsatilmoqda: <strong className="text-charcoal-900 font-semibold">{filtered.length}</strong> / {basePayments.length}
+            </span>
+          </div>
+        </div>
+
+        {/* Data Table */}
         <DataTable
           data={filtered}
           columns={columns}
           keyExtractor={r => r.id}
+          onRowClick={(p) => setSelectedPayment(p)}
+          tableClassName="min-w-[900px]"
           emptyTitle="To'lovlar topilmadi"
+          emptyDescription={
+            hasActiveFilters
+              ? "Qidiruv parametrlariga mos keluvchi to'lov topilmadi. Filtrni tozalab ko'ring."
+              : "Hozircha tizimda to'lovlar qayd etilmagan."
+          }
           emptyIcon={<Wallet className="w-5 h-5" />}
         />
+
+        {/* Footer Summary */}
+        <div className="px-4 py-3 bg-warm-50/70 border-t border-warm-200/80 flex flex-wrap items-center justify-between gap-3 text-xs text-charcoal-500">
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              Ko'rsatilgan to'lovlar summasi: <strong className="text-emerald-700 font-semibold tabular-nums">{formatCurrency(filteredSum)}</strong>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-brand-500" />
+              O'rtacha to'lov: <strong className="text-charcoal-800 font-semibold tabular-nums">
+                {filtered.length > 0 ? formatCurrencyCompact(Math.round(filteredSum / filtered.length)) : '0'}
+              </strong>
+            </span>
+          </div>
+          <span className="text-[11px] text-charcoal-400">
+            Qator ustiga bosib kvitansiya (chek) tafsilotlarini ko'rishingiz mumkin
+          </span>
+        </div>
       </Card>
+
+      {/* Payment Receipt Modal */}
+      {selectedPayment && (
+        <Modal
+          isOpen={!!selectedPayment}
+          onClose={() => setSelectedPayment(null)}
+          title="To'lov kvitansiyasi (Kassa cheki)"
+          size="md"
+        >
+          <div className="space-y-4">
+            {/* Printable Receipt Paper */}
+            <div className="p-5 rounded-2xl bg-white border border-warm-200/80 shadow-xs space-y-4">
+              <div className="text-center pb-3 border-b border-dashed border-warm-200">
+                <p className="text-xs uppercase tracking-widest text-charcoal-400 font-bold">
+                  MASSAJ BOLALAR REABILITATSIYA MARKAZI
+                </p>
+                <h3 className="text-lg font-bold text-charcoal-900 mt-1">
+                  KIRIM TO'LOV KVITANSIYASI
+                </h3>
+                <p className="text-[11px] font-mono text-charcoal-500 mt-0.5">
+                  Chek № {selectedPayment.id}
+                </p>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between py-1 border-b border-warm-100">
+                  <span className="text-charcoal-500">Ota-ona:</span>
+                  <span className="font-semibold text-charcoal-900">
+                    {parents.find(p => p.id === selectedPayment.parentId)?.fullName || 'Noma\'lum'}
+                  </span>
+                </div>
+                {selectedPayment.childId && (
+                  <div className="flex justify-between py-1 border-b border-warm-100">
+                    <span className="text-charcoal-500">Bola:</span>
+                    <span className="font-semibold text-charcoal-900">
+                      {children.find(c => c.id === selectedPayment.childId)?.fullName || '—'}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between py-1 border-b border-warm-100">
+                  <span className="text-charcoal-500">To'lov sanasi:</span>
+                  <span className="font-semibold text-charcoal-900">
+                    {formatDateTime(selectedPayment.date)}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-warm-100">
+                  <span className="text-charcoal-500">To'lov usuli:</span>
+                  <span className="font-semibold text-charcoal-900">
+                    {getPaymentMethodLabel(selectedPayment.method)}
+                  </span>
+                </div>
+                {selectedPayment.notes && (
+                  <div className="flex justify-between py-1 border-b border-warm-100">
+                    <span className="text-charcoal-500">Izoh:</span>
+                    <span className="text-charcoal-700 italic max-w-[200px] text-right">
+                      {selectedPayment.notes}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-between">
+                <span className="text-xs font-semibold text-emerald-800">Qabul qilingan summa:</span>
+                <span className="text-lg font-bold text-emerald-700 tabular-nums">
+                  {formatCurrency(selectedPayment.amount)}
+                </span>
+              </div>
+
+              <div className="text-center pt-2 text-[10px] text-charcoal-400">
+                To'lov rasmiylashtirildi • Tizimda tasdiqlangan
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<Printer className="w-3.5 h-3.5" />}
+                onClick={() => window.print()}
+              >
+                Chop etish
+              </Button>
+              <Button variant="secondary" onClick={() => setSelectedPayment(null)}>
+                Yopish
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* Create payment modal */}
       <Modal
         isOpen={showCreate}
         onClose={() => setShowCreate(false)}
         title="To'lov qabul qilish"
-        description="Ota-onadan to'lov qabul qilish"
+        description="Ota-onadan to'lov qabul qilish va kvitansiya shakllantirish"
         size="md"
       >
         <CreatePaymentForm
@@ -237,12 +549,25 @@ export function PaymentsPage() {
 
 // ─── Create Payment Form ──────────────────────────────────
 
-function CreatePaymentForm({ onSuccess, onCancel, createdBy }: { onSuccess: () => void; onCancel: () => void; createdBy: string }) {
+function CreatePaymentForm({
+  onSuccess,
+  onCancel,
+  createdBy,
+}: {
+  onSuccess: () => void;
+  onCancel: () => void;
+  createdBy: string;
+}) {
   const parents = useStore(s => s.parents);
   const children = useStore(s => s.children);
   const recordPayment = useStore(s => s.recordPayment);
 
-  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<PaymentForm>({
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<PaymentForm>({
     resolver: zodResolver(paymentSchema),
     defaultValues: { method: 'CASH', date: new Date().toISOString().split('T')[0] },
   });
@@ -325,8 +650,12 @@ function CreatePaymentForm({ onSuccess, onCancel, createdBy }: { onSuccess: () =
         {...register('notes')}
       />
       <div className="flex items-center justify-end gap-3 pt-2">
-        <Button variant="secondary" type="button" onClick={onCancel}>Bekor qilish</Button>
-        <Button type="submit" loading={isSubmitting}>To'lovni saqlash</Button>
+        <Button variant="secondary" type="button" onClick={onCancel}>
+          Bekor qilish
+        </Button>
+        <Button type="submit" loading={isSubmitting}>
+          To'lovni saqlash
+        </Button>
       </div>
     </form>
   );

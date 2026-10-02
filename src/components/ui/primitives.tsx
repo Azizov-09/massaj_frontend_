@@ -216,8 +216,8 @@ Textarea.displayName = 'Textarea';
 
 // ─── Skeleton ────────────────────────────────────────────
 
-export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn('shimmer rounded-[10px]', className)} aria-hidden />;
+export function Skeleton({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return <div className={cn('shimmer rounded-[10px]', className)} style={style} aria-hidden />;
 }
 
 // ─── Divider ─────────────────────────────────────────────

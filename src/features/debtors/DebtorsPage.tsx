@@ -1,12 +1,25 @@
-import { useMemo } from 'react';
-import { TrendingDown, Phone, Users, DollarSign, AlertCircle } from 'lucide-react';
+// ═══════════════════════════════════════════════════════
+//  Debtors Page — Senior Medical/Wellness CRM Table standard
+// ═══════════════════════════════════════════════════════
+
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  TrendingDown, Phone, Users, DollarSign, AlertCircle,
+  Search, X, Baby, CreditCard, ArrowRight, Wallet
+} from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { getTopDebtors } from '@/services/finance.service';
-import { formatCurrencyCompact } from '@/utils';
-import { Card, Avatar, EmptyState, ProgressBar } from '@/components/ui/primitives';
+import { formatCurrency, formatCurrencyCompact, cn } from '@/utils';
+import { Card, Avatar, EmptyState, ProgressBar, Badge } from '@/components/ui/primitives';
+import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
+import { DataTable, Column } from '@/components/tables/DataTable';
+
+type DebtLevel = 'ALL' | 'HIGH' | 'MEDIUM' | 'LOW';
 
 export function DebtorsPage() {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const transactions = useStore(s => s.transactions);
   const children = useStore(s => s.children);
@@ -21,15 +34,160 @@ export function DebtorsPage() {
     return allDebtors;
   }, [allDebtors, isParent, currentUser]);
 
+  const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState<DebtLevel>('ALL');
+
   const totalDebt = debtors.reduce((s, d) => s + d.debt, 0);
   const maxDebt = Math.max(...debtors.map(d => d.debt), 1);
   const avgDebt = debtors.length > 0 ? Math.round(totalDebt / debtors.length) : 0;
 
+  // Filtered
+  const filtered = useMemo(() => {
+    return debtors.filter(d => {
+      // Level filter
+      if (activeTab === 'HIGH' && d.debt < 1000000) return false;
+      if (activeTab === 'MEDIUM' && (d.debt < 300000 || d.debt >= 1000000)) return false;
+      if (activeTab === 'LOW' && d.debt >= 300000) return false;
+
+      // Search
+      if (search) {
+        const q = search.toLowerCase();
+        return (
+          d.childName.toLowerCase().includes(q) ||
+          d.parentName.toLowerCase().includes(q) ||
+          d.parentPhone.includes(q)
+        );
+      }
+      return true;
+    });
+  }, [debtors, activeTab, search]);
+
+  const tabCounts = useMemo(() => {
+    let high = 0;
+    let medium = 0;
+    let low = 0;
+
+    debtors.forEach(d => {
+      if (d.debt >= 1000000) high++;
+      else if (d.debt >= 300000) medium++;
+      else low++;
+    });
+
+    return { all: debtors.length, high, medium, low };
+  }, [debtors]);
+
+  const hasActiveFilters = search !== '' || activeTab !== 'ALL';
+
+  const resetFilters = () => {
+    setSearch('');
+    setActiveTab('ALL');
+  };
+
+  const columns: Column<typeof debtors[0]>[] = [
+    {
+      key: 'rank' as any,
+      header: '№',
+      width: '48px',
+      cell: (_, index) => (
+        <span className="font-bold text-xs text-charcoal-400 tabular-nums">
+          #{index + 1}
+        </span>
+      ),
+    },
+    {
+      key: 'childName',
+      header: 'Bola va Ota-ona',
+      sortable: true,
+      cell: (d) => (
+        <div className="flex items-center gap-3">
+          <Avatar name={d.childName} size="sm" className="font-semibold" />
+          <div className="min-w-0">
+            <h5 className="font-semibold text-charcoal-900 text-sm tracking-tight truncate hover:text-brand-700 transition-colors">
+              {d.childName}
+            </h5>
+            <p className="text-xs text-charcoal-500 mt-0.5">
+              Ota-ona: <span className="text-charcoal-800 font-medium">{d.parentName}</span>
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'debtRatio' as any,
+      header: 'Qarz salmog‘i',
+      cell: (d) => (
+        <div className="w-36 space-y-1">
+          <div className="flex justify-between text-[10px] text-charcoal-500 font-medium">
+            <span>Daraja</span>
+            <span>{Math.round((d.debt / maxDebt) * 100)}%</span>
+          </div>
+          <ProgressBar value={(d.debt / maxDebt) * 100} fillClassName="bg-danger-main" />
+        </div>
+      ),
+    },
+    {
+      key: 'parentPhone',
+      header: 'Telefon',
+      cell: (d) => (
+        <a
+          href={`tel:${d.parentPhone}`}
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1.5 text-xs text-charcoal-700 hover:text-brand-600 transition-colors font-medium"
+        >
+          <Phone className="w-3.5 h-3.5 text-charcoal-400" />
+          <span>{d.parentPhone}</span>
+        </a>
+      ),
+    },
+    {
+      key: 'debt',
+      header: 'Qarzdorlik miqdori',
+      sortable: true,
+      cell: (d) => (
+        <div className="space-y-0.5">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[6px] bg-danger-50 text-danger-main border border-danger-100 font-bold text-xs tabular-nums">
+            <AlertCircle className="w-3 h-3 text-danger-500" />
+            -{formatCurrency(d.debt)}
+          </span>
+          {d.balance > 0 && (
+            <p className="text-[11px] text-emerald-600 font-medium tabular-nums">
+              Depozit: +{formatCurrencyCompact(d.balance)}
+            </p>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'actions' as any,
+      header: 'Amallar',
+      cell: (d) => (
+        <div className="flex items-center justify-end gap-1.5">
+          <Button
+            size="xs"
+            variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/children/${d.childId}`);
+            }}
+            className="h-7 text-xs text-charcoal-600 hover:text-brand-700 hover:bg-brand-50/60"
+          >
+            Profil
+            <ArrowRight className="w-3 h-3 ml-1 text-charcoal-400" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
       <PageHeader
-        title={isParent ? "Qarzdorlik holati" : "Qarzdorlar"}
-        description={isParent ? "Hisob-kitob va qarzdorlik bo'yicha ma'lumot" : "Balans va qarz holati"}
+        title={isParent ? "Qarzdorlik holati" : "Qarzdorlar reytingi"}
+        description={
+          isParent
+            ? "Hisob-kitob va qarzdorlik bo'yicha joriy holat"
+            : "Qarzdorlik miqdori bo‘yicha tartiblangan ota-onalar va bolalar ro'yxati"
+        }
       />
 
       {isParent ? (
@@ -63,46 +221,195 @@ export function DebtorsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-          <KpiCard label="Jami qarz" value={totalDebt} format="currency" description="Umumiy qarz summasi" icon={<TrendingDown className="w-4 h-4 text-rose-600" />} accentColor="danger" index={0} />
-          <KpiCard label="Qarzdorlar soni" value={debtors.length} description="Qarzdor mijozlar" icon={<Users className="w-4 h-4 text-amber-600" />} accentColor="gold" index={1} />
-          <KpiCard label="O'rtacha qarz" value={avgDebt} format="currency" description="Har bir mijozga" icon={<DollarSign className="w-4 h-4 text-blue-600" />} accentColor="blue" index={2} />
-          <KpiCard label="Maksimal qarz" value={maxDebt} format="currency" description="Eng katta qarzdorlik" icon={<AlertCircle className="w-4 h-4 text-brand-600" />} accentColor="brand" index={3} />
+          <KpiCard
+            label="Jami qarz"
+            value={totalDebt}
+            format="currency"
+            description="Umumiy qarz summasi"
+            icon={<TrendingDown className="w-4 h-4 text-rose-600" />}
+            accentColor="danger"
+            index={0}
+          />
+          <KpiCard
+            label="Qarzdorlar soni"
+            value={debtors.length}
+            description="Qarzdor mijozlar"
+            icon={<Users className="w-4 h-4 text-amber-600" />}
+            accentColor="gold"
+            index={1}
+          />
+          <KpiCard
+            label="O'rtacha qarz"
+            value={avgDebt}
+            format="currency"
+            description="Har bir mijozga to'g'ri keluvchi"
+            icon={<DollarSign className="w-4 h-4 text-blue-600" />}
+            accentColor="blue"
+            index={2}
+          />
+          <KpiCard
+            label="Maksimal qarz"
+            value={maxDebt}
+            format="currency"
+            description="Eng katta qarzdorlik"
+            icon={<AlertCircle className="w-4 h-4 text-brand-600" />}
+            accentColor="brand"
+            index={3}
+          />
         </div>
       )}
 
-      <Card>
-        {debtors.length === 0 ? (
-          <EmptyState
-            title={isParent ? "Sizda qarzdorlik yo'q" : "Qarzdorlar yo'q"}
-            description={isParent ? "Barcha muolajalar to'lovlari to'liq va o'z vaqtida amalga oshirilgan. Rahmat!" : "Barcha balanslar muvozanatda"}
-            icon={<TrendingDown className="w-5 h-5 text-green-500" />}
-            className="py-16"
-          />
-        ) : (
-          <div className="divide-y divide-warm-50">
-            {debtors.map((d, i) => (
-              <div key={d.childId} className="px-5 py-4 flex items-center gap-4 hover:bg-warm-50/50 transition-colors">
-                <span className="text-sm font-bold text-charcoal-300 w-6 text-center flex-shrink-0">{i + 1}</span>
-                <Avatar name={d.childName} size="sm" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-charcoal-900">{d.childName}</p>
-                  <p className="text-xs text-charcoal-400">{d.parentName}</p>
-                  <div className="mt-1.5 max-w-[200px]">
-                    <ProgressBar value={(d.debt / maxDebt) * 100} fillClassName="bg-danger-main" />
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0 text-charcoal-400">
-                  <Phone className="w-3.5 h-3.5" />
-                  <span className="text-xs">{d.parentPhone}</span>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-base font-bold text-danger-main tabular-nums">{formatCurrencyCompact(d.debt)}</p>
-                  {d.balance > 0 && <p className="text-xs text-green-600">Balans: {formatCurrencyCompact(d.balance)}</p>}
-                </div>
-              </div>
-            ))}
+      <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
+        {/* Quick Tabs */}
+        {!isParent && (
+          <div className="flex items-center gap-1.5 px-4 pt-3.5 pb-2 border-b border-warm-200/70 overflow-x-auto no-scrollbar">
+            <button
+              onClick={() => setActiveTab('ALL')}
+              className={cn(
+                "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+                activeTab === 'ALL'
+                  ? "bg-brand-600 text-white shadow-xs"
+                  : "text-charcoal-600 hover:bg-warm-100 hover:text-charcoal-900"
+              )}
+            >
+              Barchasi
+              <span className={cn(
+                "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+                activeTab === 'ALL' ? "bg-white/20 text-white" : "bg-warm-200 text-charcoal-600"
+              )}>
+                {tabCounts.all}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('HIGH')}
+              className={cn(
+                "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+                activeTab === 'HIGH'
+                  ? "bg-danger-main text-white shadow-xs"
+                  : "text-charcoal-600 hover:bg-danger-50 hover:text-danger-main"
+              )}
+            >
+              Katta qarz (&gt; 1M)
+              <span className={cn(
+                "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+                activeTab === 'HIGH' ? "bg-white/20 text-white" : "bg-danger-100 text-danger-700"
+              )}>
+                {tabCounts.high}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('MEDIUM')}
+              className={cn(
+                "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+                activeTab === 'MEDIUM'
+                  ? "bg-amber-600 text-white shadow-xs"
+                  : "text-charcoal-600 hover:bg-amber-50 hover:text-amber-800"
+              )}
+            >
+              O'rtacha (300k – 1M)
+              <span className={cn(
+                "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+                activeTab === 'MEDIUM' ? "bg-white/20 text-white" : "bg-amber-100 text-amber-800"
+              )}>
+                {tabCounts.medium}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('LOW')}
+              className={cn(
+                "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+                activeTab === 'LOW'
+                  ? "bg-charcoal-700 text-white shadow-xs"
+                  : "text-charcoal-600 hover:bg-warm-100 hover:text-charcoal-900"
+              )}
+            >
+              Kichik (&lt; 300k)
+              <span className={cn(
+                "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+                activeTab === 'LOW' ? "bg-white/20 text-white" : "bg-warm-200 text-charcoal-600"
+              )}>
+                {tabCounts.low}
+              </span>
+            </button>
           </div>
         )}
+
+        {/* Filter bar */}
+        <div className="p-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-warm-100 bg-warm-50/40">
+          <div className="flex flex-1 items-center gap-2.5">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Bola, ota-ona yoki telefon..."
+                className="w-full h-9 pl-9 pr-8 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none transition-all"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-charcoal-400 hover:text-charcoal-600 hover:bg-warm-100 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetFilters}
+                className="h-9 px-2.5 text-xs text-charcoal-500 hover:text-charcoal-800"
+              >
+                Filtrni tozalash
+              </Button>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between md:justify-end gap-3 text-xs text-charcoal-500">
+            <span>
+              Ko'rsatilmoqda: <strong className="text-charcoal-900 font-semibold">{filtered.length}</strong> / {debtors.length}
+            </span>
+          </div>
+        </div>
+
+        {/* Data Table */}
+        <DataTable
+          data={filtered}
+          columns={columns}
+          keyExtractor={r => r.childId}
+          onRowClick={(d) => navigate(`/children/${d.childId}`)}
+          tableClassName="min-w-[850px]"
+          emptyTitle="Qarzdorlar topilmadi"
+          emptyDescription={
+            isParent
+              ? "Barcha muolajalar to'lovlari to'liq va o'z vaqtida amalga oshirilgan. Rahmat!"
+              : "Barcha balanslar muvozanatda yoki qidiruv bo'yicha ma'lumot chiqmadi."
+          }
+          emptyIcon={<TrendingDown className="w-5 h-5 text-emerald-500" />}
+        />
+
+        {/* Footer Summary */}
+        <div className="px-4 py-3 bg-warm-50/70 border-t border-warm-200/80 flex flex-wrap items-center justify-between gap-3 text-xs text-charcoal-500">
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-danger-500" />
+              Jami qarzdorlik: <strong className="text-danger-main font-semibold tabular-nums">{formatCurrency(totalDebt)}</strong>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              O'rtacha qarz: <strong className="text-charcoal-800 font-semibold tabular-nums">{formatCurrency(avgDebt)}</strong>
+            </span>
+          </div>
+          <span className="text-[11px] text-charcoal-400">
+            Qator ustiga bosib bola profiliga o'tishingiz mumkin
+          </span>
+        </div>
       </Card>
     </div>
   );

@@ -1,15 +1,19 @@
 // ═══════════════════════════════════════════════════════
-//  Reports Page — Multi-dimensional Reports & Exports
+//  Reports Page — Senior Medical/Wellness CRM Table standard
 // ═══════════════════════════════════════════════════════
 
 import { useState, useMemo } from 'react';
 import {
-  FileText, Download, Users,
-  CreditCard, Activity, CheckCircle2
+  FileText, Download, Users, CreditCard, Activity,
+  CheckCircle2, Calendar, Filter, ArrowDownLeft,
+  ArrowUpRight, AlertCircle
 } from 'lucide-react';
 import { useStore } from '@/store';
-import { formatCurrency, formatDate } from '@/utils';
-import { Card, Select, DatePicker } from '@/components/ui/primitives';
+import {
+  formatCurrency, formatCurrencyCompact, formatDate,
+  formatDateTime, cn
+} from '@/utils';
+import { Card, Select, DatePicker, Badge, EmptyState } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
 
@@ -42,11 +46,11 @@ export function ReportsPage() {
           const child = children.find(c => c.id === t.childId);
           return {
             id: t.id,
-            sana: formatDate(t.date),
+            sana: formatDateTime(t.date),
             turi: t.type,
             yonalish: t.direction === 'IN' ? 'Kirim' : 'Chiqim',
             miqdor: t.amount,
-            mijoz: parent?.fullName ?? '—',
+            mijoz: parent?.fullName ?? 'Markaz hisobiga',
             bola: child?.fullName ?? '—',
             izoh: t.description || '—',
           };
@@ -84,7 +88,7 @@ export function ReportsPage() {
           const svc = services.find(sv => sv.id === s.serviceId);
           return {
             id: s.id,
-            boshlangan: formatDate(s.startTime),
+            boshlangan: formatDateTime(s.startTime),
             bola: child?.fullName ?? '—',
             mutaxassis: spec?.fullName ?? '—',
             xizmat: svc?.name ?? '—',
@@ -104,7 +108,7 @@ export function ReportsPage() {
             jinsi: c.gender === 'MALE' ? 'O‘g‘il' : 'Qiz',
             otaOna: parent?.fullName ?? '—',
             telefon: parent?.phone ?? '—',
-            bajarilganSeanslar: childSessions,
+            bajarilganSeanslar: `${childSessions} ta`,
             holat: c.status,
           };
         });
@@ -147,11 +151,18 @@ export function ReportsPage() {
     URL.revokeObjectURL(url);
   };
 
+  const REPORT_TABS = [
+    { type: 'FINANCE' as const, label: 'Moliyaviy hisobot', icon: CreditCard },
+    { type: 'ATTENDANCE' as const, label: 'Davomat hisoboti', icon: CheckCircle2 },
+    { type: 'SESSIONS' as const, label: 'Seanslar hisoboti', icon: Activity },
+    { type: 'CHILDREN' as const, label: 'Bolalar ro‘yxati', icon: Users },
+  ];
+
   return (
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <PageHeader
-          title="Tizimli hisobotlar"
+          title="Tizimli hisobotlar va tahlillar"
           description="Barcha yo‘nalishlar bo‘yicha batafsil ma’lumotlar va eksport qilish moduli"
         />
         <div className="flex items-center gap-2">
@@ -159,39 +170,38 @@ export function ReportsPage() {
             variant="secondary"
             leftIcon={<Download className="w-4 h-4" />}
             onClick={handleExportCSV}
+            disabled={reportData.length === 0}
           >
-            CSV Yuklab olish
+            CSV Eksport
           </Button>
           <Button
             variant="secondary"
             leftIcon={<FileText className="w-4 h-4" />}
             onClick={handleExportJSON}
+            disabled={reportData.length === 0}
           >
-            JSON Yuklab olish
+            JSON Eksport
           </Button>
         </div>
       </div>
 
-      {/* Report Type Switcher */}
+      {/* Report Type Switcher Tabs */}
       <div className="flex flex-wrap gap-2">
-        {[
-          { type: 'FINANCE' as const, label: 'Moliyaviy hisobot', icon: CreditCard },
-          { type: 'ATTENDANCE' as const, label: 'Davomat hisoboti', icon: CheckCircle2 },
-          { type: 'SESSIONS' as const, label: 'Seanslar hisoboti', icon: Activity },
-          { type: 'CHILDREN' as const, label: 'Bolalar ro‘yxati', icon: Users },
-        ].map(item => {
+        {REPORT_TABS.map(item => {
           const Icon = item.icon;
+          const isActive = reportType === item.type;
           return (
             <button
               key={item.type}
               onClick={() => setReportType(item.type)}
-              className={`px-4 py-2 rounded-[10px] font-bold text-xs sm:text-sm flex items-center gap-2 transition-all ${
-                reportType === item.type
-                  ? 'bg-brand-500 text-white shadow-2xs'
-                  : 'bg-white border border-warm-200 text-charcoal-700 hover:border-brand-400'
-              }`}
+              className={cn(
+                "px-3.5 py-2 rounded-[10px] font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer",
+                isActive
+                  ? "bg-brand-600 text-white shadow-xs"
+                  : "bg-white border border-warm-200/90 text-charcoal-700 hover:border-brand-300 hover:bg-warm-50/50"
+              )}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className={cn("w-4 h-4", isActive ? "text-white" : "text-brand-600")} />
               {item.label}
             </button>
           );
@@ -199,20 +209,20 @@ export function ReportsPage() {
       </div>
 
       {/* Filter strip */}
-      <Card className="p-4">
+      <Card className="p-4 border border-warm-200/90 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-xs font-semibold text-charcoal-500">Filtrlar:</span>
+            <span className="text-xs font-semibold text-charcoal-500">Filtr parametrlar:</span>
 
             {/* Date Range */}
-            <div className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-1.5 text-xs">
               <div className="w-36">
                 <DatePicker
                   size="sm"
                   triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
                   value={dateFrom}
                   onChange={e => setDateFrom(e.target.value)}
-                  placeholder="Boshlanish"
+                  placeholder="Dan boshlab"
                   aria-label="Boshlanish sanasi"
                 />
               </div>
@@ -223,7 +233,7 @@ export function ReportsPage() {
                   triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
                   value={dateTo}
                   onChange={e => setDateTo(e.target.value)}
-                  placeholder="Tugash"
+                  placeholder="Gacha"
                   aria-label="Tugash sanasi"
                 />
               </div>
@@ -247,41 +257,90 @@ export function ReportsPage() {
             )}
           </div>
 
-          <span className="text-xs text-charcoal-400 font-medium">
-            {reportData.length} ta yozuv shakllantirildi
+          <span className="text-xs text-charcoal-500 font-medium">
+            Shakllantirildi: <strong className="text-charcoal-900 font-bold">{reportData.length}</strong> ta yozuv
           </span>
         </div>
       </Card>
 
       {/* Live Preview Table */}
-      <Card className="overflow-x-auto">
+      <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
         {reportData.length === 0 ? (
-          <div className="p-12 text-center text-charcoal-400 text-sm">
-            Tanlangan mezonlar bo‘yicha hisobot ma’lumotlari topilmadi.
-          </div>
+          <EmptyState
+            title="Hisobot ma'lumotlari topilmadi"
+            description="Tanlangan vaqt oralig'i yoki mezonlar bo‘yicha qaydlar mavjud emas."
+            icon={<FileText className="w-6 h-6 text-charcoal-400" />}
+            className="py-16"
+          />
         ) : (
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-warm-50/80 border-b border-warm-200">
-                {Object.keys(reportData[0]).map(key => (
-                  <th key={key} className="py-3 px-4 font-bold text-charcoal-700 uppercase tracking-wider text-[11px]">
-                    {key}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-warm-100">
-              {reportData.slice(0, 50).map((row, idx) => (
-                <tr key={idx} className="hover:bg-warm-50/50 transition-colors">
-                  {Object.values(row).map((val, i) => (
-                    <td key={i} className="py-3 px-4 text-charcoal-800 font-medium">
-                      {typeof val === 'number' && String(val).length >= 5 ? formatCurrency(val) : String(val ?? '—')}
-                    </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse min-w-[850px]">
+              <thead>
+                <tr className="bg-warm-100/70 border-b border-warm-200/90">
+                  {Object.keys(reportData[0]).map(key => (
+                    <th
+                      key={key}
+                      className="py-3 px-4 font-bold text-charcoal-700 uppercase tracking-wider text-[11px]"
+                    >
+                      {key}
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-warm-100 bg-white">
+                {reportData.slice(0, 100).map((row, idx) => (
+                  <tr key={idx} className="hover:bg-brand-50/20 transition-colors">
+                    {Object.entries(row).map(([key, val], i) => {
+                      // Formatting helper
+                      const isAmount = key === 'miqdor' && typeof val === 'number';
+                      const isDirection = key === 'yonalish';
+                      const isStatus = key === 'holat';
+
+                      return (
+                        <td key={i} className="py-3 px-4 text-charcoal-800 font-medium">
+                          {isAmount ? (
+                            <span className="font-bold tabular-nums text-emerald-700">
+                              {formatCurrency(val as number)}
+                            </span>
+                          ) : isDirection ? (
+                            <span
+                              className={cn(
+                                "inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-xs font-semibold border",
+                                val === 'Kirim'
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200/60"
+                                  : "bg-brand-50 text-brand-800 border-brand-200/60"
+                              )}
+                            >
+                              {val === 'Kirim' ? <ArrowDownLeft className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
+                              {String(val)}
+                            </span>
+                          ) : isStatus ? (
+                            <Badge dot>{String(val)}</Badge>
+                          ) : (
+                            <span className="truncate max-w-[200px] block">
+                              {String(val ?? '—')}
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Footer Summary */}
+        {reportData.length > 0 && (
+          <div className="px-4 py-3 bg-warm-50/70 border-t border-warm-200/80 flex flex-wrap items-center justify-between gap-3 text-xs text-charcoal-500">
+            <span>
+              Ko‘rsatilmoqda: <strong className="text-charcoal-800 font-semibold">{Math.min(100, reportData.length)}</strong> / {reportData.length} ta yozuv
+            </span>
+            <span className="text-[11px] text-charcoal-400">
+              To'liq ma'lumotlarni CSV yoki JSON formatida yuklab olishingiz mumkin
+            </span>
+          </div>
         )}
       </Card>
     </div>

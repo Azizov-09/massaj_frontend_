@@ -2,13 +2,13 @@
 //  Children List Page — Full CRUD management
 // ═══════════════════════════════════════════════════════
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { Plus, Search, Baby, ArrowRight, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Plus, Search, Baby, ArrowRight, X, Calendar, Clock, Eye, Users } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { calculateChildBalance } from '@/services/finance.service';
 import {
   formatAge, formatDate, formatCurrencyCompact,
-  getEntityStatusColor, getEntityStatusLabel,
+  getEntityStatusColor, getEntityStatusLabel, cn
 } from '@/utils';
 import { DataTable, Column } from '@/components/tables/DataTable';
 import { Card, Avatar, Badge, Select } from '@/components/ui/primitives';
@@ -20,6 +20,7 @@ import type { Child } from '@/types';
 
 export function ChildrenPage() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const allChildren = useStore(s => s.children);
   const specialists = useStore(s => s.specialists);
   const parents = useStore(s => s.parents);
@@ -53,7 +54,23 @@ export function ChildrenPage() {
     return result;
   }, [baseChildren, search, statusFilter, specialistFilter, parents]);
 
-  const activeFilterCount = [statusFilter, specialistFilter].filter(Boolean).length;
+  const activeFilterCount = [statusFilter, specialistFilter].filter(Boolean).length + (search ? 1 : 0);
+
+  const resetFilters = () => {
+    setSearch('');
+    setStatusFilter('');
+    setSpecialistFilter('');
+  };
+
+  // Status counts for tabs
+  const statusCounts = useMemo(() => {
+    return {
+      all: baseChildren.length,
+      active: baseChildren.filter(c => c.status === 'ACTIVE').length,
+      inactive: baseChildren.filter(c => c.status === 'INACTIVE').length,
+      archived: baseChildren.filter(c => c.status === 'ARCHIVED').length,
+    };
+  }, [baseChildren]);
 
   // Memoized maps for O(1) cell lookups
   const { balancesMap, nextAppointmentsMap } = useMemo(() => {
@@ -83,14 +100,34 @@ export function ChildrenPage() {
       key: 'fullName',
       header: 'Bola',
       sortable: true,
+      className: 'py-3.5',
       cell: (row) => {
         const parent = parents.find(p => p.id === row.parentId);
         return (
-          <div className="flex items-center gap-2.5">
-            <Avatar name={row.fullName} size="sm" />
-            <div>
-              <p className="font-medium text-charcoal-900 text-sm">{row.fullName}</p>
-              <p className="text-xs text-charcoal-400">{parent?.fullName ?? '—'}</p>
+          <div className="flex items-center gap-3">
+            <Avatar name={row.fullName} size="sm" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="font-semibold text-charcoal-900 text-sm truncate group-hover:text-brand-600 transition-colors">
+                  {row.fullName}
+                </p>
+                {row.diagnosis && (
+                  <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded shrink-0">
+                    {row.diagnosis}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-charcoal-500 truncate flex items-center gap-1 mt-0.5">
+                {parent ? (
+                  <>
+                    <Users className="w-3 h-3 text-charcoal-400 shrink-0" />
+                    <span>{parent.fullName}</span>
+                    {parent.phone && <span className="text-charcoal-400 font-mono text-[11px]">• {parent.phone}</span>}
+                  </>
+                ) : (
+                  <span className="text-charcoal-400 italic text-[11px]">Ota-ona biriktirilmagan</span>
+                )}
+              </p>
             </div>
           </div>
         );
@@ -98,53 +135,79 @@ export function ChildrenPage() {
     },
     {
       key: 'dateOfBirth',
-      header: 'Yosh',
+      header: 'Yoshi',
       sortable: true,
+      className: 'py-3.5',
       cell: (row) => (
-        <span className="text-sm text-charcoal-700">{formatAge(row.dateOfBirth)}</span>
+        <div>
+          <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-warm-100/90 text-charcoal-800 text-xs font-semibold border border-warm-200/80 shadow-2xs">
+            {formatAge(row.dateOfBirth)}
+          </span>
+          <p className="text-[11px] text-charcoal-400 mt-0.5">{formatDate(row.dateOfBirth)}</p>
+        </div>
       ),
     },
     {
       key: 'assignedSpecialistId',
-      header: 'Mutaxassis',
+      header: 'Biriktirilgan mutaxassis',
+      className: 'py-3.5',
       cell: (row) => {
         const spec = specialists.find(s => s.id === row.assignedSpecialistId);
         return spec ? (
-          <div className="flex items-center gap-1.5">
-            <Avatar name={spec.fullName} size="xs" />
-            <span className="text-sm text-charcoal-700">{spec.fullName}</span>
+          <div className="flex items-center gap-2">
+            <Avatar name={spec.fullName} size="xs" className="ring-1 ring-warm-200 shrink-0" />
+            <div className="min-w-0">
+              <span className="text-sm font-medium text-charcoal-900 truncate block">{spec.fullName}</span>
+              <span className="text-[11px] text-charcoal-400 truncate block">{spec.specialization || 'Mutaxassis'}</span>
+            </div>
           </div>
-        ) : <span className="text-charcoal-400 text-sm">—</span>;
+        ) : (
+          <span className="text-charcoal-400 text-xs">—</span>
+        );
       },
     },
     {
       key: 'nextAppointment',
       header: "Keyingi uchrashuv",
+      className: 'py-3.5',
       cell: (row) => {
         const next = nextAppointmentsMap.get(row.id);
         return next ? (
           <div>
-            <p className="text-sm text-charcoal-700">{formatDate(next.date)}</p>
-            <p className="text-xs text-charcoal-400">{next.startTime}</p>
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-charcoal-800">
+              <Calendar className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+              <span>{formatDate(next.date)}</span>
+            </div>
+            <div className="inline-flex items-center gap-1 text-[11px] font-medium text-charcoal-600 bg-warm-100/80 px-1.5 py-0.2 rounded mt-0.5">
+              <Clock className="w-3 h-3 text-charcoal-400 shrink-0" />
+              <span>{next.startTime} – {next.endTime}</span>
+            </div>
           </div>
-        ) : <span className="text-charcoal-400 text-sm">—</span>;
+        ) : (
+          <span className="text-[11px] text-charcoal-400 font-medium">Rejalashtirilmagan</span>
+        );
       },
     },
     {
       key: 'balance',
       header: 'Balans',
+      className: 'py-3.5',
       cell: (row) => {
         const bal = balancesMap.get(row.id) ?? { balance: 0, debt: 0 };
         return (
           <div>
             {bal.balance > 0 && (
-              <p className="text-sm font-semibold text-green-600 tabular-nums">{formatCurrencyCompact(bal.balance)}</p>
+              <span className="inline-flex items-center text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[6px] border border-emerald-200/80 tabular-nums">
+                +{formatCurrencyCompact(bal.balance)}
+              </span>
             )}
             {bal.debt > 0 && (
-              <p className="text-xs text-danger-main tabular-nums">Qarz: {formatCurrencyCompact(bal.debt)}</p>
+              <span className="inline-flex items-center text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-[6px] border border-rose-200/80 tabular-nums">
+                Qarz: {formatCurrencyCompact(bal.debt)}
+              </span>
             )}
             {bal.balance === 0 && bal.debt === 0 && (
-              <span className="text-charcoal-400 text-sm">0</span>
+              <span className="text-charcoal-400 text-xs font-semibold">0 so'm</span>
             )}
           </div>
         );
@@ -153,24 +216,31 @@ export function ChildrenPage() {
     {
       key: 'status',
       header: 'Holat',
+      sortable: true,
+      className: 'py-3.5',
       cell: (row) => (
-        <Badge className={getEntityStatusColor(row.status)} dot>
+        <Badge className={cn('shadow-2xs font-semibold', getEntityStatusColor(row.status))} dot>
           {getEntityStatusLabel(row.status)}
         </Badge>
       ),
     },
     {
       key: 'actions',
-      header: '',
-      width: '80px',
+      header: 'Amallar',
+      headerClassName: 'text-right pr-4',
+      className: 'py-3.5 text-right',
+      width: '100px',
       cell: (row) => (
-        <Link
-          to={`./children/${row.id}`}
-          className="flex items-center gap-1 text-xs text-brand-600 hover:text-brand-700 font-medium"
-          onClick={e => e.stopPropagation()}
-        >
-          Ko'rish <ArrowRight className="w-3 h-3" />
-        </Link>
+        <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
+          <Link
+            to={`./children/${row.id}`}
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-[8px] font-semibold transition-all border border-brand-200/60 shadow-2xs"
+            title="Batafsil ko'rish"
+          >
+            <span>Ko'rish</span>
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
       ),
     },
   ];
@@ -189,47 +259,79 @@ export function ChildrenPage() {
         }
       />
 
-      {/* Filters */}
-      <Card>
-        <div className="px-4 py-3 flex flex-wrap items-center gap-3 border-b border-warm-100">
+      {/* Main Table Card */}
+      <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
+        {/* Status Tabs Bar */}
+        <div className="px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+            {[
+              { key: '', label: 'Barchasi', count: statusCounts.all },
+              { key: 'ACTIVE', label: 'Faol', count: statusCounts.active },
+              { key: 'INACTIVE', label: 'Nofaol', count: statusCounts.inactive },
+              { key: 'ARCHIVED', label: 'Arxivlangan', count: statusCounts.archived },
+            ].map(tab => {
+              const isActive = statusFilter === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setStatusFilter(tab.key)}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs font-semibold transition-all cursor-pointer whitespace-nowrap',
+                    isActive
+                      ? 'bg-charcoal-900 text-white shadow-xs'
+                      : 'bg-white text-charcoal-600 hover:text-charcoal-900 hover:bg-warm-100 border border-warm-200/90 shadow-2xs'
+                  )}
+                >
+                  <span>{tab.label}</span>
+                  <span
+                    className={cn(
+                      'text-[10px] px-1.5 py-0.2 rounded-full font-bold tabular-nums',
+                      isActive ? 'bg-white/20 text-white' : 'bg-warm-100 text-charcoal-700'
+                    )}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-xs font-medium text-charcoal-500 bg-white px-2.5 py-1 rounded-[8px] border border-warm-200/80 shadow-2xs">
+              Ko‘rsatilmoqda: <strong className="text-charcoal-900 font-bold">{filtered.length}</strong> / {baseChildren.length}
+            </span>
+          </div>
+        </div>
+
+        {/* Filters Bar */}
+        <div className="p-3.5 bg-white border-b border-warm-100 flex flex-wrap items-center gap-2.5">
           {/* Search */}
-          <div className="relative flex-1 min-w-[200px] max-w-xs">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Ism yoki ota-ona bo'yicha qidirish..."
-              className="w-full h-9 pl-9 pr-8 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 outline-none transition-all"
+              className="w-full h-9 pl-9 pr-8 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 outline-none transition-all font-medium text-charcoal-800"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700">
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700 p-0.5 rounded-full cursor-pointer"
+                title="Qidiruvni tozalash"
+              >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
 
-          {/* Status filter */}
-          <div className="w-44">
-            <Select
-              size="sm"
-              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
-              options={[
-                { value: '', label: 'Barcha holatlar' },
-                { value: 'ACTIVE', label: 'Faol' },
-                { value: 'INACTIVE', label: 'Nofaol' },
-                { value: 'ARCHIVED', label: 'Arxivlangan' },
-              ]}
-              aria-label="Holat bo'yicha filter"
-            />
-          </div>
-
           {/* Specialist filter */}
-          <div className="w-52">
+          <div className="w-48 sm:w-56">
             <Select
               size="sm"
-              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
               value={specialistFilter}
               onChange={e => setSpecialistFilter(e.target.value)}
               options={[
@@ -244,29 +346,53 @@ export function ChildrenPage() {
 
           {activeFilterCount > 0 && (
             <button
-              onClick={() => { setStatusFilter(''); setSpecialistFilter(''); }}
-              className="flex items-center gap-1 text-xs text-danger-main hover:text-danger-dark font-medium"
+              type="button"
+              onClick={resetFilters}
+              className="h-9 inline-flex items-center gap-1.5 px-3 rounded-[10px] text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors shadow-2xs cursor-pointer ml-auto sm:ml-0"
+              title="Barcha filtrlarni bekor qilish"
             >
-              <X className="w-3 h-3" /> Filterlarni tozalash ({activeFilterCount})
+              <X className="w-3.5 h-3.5" />
+              <span>Filtrlarni tozalash</span>
             </button>
           )}
-
-          <span className="ml-auto text-xs text-charcoal-400 font-medium">{filtered.length} ta natija</span>
         </div>
 
+        {/* Data Table */}
         <DataTable
           data={filtered}
           columns={columns}
           keyExtractor={r => r.id}
+          tableClassName="min-w-[900px]"
+          onRowClick={r => navigate(`./children/${r.id}`)}
           emptyTitle="Bolalar topilmadi"
-          emptyDescription="Qidiruv shartlarini o'zgartiring yoki yangi bola qo'shing"
-          emptyIcon={<Baby className="w-5 h-5" />}
+          emptyDescription={activeFilterCount > 0 ? "Qidiruv shartlariga mos bola topilmadi. Filtrlarni tozalab ko'ring." : "Hozircha hech qanday bola kiritilmagan."}
+          emptyIcon={<Baby className="w-5 h-5 text-charcoal-400" />}
           emptyAction={
-            <Button size="sm" leftIcon={<Plus className="w-3.5 h-3.5" />} onClick={() => setShowCreate(true)}>
-              Bola qo'shish
-            </Button>
+            activeFilterCount > 0 ? (
+              <Button size="sm" variant="secondary" onClick={resetFilters} leftIcon={<X className="w-3.5 h-3.5" />}>
+                Filtrlarni tozalash
+              </Button>
+            ) : !isParent ? (
+              <Button size="sm" leftIcon={<Plus className="w-3.5 h-3.5" />} onClick={() => setShowCreate(true)}>
+                Bola qo'shish
+              </Button>
+            ) : undefined
           }
         />
+
+        {/* Summary Footer */}
+        <div className="px-4 py-3 bg-warm-50/50 border-t border-warm-100 flex flex-wrap items-center justify-between gap-3 text-xs text-charcoal-500">
+          <div className="flex items-center gap-4 flex-wrap">
+            <span>Jami: <strong className="text-charcoal-800 font-bold">{baseChildren.length}</strong></span>
+            <span className="hidden sm:inline-block text-warm-300">•</span>
+            <span className="text-emerald-700 font-medium">Faol: <strong className="font-bold">{statusCounts.active}</strong></span>
+            <span className="hidden sm:inline-block text-warm-300">•</span>
+            <span className="text-charcoal-600 font-medium">Nofaol: <strong className="font-bold">{statusCounts.inactive}</strong></span>
+          </div>
+          <span className="text-[11px] text-charcoal-400 font-medium">
+            Profilni ochish uchun qator ustiga bosing
+          </span>
+        </div>
       </Card>
 
       {/* Create child modal */}
