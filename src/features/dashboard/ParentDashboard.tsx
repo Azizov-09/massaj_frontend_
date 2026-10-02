@@ -65,12 +65,57 @@ export function ParentDashboard() {
   }, [goals, childIds]);
 
   // Recent specialist notes & recommendations
-  const recentNotes = useMemo(() => {
-    return progressNotes
-      .filter(p => childIds.includes(p.childId))
+  const recentRecommendations = useMemo(() => {
+    const list: Array<{
+      id: string;
+      childId: string;
+      specialistId: string;
+      date: string;
+      note: string;
+      source: 'NOTE' | 'SESSION';
+    }> = [];
+
+    // 1. From progress notes
+    progressNotes
+      .filter(p => childIds.includes(p.childId) && Boolean(p.note?.trim()))
+      .forEach(p => {
+        list.push({
+          id: p.id,
+          childId: p.childId,
+          specialistId: p.specialistId,
+          date: p.date,
+          note: p.note,
+          source: 'NOTE',
+        });
+      });
+
+    // 2. From completed sessions with recommendation
+    sessions
+      .filter(s => childIds.includes(s.childId) && Boolean(s.recommendation?.trim()))
+      .forEach(s => {
+        list.push({
+          id: s.id,
+          childId: s.childId,
+          specialistId: s.specialistId,
+          date: s.endTime ? s.endTime.split('T')[0] : (s.startTime ? s.startTime.split('T')[0] : ''),
+          note: s.recommendation!,
+          source: 'SESSION',
+        });
+      });
+
+    // Deduplicate identical recommendations for the same child on the same date
+    const seen = new Set<string>();
+    const deduplicated = list.filter(item => {
+      const key = `${item.childId}-${item.date}-${item.note.trim()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    return deduplicated
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 4);
-  }, [progressNotes, childIds]);
+      .slice(0, 5);
+  }, [progressNotes, sessions, childIds]);
 
   const handleCopyNote = (id: string, text: string) => {
     if (navigator?.clipboard?.writeText) {
@@ -279,10 +324,10 @@ export function ParentDashboard() {
       </div>
 
       {/* ─── Bottom Content: Upcoming Schedule & Specialist Advice ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* Upcoming Appointments (7 cols) */}
         <div className="lg:col-span-7">
-          <Card className="overflow-hidden border border-warm-200/90 shadow-xs h-full flex flex-col justify-between">
+          <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
             <div>
               <div className="p-4 bg-warm-50/70 border-b border-warm-200/80 flex items-center justify-between">
                 <div>
@@ -392,53 +437,123 @@ export function ParentDashboard() {
           <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
             <div className="p-4 bg-warm-50/70 border-b border-warm-200/80 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-charcoal-900">Mutaxassis tavsiyalari va uy mashqlari</h3>
-                <p className="text-xs text-charcoal-400 mt-0.5">Uy sharoitida bajariladigan jismoniy tavsiyalar</p>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-charcoal-900">Mutaxassis tavsiyalari va uy mashqlari</h3>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                    Uy rejimi
+                  </span>
+                </div>
+                <p className="text-xs text-charcoal-400 mt-0.5">Uy sharoitida bajariladigan jismoniy tavsiyalar va mashqlar</p>
               </div>
-              <Stethoscope className="w-4 h-4 text-emerald-600" />
+              <Badge variant="neutral">{recentRecommendations.length} ta</Badge>
             </div>
 
-            <div className="divide-y divide-warm-100 max-h-[280px] overflow-y-auto">
-              {recentNotes.length === 0 ? (
-                <div className="p-8 text-center text-xs text-charcoal-400">
-                  Hozircha uy mashqlari tavsiyalari mavjud emas
+            <div className="p-4 space-y-3 max-h-[380px] overflow-y-auto">
+              {recentRecommendations.length === 0 ? (
+                <div className="py-8 text-center">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center mb-2">
+                    <Stethoscope className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs font-bold text-charcoal-800">Hozircha uy mashqlari tavsiyalari mavjud emas</p>
+                  <p className="text-[11px] text-charcoal-400 mt-0.5">
+                    Mutaxassis seans davomida farzandingiz uchun mashqlar belgilaganda bu yerda ko‘rinadi
+                  </p>
                 </div>
               ) : (
-                recentNotes.map(n => {
+                recentRecommendations.map(n => {
                   const child = children.find(c => c.id === n.childId);
+                  const spec = specialists.find(s => s.id === n.specialistId);
+                  const childAge = child?.dateOfBirth ? differenceInYears(new Date(), parseISO(child.dateOfBirth)) : null;
+
                   return (
-                    <div key={n.id} className="p-3.5 space-y-1.5 hover:bg-warm-50/50 transition-colors">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-charcoal-900">{child?.fullName}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] text-charcoal-400">{formatDate(n.date)}</span>
+                    <div
+                      key={n.id}
+                      className="p-3.5 rounded-[12px] bg-white border border-warm-200/90 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition-all space-y-2.5"
+                    >
+                      {/* Top Header of Item: Child + Specialist + Date + Copy Button */}
+                      <div className="flex items-center justify-between gap-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Avatar
+                            name={child?.fullName ?? 'Bola'}
+                            size="xs"
+                            className="ring-1 ring-emerald-200/80 shadow-2xs shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-bold text-xs sm:text-sm text-charcoal-900 truncate">
+                                {child?.fullName}
+                              </span>
+                              {childAge !== null && (
+                                <span className="text-[10px] font-semibold text-charcoal-600 bg-warm-100 border border-warm-200/80 px-1.5 py-0.2 rounded-[4px]">
+                                  {childAge} yosh
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-charcoal-500 font-medium truncate">
+                              Shifokor: <strong className="text-charcoal-800 font-semibold">{spec?.fullName ?? 'Reabilitolog'}</strong>
+                              {spec?.specialization && <span className="text-charcoal-400"> ({spec.specialization})</span>}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[10px] font-bold text-charcoal-500 bg-warm-50 px-2 py-0.5 rounded-[6px] border border-warm-200/80 tabular-nums">
+                            {formatDate(n.date)}
+                          </span>
                           <button
                             type="button"
                             onClick={() => handleCopyNote(n.id, n.note)}
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[4px] border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
+                            className={cn(
+                              "inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-[6px] border shadow-2xs transition-all cursor-pointer",
+                              copiedNoteId === n.id
+                                ? "bg-emerald-600 text-white border-emerald-600"
+                                : "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
+                            )}
                             title="Tavsiyani nusxalash"
                           >
                             {copiedNoteId === n.id ? (
                               <>
-                                <Check className="w-3 h-3 text-emerald-600" />
+                                <Check className="w-3 h-3 text-white" />
                                 <span>Nusxalandi!</span>
                               </>
                             ) : (
                               <>
-                                <Copy className="w-3 h-3" />
+                                <Copy className="w-3 h-3 text-emerald-700" />
                                 <span>Nusxalash</span>
                               </>
                             )}
                           </button>
                         </div>
                       </div>
-                      <p className="text-xs text-charcoal-700 leading-relaxed font-medium">
-                        {n.note}
-                      </p>
+
+                      {/* Recommendation Callout Box */}
+                      <div className="p-2.5 sm:p-3 rounded-[10px] bg-gradient-to-br from-emerald-50/70 via-white to-warm-50/40 border border-emerald-200/80 text-xs text-charcoal-800 leading-relaxed font-medium flex items-start gap-2.5 shadow-2xs">
+                        <div className="w-6 h-6 rounded-[6px] bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                          <Stethoscope className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="space-y-0.5 flex-1 min-w-0">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">
+                            {n.source === 'SESSION' ? 'Seansdan keyingi ko‘rsatma' : 'Klinik tavsiya & Uy mashqi'}
+                          </span>
+                          <p className="text-charcoal-800 leading-relaxed break-words whitespace-pre-line text-xs font-normal">
+                            {n.note}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   );
                 })
               )}
+            </div>
+
+            <div className="p-3 bg-warm-50/70 border-t border-warm-100 text-center">
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard/parent/progress')}
+                className="text-xs text-emerald-700 hover:text-emerald-800 font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+              >
+                Barcha tavsiyalar va mashqlar tarixini ko‘rish <ChevronRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           </Card>
         </div>
