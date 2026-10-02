@@ -30,6 +30,16 @@ function MobileBottomNav({ onMoreClick }: { onMoreClick: () => void }) {
         { label: "Ko'proq", path: null, icon: <MoreIcon className="w-5 h-5" />, action: onMoreClick },
       ];
     }
+    if (currentUser?.role === 'SPECIALIST') {
+      const base = '/dashboard/specialist';
+      return [
+        { label: 'Bosh', path: base, icon: <LayoutDashboard className="w-5 h-5" />, action: undefined },
+        { label: 'Jadval', path: `${base}/schedule`, icon: <Calendar className="w-5 h-5" />, action: undefined },
+        { label: 'Seanslar', path: `${base}/sessions`, icon: <Calendar className="w-5 h-5" />, action: undefined },
+        { label: 'Bolalar', path: `${base}/children`, icon: <Baby className="w-5 h-5" />, action: undefined },
+        { label: "Ko'proq", path: null, icon: <MoreIcon className="w-5 h-5" />, action: onMoreClick },
+      ];
+    }
     // PARENT
     const base = '/dashboard/parent';
     return [
