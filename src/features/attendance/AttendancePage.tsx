@@ -195,8 +195,7 @@ export function AttendancePage() {
         <KpiCard
           label="Davomat darajasi"
           value={`${stats.rate}%`}
-          change={`${stats.present + stats.late} / ${stats.total} qatnashdi`}
-          changeType={stats.rate >= 80 ? 'positive' : 'negative'}
+          description={`${stats.present + stats.late} / ${stats.total} qatnashdi`}
           icon={<UserCheck className="w-5 h-5 text-brand-600" />}
           accentColor="brand"
           index={0}

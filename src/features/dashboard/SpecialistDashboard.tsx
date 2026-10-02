@@ -86,7 +86,7 @@ export function SpecialistDashboard() {
           value={todayAppointments.length}
           accentColor="brand"
           icon={<Clock className="w-5 h-5 text-brand-600" />}
-          change={`${todayAppointments.filter(a => a.status === 'COMPLETED').length} tasi yakunlandi`}
+          description={`${todayAppointments.filter(a => a.status === 'COMPLETED').length} tasi yakunlandi`}
           index={0}
         />
         <KpiCard

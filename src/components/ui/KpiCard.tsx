@@ -80,7 +80,7 @@ export function KpiCard({
           {label}
         </p>
 
-        <div className="flex items-baseline gap-2">
+        <div className="flex items-baseline gap-x-2 gap-y-0.5 flex-wrap">
           <motion.span
             key={String(value)}
             initial={{ opacity: 0, y: 2 }}
@@ -113,9 +113,10 @@ export function KpiCard({
           {!trend && change && (
             <span
               className={cn(
-                'text-[11px] font-semibold shrink-0',
+                'text-[11px] font-semibold truncate max-w-full',
                 changeType === 'positive' ? 'text-emerald-600' : changeType === 'negative' ? 'text-rose-600' : 'text-charcoal-500'
               )}
+              title={typeof change === 'string' ? change : undefined}
             >
               {change}
             </span>
@@ -123,7 +124,10 @@ export function KpiCard({
         </div>
 
         {(description || trend?.label) && (
-          <p className="text-[11px] text-charcoal-400 mt-1.5 font-normal leading-tight truncate">
+          <p
+            className="text-[11px] text-charcoal-400 mt-1.5 font-normal leading-tight truncate"
+            title={typeof (description ?? trend?.label) === 'string' ? (description ?? trend?.label) : undefined}
+          >
             {description ?? trend?.label}
           </p>
         )}
