@@ -157,7 +157,7 @@ export function ActivityLogsPage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs sm:text-sm font-bold text-charcoal-900">{log.actorName}</span>
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-warm-100 text-charcoal-600">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[6px] bg-warm-100 text-charcoal-600 border border-warm-200/70">
                         {log.actorRole}
                       </span>
                     </div>

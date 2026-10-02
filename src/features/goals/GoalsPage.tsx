@@ -133,24 +133,30 @@ export function GoalsPage() {
     switch (status) {
       case 'COMPLETED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <Badge
+            className="bg-emerald-50 text-emerald-700 border-emerald-200/80 text-xs font-medium"
+            dot
+          >
             Bajarildi
-          </span>
+          </Badge>
         );
       case 'ACTIVE':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/70">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+          <Badge
+            className="bg-amber-50 text-amber-700 border-amber-200/80 text-xs font-medium"
+            dot
+          >
             Faol
-          </span>
+          </Badge>
         );
       case 'PAUSED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-warm-100/80 text-charcoal-600 border border-warm-200/70">
-            <span className="w-1.5 h-1.5 rounded-full bg-charcoal-400" />
+          <Badge
+            className="bg-warm-100 text-charcoal-600 border-warm-200/80 text-xs font-medium"
+            dot
+          >
             To‘xtatilgan
-          </span>
+          </Badge>
         );
       default:
         return <Badge variant="neutral">{status}</Badge>;
