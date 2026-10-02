@@ -54,8 +54,8 @@ function MobileBottomNav({ onMoreClick }: { onMoreClick: () => void }) {
   const items = getNavItems();
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-warm-200 safe-bottom" aria-label="Pastki navigatsiya">
-      <div className="flex">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-warm-200/90 safe-bottom shadow-[0_-4px_20px_rgba(0,0,0,0.03)]" aria-label="Pastki navigatsiya">
+      <div className="flex items-center justify-around h-14">
         {items.map(item => {
           const isActive = item.path ? (item.path === location.pathname || location.pathname.startsWith(item.path + '/')) : false;
           return (
@@ -66,13 +66,13 @@ function MobileBottomNav({ onMoreClick }: { onMoreClick: () => void }) {
                 else if (item.path) navigate(item.path);
               }}
               className={cn(
-                'flex-1 flex flex-col items-center gap-1 py-2 px-1 text-[10px] font-medium transition-colors',
-                isActive ? 'text-brand-600' : 'text-charcoal-400 hover:text-charcoal-600'
+                'flex-1 flex flex-col items-center justify-center gap-0.5 h-full py-1 px-1 text-[10px] font-semibold transition-colors cursor-pointer select-none',
+                isActive ? 'text-brand-600' : 'text-charcoal-400 hover:text-charcoal-700 active:scale-95'
               )}
               aria-current={isActive ? 'page' : undefined}
             >
-              <span className={cn(isActive && 'text-brand-500')}>{item.icon}</span>
-              {item.label}
+              <span className={cn('transition-transform duration-150', isActive && 'text-brand-500 scale-105')}>{item.icon}</span>
+              <span className="truncate max-w-[64px]">{item.label}</span>
             </button>
           );
         })}
@@ -98,7 +98,7 @@ export function DashboardLayout() {
         <Header
           onMobileMenuOpen={() => setMobileMenuOpen(true)}
         />
-        <main className="flex-1 overflow-y-auto pb-20 lg:pb-6" id="main-content">
+        <main className="flex-1 overflow-y-auto pb-24 lg:pb-6" id="main-content">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 8 }}

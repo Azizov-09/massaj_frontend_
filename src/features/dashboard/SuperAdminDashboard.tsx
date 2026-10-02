@@ -236,8 +236,8 @@ export function SuperAdminDashboard() {
       </div>
 
       {/* ─── Date Filter Presets Strip ─── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-2 bg-warm-50/80 rounded-xl border border-warm-200/90 shadow-2xs">
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2 bg-warm-50/80 rounded-xl border border-warm-200/90 shadow-2xs">
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
           {DATE_PRESETS.map(preset => {
             const isActive = dateFilter === preset.value;
             return (
@@ -258,7 +258,7 @@ export function SuperAdminDashboard() {
           })}
         </div>
 
-        <div className="text-xs text-charcoal-500 font-medium px-2">
+        <div className="text-xs text-charcoal-500 font-medium px-2 self-end sm:self-auto">
           Oraliq: <strong className="text-charcoal-800">{formatDate(range.from)} — {formatDate(range.to)}</strong>
         </div>
       </div>

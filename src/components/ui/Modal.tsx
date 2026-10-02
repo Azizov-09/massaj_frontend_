@@ -88,7 +88,7 @@ export function Modal({
     <AnimatePresence>
       {isOpen && (
         <div
-          className="fixed inset-0 z-[70] overflow-y-auto p-4 flex min-h-full items-center justify-center"
+          className="fixed inset-0 z-[70] overflow-y-auto p-2.5 sm:p-4 flex min-h-full items-center justify-center safe-top safe-bottom"
           role="dialog"
           aria-modal
           aria-label={title}
@@ -112,23 +112,22 @@ export function Modal({
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             tabIndex={-1}
             className={cn(
-              'relative z-10 w-full bg-white rounded-[16px] border border-warm-200/90 shadow-[0_20px_60px_-10px_rgb(0_0_0/0.18)] flex flex-col my-auto',
-              scrollable && 'max-h-[90vh]',
+              'relative z-10 w-full bg-white rounded-[16px] border border-warm-200/90 shadow-[0_20px_60px_-10px_rgb(0_0_0/0.18)] flex flex-col my-auto max-h-[94vh]',
               sizeClasses[size],
               className
             )}
           >
             {/* Header */}
             {(title || !hideClose) && (
-              <div className="flex items-start justify-between px-6 py-5 border-b border-warm-100 rounded-t-[16px]">
+              <div className="flex items-start justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-warm-100 rounded-t-[16px]">
                 <div>
                   {title && <h2 className="text-base font-semibold text-charcoal-900">{title}</h2>}
-                  {description && <p className="text-sm text-charcoal-400 mt-0.5">{description}</p>}
+                  {description && <p className="text-xs sm:text-sm text-charcoal-400 mt-0.5">{description}</p>}
                 </div>
                 {!hideClose && (
                   <button
                     onClick={onClose}
-                    className="ml-4 text-charcoal-400 hover:text-charcoal-700 rounded-full p-1 hover:bg-warm-100 transition-colors flex-shrink-0"
+                    className="ml-4 text-charcoal-400 hover:text-charcoal-700 rounded-full p-1 hover:bg-warm-100 transition-colors flex-shrink-0 cursor-pointer"
                     aria-label="Yopish"
                   >
                     <X className="w-5 h-5" />
@@ -137,12 +136,12 @@ export function Modal({
               </div>
             )}
             {/* Body */}
-            <div className={cn('flex-1 px-6 py-5', scrollable ? 'overflow-y-auto max-h-[70vh]' : 'overflow-visible', bodyClassName)}>
+            <div className={cn('flex-1 px-4 sm:px-6 py-4 sm:py-5 overflow-y-auto max-h-[calc(92vh-130px)]', bodyClassName)}>
               {children}
             </div>
             {/* Footer */}
             {footer && (
-              <div className="px-6 py-4 border-t border-warm-100 bg-warm-50/50 rounded-b-[16px] flex items-center justify-end gap-2">
+              <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-warm-100 bg-warm-50/50 rounded-b-[16px] flex flex-wrap items-center justify-end gap-2">
                 {footer}
               </div>
             )}
@@ -195,18 +194,18 @@ export function ConfirmDialog({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm" hideClose>
       <p className="text-sm text-charcoal-600">{message}</p>
-      <div className="flex gap-2 mt-5">
+      <div className="flex flex-col-reverse sm:flex-row gap-2 mt-5">
         <button
           onClick={onClose}
           disabled={loading}
-          className="flex-1 px-4 py-2 text-sm font-medium rounded-[10px] border border-warm-300 text-charcoal-700 hover:bg-warm-100 transition-colors"
+          className="w-full sm:flex-1 px-4 py-2.5 text-sm font-medium rounded-[10px] border border-warm-300 text-charcoal-700 hover:bg-warm-100 transition-colors cursor-pointer"
         >
           {finalCancelLabel}
         </button>
         <button
           onClick={onConfirm}
           disabled={loading}
-          className={cn('flex-1 px-4 py-2 text-sm font-medium rounded-[10px] transition-colors inline-flex items-center justify-center gap-2', confirmColor)}
+          className={cn('w-full sm:flex-1 px-4 py-2.5 text-sm font-medium rounded-[10px] transition-colors inline-flex items-center justify-center gap-2 cursor-pointer', confirmColor)}
         >
           {loading && <Orb state="working" size={16} className="text-white shrink-0" />}
           <span>{loading ? 'Yuklanmoqda...' : finalConfirmLabel}</span>

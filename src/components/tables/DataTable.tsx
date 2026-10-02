@@ -164,10 +164,10 @@ export function DataTable<T>({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4.5 py-3 border-t border-warm-100 bg-warm-50/60">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-3.5 sm:px-4.5 py-3 border-t border-warm-100 bg-warm-50/60">
           <div className="flex items-center gap-2 text-xs font-medium text-charcoal-600">
             <span>Sahifada:</span>
-            <div className="w-20">
+            <div className="w-18 sm:w-20">
               <Select
                 value={String(pageSize)}
                 onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
@@ -181,7 +181,32 @@ export function DataTable<T>({
               {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, sorted.length)} / <strong className="text-charcoal-800 font-bold">{sorted.length}</strong>
             </span>
           </div>
-          <div className="flex items-center gap-1">
+
+          {/* Mobile compact pagination */}
+          <div className="flex sm:hidden items-center gap-1.5 ml-auto">
+            <span className="text-xs font-semibold text-charcoal-700 tabular-nums mr-1">
+              {page} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="p-1.5 rounded-[8px] border border-warm-200 bg-white text-charcoal-600 hover:text-charcoal-900 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs"
+              aria-label="Oldingi sahifa"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="p-1.5 rounded-[8px] border border-warm-200 bg-white text-charcoal-600 hover:text-charcoal-900 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs"
+              aria-label="Keyingi sahifa"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Desktop/tablet numbered pagination */}
+          <div className="hidden sm:flex items-center gap-1">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}

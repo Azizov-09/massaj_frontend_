@@ -409,15 +409,15 @@ export function SchedulePage() {
                   )}
 
                   {/* Time Badge Column */}
-                  <div className="w-24 sm:w-28 p-3.5 border-r border-warm-100 flex flex-col items-center justify-center shrink-0 bg-warm-50/35 select-none">
-                    <span className="text-sm font-bold text-charcoal-900 tracking-tight">
+                  <div className="w-20 sm:w-28 p-2 sm:p-3.5 border-r border-warm-100 flex flex-col items-center justify-center shrink-0 bg-warm-50/35 select-none">
+                    <span className="text-xs sm:text-sm font-bold text-charcoal-900 tracking-tight">
                       {time}
                     </span>
-                    <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-[6px] border mt-1.5 whitespace-nowrap', period.badgeClass)}>
+                    <span className={cn('text-[9px] sm:text-[10px] font-semibold px-1.5 sm:px-2 py-0.5 rounded-[6px] border mt-1 sm:mt-1.5 whitespace-nowrap', period.badgeClass)}>
                       {period.label}
                     </span>
                     {isCurrentSlot && (
-                      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-brand-600 mt-1 uppercase tracking-wider">
+                      <span className="inline-flex items-center gap-1 text-[8px] sm:text-[9px] font-bold text-brand-600 mt-1 uppercase tracking-wider">
                         <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse" />
                         Hozir
                       </span>
@@ -425,27 +425,27 @@ export function SchedulePage() {
                   </div>
 
                   {/* Slot Content Area */}
-                  <div className="flex-1 p-3 flex items-stretch">
+                  <div className="flex-1 p-2 sm:p-3 flex items-stretch">
                     {slotApts.length === 0 ? (
                       <button
                         type="button"
                         onClick={() => handleOpenCreate(selectedDate, time)}
-                        className="w-full min-h-[92px] h-full border-2 border-dashed border-warm-200/90 hover:border-brand-400 bg-warm-50/20 hover:bg-brand-50/30 rounded-[14px] px-4 py-3 flex items-center justify-between transition-all duration-150 group/slot cursor-pointer text-left focus:outline-hidden focus:ring-2 focus:ring-brand-400"
+                        className="w-full min-h-[76px] sm:min-h-[92px] h-full border-2 border-dashed border-warm-200/90 hover:border-brand-400 bg-warm-50/20 hover:bg-brand-50/30 rounded-[14px] p-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 transition-all duration-150 group/slot cursor-pointer text-left focus:outline-hidden focus:ring-2 focus:ring-brand-400"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-warm-100 group-hover/slot:bg-brand-100 text-charcoal-400 group-hover/slot:text-brand-600 flex items-center justify-center transition-colors shadow-2xs">
-                            <Plus className="w-4 h-4 transition-transform group-hover/slot:rotate-90 duration-200" />
+                        <div className="flex items-center gap-2.5 sm:gap-3">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-warm-100 group-hover/slot:bg-brand-100 text-charcoal-400 group-hover/slot:text-brand-600 flex items-center justify-center transition-colors shadow-2xs shrink-0">
+                            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover/slot:rotate-90 duration-200" />
                           </div>
                           <div>
                             <span className="text-xs font-semibold text-charcoal-700 group-hover/slot:text-brand-800 transition-colors block">
                               Bo‘sh vaqt sloti — {time}
                             </span>
-                            <span className="text-[11px] text-charcoal-400 group-hover/slot:text-brand-600 transition-colors">
+                            <span className="text-[10px] sm:text-[11px] text-charcoal-400 group-hover/slot:text-brand-600 transition-colors line-clamp-1 sm:line-clamp-none">
                               Ushbu soatga yangi uchrashuv belgilash uchun bosing
                             </span>
                           </div>
                         </div>
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 bg-white group-hover/slot:bg-brand-50 px-3 py-1.5 rounded-lg border border-warm-200 group-hover/slot:border-brand-300 shadow-2xs transition-all duration-150">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 bg-white group-hover/slot:bg-brand-50 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-warm-200 group-hover/slot:border-brand-300 shadow-2xs transition-all duration-150 self-end sm:self-auto shrink-0">
                           <Plus className="w-3.5 h-3.5" />
                           Yozilish
                         </span>

@@ -141,7 +141,7 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4, scale: 0.98 }}
                 transition={{ duration: 0.15 }}
-                className="absolute right-0 top-full mt-2 w-72 bg-white rounded-[14px] shadow-[0_10px_40px_-8px_rgb(0_0_0/0.12)] border border-warm-200 overflow-hidden"
+                className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-16 sm:top-full mt-2 w-auto sm:w-80 max-w-sm bg-white rounded-[14px] shadow-[0_10px_40px_-8px_rgb(0_0_0/0.12)] border border-warm-200 overflow-hidden z-50"
               >
                 <div className="flex items-center gap-2 px-3 py-2.5 border-b border-warm-100">
                   <Search className="w-4 h-4 text-charcoal-400 flex-shrink-0" />
@@ -211,7 +211,7 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.15 }}
-                className="absolute right-0 top-full mt-2 w-80 bg-white rounded-[14px] shadow-[0_10px_40px_-8px_rgb(0_0_0/0.12)] border border-warm-200 overflow-hidden"
+                className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-16 sm:top-full mt-2 w-auto sm:w-80 max-w-sm bg-white rounded-[14px] shadow-[0_10px_40px_-8px_rgb(0_0_0/0.12)] border border-warm-200 overflow-hidden z-50"
               >
                 <div className="flex items-center justify-between px-4 py-3 border-b border-warm-100">
                   <span className="text-sm font-semibold text-charcoal-900">Bildirishnomalar</span>
@@ -283,7 +283,7 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.15 }}
                 role="menu"
-                className="absolute right-0 top-full mt-2 w-48 bg-white rounded-[14px] shadow-[0_10px_40px_-8px_rgb(0_0_0/0.12)] border border-warm-200 py-1 overflow-hidden"
+                className="absolute right-0 top-full mt-2 w-48 bg-white rounded-[14px] shadow-[0_10px_40px_-8px_rgb(0_0_0/0.12)] border border-warm-200 py-1 overflow-hidden z-50"
               >
                 <div className="px-3 py-2 border-b border-warm-100">
                   <p className="text-xs font-semibold text-charcoal-900 truncate">{currentUser?.fullName}</p>
