@@ -293,7 +293,7 @@ export function GoalsPage() {
                     <h4 className="text-sm font-semibold text-charcoal-900 group-hover:text-brand-600 transition-colors line-clamp-1 break-words">
                       {goal.title}
                     </h4>
-                    <p className="text-xs text-charcoal-500 mt-1 line-clamp-2 leading-relaxed min-h-[32px] break-words">
+                    <p className="text-xs text-charcoal-500 mt-1 line-clamp-2 leading-relaxed h-9 break-words">
                       {goal.description}
                     </p>
                   </div>
@@ -344,21 +344,19 @@ export function GoalsPage() {
                         }}
                         title={`Mutaxassis sharhi: ${goal.specialistNote}`}
                         className={cn(
-                          'w-full rounded-xl bg-warm-50/80 border border-warm-200/75 p-2.5 min-h-[44px] flex items-center gap-2.5 shadow-2xs transition-all',
+                          'w-full rounded-xl bg-warm-50/80 border border-warm-200/75 px-3 h-11 flex items-center gap-2.5 shadow-2xs transition-all overflow-hidden',
                           !isParent && 'hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer'
                         )}
                       >
                         <div className="w-6 h-6 rounded-lg bg-brand-50 border border-brand-100/80 flex items-center justify-center shrink-0 text-brand-600">
                           <Quote className="w-3.5 h-3.5 text-brand-500" />
                         </div>
-                        <div className="flex-1 min-w-0 flex items-center gap-1.5 text-xs">
-                          <span className="text-[11px] font-semibold text-charcoal-800 shrink-0">
+                        <p className="flex-1 min-w-0 text-xs text-charcoal-600 truncate leading-normal font-normal">
+                          <span className="font-semibold text-charcoal-800 mr-1.5">
                             Sharh:
                           </span>
-                          <span className="text-xs text-charcoal-600 truncate font-normal">
-                            {goal.specialistNote}
-                          </span>
-                        </div>
+                          <span>{goal.specialistNote}</span>
+                        </p>
                       </div>
                     ) : (
                       !isParent ? (
@@ -368,14 +366,14 @@ export function GoalsPage() {
                             e.stopPropagation();
                             handleOpenEdit(goal);
                           }}
-                          className="w-full p-2.5 rounded-xl border border-dashed border-warm-200/90 hover:border-brand-300 hover:bg-brand-50/40 text-[11px] text-charcoal-400 hover:text-brand-600 flex items-center justify-center gap-1.5 transition-all min-h-[44px] group/note cursor-pointer"
+                          className="w-full px-3 h-11 rounded-xl border border-dashed border-warm-200/90 hover:border-brand-300 hover:bg-brand-50/40 text-xs text-charcoal-400 hover:text-brand-600 flex items-center justify-center gap-1.5 transition-all overflow-hidden group/note cursor-pointer"
                           title="Mutaxassis izohini qo‘shish"
                         >
-                          <Plus className="w-3.5 h-3.5 text-charcoal-400 group-hover/note:text-brand-500 transition-colors" />
+                          <Plus className="w-3.5 h-3.5 text-charcoal-400 group-hover/note:text-brand-500 transition-colors shrink-0" />
                           <span className="font-medium">Izoh kiritilmagan · Qo‘shish</span>
                         </button>
                       ) : (
-                        <div className="w-full p-2.5 rounded-xl bg-warm-50/40 border border-warm-200/40 text-[11px] text-charcoal-400 flex items-center justify-center min-h-[44px]">
+                        <div className="w-full px-3 h-11 rounded-xl bg-warm-50/40 border border-warm-200/40 text-xs text-charcoal-400 flex items-center justify-center overflow-hidden">
                           Hozircha izoh kiritilmagan
                         </div>
                       )
