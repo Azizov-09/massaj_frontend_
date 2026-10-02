@@ -30,6 +30,7 @@ interface DataTableProps<T> {
   emptyAction?: React.ReactNode;
   onRowClick?: (row: T) => void;
   className?: string;
+  tableClassName?: string;
   stickyHeader?: boolean;
 }
 
@@ -47,6 +48,7 @@ export function DataTable<T>({
   emptyAction,
   onRowClick,
   className,
+  tableClassName,
   stickyHeader,
 }: DataTableProps<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
@@ -90,7 +92,7 @@ export function DataTable<T>({
     <div className={cn('flex flex-col', className)}>
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse min-w-[600px]">
+        <table className={cn('w-full border-collapse min-w-[600px]', tableClassName)}>
           <thead className={cn(stickyHeader && 'sticky top-0 z-10')}>
             <tr className="bg-warm-50 border-b border-warm-200">
               {columns.map(col => (
