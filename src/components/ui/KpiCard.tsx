@@ -96,15 +96,15 @@ export function KpiCard({
 
       {/* Bottom Area: Full-width Metric Value + Trend/Change */}
       <div className="mt-2 w-full min-w-0">
-        <div className="flex items-baseline gap-x-2 gap-y-0.5 flex-wrap">
+        <div className="flex items-center gap-x-2 gap-y-1 flex-wrap">
           <motion.span
             key={String(value)}
             initial={{ opacity: 0, y: 2 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
             className={cn(
-              'font-extrabold text-charcoal-900 tabular-nums tracking-tight leading-none truncate max-w-full block',
-              size === 'sm' ? 'text-base sm:text-lg' : size === 'lg' ? 'text-2xl sm:text-3xl' : 'text-lg sm:text-2xl'
+              'font-extrabold text-charcoal-900 tabular-nums tracking-tight leading-none shrink-0 block',
+              size === 'sm' ? 'text-sm sm:text-lg' : size === 'lg' ? 'text-xl sm:text-3xl' : 'text-[16px] xs:text-[18px] sm:text-2xl'
             )}
             title={typeof value === 'number' && format === 'currency' ? `${value.toLocaleString('uz-UZ')} so'm` : String(value)}
           >
