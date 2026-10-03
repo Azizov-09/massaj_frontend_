@@ -82,9 +82,9 @@ export function SpecialistsPage() {
     return specialists.filter(s => {
       if (search) {
         const q = search.toLowerCase();
-        const matchName = s.fullName.toLowerCase().includes(q);
-        const matchSpec = s.specialization.toLowerCase().includes(q);
-        const matchPhone = s.phone.toLowerCase().includes(q);
+        const matchName = s.fullName?.toLowerCase().includes(q);
+        const matchSpec = s.specialization?.toLowerCase().includes(q);
+        const matchPhone = s.phone?.toLowerCase().includes(q);
         if (!matchName && !matchSpec && !matchPhone) return false;
       }
       if (statusFilter === 'ACTIVE' && s.status !== 'ACTIVE') return false;

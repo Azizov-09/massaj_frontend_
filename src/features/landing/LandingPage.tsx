@@ -552,9 +552,9 @@ export function LandingPage() {
                 className="bg-white rounded-3xl p-6 border border-warm-200/80 shadow-xs flex flex-col items-center text-center group hover:border-brand-300 transition-colors"
               >
                 <div className="w-20 h-20 rounded-full bg-brand-100 border-2 border-brand-200 flex items-center justify-center text-2xl font-bold text-brand-700 mb-4 group-hover:scale-105 transition-transform">
-                  {spec.fullName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  {(spec.fullName || 'Mutaxassis').split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2)}
                 </div>
-                <h4 className="text-base font-bold text-charcoal-900">{spec.fullName}</h4>
+                <h4 className="text-base font-bold text-charcoal-900">{spec.fullName || 'Mutaxassis'}</h4>
                 <p className="text-xs font-semibold text-brand-600 mt-1">{spec.specialization}</p>
                 <p className="text-xs text-charcoal-500 mt-0.5">{spec.experience} yillik tajriba</p>
                 <p className="text-xs text-charcoal-600 mt-3 line-clamp-3 leading-relaxed">
@@ -562,7 +562,7 @@ export function LandingPage() {
                 </p>
                 <div className="mt-5 pt-4 border-t border-warm-100 w-full flex items-center justify-between text-xs text-charcoal-500">
                   <span>Dush - Juma</span>
-                  <span className="font-semibold text-charcoal-800">{spec.workingHours.start} - {spec.workingHours.end}</span>
+                  <span className="font-semibold text-charcoal-800">{spec.workingHours?.start || '09:00'} - {spec.workingHours?.end || '18:00'}</span>
                 </div>
               </div>
             ))}

@@ -68,9 +68,9 @@ export function ParentsPage() {
       // Search
       if (search) {
         const q = search.toLowerCase();
-        const matchesName = p.fullName.toLowerCase().includes(q);
-        const matchesPhone = p.phone.toLowerCase().includes(q);
-        const matchesChild = children.some(c => p.childrenIds.includes(c.id) && c.fullName.toLowerCase().includes(q));
+        const matchesName = p.fullName?.toLowerCase().includes(q);
+        const matchesPhone = p.phone?.toLowerCase().includes(q);
+        const matchesChild = children.some(c => (p.childrenIds || []).includes(c.id) && c.fullName?.toLowerCase().includes(q));
         if (!matchesName && !matchesPhone && !matchesChild) return false;
       }
 
@@ -164,7 +164,7 @@ export function ParentsPage() {
                 title={`${c.fullName} profilini ochish`}
               >
                 <Baby className="w-3 h-3 text-brand-600 shrink-0" />
-                <span className="truncate max-w-[110px]">{c.fullName.split(' ')[0]}</span>
+                <span className="truncate max-w-[110px]">{(c.fullName || '').split(' ')[0]}</span>
                 <ArrowRight className="w-2.5 h-2.5 text-brand-400 opacity-60" />
               </Link>
             ))}

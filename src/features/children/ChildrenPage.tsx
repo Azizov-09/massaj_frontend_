@@ -52,8 +52,8 @@ export function ChildrenPage() {
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(c =>
-        c.fullName.toLowerCase().includes(q) ||
-        parents.find(p => p.id === c.parentId)?.fullName.toLowerCase().includes(q)
+        c.fullName?.toLowerCase().includes(q) ||
+        parents.find(p => p.id === c.parentId)?.fullName?.toLowerCase().includes(q)
       );
     }
     if (statusFilter) result = result.filter(c => c.status === statusFilter);

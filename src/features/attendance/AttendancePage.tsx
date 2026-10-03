@@ -149,10 +149,10 @@ export function AttendancePage() {
       if (!search) return true;
       const q = search.toLowerCase();
       return (
-        item.child?.fullName.toLowerCase().includes(q) ||
-        item.specialist?.fullName.toLowerCase().includes(q) ||
-        item.service?.name.toLowerCase().includes(q) ||
-        item.parent?.fullName.toLowerCase().includes(q)
+        item.child?.fullName?.toLowerCase().includes(q) ||
+        item.specialist?.fullName?.toLowerCase().includes(q) ||
+        item.service?.name?.toLowerCase().includes(q) ||
+        item.parent?.fullName?.toLowerCase().includes(q)
       );
     });
   }, [dayAppointments, attendance, children, parents, specialists, services, search]);

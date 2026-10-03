@@ -1,11 +1,13 @@
 // ═══════════════════════════════════════════════════════
 //  App Router — React Router with Code-Splitting & RBAC
 // ═══════════════════════════════════════════════════════
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ProtectedRoute, RoleRedirect, NotFoundPage, ForbiddenPage } from '@/features/auth/guards';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { RouteErrorPage, DashboardSectionError } from '@/components/ui/RouteErrorPage';
+import { lazyWithRetry } from '@/utils/lazyWithRetry';
 import { Orb } from '@/components/ui/thinking-orbs';
 
 // Loading fallback component
@@ -23,52 +25,53 @@ const withSuspense = (Component: React.LazyExoticComponent<React.ComponentType<a
   </Suspense>
 );
 
-// ─── Lazy Pages ───────────────────────────────────────────
+// ─── Lazy Pages (with automatic chunk reload recovery) ───
 
 // Public
-const LandingPage = lazy(() => import('@/features/landing/LandingPage').then(m => ({ default: m.LandingPage })));
-const LoginPage = lazy(() => import('@/features/auth/LoginPage').then(m => ({ default: m.LoginPage })));
+const LandingPage = lazyWithRetry(() => import('@/features/landing/LandingPage').then(m => ({ default: m.LandingPage })));
+const LoginPage = lazyWithRetry(() => import('@/features/auth/LoginPage').then(m => ({ default: m.LoginPage })));
 
 // Dashboards
-const SuperAdminDashboard = lazy(() => import('@/features/dashboard/SuperAdminDashboard').then(m => ({ default: m.SuperAdminDashboard })));
-const ParentDashboard = lazy(() => import('@/features/dashboard/ParentDashboard').then(m => ({ default: m.ParentDashboard })));
-const SpecialistDashboard = lazy(() => import('@/features/dashboard/SpecialistDashboard').then(m => ({ default: m.SpecialistDashboard })));
+const SuperAdminDashboard = lazyWithRetry(() => import('@/features/dashboard/SuperAdminDashboard').then(m => ({ default: m.SuperAdminDashboard })));
+const ParentDashboard = lazyWithRetry(() => import('@/features/dashboard/ParentDashboard').then(m => ({ default: m.ParentDashboard })));
+const SpecialistDashboard = lazyWithRetry(() => import('@/features/dashboard/SpecialistDashboard').then(m => ({ default: m.SpecialistDashboard })));
 
 // Operations & Clinical
-const AppointmentsPage = lazy(() => import('@/features/appointments/AppointmentsPage').then(m => ({ default: m.AppointmentsPage })));
-const SchedulePage = lazy(() => import('@/features/schedule/SchedulePage').then(m => ({ default: m.SchedulePage })));
-const AttendancePage = lazy(() => import('@/features/attendance/AttendancePage').then(m => ({ default: m.AttendancePage })));
-const SessionsPage = lazy(() => import('@/features/sessions/SessionsPage').then(m => ({ default: m.SessionsPage })));
-const ServicesPage = lazy(() => import('@/features/services/ServicesPage').then(m => ({ default: m.ServicesPage })));
-const AssessmentsPage = lazy(() => import('@/features/assessments/AssessmentsPage').then(m => ({ default: m.AssessmentsPage })));
-const ProgressPage = lazy(() => import('@/features/progress/ProgressPage').then(m => ({ default: m.ProgressPage })));
-const GoalsPage = lazy(() => import('@/features/goals/GoalsPage').then(m => ({ default: m.GoalsPage })));
+const AppointmentsPage = lazyWithRetry(() => import('@/features/appointments/AppointmentsPage').then(m => ({ default: m.AppointmentsPage })));
+const SchedulePage = lazyWithRetry(() => import('@/features/schedule/SchedulePage').then(m => ({ default: m.SchedulePage })));
+const AttendancePage = lazyWithRetry(() => import('@/features/attendance/AttendancePage').then(m => ({ default: m.AttendancePage })));
+const SessionsPage = lazyWithRetry(() => import('@/features/sessions/SessionsPage').then(m => ({ default: m.SessionsPage })));
+const ServicesPage = lazyWithRetry(() => import('@/features/services/ServicesPage').then(m => ({ default: m.ServicesPage })));
+const AssessmentsPage = lazyWithRetry(() => import('@/features/assessments/AssessmentsPage').then(m => ({ default: m.AssessmentsPage })));
+const ProgressPage = lazyWithRetry(() => import('@/features/progress/ProgressPage').then(m => ({ default: m.ProgressPage })));
+const GoalsPage = lazyWithRetry(() => import('@/features/goals/GoalsPage').then(m => ({ default: m.GoalsPage })));
 
 // Entities
-const ChildrenPage = lazy(() => import('@/features/children/ChildrenPage').then(m => ({ default: m.ChildrenPage })));
-const ParentsPage = lazy(() => import('@/features/parents/ParentsPage').then(m => ({ default: m.ParentsPage })));
-const SpecialistsPage = lazy(() => import('@/features/specialists/SpecialistsPage').then(m => ({ default: m.SpecialistsPage })));
-const AdminsPage = lazy(() => import('@/features/admins/AdminsPage').then(m => ({ default: m.AdminsPage })));
-const EmployeesPage = lazy(() => import('@/features/employees/EmployeesPage').then(m => ({ default: m.EmployeesPage })));
+const ChildrenPage = lazyWithRetry(() => import('@/features/children/ChildrenPage').then(m => ({ default: m.ChildrenPage })));
+const ParentsPage = lazyWithRetry(() => import('@/features/parents/ParentsPage').then(m => ({ default: m.ParentsPage })));
+const SpecialistsPage = lazyWithRetry(() => import('@/features/specialists/SpecialistsPage').then(m => ({ default: m.SpecialistsPage })));
+const AdminsPage = lazyWithRetry(() => import('@/features/admins/AdminsPage').then(m => ({ default: m.AdminsPage })));
+const EmployeesPage = lazyWithRetry(() => import('@/features/employees/EmployeesPage').then(m => ({ default: m.EmployeesPage })));
 
 // Finance
-const PaymentsPage = lazy(() => import('@/features/payments/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
-const TransactionsPage = lazy(() => import('@/features/transactions/TransactionsPage').then(m => ({ default: m.TransactionsPage })));
-const BalancePage = lazy(() => import('@/features/balance/BalancePage').then(m => ({ default: m.BalancePage })));
-const DebtorsPage = lazy(() => import('@/features/debtors/DebtorsPage').then(m => ({ default: m.DebtorsPage })));
+const PaymentsPage = lazyWithRetry(() => import('@/features/payments/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
+const TransactionsPage = lazyWithRetry(() => import('@/features/transactions/TransactionsPage').then(m => ({ default: m.TransactionsPage })));
+const BalancePage = lazyWithRetry(() => import('@/features/balance/BalancePage').then(m => ({ default: m.BalancePage })));
+const DebtorsPage = lazyWithRetry(() => import('@/features/debtors/DebtorsPage').then(m => ({ default: m.DebtorsPage })));
 
 // Insights & System
-const AnalyticsPage = lazy(() => import('@/features/analytics/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
-const ReportsPage = lazy(() => import('@/features/reports/ReportsPage').then(m => ({ default: m.ReportsPage })));
-const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
-const ActivityLogsPage = lazy(() => import('@/features/activity-logs/ActivityLogsPage').then(m => ({ default: m.ActivityLogsPage })));
-const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
-const ProfilePage = lazy(() => import('@/features/profile/ProfilePage').then(m => ({ default: m.ProfilePage })));
+const AnalyticsPage = lazyWithRetry(() => import('@/features/analytics/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+const ReportsPage = lazyWithRetry(() => import('@/features/reports/ReportsPage').then(m => ({ default: m.ReportsPage })));
+const NotificationsPage = lazyWithRetry(() => import('@/features/notifications/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
+const ActivityLogsPage = lazyWithRetry(() => import('@/features/activity-logs/ActivityLogsPage').then(m => ({ default: m.ActivityLogsPage })));
+const SettingsPage = lazyWithRetry(() => import('@/features/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const ProfilePage = lazyWithRetry(() => import('@/features/profile/ProfilePage').then(m => ({ default: m.ProfilePage })));
 
 // ─── Super Admin Routes (full access) ────────────────────
 
 const superAdminRoutes = {
   path: '/dashboard/super-admin',
+  errorElement: <DashboardSectionError />,
   element: (
     <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}>
       <DashboardLayout />
@@ -106,6 +109,7 @@ const superAdminRoutes = {
 
 const specialistRoutes = {
   path: '/dashboard/specialist',
+  errorElement: <DashboardSectionError />,
   element: (
     <ProtectedRoute allowedRoles={['SPECIALIST']}>
       <DashboardLayout />
@@ -130,6 +134,7 @@ const specialistRoutes = {
 
 const parentRoutes = {
   path: '/dashboard/parent',
+  errorElement: <DashboardSectionError />,
   element: (
     <ProtectedRoute allowedRoles={['PARENT']}>
       <DashboardLayout />
@@ -154,11 +159,7 @@ const parentRoutes = {
 const router = createBrowserRouter([
   {
     path: '/',
-    errorElement: (
-      <ErrorBoundary>
-        <NotFoundPage />
-      </ErrorBoundary>
-    ),
+    errorElement: <RouteErrorPage />,
     children: [
       { index: true, element: <RoleRedirect /> },
       { path: 'landing', element: withSuspense(LandingPage) },

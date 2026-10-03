@@ -107,7 +107,7 @@ export function ProgressPage() {
       if (isSpecialist && currentUser && ses.specialistId !== currentUser.id) return;
       list.push({
         id: ses.id,
-        date: ses.endTime ? ses.endTime.split('T')[0] : ses.startTime.split('T')[0],
+        date: ses.endTime ? (ses.endTime || '').split('T')[0] : (ses.startTime ? (ses.startTime || '').split('T')[0] : new Date().toISOString().split('T')[0]),
         childId: ses.childId,
         specialistId: ses.specialistId,
         type: 'SESSION',
@@ -202,10 +202,10 @@ export function ProgressPage() {
         const q = search.trim().toLowerCase();
         const child = children.find(c => c.id === evt.childId);
         const spec = specialists.find(s => s.id === evt.specialistId);
-        const matchChild = child?.fullName.toLowerCase().includes(q);
-        const matchSpec = spec?.fullName.toLowerCase().includes(q);
-        const matchTitle = evt.title.toLowerCase().includes(q);
-        const matchContent = evt.content.toLowerCase().includes(q);
+        const matchChild = child?.fullName?.toLowerCase().includes(q);
+        const matchSpec = spec?.fullName?.toLowerCase().includes(q);
+        const matchTitle = (evt.title || '').toLowerCase().includes(q);
+        const matchContent = (evt.content || '').toLowerCase().includes(q);
         const matchRec = evt.recommendation?.toLowerCase().includes(q) || evt.details?.toLowerCase().includes(q);
 
         if (!matchChild && !matchSpec && !matchTitle && !matchContent && !matchRec) {

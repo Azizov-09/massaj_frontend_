@@ -133,10 +133,10 @@ export function AppointmentsPage() {
         const parent = parents.find(p => p.id === a.parentId || (child && p.childrenIds?.includes(child.id)));
         const svc = services.find(s => s.id === a.serviceId);
 
-        const matchChild = child?.fullName.toLowerCase().includes(q);
-        const matchSpec = spec?.fullName.toLowerCase().includes(q);
-        const matchParent = parent?.fullName.toLowerCase().includes(q) || parent?.phone?.toLowerCase().includes(q);
-        const matchService = svc?.name.toLowerCase().includes(q);
+        const matchChild = child?.fullName?.toLowerCase().includes(q);
+        const matchSpec = spec?.fullName?.toLowerCase().includes(q);
+        const matchParent = parent?.fullName?.toLowerCase().includes(q) || parent?.phone?.toLowerCase().includes(q);
+        const matchService = svc?.name?.toLowerCase().includes(q);
         return Boolean(matchChild || matchSpec || matchParent || matchService);
       });
     }

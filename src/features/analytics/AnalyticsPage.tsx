@@ -48,12 +48,14 @@ export function AnalyticsPage() {
     }
 
     transactions.forEach(t => {
-      const dKey = timeRange === 'year' ? t.date.slice(0, 7) : t.date.split('T')[0];
+      const rawDate = t.date || '';
+      const dKey = timeRange === 'year' ? rawDate.slice(0, 7) : rawDate.split('T')[0];
+      if (!dKey) return;
       const lookup = timeRange === 'year' ? dKey : dKey.slice(5);
       if (map[lookup] || map[dKey]) {
         const item = map[lookup] || map[dKey];
-        if (t.direction === 'IN') item.Tushum += t.amount;
-        else item.Xarajat += t.amount;
+        if (t.direction === 'IN') item.Tushum += (t.amount || 0);
+        else item.Xarajat += (t.amount || 0);
       }
     });
 
@@ -65,7 +67,7 @@ export function AnalyticsPage() {
     return specialists.map(sp => {
       const specSessions = sessions.filter(s => s.specialistId === sp.id && s.status === 'COMPLETED');
       return {
-        name: sp.fullName.split(' ')[0],
+        name: (sp.fullName || 'Mutaxassis').split(' ')[0],
         seanslar: specSessions.length,
       };
     });
@@ -76,7 +78,7 @@ export function AnalyticsPage() {
     return services.map(svc => {
       const count = sessions.filter(s => s.serviceId === svc.id).length;
       return {
-        name: svc.name,
+        name: svc.name || 'Xizmat',
         seanslar: count,
       };
     }).sort((a, b) => b.seanslar - a.seanslar).slice(0, 5);

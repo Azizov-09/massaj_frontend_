@@ -68,9 +68,9 @@ export function AdminsPage() {
       if (search) {
         const q = search.toLowerCase();
         return (
-          a.fullName.toLowerCase().includes(q) ||
-          a.email.toLowerCase().includes(q) ||
-          a.phone.includes(q)
+          a.fullName?.toLowerCase().includes(q) ||
+          a.email?.toLowerCase().includes(q) ||
+          (a.phone || '').includes(q)
         );
       }
       return true;

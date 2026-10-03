@@ -56,9 +56,9 @@ export function EmployeesPage() {
       if (search) {
         const q = search.toLowerCase();
         return (
-          e.fullName.toLowerCase().includes(q) ||
-          e.position.toLowerCase().includes(q) ||
-          e.phone.includes(q)
+          e.fullName?.toLowerCase().includes(q) ||
+          e.position?.toLowerCase().includes(q) ||
+          (e.phone || '').includes(q)
         );
       }
       return true;

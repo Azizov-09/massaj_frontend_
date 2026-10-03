@@ -72,8 +72,9 @@ export function TransactionsPage() {
       if (typeFilter && t.type !== typeFilter) return false;
 
       // Date range
-      if (dateFrom && t.date.split('T')[0] < dateFrom) return false;
-      if (dateTo && t.date.split('T')[0] > dateTo) return false;
+      const tDate = (t.date || '').split('T')[0];
+      if (dateFrom && tDate && tDate < dateFrom) return false;
+      if (dateTo && tDate && tDate > dateTo) return false;
 
       // Search
       if (search) {
@@ -83,12 +84,12 @@ export function TransactionsPage() {
         return (
           t.id.toLowerCase().includes(q) ||
           t.description?.toLowerCase().includes(q) ||
-          parent?.fullName.toLowerCase().includes(q) ||
-          child?.fullName.toLowerCase().includes(q)
+          parent?.fullName?.toLowerCase().includes(q) ||
+          child?.fullName?.toLowerCase().includes(q)
         );
       }
       return true;
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }).sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
   }, [transactions, activeTab, typeFilter, dateFrom, dateTo, search, parents, children]);
 
   const hasActiveFilters = search !== '' || activeTab !== 'ALL' || typeFilter !== '' || dateFrom !== '' || dateTo !== '';

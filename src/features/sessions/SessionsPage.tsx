@@ -128,10 +128,10 @@ export function SessionsPage() {
         const parent = parents.find(p => (child && p.childrenIds?.includes(child.id)) || p.id === child?.parentId);
         const svc = services.find(sv => sv.id === s.serviceId);
 
-        const matchChild = child?.fullName.toLowerCase().includes(q);
-        const matchSpec = spec?.fullName.toLowerCase().includes(q);
-        const matchParent = parent?.fullName.toLowerCase().includes(q) || parent?.phone?.toLowerCase().includes(q);
-        const matchService = svc?.name.toLowerCase().includes(q);
+        const matchChild = child?.fullName?.toLowerCase().includes(q);
+        const matchSpec = spec?.fullName?.toLowerCase().includes(q);
+        const matchParent = parent?.fullName?.toLowerCase().includes(q) || parent?.phone?.toLowerCase().includes(q);
+        const matchService = svc?.name?.toLowerCase().includes(q);
         return Boolean(matchChild || matchSpec || matchParent || matchService);
       });
     }
@@ -253,9 +253,9 @@ export function SessionsPage() {
       sortable: true,
       className: 'py-3.5',
       cell: (row) => {
-        const rowDate = row.startTime.split('T')[0];
+        const rowDate = (row.startTime || '').split('T')[0];
         const isCurrentDate = rowDate === todayStr;
-        const timeStart = row.startTime.includes('T') ? row.startTime.split('T')[1].substring(0, 5) : '';
+        const timeStart = row.startTime && row.startTime.includes('T') ? row.startTime.split('T')[1].substring(0, 5) : '';
         const timeEnd = row.endTime && row.endTime.includes('T') ? row.endTime.split('T')[1].substring(0, 5) : '';
 
         return (
@@ -631,8 +631,8 @@ export function SessionsPage() {
           const parent = parents.find(p => (child && p.childrenIds?.includes(child.id)) || p.id === child?.parentId);
           const childAge = child?.dateOfBirth ? differenceInYears(new Date(), parseISO(child.dateOfBirth)) : null;
 
-          const rowDate = viewingSession.startTime.split('T')[0];
-          const timeStart = viewingSession.startTime.includes('T') ? viewingSession.startTime.split('T')[1].substring(0, 5) : '';
+          const rowDate = (viewingSession.startTime || '').split('T')[0];
+          const timeStart = viewingSession.startTime && viewingSession.startTime.includes('T') ? viewingSession.startTime.split('T')[1].substring(0, 5) : '';
           const timeEnd = viewingSession.endTime && viewingSession.endTime.includes('T') ? viewingSession.endTime.split('T')[1].substring(0, 5) : '';
 
           const canComplete = !isParent && viewingSession.status === 'IN_PROGRESS' && (

@@ -145,14 +145,14 @@ export function AssessmentsPage() {
         const q = search.trim().toLowerCase();
         const child = children.find(c => c.id === a.childId);
         const spec = specialists.find(s => s.id === a.specialistId);
-        const matchChild = child?.fullName.toLowerCase().includes(q);
-        const matchSpec = spec?.fullName.toLowerCase().includes(q);
-        const matchObs = a.professionalObservation.toLowerCase().includes(q);
+        const matchChild = child?.fullName?.toLowerCase().includes(q);
+        const matchSpec = spec?.fullName?.toLowerCase().includes(q);
+        const matchObs = (a.professionalObservation || '').toLowerCase().includes(q);
         if (!matchChild && !matchSpec && !matchObs) return false;
       }
 
       return true;
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }).sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
   }, [baseAssessments, selectedChildId, specialistFilter, scoreTab, search, children, specialists]);
 
   const hasActiveFilters = Boolean(

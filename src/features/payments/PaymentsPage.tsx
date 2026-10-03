@@ -62,15 +62,15 @@ export function PaymentsPage() {
   const transferCount = useMemo(() => basePayments.filter(p => p.method === 'TRANSFER').length, [basePayments]);
 
   const filtered = useMemo(() => {
-    let result = [...basePayments].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    let result = [...basePayments].sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(p => {
         const parent = parents.find(pa => pa.id === p.parentId);
         const child = children.find(c => c.id === p.childId);
         return (
-          parent?.fullName.toLowerCase().includes(q) ||
-          child?.fullName.toLowerCase().includes(q) ||
+          parent?.fullName?.toLowerCase().includes(q) ||
+          child?.fullName?.toLowerCase().includes(q) ||
           p.id.toLowerCase().includes(q) ||
           p.notes?.toLowerCase().includes(q)
         );
@@ -83,12 +83,16 @@ export function PaymentsPage() {
   }, [basePayments, search, activeTab, parents, children]);
 
   // KPI metrics
-  const totalPayments = basePayments.reduce((sum, p) => sum + p.amount, 0);
-  const todayPayments = basePayments.filter(p => p.date.startsWith(new Date().toISOString().split('T')[0])).reduce((sum, p) => sum + p.amount, 0);
-  const thisMonthPayments = basePayments.filter(p => {
-    const m = new Date().toISOString().slice(0, 7);
-    return p.date.startsWith(m);
-  }).reduce((sum, p) => sum + p.amount, 0);
+  const todayPrefix = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const monthPrefix = useMemo(() => new Date().toISOString().slice(0, 7), []);
+
+  const totalPayments = basePayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+  const todayPayments = basePayments
+    .filter(p => (p.date || '').startsWith(todayPrefix))
+    .reduce((sum, p) => sum + (p.amount || 0), 0);
+  const thisMonthPayments = basePayments
+    .filter(p => (p.date || '').startsWith(monthPrefix))
+    .reduce((sum, p) => sum + (p.amount || 0), 0);
 
   const filteredSum = useMemo(() => filtered.reduce((s, p) => s + p.amount, 0), [filtered]);
 

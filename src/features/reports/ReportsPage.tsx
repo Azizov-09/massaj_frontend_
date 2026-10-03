@@ -38,8 +38,9 @@ export function ReportsPage() {
     switch (reportType) {
       case 'FINANCE':
         return transactions.filter(t => {
-          if (dateFrom && t.date.split('T')[0] < dateFrom) return false;
-          if (dateTo && t.date.split('T')[0] > dateTo) return false;
+          const tDate = (t.date || '').split('T')[0];
+          if (dateFrom && tDate && tDate < dateFrom) return false;
+          if (dateTo && tDate && tDate > dateTo) return false;
           return true;
         }).map(t => {
           const parent = parents.find(p => p.id === t.parentId);
@@ -47,9 +48,9 @@ export function ReportsPage() {
           return {
             id: t.id,
             sana: formatDateTime(t.date),
-            turi: t.type,
+            turi: t.type || 'PAYMENT',
             yonalish: t.direction === 'IN' ? 'Kirim' : 'Chiqim',
-            miqdor: t.amount,
+            miqdor: t.amount || 0,
             mijoz: parent?.fullName ?? 'Markaz hisobiga',
             bola: child?.fullName ?? '—',
             izoh: t.description || '—',
@@ -58,8 +59,9 @@ export function ReportsPage() {
 
       case 'ATTENDANCE':
         return attendance.filter(a => {
-          if (dateFrom && a.date < dateFrom) return false;
-          if (dateTo && a.date > dateTo) return false;
+          const aDate = (a.date || '').split('T')[0];
+          if (dateFrom && aDate && aDate < dateFrom) return false;
+          if (dateTo && aDate && aDate > dateTo) return false;
           if (specialistFilter && a.specialistId !== specialistFilter) return false;
           return true;
         }).map(a => {
@@ -70,16 +72,16 @@ export function ReportsPage() {
             sana: formatDate(a.date),
             bola: child?.fullName ?? '—',
             mutaxassis: spec?.fullName ?? '—',
-            holat: a.status,
+            holat: a.status || 'ATTENDED',
             izoh: a.note || '—',
           };
         });
 
       case 'SESSIONS':
         return sessions.filter(s => {
-          const sDate = s.startTime.split('T')[0];
-          if (dateFrom && sDate < dateFrom) return false;
-          if (dateTo && sDate > dateTo) return false;
+          const sDate = (s.startTime || '').split('T')[0];
+          if (dateFrom && sDate && sDate < dateFrom) return false;
+          if (dateTo && sDate && sDate > dateTo) return false;
           if (specialistFilter && s.specialistId !== specialistFilter) return false;
           return true;
         }).map(s => {
@@ -92,7 +94,7 @@ export function ReportsPage() {
             bola: child?.fullName ?? '—',
             mutaxassis: spec?.fullName ?? '—',
             xizmat: svc?.name ?? '—',
-            holat: s.status,
+            holat: s.status || 'COMPLETED',
             kuzatuv: s.observation || s.note || '—',
           };
         });
@@ -103,13 +105,13 @@ export function ReportsPage() {
           const childSessions = sessions.filter(s => s.childId === c.id && s.status === 'COMPLETED').length;
           return {
             id: c.id,
-            ism: c.fullName,
+            ism: c.fullName || '—',
             tugilganSana: formatDate(c.dateOfBirth),
             jinsi: c.gender === 'MALE' ? 'O‘g‘il' : 'Qiz',
             otaOna: parent?.fullName ?? '—',
             telefon: parent?.phone ?? '—',
             bajarilganSeanslar: `${childSessions} ta`,
-            holat: c.status,
+            holat: c.status || 'ACTIVE',
           };
         });
     }
