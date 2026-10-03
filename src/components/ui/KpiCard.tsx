@@ -200,13 +200,17 @@ const DEFAULT_PRESETS: FilterPreset[] = [
 
 export function DateFilterTabs({ value, onChange, options = DEFAULT_PRESETS, className }: DateFilterTabsProps) {
   return (
-    <div className={cn('flex items-center gap-1 p-1 bg-warm-100 rounded-[12px] overflow-x-auto scrollbar-hide', className)}>
+    <div className={cn('flex items-center gap-1 p-1 bg-warm-100 rounded-[12px] overflow-x-auto touch-scroll-x scrollbar-thin', className)}>
       {options.map(opt => (
         <button
           key={opt.value}
-          onClick={() => onChange(opt.value)}
+          type="button"
+          onClick={(e) => {
+            onChange(opt.value);
+            e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+          }}
           className={cn(
-            'px-3 py-1.5 text-xs font-medium rounded-[8px] whitespace-nowrap transition-all duration-150',
+            'shrink-0 px-3 py-1.5 text-xs font-medium rounded-[8px] whitespace-nowrap transition-all duration-150 cursor-pointer select-none',
             value === opt.value
               ? 'bg-white text-charcoal-900 shadow-sm'
               : 'text-charcoal-500 hover:text-charcoal-700'

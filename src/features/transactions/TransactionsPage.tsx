@@ -322,11 +322,14 @@ export function TransactionsPage() {
 
       <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
         {/* Quick Direction Tabs */}
-        <div className="flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto scrollbar-none w-full">
+        <div className="flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full">
           <button
-            onClick={() => setActiveTab('ALL')}
+            onClick={(e) => {
+              setActiveTab('ALL');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               activeTab === 'ALL'
                 ? "bg-brand-600 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-warm-100 hover:text-charcoal-900"
@@ -342,9 +345,12 @@ export function TransactionsPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('IN')}
+            onClick={(e) => {
+              setActiveTab('IN');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               activeTab === 'IN'
                 ? "bg-emerald-600 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-emerald-50 hover:text-emerald-800"
@@ -361,9 +367,12 @@ export function TransactionsPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('OUT')}
+            onClick={(e) => {
+              setActiveTab('OUT');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               activeTab === 'OUT'
                 ? "bg-brand-600 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-brand-50 hover:text-brand-800"
@@ -380,9 +389,12 @@ export function TransactionsPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('EXPENSE')}
+            onClick={(e) => {
+              setActiveTab('EXPENSE');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               activeTab === 'EXPENSE'
                 ? "bg-rose-600 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-rose-50 hover:text-rose-800"

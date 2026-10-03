@@ -262,11 +262,14 @@ export function DebtorsPage() {
       <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
         {/* Quick Tabs */}
         {!isParent && (
-          <div className="flex items-center gap-1.5 px-4 pt-3.5 pb-2 border-b border-warm-200/70 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5 px-4 pt-3.5 pb-2 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full">
             <button
-              onClick={() => setActiveTab('ALL')}
+              onClick={(e) => {
+                setActiveTab('ALL');
+                e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+              }}
               className={cn(
-                "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+                "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
                 activeTab === 'ALL'
                   ? "bg-brand-600 text-white shadow-xs"
                   : "text-charcoal-600 hover:bg-warm-100 hover:text-charcoal-900"
@@ -282,9 +285,12 @@ export function DebtorsPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('HIGH')}
+              onClick={(e) => {
+                setActiveTab('HIGH');
+                e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+              }}
               className={cn(
-                "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+                "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
                 activeTab === 'HIGH'
                   ? "bg-danger-main text-white shadow-xs"
                   : "text-charcoal-600 hover:bg-danger-50 hover:text-danger-main"
@@ -300,9 +306,12 @@ export function DebtorsPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('MEDIUM')}
+              onClick={(e) => {
+                setActiveTab('MEDIUM');
+                e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+              }}
               className={cn(
-                "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+                "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
                 activeTab === 'MEDIUM'
                   ? "bg-amber-600 text-white shadow-xs"
                   : "text-charcoal-600 hover:bg-amber-50 hover:text-amber-800"
@@ -318,9 +327,12 @@ export function DebtorsPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('LOW')}
+              onClick={(e) => {
+                setActiveTab('LOW');
+                e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+              }}
               className={cn(
-                "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+                "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
                 activeTab === 'LOW'
                   ? "bg-charcoal-700 text-white shadow-xs"
                   : "text-charcoal-600 hover:bg-warm-100 hover:text-charcoal-900"

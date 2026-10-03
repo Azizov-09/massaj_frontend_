@@ -188,16 +188,19 @@ export function ReportsPage() {
       </div>
 
       {/* Report Type Switcher Tabs */}
-      <div className="flex flex-nowrap sm:flex-wrap overflow-x-auto scrollbar-none gap-2 pb-1 sm:pb-0 -mx-0.5 px-0.5">
+      <div className="flex flex-nowrap sm:flex-wrap overflow-x-auto touch-scroll-x scrollbar-thin gap-2 pb-1 sm:pb-0 -mx-0.5 px-0.5">
         {REPORT_TABS.map(item => {
           const Icon = item.icon;
           const isActive = reportType === item.type;
           return (
             <button
               key={item.type}
-              onClick={() => setReportType(item.type)}
+              onClick={(e) => {
+                setReportType(item.type);
+                e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+              }}
               className={cn(
-                "px-3.5 py-2 rounded-[10px] font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0",
+                "px-3.5 py-2 rounded-[10px] font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 select-none",
                 isActive
                   ? "bg-brand-600 text-white shadow-xs"
                   : "bg-white border border-warm-200/90 text-charcoal-700 hover:border-brand-300 hover:bg-warm-50/50"
@@ -275,7 +278,7 @@ export function ReportsPage() {
             className="py-16"
           />
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto touch-scroll-x scrollbar-thin">
             <table className="w-full text-left text-xs border-collapse min-w-[850px]">
               <thead>
                 <tr className="bg-warm-100/70 border-b border-warm-200/90">

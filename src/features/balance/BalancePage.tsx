@@ -333,11 +333,14 @@ export function BalancePage() {
 
       <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
         {/* Quick Tabs */}
-        <div className="flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto scrollbar-none w-full">
+        <div className="flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full">
           <button
-            onClick={() => setStatusFilter('ALL')}
+            onClick={(e) => {
+              setStatusFilter('ALL');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               statusFilter === 'ALL'
                 ? "bg-brand-600 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-warm-100 hover:text-charcoal-900"
@@ -353,9 +356,12 @@ export function BalancePage() {
           </button>
 
           <button
-            onClick={() => setStatusFilter('DEBT')}
+            onClick={(e) => {
+              setStatusFilter('DEBT');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               statusFilter === 'DEBT'
                 ? "bg-danger-main text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-danger-50 hover:text-danger-main"
@@ -371,9 +377,12 @@ export function BalancePage() {
           </button>
 
           <button
-            onClick={() => setStatusFilter('DEPOSIT')}
+            onClick={(e) => {
+              setStatusFilter('DEPOSIT');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               statusFilter === 'DEPOSIT'
                 ? "bg-emerald-600 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-emerald-50 hover:text-emerald-800"
@@ -389,9 +398,12 @@ export function BalancePage() {
           </button>
 
           <button
-            onClick={() => setStatusFilter('ZERO')}
+            onClick={(e) => {
+              setStatusFilter('ZERO');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               statusFilter === 'ZERO'
                 ? "bg-charcoal-700 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-warm-100 hover:text-charcoal-900"

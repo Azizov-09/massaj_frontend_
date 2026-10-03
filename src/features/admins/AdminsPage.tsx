@@ -248,11 +248,14 @@ export function AdminsPage() {
 
       <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
         {/* Quick Tabs */}
-        <div className="flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto scrollbar-none w-full">
+        <div className="flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full">
           <button
-            onClick={() => setActiveTab('ALL')}
+            onClick={(e) => {
+              setActiveTab('ALL');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               activeTab === 'ALL'
                 ? "bg-brand-600 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-warm-100 hover:text-charcoal-900"
@@ -268,9 +271,12 @@ export function AdminsPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('SUPER_ADMIN')}
+            onClick={(e) => {
+              setActiveTab('SUPER_ADMIN');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               activeTab === 'SUPER_ADMIN'
                 ? "bg-rose-600 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-rose-50 hover:text-rose-700"
@@ -287,9 +293,12 @@ export function AdminsPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('ADMIN')}
+            onClick={(e) => {
+              setActiveTab('ADMIN');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               activeTab === 'ADMIN'
                 ? "bg-blue-600 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-blue-50 hover:text-blue-800"
@@ -306,9 +315,12 @@ export function AdminsPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('ACTIVE')}
+            onClick={(e) => {
+              setActiveTab('ACTIVE');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               activeTab === 'ACTIVE'
                 ? "bg-emerald-600 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-emerald-50 hover:text-emerald-800"

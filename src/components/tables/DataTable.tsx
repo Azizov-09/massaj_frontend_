@@ -76,7 +76,7 @@ export function DataTable<T>({
 
   if (loading) {
     return (
-      <div className="overflow-x-auto p-4 space-y-3">
+      <div className="overflow-x-auto touch-scroll-x scrollbar-thin p-4 space-y-3">
         <div className="flex items-center gap-4 py-2 border-b border-warm-200">
           {columns.map((col, i) => (
             <Skeleton key={i} className="h-4 rounded-[6px]" style={{ width: col.width || '120px' }} />
@@ -100,7 +100,7 @@ export function DataTable<T>({
   return (
     <div className={cn('flex flex-col', className)}>
       {/* Table */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto touch-scroll-x scrollbar-thin">
         <table className={cn('w-full border-collapse min-w-[600px]', tableClassName)}>
           <thead className={cn(stickyHeader && 'sticky top-0 z-10')}>
             <tr className="bg-warm-50/80 border-b border-warm-200/90">

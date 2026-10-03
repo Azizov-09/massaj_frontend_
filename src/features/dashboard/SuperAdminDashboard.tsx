@@ -237,16 +237,19 @@ export function SuperAdminDashboard() {
 
       {/* ─── Date Filter Presets Strip ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2 bg-warm-50/80 rounded-xl border border-warm-200/90 shadow-2xs">
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto touch-scroll-x scrollbar-thin py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
           {DATE_PRESETS.map(preset => {
             const isActive = dateFilter === preset.value;
             return (
               <button
                 key={preset.value}
                 type="button"
-                onClick={() => setDateFilter(preset.value)}
+                onClick={(e) => {
+                  setDateFilter(preset.value);
+                  e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                }}
                 className={cn(
-                  'px-3.5 py-1.5 rounded-[8px] text-xs font-semibold transition-all cursor-pointer whitespace-nowrap',
+                  'shrink-0 px-3.5 py-1.5 rounded-[8px] text-xs font-semibold transition-all cursor-pointer whitespace-nowrap select-none',
                   isActive
                     ? 'bg-charcoal-900 text-white shadow-xs'
                     : 'bg-white text-charcoal-600 hover:text-charcoal-900 hover:bg-warm-100 border border-warm-200/90 shadow-2xs'

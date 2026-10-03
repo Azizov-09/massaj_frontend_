@@ -519,7 +519,7 @@ export function ProgressPage() {
       <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
         {/* Top Status Tabs */}
         <div className="px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto touch-scroll-x scrollbar-thin py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
             {[
               { key: 'ALL', label: 'Barchasi', count: tabCounts.all },
               { key: 'SESSION', label: 'Seans xulosalari', count: tabCounts.session },
@@ -532,9 +532,12 @@ export function ProgressPage() {
                 <button
                   key={tab.key}
                   type="button"
-                  onClick={() => setActiveTab(tab.key as EventTypeFilter)}
+                  onClick={(e) => {
+                    setActiveTab(tab.key as EventTypeFilter);
+                    e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                  }}
                   className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs font-semibold transition-all cursor-pointer whitespace-nowrap',
+                    'shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs font-semibold transition-all cursor-pointer whitespace-nowrap select-none',
                     isActive
                       ? 'bg-charcoal-900 text-white shadow-xs'
                       : 'bg-white text-charcoal-600 hover:text-charcoal-900 hover:bg-warm-100 border border-warm-200/90 shadow-2xs'
@@ -682,7 +685,7 @@ export function ProgressPage() {
             />
           </div>
         ) : viewMode === 'TABLE' ? (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto touch-scroll-x scrollbar-thin">
             <DataTable<TimelineEvent>
               data={filteredEvents}
               columns={columns}

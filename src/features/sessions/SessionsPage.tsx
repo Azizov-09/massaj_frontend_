@@ -436,7 +436,7 @@ export function SessionsPage() {
       <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
         {/* Top Status Tabs */}
         <div className="px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto touch-scroll-x scrollbar-thin py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
             {[
               { key: 'ALL', label: 'Barchasi', count: counts.all },
               { key: 'TODAY', label: 'Bugun', count: counts.today },
@@ -449,9 +449,12 @@ export function SessionsPage() {
                 <button
                   key={tab.key}
                   type="button"
-                  onClick={() => setStatusTab(tab.key as StatusTabKey)}
+                  onClick={(e) => {
+                    setStatusTab(tab.key as StatusTabKey);
+                    e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                  }}
                   className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs font-semibold transition-all cursor-pointer whitespace-nowrap',
+                    'shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs font-semibold transition-all cursor-pointer whitespace-nowrap select-none',
                     isActive
                       ? 'bg-charcoal-900 text-white shadow-xs'
                       : 'bg-white text-charcoal-600 hover:text-charcoal-900 hover:bg-warm-100 border border-warm-200/90 shadow-2xs'

@@ -513,7 +513,7 @@ export function SchedulePage() {
 
       {/* ─── Week View ─── */}
       {viewMode === 'week' && (
-        <Card className="overflow-x-auto border border-warm-200 shadow-2xs">
+        <Card className="overflow-x-auto touch-scroll-x scrollbar-thin border border-warm-200 shadow-2xs">
           <div className="min-w-[960px]">
             {/* Week Header Row */}
             <div className="grid grid-cols-7 border-b border-warm-200 bg-warm-50/50">

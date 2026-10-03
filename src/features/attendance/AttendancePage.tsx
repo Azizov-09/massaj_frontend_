@@ -425,7 +425,7 @@ export function AttendancePage() {
         </div>
 
         {/* Quick Status Filter Tabs */}
-        <div className="pt-2 border-t border-warm-100 flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
+        <div className="pt-2 border-t border-warm-100 flex items-center justify-between gap-2 overflow-x-auto touch-scroll-x scrollbar-thin">
           <div className="flex items-center gap-1.5 flex-nowrap">
             {[
               { key: 'ALL', label: 'Barchasi', count: stats.total },
@@ -440,9 +440,12 @@ export function AttendancePage() {
                 <button
                   key={tab.key}
                   type="button"
-                  onClick={() => setStatusFilterTab(tab.key as any)}
+                  onClick={(e) => {
+                    setStatusFilterTab(tab.key as any);
+                    e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                  }}
                   className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs font-semibold transition-all cursor-pointer whitespace-nowrap',
+                    'shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs font-semibold transition-all cursor-pointer whitespace-nowrap select-none',
                     isActive
                       ? 'bg-charcoal-900 text-white shadow-xs'
                       : 'bg-white text-charcoal-600 hover:text-charcoal-900 hover:bg-warm-100 border border-warm-200/90 shadow-2xs'

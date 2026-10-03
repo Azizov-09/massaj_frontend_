@@ -289,11 +289,14 @@ export function PaymentsPage() {
 
       <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
         {/* Quick Tabs */}
-        <div className="flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto scrollbar-none w-full">
+        <div className="flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full">
           <button
-            onClick={() => setActiveTab('ALL')}
+            onClick={(e) => {
+              setActiveTab('ALL');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               activeTab === 'ALL'
                 ? "bg-brand-600 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-warm-100 hover:text-charcoal-900"
@@ -309,9 +312,12 @@ export function PaymentsPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('CASH')}
+            onClick={(e) => {
+              setActiveTab('CASH');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               activeTab === 'CASH'
                 ? "bg-emerald-600 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-emerald-50 hover:text-emerald-800"
@@ -327,9 +333,12 @@ export function PaymentsPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('CARD')}
+            onClick={(e) => {
+              setActiveTab('CARD');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               activeTab === 'CARD'
                 ? "bg-blue-600 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-blue-50 hover:text-blue-800"
@@ -345,9 +354,12 @@ export function PaymentsPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('TRANSFER')}
+            onClick={(e) => {
+              setActiveTab('TRANSFER');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5",
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               activeTab === 'TRANSFER'
                 ? "bg-amber-600 text-white shadow-xs"
                 : "text-charcoal-600 hover:bg-amber-50 hover:text-amber-800"
