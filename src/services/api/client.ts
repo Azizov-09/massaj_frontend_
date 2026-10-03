@@ -20,14 +20,32 @@ export class ApiError extends Error {
   }
 }
 
-// In browser environments (Vercel deployment or Vite dev server), use relative `/api/v1`
-// to leverage reverse-proxy and bypass browser CORS limitations.
-const DEFAULT_URL =
-  typeof window !== 'undefined'
-    ? '/api/v1'
-    : 'https://massaj-backend.onrender.com/api/v1';
+function resolveDefaultBaseUrl(): string {
+  const envUrl = (import.meta as any).env?.VITE_API_URL;
+  if (envUrl) return envUrl;
 
-const BASE_URL = (import.meta as any).env?.VITE_API_URL || DEFAULT_URL;
+  const isBrowser =
+    typeof window !== 'undefined' &&
+    typeof window.document !== 'undefined' &&
+    window.location &&
+    window.location.protocol.startsWith('http');
+
+  const isTest =
+    (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') ||
+    (import.meta as any).env?.MODE === 'test';
+
+  if (isTest) {
+    return 'http://localhost:3000/api/v1';
+  }
+
+  if (isBrowser) {
+    return '/api/v1';
+  }
+
+  return 'https://massaj-backend.onrender.com/api/v1';
+}
+
+const BASE_URL = resolveDefaultBaseUrl();
 
 export class ApiClient {
   private token: string | null = null;

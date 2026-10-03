@@ -276,12 +276,12 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
           <div className={cn(
             "flex items-center justify-between px-3.5 h-[42px] rounded-[10px] text-charcoal-700 transition-colors",
             isOvertime
-              ? "bg-danger-light/30 border border-danger-main/60 text-danger-dark"
+              ? "bg-rose-50 border border-rose-300 text-rose-800"
               : "bg-warm-50/60 border border-warm-200/80"
           )}>
             <div className="flex items-center gap-2 text-sm font-semibold">
-              <Clock className={cn("w-4 h-4", isOvertime ? "text-danger-main" : "text-charcoal-400")} />
-              <span className={endTime ? (isOvertime ? 'text-danger-dark font-mono font-bold' : 'text-charcoal-900 font-mono font-bold') : 'text-charcoal-400 font-normal italic'}>
+              <Clock className={cn("w-4 h-4", isOvertime ? "text-rose-600" : "text-charcoal-400")} />
+              <span className={endTime ? (isOvertime ? 'text-rose-800 font-mono font-bold' : 'text-charcoal-900 font-mono font-bold') : 'text-charcoal-400 font-normal italic'}>
                 {endTime || '--:--'}
               </span>
             </div>
@@ -293,7 +293,7 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
               <span className="text-[11px] text-charcoal-400">Xizmat kutilmoqda</span>
             )}
           </div>
-          <p className={cn("text-[11px] mt-1", isOvertime ? "text-danger-main font-medium" : "text-charcoal-500")}>
+          <p className={cn("text-[11px] mt-1", isOvertime ? "text-rose-600 font-medium" : "text-charcoal-500")}>
             {isOvertime
               ? `Uchrashuv ish vaqtidan (${workEnd}) keyin tugaydi. Ertaroq vaqt tanlang.`
               : endTime

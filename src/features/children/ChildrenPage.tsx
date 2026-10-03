@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════════════════════
 //  Children List Page — Full CRUD management
 // ═══════════════════════════════════════════════════════
-import { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Search, Baby, ArrowRight, X, Calendar, Clock, Eye, Users } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { calculateChildBalance } from '@/services/finance.service';
@@ -21,6 +21,7 @@ import type { Child } from '@/types';
 export function ChildrenPage() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const allChildren = useStore(s => s.children);
   const specialists = useStore(s => s.specialists);
   const parents = useStore(s => s.parents);
@@ -35,10 +36,16 @@ export function ChildrenPage() {
     return allChildren;
   }, [allChildren, isParent, currentUser]);
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [specialistFilter, setSpecialistFilter] = useState<string>('');
   const [showCreate, setShowCreate] = useState(false);
+  const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+
+  useEffect(() => {
+    const q = searchParams.get('search');
+    if (q) setSearch(q);
+  }, [searchParams]);
 
   const filtered = useMemo(() => {
     let result = baseChildren;
@@ -112,7 +119,7 @@ export function ChildrenPage() {
                   {row.fullName}
                 </p>
                 {row.diagnosis && (
-                  <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded shrink-0">
+                  <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded shrink-0">
                     {row.diagnosis}
                   </span>
                 )}
@@ -178,7 +185,7 @@ export function ChildrenPage() {
               <Calendar className="w-3.5 h-3.5 text-brand-600 shrink-0" />
               <span>{formatDate(next.date)}</span>
             </div>
-            <div className="inline-flex items-center gap-1 text-[11px] font-medium text-charcoal-600 bg-warm-100/80 px-1.5 py-0.2 rounded mt-0.5">
+            <div className="inline-flex items-center gap-1 text-[11px] font-medium text-charcoal-600 bg-warm-100/80 px-1.5 py-0.5 rounded mt-0.5">
               <Clock className="w-3 h-3 text-charcoal-400 shrink-0" />
               <span>{next.startTime} – {next.endTime}</span>
             </div>
@@ -232,14 +239,19 @@ export function ChildrenPage() {
       width: '100px',
       cell: (row) => (
         <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
-          <Link
-            to={`./children/${row.id}`}
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-[8px] font-semibold transition-all border border-brand-200/60 shadow-2xs"
-            title="Batafsil ko'rish"
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedChild(row);
+            }}
+            className="h-8 px-2.5 text-xs text-charcoal-600 hover:text-brand-700 hover:bg-brand-50/60"
+            title="Batafsil ma'lumot"
           >
-            <span>Ko'rish</span>
-            <ArrowRight className="w-3 h-3" />
-          </Link>
+            <Eye className="w-3.5 h-3.5 mr-1" />
+            Ko'rish
+          </Button>
         </div>
       ),
     },
@@ -251,11 +263,9 @@ export function ChildrenPage() {
         title={isParent ? "Farzandlarim" : "Bolalar"}
         description={isParent ? `Sizning ro'yxatdagi ${baseChildren.length} ta farzandingiz` : `Jami ${allChildren.length} ta bola, ${allChildren.filter(c => c.status === 'ACTIVE').length} ta faol`}
         actions={
-          !isParent ? (
-            <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>
-              Bola qo'shish
-            </Button>
-          ) : undefined
+          <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>
+            {isParent ? "Farzand qo'shish" : "Bola qo'shish"}
+          </Button>
         }
       />
 
@@ -289,7 +299,7 @@ export function ChildrenPage() {
                   <span>{tab.label}</span>
                   <span
                     className={cn(
-                      'text-[10px] px-1.5 py-0.2 rounded-full font-bold tabular-nums',
+                      'text-[10px] px-1.5 py-0.5 rounded-full font-bold tabular-nums',
                       isActive ? 'bg-white/20 text-white' : 'bg-warm-100 text-charcoal-700'
                     )}
                   >
@@ -315,7 +325,7 @@ export function ChildrenPage() {
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Ism yoki ota-ona bo'yicha qidirish..."
+              placeholder={isParent ? "Farzand ismi bo'yicha qidirish..." : "Bola yoki ota-ona ismi bo'yicha..."}
               className="w-full h-9 pl-9 pr-8 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 outline-none transition-all font-medium text-charcoal-800"
             />
             {search && (
@@ -366,7 +376,7 @@ export function ChildrenPage() {
           columns={columns}
           keyExtractor={r => r.id}
           tableClassName="min-w-[900px]"
-          onRowClick={r => navigate(`./children/${r.id}`)}
+          onRowClick={r => setSelectedChild(r)}
           emptyTitle="Bolalar topilmadi"
           emptyDescription={activeFilterCount > 0 ? "Qidiruv shartlariga mos bola topilmadi. Filtrlarni tozalab ko'ring." : "Hozircha hech qanday bola kiritilmagan."}
           emptyIcon={<Baby className="w-5 h-5 text-charcoal-400" />}
@@ -375,11 +385,11 @@ export function ChildrenPage() {
               <Button size="sm" variant="secondary" onClick={resetFilters} leftIcon={<X className="w-3.5 h-3.5" />}>
                 Filtrlarni tozalash
               </Button>
-            ) : !isParent ? (
+            ) : (
               <Button size="sm" leftIcon={<Plus className="w-3.5 h-3.5" />} onClick={() => setShowCreate(true)}>
-                Bola qo'shish
+                {isParent ? "Farzand qo'shish" : "Bola qo'shish"}
               </Button>
-            ) : undefined
+            )
           }
         />
 
@@ -397,6 +407,121 @@ export function ChildrenPage() {
           </span>
         </div>
       </Card>
+
+      {/* Child Details Modal */}
+      {selectedChild && (
+        <Modal
+          isOpen={!!selectedChild}
+          onClose={() => setSelectedChild(null)}
+          title="Bola ma'lumotlari"
+          size="lg"
+        >
+          <div className="space-y-5">
+            {/* Header info */}
+            <div className="flex items-start gap-4 p-4 rounded-xl bg-warm-50 border border-warm-200/70">
+              <Avatar name={selectedChild.fullName} size="lg" className="text-base font-bold" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-base font-bold text-charcoal-900 truncate">
+                    {selectedChild.fullName}
+                  </h3>
+                  <Badge className={getEntityStatusColor(selectedChild.status)} dot>
+                    {getEntityStatusLabel(selectedChild.status)}
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-charcoal-600">
+                  <span className="font-medium text-charcoal-800">
+                    {formatDate(selectedChild.dateOfBirth)} ({formatAge(selectedChild.dateOfBirth)})
+                  </span>
+                  <span className="text-warm-300">•</span>
+                  <span className="font-medium text-charcoal-700">
+                    Jinsi: {selectedChild.gender === 'MALE' ? 'O‘g‘il' : 'Qiz'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Financial Status Cards */}
+            {(() => {
+              const bal = balancesMap.get(selectedChild.id) ?? { balance: 0, debt: 0 };
+              return (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3.5 rounded-xl border border-warm-200/80 bg-white">
+                    <p className="text-xs text-charcoal-400 font-medium">Joriy depozit</p>
+                    <p className="text-lg font-bold text-emerald-600 tabular-nums mt-0.5">
+                      {formatCurrencyCompact(bal.balance)}
+                    </p>
+                  </div>
+                  <div className="p-3.5 rounded-xl border border-warm-200/80 bg-white">
+                    <p className="text-xs text-charcoal-400 font-medium">Joriy qarzdorlik</p>
+                    <p className="text-lg font-bold text-rose-600 tabular-nums mt-0.5">
+                      {formatCurrencyCompact(bal.debt)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Parent & Specialist Info */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {(() => {
+                const parent = parents.find(p => p.id === selectedChild.parentId);
+                return (
+                  <div className="p-3.5 rounded-xl border border-warm-200/80 bg-warm-50/50">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal-500 mb-2">
+                      Ota-onasi
+                    </h4>
+                    {parent ? (
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-charcoal-900">{parent.fullName}</p>
+                        <a
+                          href={`tel:${parent.phone}`}
+                          className="text-xs text-brand-600 hover:underline block font-medium"
+                        >
+                          {parent.phone}
+                        </a>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-charcoal-400 italic">Biriktirilmagan</p>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {(() => {
+                const spec = specialists.find(s => s.id === selectedChild.assignedSpecialistId);
+                return (
+                  <div className="p-3.5 rounded-xl border border-warm-200/80 bg-warm-50/50">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal-500 mb-2">
+                      Mas’ul mutaxassis
+                    </h4>
+                    {spec ? (
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-charcoal-900">{spec.fullName}</p>
+                        <p className="text-xs text-charcoal-600">{spec.specialization}</p>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-charcoal-400 italic">Hozircha biriktirilmagan</p>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Notes / Diagnosis */}
+            {selectedChild.notes && (
+              <div className="p-3.5 rounded-xl border border-warm-200/80 bg-white">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal-500 mb-1.5">
+                  Tibbiy izoh va tashxis
+                </h4>
+                <p className="text-xs text-charcoal-700 leading-relaxed whitespace-pre-wrap">
+                  {selectedChild.notes}
+                </p>
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
 
       {/* Create child modal */}
       <Modal

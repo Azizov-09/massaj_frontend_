@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { format, formatDistanceToNow, differenceInYears, parseISO, isToday, isYesterday, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subDays, subMonths } from 'date-fns';
+import { format, formatDistanceToNow, differenceInYears, parseISO, isValid, isToday, isYesterday, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subDays, subMonths } from 'date-fns';
 import { uz } from 'date-fns/locale';
 import type { DateFilterPreset, DateRange } from '@/types';
 
@@ -38,45 +38,62 @@ export function formatAmount(amount: number): string {
   return new Intl.NumberFormat('uz-UZ').format(amount);
 }
 
+// ─── Safe Date Helper ─────────────────────────────────────
+
+function toValidDate(date: string | Date | undefined | null): Date | null {
+  if (!date) return null;
+  const d = typeof date === 'string' ? parseISO(date) : date;
+  return isValid(d) ? d : null;
+}
+
 // ─── Date Formatting ─────────────────────────────────────
 
-export function formatDate(date: string | Date): string {
-  const d = typeof date === 'string' ? parseISO(date) : date;
+export function formatDate(date: string | Date | undefined | null): string {
+  const d = toValidDate(date);
+  if (!d) return '—';
   return format(d, 'dd.MM.yyyy');
 }
 
-export function formatDateTime(date: string | Date): string {
-  const d = typeof date === 'string' ? parseISO(date) : date;
+export function formatDateTime(date: string | Date | undefined | null): string {
+  const d = toValidDate(date);
+  if (!d) return '—';
   return format(d, 'dd.MM.yyyy HH:mm');
 }
 
-export function formatTime(date: string | Date): string {
-  const d = typeof date === 'string' ? parseISO(date) : date;
+export function formatTime(date: string | Date | undefined | null): string {
+  const d = toValidDate(date);
+  if (!d) return '—';
   return format(d, 'HH:mm');
 }
 
-export function formatRelativeTime(date: string | Date): string {
-  const d = typeof date === 'string' ? parseISO(date) : date;
+export function formatRelativeTime(date: string | Date | undefined | null): string {
+  const d = toValidDate(date);
+  if (!d) return '—';
   if (isToday(d)) return formatDistanceToNow(d, { addSuffix: true, locale: uz });
   if (isYesterday(d)) return `Kecha, ${format(d, 'HH:mm')}`;
   return format(d, 'dd.MM.yyyy HH:mm');
 }
 
-export function formatDateShort(date: string | Date): string {
-  const d = typeof date === 'string' ? parseISO(date) : date;
+export function formatDateShort(date: string | Date | undefined | null): string {
+  const d = toValidDate(date);
+  if (!d) return '—';
   return format(d, 'dd MMM', { locale: uz });
 }
 
-export function formatDateLong(date: string | Date): string {
-  const d = typeof date === 'string' ? parseISO(date) : date;
+export function formatDateLong(date: string | Date | undefined | null): string {
+  const d = toValidDate(date);
+  if (!d) return '—';
   return format(d, 'd MMMM yyyy', { locale: uz });
 }
 
-export function calculateAge(dateOfBirth: string): number {
-  return differenceInYears(new Date(), parseISO(dateOfBirth));
+export function calculateAge(dateOfBirth: string | undefined | null): number {
+  const d = toValidDate(dateOfBirth);
+  if (!d) return 0;
+  return differenceInYears(new Date(), d);
 }
 
-export function formatAge(dateOfBirth: string): string {
+export function formatAge(dateOfBirth: string | undefined | null): string {
+  if (!dateOfBirth) return '—';
   const age = calculateAge(dateOfBirth);
   if (age === 0) return 'Chaqaloq';
   if (age === 1) return '1 yosh';

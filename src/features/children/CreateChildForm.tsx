@@ -4,7 +4,7 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useStore } from '@/store';
+import { useStore, useAuth } from '@/store';
 import { Input, Select, Textarea, DatePicker } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 
@@ -27,22 +27,30 @@ type FormValues = z.infer<typeof schema>;
 interface Props {
   onSuccess: () => void;
   onCancel: () => void;
+  defaultParentId?: string;
 }
 
-export function CreateChildForm({ onSuccess, onCancel }: Props) {
+export function CreateChildForm({ onSuccess, onCancel, defaultParentId }: Props) {
+  const { currentUser } = useAuth();
   const parents = useStore(s => s.parents);
   const specialists = useStore(s => s.specialists);
   const createChild = useStore(s => s.createChild);
 
+  const effectiveParentId = defaultParentId || (currentUser?.role === 'PARENT' ? currentUser.id : undefined);
+
   const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { gender: 'MALE' },
+    defaultValues: {
+      gender: 'MALE',
+      parentId: effectiveParentId || '',
+    },
   });
 
   const onSubmit = async (data: FormValues) => {
     await new Promise(r => setTimeout(r, 300)); // Simulate async
     createChild({
       ...data,
+      parentId: effectiveParentId || data.parentId,
       status: 'ACTIVE',
       gender: data.gender as 'MALE' | 'FEMALE',
     });
@@ -86,14 +94,24 @@ export function CreateChildForm({ onSuccess, onCancel }: Props) {
           error={errors.gender?.message}
           {...register('gender')}
         />
-        <Select
-          label="Ota-ona / vasiy"
-          required
-          placeholder="Ota-onani tanlang"
-          options={parents.map(p => ({ value: p.id, label: `${p.fullName} (${p.phone})` }))}
-          error={errors.parentId?.message}
-          {...register('parentId')}
-        />
+        {currentUser?.role === 'PARENT' ? (
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-charcoal-700">Ota-ona / vasiy</label>
+            <div className="h-10 px-3 flex items-center rounded-[10px] bg-warm-100/70 border border-warm-200 text-xs font-semibold text-charcoal-800">
+              {currentUser.fullName} ({currentUser.phone || "Sizning hisobingiz"})
+            </div>
+            <input type="hidden" value={currentUser.id} {...register('parentId')} />
+          </div>
+        ) : (
+          <Select
+            label="Ota-ona / vasiy"
+            required
+            placeholder="Ota-onani tanlang"
+            options={parents.map(p => ({ value: p.id, label: `${p.fullName} (${p.phone})` }))}
+            error={errors.parentId?.message}
+            {...register('parentId')}
+          />
+        )}
         <Select
           label="Mutaxassis"
           placeholder="Mutaxassisni tanlang"

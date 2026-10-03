@@ -546,7 +546,7 @@ export function ProgressPage() {
                   <span>{tab.label}</span>
                   <span
                     className={cn(
-                      'text-[10px] px-1.5 py-0.2 rounded-full font-bold tabular-nums',
+                      'text-[10px] px-1.5 py-0.5 rounded-full font-bold tabular-nums',
                       isActive ? 'bg-white/20 text-white' : 'bg-warm-100 text-charcoal-700'
                     )}
                   >
@@ -678,7 +678,7 @@ export function ProgressPage() {
                   </Button>
                 ) : !isParent ? (
                   <Button size="sm" onClick={() => setShowCreateModal(true)}>
-                    Yangi qayd kiritish
+                    Yangi qayd qo‘shish
                   </Button>
                 ) : undefined
               }

@@ -304,7 +304,7 @@ export function PaymentsPage() {
           >
             Barchasi
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'ALL' ? "bg-white/20 text-white" : "bg-warm-200 text-charcoal-600"
             )}>
               {basePayments.length}
@@ -325,7 +325,7 @@ export function PaymentsPage() {
           >
             Naqd pul
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'CASH' ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800"
             )}>
               {cashCount}
@@ -346,7 +346,7 @@ export function PaymentsPage() {
           >
             Plastik karta
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'CARD' ? "bg-white/20 text-white" : "bg-blue-100 text-blue-800"
             )}>
               {cardCount}
@@ -367,7 +367,7 @@ export function PaymentsPage() {
           >
             Bank o'tkazma
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'TRANSFER' ? "bg-white/20 text-white" : "bg-amber-100 text-amber-800"
             )}>
               {transferCount}
@@ -430,6 +430,17 @@ export function PaymentsPage() {
               : "Hozircha tizimda to'lovlar qayd etilmagan."
           }
           emptyIcon={<Wallet className="w-5 h-5" />}
+          emptyAction={
+            hasActiveFilters ? (
+              <Button size="sm" variant="secondary" onClick={resetFilters} leftIcon={<X className="w-3.5 h-3.5" />}>
+                Filtrlarni tozalash
+              </Button>
+            ) : canManagePayments ? (
+              <Button size="sm" leftIcon={<Plus className="w-3.5 h-3.5" />} onClick={() => setShowCreate(true)}>
+                To'lov qabul qilish
+              </Button>
+            ) : undefined
+          }
         />
 
         {/* Footer Summary */}
@@ -624,7 +635,7 @@ function CreatePaymentForm({
           label="Summa (so'm)"
           required
           type="number"
-          placeholder="1000000"
+          placeholder="Masalan: 150000"
           min="1000"
           error={errors.amount?.message}
           hint="UZS da kiriting"

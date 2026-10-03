@@ -257,72 +257,90 @@ export function ParentDashboard() {
           <span className="text-xs text-charcoal-400 font-medium">Jami: {myChildren.length} nafar bola</span>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {myChildren.map(c => {
-            const spec = specialists.find(s => s.id === c.assignedSpecialistId);
-            const childSessions = sessions.filter(s => s.childId === c.id && s.status === 'COMPLETED').length;
-            const childAge = c.dateOfBirth ? differenceInYears(new Date(), parseISO(c.dateOfBirth)) : null;
+        {myChildren.length === 0 ? (
+          <Card className="p-8 text-center border-dashed">
+            <EmptyState
+              icon={<Baby className="w-8 h-8 text-charcoal-300" />}
+              title="Farzandlar ro'yxati bo'sh"
+              description="Hali farzandingiz tizimda ro'yxatga olinmagan. Qabullarga yozilish uchun avval farzandingizni qo'shing."
+              action={
+                <Button
+                  leftIcon={<Plus className="w-4 h-4" />}
+                  onClick={() => navigate('/dashboard/parent/children')}
+                >
+                  Farzand qo'shish
+                </Button>
+              }
+            />
+          </Card>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {myChildren.map(c => {
+              const spec = specialists.find(s => s.id === c.assignedSpecialistId);
+              const childSessions = sessions.filter(s => s.childId === c.id && s.status === 'COMPLETED').length;
+              const childAge = c.dateOfBirth ? differenceInYears(new Date(), parseISO(c.dateOfBirth)) : null;
 
-            return (
-              <Card key={c.id} className="p-5 border border-warm-200/90 shadow-xs hover:border-warm-300 transition-colors h-full flex flex-col justify-between bg-white">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <Avatar name={c.fullName} size="md" className="ring-2 ring-warm-100 shadow-2xs" />
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <h4 className="text-sm font-bold text-charcoal-900 truncate">{c.fullName}</h4>
-                        {childAge !== null && (
-                          <span className="text-[10px] font-semibold text-charcoal-600 bg-warm-100 px-1.5 py-0.2 rounded-[4px]">
-                            {childAge} yosh
-                          </span>
+              return (
+                <Card key={c.id} className="p-5 border border-warm-200/90 shadow-xs hover:border-warm-300 transition-colors h-full flex flex-col justify-between bg-white">
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <Avatar name={c.fullName} size="md" className="ring-2 ring-warm-100 shadow-2xs" />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h4 className="text-sm font-bold text-charcoal-900 truncate">{c.fullName}</h4>
+                          {childAge !== null && (
+                            <span className="text-[10px] font-semibold text-charcoal-600 bg-warm-100 px-1.5 py-0.5 rounded-[4px]">
+                              {childAge} yosh
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-charcoal-400 mt-0.5">
+                          Tug‘ilgan: {formatDate(c.dateOfBirth)}
+                        </p>
+                        {c.diagnosis && (
+                          <p className="text-[11px] font-semibold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-[4px] border border-brand-200 inline-block mt-1 truncate max-w-full">
+                            {c.diagnosis}
+                          </p>
                         )}
                       </div>
-                      <p className="text-xs text-charcoal-400 mt-0.5">
-                        Tug‘ilgan: {formatDate(c.dateOfBirth)}
-                      </p>
-                      {c.diagnosis && (
-                        <p className="text-[11px] font-semibold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-[4px] border border-brand-200 inline-block mt-1 truncate max-w-full">
-                          {c.diagnosis}
-                        </p>
-                      )}
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-warm-100 space-y-2 text-xs">
+                      <div className="flex justify-between items-center">
+                        <span className="text-charcoal-500 font-medium">Mas'ul shifokor:</span>
+                        <span className="font-bold text-charcoal-900">{spec?.fullName ?? 'Biriktirilmagan'}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-charcoal-500 font-medium">Bajarilgan seanslar:</span>
+                        <span className="font-extrabold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-[4px] border border-brand-200 tabular-nums">
+                          {childSessions} ta seans
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-warm-100 space-y-2 text-xs">
-                    <div className="flex justify-between items-center">
-                      <span className="text-charcoal-500 font-medium">Mas'ul shifokor:</span>
-                      <span className="font-bold text-charcoal-900">{spec?.fullName ?? 'Biriktirilmagan'}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-charcoal-500 font-medium">Bajarilgan seanslar:</span>
-                      <span className="font-extrabold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-[4px] border border-brand-200 tabular-nums">
-                        {childSessions} ta seans
-                      </span>
-                    </div>
+                  <div className="mt-4 pt-3 border-t border-warm-100 flex items-center gap-2">
+                    <Button
+                      size="xs"
+                      variant="secondary"
+                      className="flex-1 justify-center"
+                      onClick={() => navigate('/dashboard/parent/progress')}
+                    >
+                      Rivojlanish xaritasi
+                    </Button>
+                    <Button
+                      size="xs"
+                      className="flex-1 justify-center"
+                      onClick={() => setShowBookModal(true)}
+                    >
+                      Qabul belgilash
+                    </Button>
                   </div>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-warm-100 flex items-center gap-2">
-                  <Button
-                    size="xs"
-                    variant="secondary"
-                    className="flex-1 justify-center"
-                    onClick={() => navigate('/dashboard/parent/progress')}
-                  >
-                    Rivojlanish xaritasi
-                  </Button>
-                  <Button
-                    size="xs"
-                    className="flex-1 justify-center"
-                    onClick={() => setShowBookModal(true)}
-                  >
-                    Qabul belgilash
-                  </Button>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* ─── Bottom Content: Upcoming Schedule & Specialist Advice ─── */}
@@ -486,7 +504,7 @@ export function ParentDashboard() {
                                 {child?.fullName}
                               </span>
                               {childAge !== null && (
-                                <span className="text-[10px] font-semibold text-charcoal-600 bg-warm-100 border border-warm-200/80 px-1.5 py-0.2 rounded-[4px]">
+                                <span className="text-[10px] font-semibold text-charcoal-600 bg-warm-100 border border-warm-200/80 px-1.5 py-0.5 rounded-[4px]">
                                   {childAge} yosh
                                 </span>
                               )}

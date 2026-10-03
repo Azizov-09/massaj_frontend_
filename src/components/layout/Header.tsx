@@ -309,7 +309,7 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
                   <button
                     role="menuitem"
                     onClick={handleLogout}
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-danger-main hover:bg-red-50 transition-colors w-full text-left"
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors w-full text-left"
                   >
                     <LogOut className="w-3.5 h-3.5" /> Chiqish
                   </button>

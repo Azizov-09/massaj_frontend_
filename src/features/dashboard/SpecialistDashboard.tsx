@@ -191,7 +191,9 @@ export function SpecialistDashboard() {
               <p className="text-[11px] text-charcoal-500 truncate">
                 {nextAppointment
                   ? services.find(s => s.id === nextAppointment.serviceId)?.name || 'Reabilitatsiya muolajasi'
-                  : "Barcha rejalashtirilgan seanslar yakunlandi"}
+                  : todayAppointments.length > 0
+                  ? "Barcha rejalashtirilgan seanslar yakunlandi"
+                  : "Bugungi kunga qabullar belgilanmagan"}
               </p>
             </div>
           </div>
@@ -237,12 +239,12 @@ export function SpecialistDashboard() {
         />
         <KpiCard
           label="Kasbiy reyting"
-          value="4.95 / 5.0"
-          description="Ota-onalar bahosi asosida"
+          value={completedSessions.length > 0 ? "4.95 / 5.0" : "0.0 / 5.0"}
+          description={completedSessions.length > 0 ? "Ota-onalar bahosi asosida" : "Hozircha baholanmagan"}
           accentColor="blue"
           icon={<Award className="w-5 h-5 text-blue-600" />}
-          change="A’lo darajada"
-          changeType="positive"
+          change={completedSessions.length > 0 ? "A’lo darajada" : undefined}
+          changeType={completedSessions.length > 0 ? "positive" : undefined}
           index={3}
         />
       </div>
@@ -287,7 +289,7 @@ export function SpecialistDashboard() {
                         <span>{tab.label}</span>
                         <span
                           className={cn(
-                            'text-[10px] px-1.5 py-0.2 rounded-full font-bold tabular-nums',
+                            'text-[10px] px-1.5 py-0.5 rounded-full font-bold tabular-nums',
                             isActive ? 'bg-white/20 text-white' : 'bg-warm-100 text-charcoal-600'
                           )}
                         >
@@ -337,7 +339,7 @@ export function SpecialistDashboard() {
                                 {child?.fullName}
                               </h4>
                               {childAge !== null && (
-                                <span className="text-[10px] font-semibold text-charcoal-600 bg-warm-100 px-1.5 py-0.2 rounded-[4px]">
+                                <span className="text-[10px] font-semibold text-charcoal-600 bg-warm-100 px-1.5 py-0.5 rounded-[4px]">
                                   {childAge} yosh
                                 </span>
                               )}

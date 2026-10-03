@@ -274,7 +274,7 @@ export function SuperAdminDashboard() {
           format="currency"
           icon={<DollarSign className="w-5 h-5 text-brand-600" />}
           accentColor="brand"
-          trend={{ value: 12, label: "o'tgan davrga nisbatan" }}
+          trend={summary.totalRevenue > 0 ? { value: 12, label: "o'tgan davrga nisbatan" } : undefined}
           index={0}
         />
         <KpiCard
@@ -283,7 +283,7 @@ export function SuperAdminDashboard() {
           format="currency"
           icon={<TrendingDown className="w-5 h-5 text-rose-600" />}
           accentColor="danger"
-          trend={{ value: -5, label: "ijobiy pasayish" }}
+          trend={summary.totalDebt > 0 ? { value: -5, label: "ijobiy pasayish" } : undefined}
           index={1}
         />
         <KpiCard
@@ -292,7 +292,7 @@ export function SuperAdminDashboard() {
           format="currency"
           icon={<TrendingUp className="w-5 h-5 text-emerald-600" />}
           accentColor="sage"
-          trend={{ value: 8 }}
+          trend={summary.currentBalance > 0 ? { value: 8 } : undefined}
           index={2}
         />
         <KpiCard
@@ -405,7 +405,8 @@ export function SuperAdminDashboard() {
                   tick={{ fontSize: 11, fill: '#938c83' }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={v => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : `${(v / 1000).toFixed(0)}k`}
+                  allowDecimals={false}
+                  tickFormatter={v => v <= 0 ? '0' : v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : `${Math.round(v / 1000)}k`}
                 />
                 <Tooltip content={<ChartTooltip />} />
                 {(chartMetric === 'ALL' || chartMetric === 'REVENUE') && (
@@ -581,7 +582,7 @@ export function SuperAdminDashboard() {
                             {child?.fullName}
                           </p>
                           {childAge !== null && (
-                            <span className="text-[10px] font-semibold text-charcoal-600 bg-warm-100 px-1.5 py-0.2 rounded-[4px]">
+                            <span className="text-[10px] font-semibold text-charcoal-600 bg-warm-100 px-1.5 py-0.5 rounded-[4px]">
                               {childAge} yosh
                             </span>
                           )}
@@ -640,44 +641,54 @@ export function SuperAdminDashboard() {
           </div>
 
           <div className="divide-y divide-warm-100 max-h-[380px] overflow-y-auto">
-            {recentTransactions.map(txn => {
-              const child = txn.childId ? children.find(c => c.id === txn.childId) : null;
-              const parent = txn.parentId ? parents.find(p => p.id === txn.parentId) : null;
-              const isIn = txn.direction === 'IN';
+            {recentTransactions.length === 0 ? (
+              <div className="p-6">
+                <EmptyState
+                  title="Tranzaksiyalar mavjud emas"
+                  description="Hozircha tizimda moliyaviy amallar qayd etilmagan"
+                  icon={<DollarSign className="w-6 h-6 text-charcoal-400" />}
+                />
+              </div>
+            ) : (
+              recentTransactions.map(txn => {
+                const child = txn.childId ? children.find(c => c.id === txn.childId) : null;
+                const parent = txn.parentId ? parents.find(p => p.id === txn.parentId) : null;
+                const isIn = txn.direction === 'IN';
 
-              return (
-                <div key={txn.id} className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-warm-50/70 transition-colors">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
+                return (
+                  <div key={txn.id} className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-warm-50/70 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0 shadow-2xs font-bold text-xs',
+                          isIn ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
+                        )}
+                      >
+                        {isIn ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm font-bold text-charcoal-900 truncate">
+                          {truncate(txn.description, 36)}
+                        </p>
+                        <p className="text-xs text-charcoal-400 truncate mt-0.5">
+                          {child?.fullName || parent?.fullName || 'Tizim'} • {formatDate(txn.date)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <p
                       className={cn(
-                        'w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0 shadow-2xs font-bold text-xs',
-                        isIn ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
+                        'text-xs sm:text-sm font-extrabold tabular-nums shrink-0',
+                        isIn ? 'text-emerald-700' : 'text-rose-700'
                       )}
                     >
-                      {isIn ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                    </div>
-
-                    <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-bold text-charcoal-900 truncate">
-                        {truncate(txn.description, 36)}
-                      </p>
-                      <p className="text-xs text-charcoal-400 truncate mt-0.5">
-                        {child?.fullName || parent?.fullName || 'Tizim'} • {formatDate(txn.date)}
-                      </p>
-                    </div>
+                      {isIn ? '+' : '-'}{formatCurrencyCompact(txn.amount)}
+                    </p>
                   </div>
-
-                  <p
-                    className={cn(
-                      'text-xs sm:text-sm font-extrabold tabular-nums shrink-0',
-                      isIn ? 'text-emerald-700' : 'text-rose-700'
-                    )}
-                  >
-                    {isIn ? '+' : '-'}{formatCurrencyCompact(txn.amount)}
-                  </p>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
           <div className="p-2.5 bg-warm-50/60 border-t border-warm-100 text-center">

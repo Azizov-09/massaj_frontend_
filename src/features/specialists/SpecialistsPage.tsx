@@ -160,7 +160,7 @@ export function SpecialistsPage() {
                 <span
                   key={dayIndex}
                   className={cn(
-                    "text-[10px] px-1 py-0.2 rounded font-medium",
+                    "text-[10px] px-1 py-0.5 rounded font-medium",
                     isWorking
                       ? "bg-brand-50 text-brand-700 font-semibold"
                       : "bg-warm-100 text-charcoal-400 opacity-60"
@@ -294,7 +294,7 @@ export function SpecialistsPage() {
           >
             Barchasi
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               statusFilter === 'ALL' ? "bg-white/20 text-white" : "bg-warm-200 text-charcoal-600"
             )}>
               {specialists.length}
@@ -315,7 +315,7 @@ export function SpecialistsPage() {
           >
             Faol
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               statusFilter === 'ACTIVE' ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800"
             )}>
               {activeCount}
@@ -336,7 +336,7 @@ export function SpecialistsPage() {
           >
             Nofaol
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               statusFilter === 'INACTIVE' ? "bg-white/20 text-white" : "bg-warm-200 text-charcoal-600"
             )}>
               {inactiveCount}

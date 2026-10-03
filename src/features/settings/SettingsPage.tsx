@@ -15,7 +15,8 @@ import { ConfirmDialog } from '@/components/ui/Modal';
 export function SettingsPage() {
   const clinicSettings = useStore(s => s.clinicSettings);
   const updateClinicSettings = useStore(s => s.updateClinicSettings);
-  const resetStore = useStore(s => s.resetStore);
+  const resetToSeedData = useStore(s => s.resetToSeedData);
+  const addToast = useStore(s => s.addToast);
 
   const [clinicName, setClinicName] = useState(clinicSettings?.clinicName || 'Bolalar Massaj & Reabilitatsiya Markazi');
   const [phone, setPhone] = useState(clinicSettings?.phone || '+998 71 200 00 00');
@@ -38,10 +39,15 @@ export function SettingsPage() {
       workStart,
       workEnd,
     });
+    addToast({
+      type: 'success',
+      title: 'Sozlamalar saqlandi',
+      description: "Klinika ma'lumotlari muvaffaqiyatli yangilandi"
+    });
   };
 
   const handleResetConfirm = () => {
-    resetStore();
+    resetToSeedData();
     setShowResetConfirm(false);
   };
 
@@ -172,9 +178,9 @@ export function SettingsPage() {
       </Card>
 
       {/* Danger Zone / Reset */}
-      <Card className="border-danger-main/30">
+      <Card className="border-rose-300">
         <CardHeader>
-          <div className="flex items-center gap-2 text-danger-main">
+          <div className="flex items-center gap-2 text-rose-600">
             <AlertTriangle className="w-5 h-5" />
             <div>
               <h3 className="text-sm font-bold">Xavfli hudud (Ma’lumotlar bazasi)</h3>

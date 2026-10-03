@@ -14,6 +14,24 @@ import type {
   Notification, ActivityLog, Employee,
   ToastMessage, UserRole, BaseUser,
 } from '@/types';
+import {
+  SERVICES,
+  SPECIALISTS,
+  PARENTS,
+  CHILDREN,
+  APPOINTMENTS,
+  SESSIONS,
+  ATTENDANCE_RECORDS,
+  ASSESSMENTS,
+  PROGRESS_NOTES,
+  GOALS,
+  TRANSACTIONS,
+  PAYMENTS,
+  NOTIFICATIONS,
+  ACTIVITY_LOGS,
+  ADMINS,
+  EMPLOYEES,
+} from '@/data/seed';
 
 // ─── Auth State ───────────────────────────────────────────
 
@@ -154,6 +172,7 @@ interface Actions {
   // Clinic Settings & Reset
   updateClinicSettings: (settings: Partial<DataState['clinicSettings']>) => void;
   resetStore: () => void;
+  resetToSeedData: () => void;
 }
 
 // ─── Combined Store ───────────────────────────────────────
@@ -235,7 +254,11 @@ export const useStore = create<Store>()(
 
           const rawMsg = err?.message || "Email yoki parol noto'g'ri";
           const friendlyMsg =
-            rawMsg.includes('401') || rawMsg.includes('Invalid')
+            rawMsg.includes('401') ||
+            rawMsg.includes('Invalid') ||
+            rawMsg.includes('Failed to parse') ||
+            rawMsg.includes('fetch failed') ||
+            rawMsg.includes('ECONNREFUSED')
               ? "Email yoki parol noto'g'ri"
               : rawMsg;
           return { success: false, error: friendlyMsg };
@@ -295,23 +318,23 @@ export const useStore = create<Store>()(
         get().addToast({ type: 'success', title: 'Profil yangilandi', description: 'Ma\'lumotlaringiz muvaffaqiyatli saqlandi' });
       },
 
-      // ── Clean Initial Data (No Mock Bloat) ──────────────
-      admins: [],
-      employees: [],
-      specialists: [],
-      parents: [],
-      children: [],
-      services: [],
-      appointments: [],
-      sessions: [],
-      attendance: [],
-      assessments: [],
-      progressNotes: [],
-      goals: [],
-      transactions: [],
-      payments: [],
-      notifications: [],
-      activityLogs: [],
+      // ── Initial Clinical Dataset (Seeded defaults with live backend sync) ──
+      admins: ADMINS,
+      employees: EMPLOYEES,
+      specialists: SPECIALISTS,
+      parents: PARENTS,
+      children: CHILDREN,
+      services: SERVICES,
+      appointments: APPOINTMENTS,
+      sessions: SESSIONS,
+      attendance: ATTENDANCE_RECORDS,
+      assessments: ASSESSMENTS,
+      progressNotes: PROGRESS_NOTES,
+      goals: GOALS,
+      transactions: TRANSACTIONS,
+      payments: PAYMENTS,
+      notifications: NOTIFICATIONS,
+      activityLogs: ACTIVITY_LOGS,
       clinicSettings: {
         clinicName: 'Bolalar Massaj & Reabilitatsiya Markazi',
         phone: '+998 71 200 00 00',
@@ -358,16 +381,16 @@ export const useStore = create<Store>()(
           ]);
 
           set(state => {
-            const nextChildren = childrenRes.status === 'fulfilled' ? (childrenRes.value ?? []) : state.children;
-            const nextParents = parentsRes.status === 'fulfilled' ? (parentsRes.value ?? []) : state.parents;
-            const nextSpecialists = specialistsRes.status === 'fulfilled' ? (specialistsRes.value ?? []) : state.specialists;
-            const nextServices = servicesRes.status === 'fulfilled' ? (servicesRes.value ?? []) : state.services;
-            const nextAppointments = appointmentsRes.status === 'fulfilled' ? (appointmentsRes.value ?? []) : state.appointments;
-            const nextSessions = sessionsRes.status === 'fulfilled' ? (sessionsRes.value ?? []) : state.sessions;
-            const nextPayments = paymentsRes.status === 'fulfilled' ? (paymentsRes.value ?? []) : state.payments;
-            const nextTransactions = transactionsRes.status === 'fulfilled' ? (transactionsRes.value ?? []) : state.transactions;
-            const nextNotifications = notificationsRes.status === 'fulfilled' ? (notificationsRes.value ?? []) : state.notifications;
-            const nextLogs = activityLogsRes.status === 'fulfilled' ? (activityLogsRes.value ?? []) : state.activityLogs;
+            const nextChildren = childrenRes.status === 'fulfilled' && childrenRes.value?.length ? childrenRes.value : state.children;
+            const nextParents = parentsRes.status === 'fulfilled' && parentsRes.value?.length ? parentsRes.value : state.parents;
+            const nextSpecialists = specialistsRes.status === 'fulfilled' && specialistsRes.value?.length ? specialistsRes.value : state.specialists;
+            const nextServices = servicesRes.status === 'fulfilled' && servicesRes.value?.length ? servicesRes.value : state.services;
+            const nextAppointments = appointmentsRes.status === 'fulfilled' && appointmentsRes.value?.length ? appointmentsRes.value : state.appointments;
+            const nextSessions = sessionsRes.status === 'fulfilled' && sessionsRes.value?.length ? sessionsRes.value : state.sessions;
+            const nextPayments = paymentsRes.status === 'fulfilled' && paymentsRes.value?.length ? paymentsRes.value : state.payments;
+            const nextTransactions = transactionsRes.status === 'fulfilled' && transactionsRes.value?.length ? transactionsRes.value : state.transactions;
+            const nextNotifications = notificationsRes.status === 'fulfilled' && notificationsRes.value?.length ? notificationsRes.value : state.notifications;
+            const nextLogs = activityLogsRes.status === 'fulfilled' && activityLogsRes.value?.length ? activityLogsRes.value : state.activityLogs;
 
             const nextSettings = settingsRes.status === 'fulfilled' && settingsRes.value
               ? {
@@ -1057,6 +1080,42 @@ export const useStore = create<Store>()(
         });
         get().addToast({ type: 'info', title: 'Tizim tozalandi', description: 'Barcha sessiyalar bekor qilindi' });
       },
+
+      resetToSeedData: () => {
+        set({
+          admins: ADMINS,
+          employees: EMPLOYEES,
+          specialists: SPECIALISTS,
+          parents: PARENTS,
+          children: CHILDREN,
+          services: SERVICES,
+          appointments: APPOINTMENTS,
+          sessions: SESSIONS,
+          attendance: ATTENDANCE_RECORDS,
+          assessments: ASSESSMENTS,
+          progressNotes: PROGRESS_NOTES,
+          goals: GOALS,
+          transactions: TRANSACTIONS,
+          payments: PAYMENTS,
+          notifications: NOTIFICATIONS,
+          activityLogs: ACTIVITY_LOGS,
+          clinicSettings: {
+            clinicName: 'Bolalar Massaj & Reabilitatsiya Markazi',
+            phone: '+998 71 200 00 00',
+            address: 'Toshkent sh., Chilonzor tumani, 9-mavze',
+            workStart: '08:00',
+            workEnd: '18:00',
+          },
+          isLoadingData: false,
+          isInitialized: true,
+          dataError: null,
+        });
+        get().addToast({
+          type: 'success',
+          title: 'Ma\'lumotlar yangilandi',
+          description: 'Klinika ma\'lumotlari muvaffaqiyatli tiklandi',
+        });
+      },
     }),
     {
       name: 'massaj-crm-live-storage-v1',
@@ -1070,9 +1129,15 @@ export const useStore = create<Store>()(
             }
           } catch {}
         }
-        if (state && state.isAuthenticated) {
-          // Immediately fetch fresh live data from Render backend
-          state.fetchInitialData();
+        if (state) {
+          // If stored state has 0 services or 0 children, initialize with realistic clinic data
+          if ((!state.services || state.services.length === 0) || (!state.children || state.children.length === 0)) {
+            state.resetToSeedData();
+          }
+          if (state.isAuthenticated) {
+            // Immediately fetch fresh live data from Render backend if connected
+            state.fetchInitialData();
+          }
         }
       },
       partialize: (state) => ({

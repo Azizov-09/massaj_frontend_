@@ -227,7 +227,7 @@ export function TransactionsPage() {
               </span>
             </div>
             {child && (
-              <div className="inline-flex items-center gap-1 text-[11px] text-charcoal-500 bg-warm-100 px-1.5 py-0.2 rounded">
+              <div className="inline-flex items-center gap-1 text-[11px] text-charcoal-500 bg-warm-100 px-1.5 py-0.5 rounded">
                 <Baby className="w-2.5 h-2.5 text-charcoal-400" />
                 <span className="truncate max-w-[120px]">{child.fullName}</span>
               </div>
@@ -337,7 +337,7 @@ export function TransactionsPage() {
           >
             Barchasi
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'ALL' ? "bg-white/20 text-white" : "bg-warm-200 text-charcoal-600"
             )}>
               {transactions.length}
@@ -359,7 +359,7 @@ export function TransactionsPage() {
             <ArrowDownLeft className="w-3.5 h-3.5" />
             Kirim (To'lovlar)
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'IN' ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800"
             )}>
               {inCount}
@@ -381,7 +381,7 @@ export function TransactionsPage() {
             <ArrowUpRight className="w-3.5 h-3.5" />
             Chiqim (Seanslar)
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'OUT' ? "bg-white/20 text-white" : "bg-brand-100 text-brand-800"
             )}>
               {outCount}
@@ -402,7 +402,7 @@ export function TransactionsPage() {
           >
             Xarajatlar
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'EXPENSE' ? "bg-white/20 text-white" : "bg-rose-100 text-rose-700"
             )}>
               {expenseCount}

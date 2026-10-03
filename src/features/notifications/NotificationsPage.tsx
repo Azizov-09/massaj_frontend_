@@ -37,7 +37,7 @@ export function NotificationsPage() {
           unread > 0 && (
             <Button variant="secondary" size="sm" leftIcon={<CheckCheck className="w-4 h-4" />}
               onClick={() => markAll(currentUser?.id, currentUser?.role)}>
-              Barchasini o'qildi
+              Barchasini o‘qilgan deb belgilash
             </Button>
           )
         }
@@ -45,7 +45,12 @@ export function NotificationsPage() {
 
       <Card>
         {userNotifs.length === 0 ? (
-          <EmptyState title="Bildirishnomalar yo'q" icon={<Bell className="w-5 h-5" />} className="py-16" />
+          <EmptyState
+            title="Bildirishnomalar mavjud emas"
+            description="Hozircha sizning hisobingiz uchun yangi bildirishnomalar kelib tushmagan"
+            icon={<Bell className="w-5 h-5 text-charcoal-400" />}
+            className="py-16"
+          />
         ) : (
           <div className="divide-y divide-warm-50">
             {userNotifs.map(notif => (
@@ -75,9 +80,11 @@ export function NotificationsPage() {
                   <p className="text-xs text-charcoal-400 mt-1">{formatRelativeTime(notif.createdAt)}</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => notif.isRead ? markUnread(notif.id) : markRead(notif.id)}
                   className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 p-1.5 rounded-[6px] text-charcoal-400 hover:text-charcoal-700 hover:bg-warm-100 transition-all shrink-0 cursor-pointer"
                   title={notif.isRead ? "O'qilmagan qilish" : "O'qilgan qilish"}
+                  aria-label={notif.isRead ? "O'qilmagan deb belgilash" : "O'qilgan deb belgilash"}
                 >
                   {notif.isRead ? <BellOff className="w-3.5 h-3.5" /> : <Bell className="w-3.5 h-3.5" />}
                 </button>

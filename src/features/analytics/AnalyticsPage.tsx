@@ -106,7 +106,7 @@ export function AnalyticsPage() {
   const totalCompletedSessions = sessions.filter(s => s.status === 'COMPLETED').length;
   const attendanceRate = attendance.length > 0
     ? Math.round((attendance.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length / attendance.length) * 100)
-    : 95;
+    : 0;
 
   return (
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-6">
@@ -173,7 +173,7 @@ export function AnalyticsPage() {
         />
         <KpiCard
           label="O‘rtacha seans narxi"
-          value={formatCurrencyCompact(totalCompletedSessions > 0 ? Math.round(totalRevenue / totalCompletedSessions) : 100000)}
+          value={formatCurrencyCompact(totalCompletedSessions > 0 ? Math.round(totalRevenue / totalCompletedSessions) : 0)}
           description="Har bir seans bo'yicha"
           icon={<TrendingUp className="w-5 h-5 text-blue-500" />}
           accentColor="blue"
@@ -208,7 +208,8 @@ export function AnalyticsPage() {
                     <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#8c827a' }} />
                     <YAxis
                       tick={{ fontSize: 11, fill: '#8c827a' }}
-                      tickFormatter={v => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : `${(v / 1000).toFixed(0)}k`}
+                      allowDecimals={false}
+                      tickFormatter={v => v <= 0 ? '0' : v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : `${Math.round(v / 1000)}k`}
                     />
                     <Tooltip formatter={(v: unknown) => [formatCurrency(Number(v) || 0), '']} />
                     <Legend />
@@ -229,38 +230,48 @@ export function AnalyticsPage() {
               <p className="text-xs text-charcoal-400">Statuslar bo‘yicha uchrashuvlar holati</p>
             </CardHeader>
             <CardBody className="flex flex-col items-center">
-              <div className="h-48 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={appointmentStatusData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={75}
-                      paddingAngle={4}
-                      dataKey="value"
-                    >
-                      {appointmentStatusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(v: unknown) => [String(v ?? ''), '']} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="w-full space-y-2 mt-4">
-                {appointmentStatusData.map((d) => (
-                  <div key={d.name} className="flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-2 text-charcoal-600 font-medium">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
-                      {d.name}
-                    </span>
-                    <span className="font-bold text-charcoal-900">{d.value} ta</span>
+              {appointmentStatusData.length === 0 ? (
+                <div className="h-64 flex flex-col items-center justify-center text-center p-4">
+                  <Activity className="w-8 h-8 text-charcoal-300 mb-2" />
+                  <p className="text-xs font-semibold text-charcoal-600">Uchrashuvlar mavjud emas</p>
+                  <p className="text-[11px] text-charcoal-400 mt-0.5">Uchrashuvlar qayd etilgach taqsimot ko'rsatiladi</p>
+                </div>
+              ) : (
+                <>
+                  <div className="h-48 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={appointmentStatusData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={75}
+                          paddingAngle={4}
+                          dataKey="value"
+                        >
+                          {appointmentStatusData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(v: unknown) => [String(v ?? ''), '']} />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </div>
-                ))}
-              </div>
+
+                  <div className="w-full space-y-2 mt-4">
+                    {appointmentStatusData.map((d) => (
+                      <div key={d.name} className="flex items-center justify-between text-xs">
+                        <span className="flex items-center gap-2 text-charcoal-600 font-medium">
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
+                          {d.name}
+                        </span>
+                        <span className="font-bold text-charcoal-900">{d.value} ta</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </CardBody>
           </Card>
         </div>

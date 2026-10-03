@@ -199,8 +199,12 @@ export function SchedulePage() {
   return (
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
       <PageHeader
-        title="Jadval"
-        description="Kunlik va haftalik uchrashuvlar taqvimi hamda bandlik monitoringi"
+        title={currentUser?.role === 'SPECIALIST' ? "Mening jadvalim" : "Jadval"}
+        description={
+          currentUser?.role === 'SPECIALIST'
+            ? "Mening kunlik va haftalik uchrashuvlar taqvimim hamda bandlik jadvali"
+            : "Kunlik va haftalik uchrashuvlar taqvimi hamda bandlik monitoringi"
+        }
         actions={
           <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => handleOpenCreate(selectedDate, '09:00')}>
             Yangi uchrashuv
@@ -572,10 +576,10 @@ export function SchedulePage() {
                           <button
                             type="button"
                             onClick={() => handleOpenCreate(w.dateStr, time)}
-                            className="w-full h-full min-h-[58px] rounded-lg border border-transparent group-hover/wcell:border-dashed group-hover/wcell:border-brand-300 group-hover/wcell:bg-brand-50/30 flex items-center justify-center text-transparent group-hover/wcell:text-brand-600 transition-all cursor-pointer"
+                            className="w-full h-full min-h-[58px] rounded-lg border border-dashed border-warm-200/90 group-hover/wcell:border-brand-400 bg-warm-50/20 group-hover/wcell:bg-brand-50/40 flex items-center justify-center text-charcoal-300 group-hover/wcell:text-brand-600 transition-all cursor-pointer"
                             title={`${w.dayName}, ${time} ga uchrashuv yozish`}
                           >
-                            <Plus className="w-4 h-4 opacity-0 group-hover/wcell:opacity-100 transition-opacity" />
+                            <Plus className="w-4 h-4 opacity-40 group-hover/wcell:opacity-100 transition-opacity" />
                           </button>
                         ) : (
                           apts.map(apt => {
@@ -721,7 +725,7 @@ export function SchedulePage() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="text-danger-main hover:bg-danger-50 ml-auto sm:ml-0"
+                    className="text-rose-600 hover:bg-rose-50 hover:text-rose-700 ml-auto sm:ml-0"
                     leftIcon={<XCircle className="w-3.5 h-3.5" />}
                     onClick={() => handleCancel(activeAppointment.id)}
                   >

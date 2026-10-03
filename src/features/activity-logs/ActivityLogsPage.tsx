@@ -3,10 +3,10 @@
 // ═══════════════════════════════════════════════════════
 
 import { useState, useMemo } from 'react';
-import { Search, Download } from 'lucide-react';
+import { Search, Download, FileText } from 'lucide-react';
 import { useStore } from '@/store';
 import { formatDate, formatRelativeTime } from '@/utils';
-import { Card, Badge, Avatar, Select } from '@/components/ui/primitives';
+import { Card, Badge, Avatar, Select, EmptyState } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
 import type { ActivityAction } from '@/types';
@@ -143,8 +143,12 @@ export function ActivityLogsPage() {
       {/* Logs List */}
       <Card className="overflow-hidden">
         {filteredLogs.length === 0 ? (
-          <div className="p-12 text-center text-charcoal-400 text-sm">
-            Mos keluvchi audit yozuvlari topilmadi.
+          <div className="p-8">
+            <EmptyState
+              title="Audit yozuvlari topilmadi"
+              description="Tanlangan parametrlar bo'yicha hech qanday tizim faoliyati qaydi mavjud emas"
+              icon={<FileText className="w-6 h-6 text-charcoal-400" />}
+            />
           </div>
         ) : (
           <div className="divide-y divide-warm-100">

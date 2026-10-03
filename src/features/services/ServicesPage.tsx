@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import { Plus, Heart, Archive, RotateCcw, Activity, DollarSign } from 'lucide-react';
 import { useStore } from '@/store';
 import { formatCurrencyCompact } from '@/utils';
-import { Card } from '@/components/ui/primitives';
+import { Card, EmptyState } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { Modal, ConfirmDialog } from '@/components/ui/Modal';
@@ -146,8 +146,25 @@ export function ServicesPage() {
       {/* Services Grid */}
       <div>
         <h3 className="text-sm font-semibold text-charcoal-700 mb-3">Faol xizmatlar</h3>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {activeServices.map((svc, i) => {
+        {activeServices.length === 0 ? (
+          <Card className="p-8 text-center border-dashed border-warm-300">
+            <EmptyState
+              icon={<Heart className="w-8 h-8 text-charcoal-300" />}
+              title="Faol xizmatlar mavjud emas"
+              description="Markaz xizmatlari ro'yxatini shakllantirish uchun yangi xizmat qo'shing."
+              action={
+                <Button
+                  leftIcon={<Plus className="w-4 h-4" />}
+                  onClick={() => setShowCreate(true)}
+                >
+                  Xizmat qo'shish
+                </Button>
+              }
+            />
+          </Card>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {activeServices.map((svc, i) => {
             const svcSessions = sessionCountMap.get(svc.id) || 0;
             return (
               <motion.div key={svc.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="h-full">
@@ -182,7 +199,8 @@ export function ServicesPage() {
               </motion.div>
             );
           })}
-        </div>
+          </div>
+        )}
       </div>
 
       {archivedServices.length > 0 && (

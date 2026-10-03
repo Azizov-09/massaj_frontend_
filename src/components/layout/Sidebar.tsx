@@ -314,7 +314,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         <button
           onClick={handleLogout}
           className={cn(
-            'flex items-center gap-2 text-xs font-medium text-charcoal-500 hover:text-danger-main px-2 py-1.5 rounded-[8px] hover:bg-red-50 transition-colors w-full cursor-pointer',
+            'flex items-center gap-2 text-xs font-medium text-charcoal-500 hover:text-rose-600 px-2 py-1.5 rounded-[8px] hover:bg-rose-50 transition-colors w-full cursor-pointer',
             !isMobile && collapsed && 'justify-center'
           )}
           aria-label="Chiqish"

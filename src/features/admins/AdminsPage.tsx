@@ -22,12 +22,14 @@ type RoleTab = 'ALL' | 'SUPER_ADMIN' | 'ADMIN' | 'ACTIVE';
 export function AdminsPage() {
   const admins = useStore(s => s.admins);
   const createAdmin = useStore(s => s.createAdmin);
+  const addToast = useStore(s => s.addToast);
   const { currentUser } = useAuth();
 
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<RoleTab>('ALL');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<AdminUser | null>(null);
+  const [formErrors, setFormErrors] = useState<{ fullName?: string; email?: string; phone?: string }>({});
 
   // New admin form state
   const [newAdmin, setNewAdmin] = useState({
@@ -41,7 +43,6 @@ export function AdminsPage() {
     let superAdmin = 0;
     let admin = 0;
     let active = 0;
-
     admins.forEach(a => {
       if (a.role === 'SUPER_ADMIN') superAdmin++;
       if (a.role === 'ADMIN') admin++;
@@ -83,18 +84,33 @@ export function AdminsPage() {
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAdmin.fullName || !newAdmin.email) return;
+    const errors: { fullName?: string; email?: string; phone?: string } = {};
+    if (!newAdmin.fullName.trim()) errors.fullName = "Ism va familiyani kiriting";
+    if (!newAdmin.email.trim() || !newAdmin.email.includes('@')) errors.email = "To'g'ri email manzilini kiriting";
+    if (!newAdmin.phone.trim()) errors.phone = "Telefon raqamini kiriting";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
 
     createAdmin({
-      fullName: newAdmin.fullName,
-      email: newAdmin.email,
-      phone: newAdmin.phone,
+      fullName: newAdmin.fullName.trim(),
+      email: newAdmin.email.trim(),
+      phone: newAdmin.phone.trim(),
       role: newAdmin.role,
       status: 'ACTIVE',
     });
 
+    addToast({
+      type: 'success',
+      title: 'Administrator qo‘shildi',
+      description: `${newAdmin.fullName} tizimga muvaffaqiyatli biriktirildi`
+    });
+
     setShowCreateModal(false);
     setNewAdmin({ fullName: '', email: '', phone: '', role: 'ADMIN' });
+    setFormErrors({});
   };
 
   const columns: Column<AdminUser>[] = [
@@ -263,7 +279,7 @@ export function AdminsPage() {
           >
             Barchasi
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'ALL' ? "bg-white/20 text-white" : "bg-warm-200 text-charcoal-600"
             )}>
               {tabCounts.all}
@@ -285,7 +301,7 @@ export function AdminsPage() {
             <Shield className="w-3.5 h-3.5" />
             Super Admin
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'SUPER_ADMIN' ? "bg-white/20 text-white" : "bg-rose-100 text-rose-700"
             )}>
               {tabCounts.superAdmin}
@@ -307,7 +323,7 @@ export function AdminsPage() {
             <ShieldCheck className="w-3.5 h-3.5" />
             Admin
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'ADMIN' ? "bg-white/20 text-white" : "bg-blue-100 text-blue-800"
             )}>
               {tabCounts.admin}
@@ -328,7 +344,7 @@ export function AdminsPage() {
           >
             Faol
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'ACTIVE' ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800"
             )}>
               {tabCounts.active}
@@ -495,7 +511,11 @@ export function AdminsPage() {
             required
             placeholder="Masalan: Sardor Rustamov"
             value={newAdmin.fullName}
-            onChange={e => setNewAdmin({ ...newAdmin, fullName: e.target.value })}
+            error={formErrors.fullName}
+            onChange={e => {
+              setNewAdmin({ ...newAdmin, fullName: e.target.value });
+              if (formErrors.fullName) setFormErrors({ ...formErrors, fullName: undefined });
+            }}
           />
 
           <Input
@@ -504,7 +524,11 @@ export function AdminsPage() {
             type="email"
             placeholder="admin@massaj.uz"
             value={newAdmin.email}
-            onChange={e => setNewAdmin({ ...newAdmin, email: e.target.value })}
+            error={formErrors.email}
+            onChange={e => {
+              setNewAdmin({ ...newAdmin, email: e.target.value });
+              if (formErrors.email) setFormErrors({ ...formErrors, email: undefined });
+            }}
           />
 
           <Input
@@ -513,7 +537,11 @@ export function AdminsPage() {
             type="tel"
             placeholder="+998901234567"
             value={newAdmin.phone}
-            onChange={e => setNewAdmin({ ...newAdmin, phone: e.target.value })}
+            error={formErrors.phone}
+            onChange={e => {
+              setNewAdmin({ ...newAdmin, phone: e.target.value });
+              if (formErrors.phone) setFormErrors({ ...formErrors, phone: undefined });
+            }}
           />
 
           <Select

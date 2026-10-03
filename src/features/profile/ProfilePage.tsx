@@ -31,6 +31,11 @@ export function ProfilePage() {
       email,
       phone,
     });
+    addToast({
+      type: 'success',
+      title: 'Profil yangilandi',
+      description: 'Shaxsiy ma’lumotlaringiz muvaffaqiyatli saqlandi',
+    });
   };
 
   const handleUpdatePassword = (e: React.FormEvent) => {

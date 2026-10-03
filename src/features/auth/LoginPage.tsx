@@ -411,7 +411,7 @@ export function LoginPage() {
               {/* Phone or Email Input */}
               <div>
                 <label htmlFor="email" className="block text-xs font-bold text-charcoal-700 mb-1.5">
-                  Telefon raqami yoki Email <span className="text-danger-main" aria-hidden>*</span>
+                  Telefon raqami yoki Email <span className="text-rose-600" aria-hidden>*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none">
@@ -427,14 +427,14 @@ export function LoginPage() {
                       'w-full bg-white border rounded-[10px] pl-10 pr-4 py-2.5 text-xs sm:text-sm text-charcoal-900 placeholder:text-charcoal-400 shadow-2xs',
                       'transition-all outline-none',
                       'hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100',
-                      errors.email ? 'border-danger-main' : 'border-warm-300'
+                      errors.email ? 'border-rose-500' : 'border-warm-300'
                     )}
                     aria-invalid={!!errors.email}
                     aria-describedby={errors.email ? 'email-error' : undefined}
                   />
                 </div>
                 {errors.email && (
-                  <p id="email-error" className="mt-1 text-xs text-danger-main font-medium">
+                  <p id="email-error" className="mt-1 text-xs text-rose-600 font-medium">
                     {errors.email.message}
                   </p>
                 )}
@@ -444,7 +444,7 @@ export function LoginPage() {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label htmlFor="password" className="block text-xs font-bold text-charcoal-700">
-                    Parol <span className="text-danger-main" aria-hidden>*</span>
+                    Parol <span className="text-rose-600" aria-hidden>*</span>
                   </label>
                   <button
                     type="button"
@@ -468,7 +468,7 @@ export function LoginPage() {
                       'w-full bg-white border rounded-[10px] pl-10 pr-11 py-2.5 text-xs sm:text-sm text-charcoal-900 placeholder:text-charcoal-400 shadow-2xs',
                       'transition-all outline-none',
                       'hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100',
-                      errors.password ? 'border-danger-main' : 'border-warm-300'
+                      errors.password ? 'border-rose-500' : 'border-warm-300'
                     )}
                     aria-invalid={!!errors.password}
                   />
@@ -482,7 +482,7 @@ export function LoginPage() {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="mt-1 text-xs text-danger-main font-medium">{errors.password.message}</p>
+                  <p className="mt-1 text-xs text-rose-600 font-medium">{errors.password.message}</p>
                 )}
               </div>
 
@@ -510,10 +510,10 @@ export function LoginPage() {
                     initial={{ opacity: 0, y: -6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -6 }}
-                    className="p-3.5 rounded-[10px] bg-red-50 border border-red-200 text-xs font-semibold text-danger-main flex items-center gap-2"
+                    className="p-3.5 rounded-[10px] bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 flex items-center gap-2"
                     role="alert"
                   >
-                    <span className="w-2 h-2 rounded-full bg-danger-main shrink-0" />
+                    <span className="w-2 h-2 rounded-full bg-rose-600 shrink-0" />
                     <span>{serverError}</span>
                   </motion.div>
                 )}

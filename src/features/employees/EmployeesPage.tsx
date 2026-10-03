@@ -219,8 +219,8 @@ export function EmployeesPage() {
         />
         <KpiCard
           label="Tarkib to‘liqligi"
-          value="100%"
-          description="Shtat to'liq shakllangan"
+          value={employees.length > 0 ? "100%" : "0%"}
+          description={employees.length > 0 ? "Shtat to'liq shakllangan" : "Xodimlar mavjud emas"}
           icon={<UserCheck className="w-5 h-5 text-blue-500" />}
           accentColor="blue"
           index={3}
@@ -244,7 +244,7 @@ export function EmployeesPage() {
           >
             Barchasi
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'ALL' ? "bg-white/20 text-white" : "bg-warm-200 text-charcoal-600"
             )}>
               {employees.length}
@@ -265,7 +265,7 @@ export function EmployeesPage() {
           >
             Faol xodimlar
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'ACTIVE' ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800"
             )}>
               {activeCount}
@@ -286,7 +286,7 @@ export function EmployeesPage() {
           >
             Nofaol
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'INACTIVE' ? "bg-white/20 text-white" : "bg-warm-200 text-charcoal-600"
             )}>
               {inactiveCount}

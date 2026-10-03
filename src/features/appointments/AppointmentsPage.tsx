@@ -278,7 +278,7 @@ export function AppointmentsPage() {
               <Calendar className="w-3.5 h-3.5 text-brand-600 shrink-0" />
               <span>{formatDate(row.date)}</span>
               {isCurrentDate && (
-                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-[4px] bg-emerald-100 text-emerald-700 border border-emerald-200 shrink-0">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-[4px] bg-emerald-100 text-emerald-700 border border-emerald-200 shrink-0">
                   Bugun
                 </span>
               )}
@@ -514,7 +514,7 @@ export function AppointmentsPage() {
                   <span>{tab.label}</span>
                   <span
                     className={cn(
-                      'text-[10px] px-1.5 py-0.2 rounded-full font-bold tabular-nums',
+                      'text-[10px] px-1.5 py-0.5 rounded-full font-bold tabular-nums',
                       isActive ? 'bg-white/20 text-white' : 'bg-warm-100 text-charcoal-700'
                     )}
                   >
@@ -540,7 +540,7 @@ export function AppointmentsPage() {
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Bola, ota-ona yoki mutaxassis..."
+              placeholder={isParent ? "Farzand yoki mutaxassis..." : isSpecialist ? "Bola yoki ota-ona..." : "Bola, ota-ona yoki mutaxassis..."}
               className="w-full h-9 pl-9 pr-8 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 outline-none transition-all font-medium text-charcoal-800"
             />
             {search && (

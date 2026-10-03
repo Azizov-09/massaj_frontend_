@@ -169,6 +169,8 @@ export function LandingPage() {
           <div className="lg:hidden flex items-center gap-2">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Mobil menyuni ochish yoki yopish"
+              aria-expanded={mobileMenuOpen}
               className="p-2 text-charcoal-700 hover:bg-warm-100 rounded-lg"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -258,24 +260,27 @@ export function LandingPage() {
               {/* Demo accounts quick pills */}
               <div className="pt-4 flex flex-wrap items-center gap-2 text-xs text-charcoal-500">
                 <span className="font-semibold text-charcoal-700">Tezkor kirish:</span>
-                <span
+                <button
+                  type="button"
                   onClick={() => navigate('/login?role=super-admin')}
-                  className="cursor-pointer bg-white px-2.5 py-1 rounded-md border border-warm-200 hover:border-brand-500 hover:text-brand-500 transition-colors shadow-2xs"
+                  className="cursor-pointer bg-white px-2.5 py-1 rounded-md border border-warm-200 hover:border-brand-500 hover:text-brand-500 transition-colors shadow-2xs font-medium"
                 >
                   Super Admin
-                </span>
-                <span
+                </button>
+                <button
+                  type="button"
                   onClick={() => navigate('/login?role=specialist')}
-                  className="cursor-pointer bg-white px-2.5 py-1 rounded-md border border-warm-200 hover:border-brand-500 hover:text-brand-500 transition-colors shadow-2xs"
+                  className="cursor-pointer bg-white px-2.5 py-1 rounded-md border border-warm-200 hover:border-brand-500 hover:text-brand-500 transition-colors shadow-2xs font-medium"
                 >
                   Mutaxassis
-                </span>
-                <span
+                </button>
+                <button
+                  type="button"
                   onClick={() => navigate('/login?role=parent')}
-                  className="cursor-pointer bg-white px-2.5 py-1 rounded-md border border-warm-200 hover:border-brand-500 hover:text-brand-500 transition-colors shadow-2xs"
+                  className="cursor-pointer bg-white px-2.5 py-1 rounded-md border border-warm-200 hover:border-brand-500 hover:text-brand-500 transition-colors shadow-2xs font-medium"
                 >
                   Ota-ona
-                </span>
+                </button>
               </div>
             </motion.div>
 

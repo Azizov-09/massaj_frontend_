@@ -158,7 +158,7 @@ export function ParentsPage() {
             {childList.map(c => (
               <Link
                 key={c.id}
-                to={`/children/${c.id}`}
+                to={`/dashboard/super-admin/children?search=${encodeURIComponent(c.fullName)}`}
                 onClick={(e) => e.stopPropagation()}
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-xs font-medium bg-brand-50/70 hover:bg-brand-100/80 text-brand-800 border border-brand-200/60 transition-colors"
                 title={`${c.fullName} profilini ochish`}
@@ -186,8 +186,8 @@ export function ParentsPage() {
         return (
           <div className="space-y-1">
             {bal.debt > 0 ? (
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[6px] bg-danger-50 text-danger-main border border-danger-100 font-semibold text-xs tabular-nums">
-                <AlertCircle className="w-3 h-3 text-danger-500 shrink-0" />
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[6px] bg-rose-50 text-rose-600 border border-rose-200 font-semibold text-xs tabular-nums">
+                <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
                 <span>Qarz: {formatCurrencyCompact(bal.debt)}</span>
               </div>
             ) : bal.balance > 0 ? (
@@ -266,7 +266,7 @@ export function ParentsPage() {
           >
             Barchasi
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'ALL' ? "bg-white/20 text-white" : "bg-warm-200 text-charcoal-600"
             )}>
               {tabCounts.all}
@@ -287,7 +287,7 @@ export function ParentsPage() {
           >
             Faol
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'ACTIVE' ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800"
             )}>
               {tabCounts.active}
@@ -302,14 +302,14 @@ export function ParentsPage() {
             className={cn(
               "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               activeTab === 'DEBTORS'
-                ? "bg-danger-main text-white shadow-xs"
-                : "text-charcoal-600 hover:bg-danger-50 hover:text-danger-main"
+                ? "bg-rose-600 text-white shadow-xs"
+                : "text-charcoal-600 hover:bg-rose-50 hover:text-rose-700"
             )}
           >
             Qarzdorlar
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
-              activeTab === 'DEBTORS' ? "bg-white/20 text-white" : "bg-danger-100 text-danger-700"
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+              activeTab === 'DEBTORS' ? "bg-white/20 text-white" : "bg-rose-100 text-rose-800"
             )}>
               {tabCounts.debtors}
             </span>
@@ -329,7 +329,7 @@ export function ParentsPage() {
           >
             Depozitdagilar
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'DEPOSIT' ? "bg-white/20 text-white" : "bg-brand-100 text-brand-800"
             )}>
               {tabCounts.deposit}
@@ -350,7 +350,7 @@ export function ParentsPage() {
           >
             Nofaol
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               activeTab === 'INACTIVE' ? "bg-white/20 text-white" : "bg-warm-200 text-charcoal-600"
             )}>
               {tabCounts.inactive}
@@ -423,8 +423,8 @@ export function ParentsPage() {
               Jami ota-onalar: <strong className="text-charcoal-800 font-semibold">{parents.length}</strong>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-danger-500" />
-              Umumiy qarz: <strong className="text-danger-main font-semibold tabular-nums">{formatCurrency(summaryStats.totalDebt)}</strong>
+              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              Umumiy qarz: <strong className="text-rose-600 font-semibold tabular-nums">{formatCurrency(summaryStats.totalDebt)}</strong>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -495,7 +495,7 @@ export function ParentsPage() {
                   </div>
                   <div className="p-3.5 rounded-xl border border-warm-200/80 bg-white">
                     <p className="text-xs text-charcoal-400 font-medium">Joriy qarzdorlik</p>
-                    <p className="text-lg font-bold text-danger-main tabular-nums mt-0.5">
+                    <p className="text-lg font-bold text-rose-600 tabular-nums mt-0.5">
                       {formatCurrency(bal.debt)}
                     </p>
                   </div>
@@ -539,7 +539,7 @@ export function ParentsPage() {
                           size="sm"
                           onClick={() => {
                             setSelectedParent(null);
-                            navigate(`/children/${c.id}`);
+                            navigate(`/dashboard/super-admin/children?search=${encodeURIComponent(c.fullName)}`);
                           }}
                           className="h-8 text-xs"
                         >

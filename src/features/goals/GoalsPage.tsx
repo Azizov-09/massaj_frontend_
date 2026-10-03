@@ -171,7 +171,7 @@ export function GoalsPage() {
         actions={
           !isParent ? (
             <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreateModal(true)}>
-              Yangi maqsad
+              Yangi maqsad qo‘shish
             </Button>
           ) : undefined
         }
@@ -263,7 +263,7 @@ export function GoalsPage() {
             icon={<Target className="w-6 h-6" />}
             action={
               <Button size="sm" onClick={() => setShowCreateModal(true)}>
-                Maqsad qo‘shish
+                Yangi maqsad qo‘shish
               </Button>
             }
           />
@@ -678,7 +678,7 @@ export function GoalsPage() {
                     <button
                       type="button"
                       onClick={() => setEditData({ ...editData, specialistNote: '' })}
-                      className="absolute right-2.5 bottom-2.5 text-[10px] font-semibold text-charcoal-400 hover:text-danger-main px-2 py-0.5 rounded-md bg-warm-100 hover:bg-red-50 border border-warm-200/60 transition-colors"
+                      className="absolute right-2.5 bottom-2.5 text-[10px] font-semibold text-charcoal-400 hover:text-rose-600 px-2 py-0.5 rounded-md bg-warm-100 hover:bg-rose-50 border border-warm-200/60 transition-colors"
                       title="Sharhni tozalash"
                     >
                       Tozalash

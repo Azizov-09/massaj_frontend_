@@ -196,6 +196,7 @@ export function ConfirmDialog({
       <p className="text-sm text-charcoal-600">{message}</p>
       <div className="flex flex-col-reverse sm:flex-row gap-2 mt-5">
         <button
+          type="button"
           onClick={onClose}
           disabled={loading}
           className="w-full sm:flex-1 px-4 py-2.5 text-sm font-medium rounded-[10px] border border-warm-300 text-charcoal-700 hover:bg-warm-100 transition-colors cursor-pointer"
@@ -203,6 +204,7 @@ export function ConfirmDialog({
           {finalCancelLabel}
         </button>
         <button
+          type="button"
           onClick={onConfirm}
           disabled={loading}
           className={cn('w-full sm:flex-1 px-4 py-2.5 text-sm font-medium rounded-[10px] transition-colors inline-flex items-center justify-center gap-2 cursor-pointer', confirmColor)}

@@ -78,11 +78,11 @@ export function BookingModal({ isOpen, onClose, services, specialists, initialSe
         setData({ parentName: '', phone: '', childName: '', childAge: '', serviceId: '', notes: '' });
       }, 2000);
     } catch {
-      setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        onClose();
-      }, 2000);
+      addToast({
+        type: 'error',
+        title: 'Xatolik yuz berdi',
+        description: "Iltimos, qaytadan urinib ko'ring yoki qo'ng'iroq qiling.",
+      });
     }
   };
 

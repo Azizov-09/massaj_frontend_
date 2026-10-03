@@ -6,7 +6,7 @@ import { useState, useMemo } from 'react';
 import {
   Wallet, TrendingUp, AlertTriangle, CheckCircle2,
   Search, CreditCard, X, Baby, Phone, ArrowUpRight,
-  AlertCircle
+  AlertCircle, Users
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatCurrency, formatCurrencyCompact, cn } from '@/utils';
@@ -45,6 +45,7 @@ export function BalancePage() {
   const [payNotes, setPayNotes] = useState('');
 
   const isParent = currentUser?.role === 'PARENT';
+  const canManagePayments = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN';
   const effectiveParents = useMemo(() => {
     if (isParent && currentUser) {
       return parents.filter(p => p.id === currentUser.id);
@@ -216,8 +217,8 @@ export function BalancePage() {
       cell: (r) => (
         <div>
           {r.totalDebt > 0 ? (
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[6px] bg-danger-50 text-danger-main border border-danger-100 font-bold text-xs tabular-nums">
-              <AlertCircle className="w-3 h-3 text-danger-500" />
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[6px] bg-rose-50 text-rose-600 border border-rose-200 font-bold text-xs tabular-nums">
+              <AlertCircle className="w-3 h-3 text-rose-500" />
               -{formatCurrency(r.totalDebt)}
             </span>
           ) : (
@@ -256,7 +257,6 @@ export function BalancePage() {
       key: 'parentId',
       header: 'Amal',
       cell: (r) => {
-        const canManagePayments = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN';
         if (canManagePayments) {
           return (
             <Button
@@ -294,42 +294,73 @@ export function BalancePage() {
       />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <KpiCard
-          label="Jami depozit mablag‘i"
-          value={formatCurrencyCompact(kpis.totalDeposit)}
-          description="Mijozlar hisobidagi ortiqcha to'lov"
-          icon={<TrendingUp className="w-5 h-5 text-emerald-600" />}
-          accentColor="sage"
-          changeType="positive"
-          index={0}
-        />
-        <KpiCard
-          label="Jami haqiqiy qarz"
-          value={formatCurrencyCompact(kpis.totalDebt)}
-          description="Markazga to'lanishi lozim summa"
-          icon={<AlertTriangle className="w-5 h-5 text-rose-600" />}
-          accentColor="danger"
-          changeType={kpis.totalDebt > 0 ? 'negative' : 'positive'}
-          index={1}
-        />
-        <KpiCard
-          label="Qarzdor mijozlar"
-          value={`${kpis.debtClients} ta`}
-          description={`${kpis.totalClients} ta mijozdan`}
-          icon={<Wallet className="w-5 h-5 text-amber-500" />}
-          accentColor="gold"
-          index={2}
-        />
-        <KpiCard
-          label="Moliyaviy intizom"
-          value={`${Math.round(((kpis.totalClients - kpis.debtClients) / (kpis.totalClients || 1)) * 100)}%`}
-          description="To'lov intizomi ko'rsatkichi"
-          icon={<CheckCircle2 className="w-5 h-5 text-brand-600" />}
-          accentColor="brand"
-          index={3}
-        />
-      </div>
+      {isParent ? (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          <KpiCard
+            label="Joriy depozit"
+            value={formatCurrency(parentRows[0]?.totalBalance || 0)}
+            description="Hisobingizdagi mavjud mablag'"
+            icon={<TrendingUp className="w-5 h-5 text-emerald-600" />}
+            accentColor="sage"
+            changeType="positive"
+            index={0}
+          />
+          <KpiCard
+            label="Qarzdorlik"
+            value={formatCurrency(parentRows[0]?.totalDebt || 0)}
+            description="To'lanishi lozim bo'lgan mablag'"
+            icon={<AlertTriangle className="w-5 h-5 text-rose-600" />}
+            accentColor="danger"
+            changeType={(parentRows[0]?.totalDebt || 0) > 0 ? 'negative' : 'positive'}
+            index={1}
+          />
+          <KpiCard
+            label="Farzandlar"
+            value={`${parentRows[0]?.childrenNames.length || 0} nafar`}
+            description="Ro'yxatga olingan farzandlar"
+            icon={<Users className="w-5 h-5 text-brand-600" />}
+            accentColor="brand"
+            index={2}
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <KpiCard
+            label="Jami depozit mablag‘i"
+            value={formatCurrencyCompact(kpis.totalDeposit)}
+            description="Mijozlar hisobidagi ortiqcha to'lov"
+            icon={<TrendingUp className="w-5 h-5 text-emerald-600" />}
+            accentColor="sage"
+            changeType="positive"
+            index={0}
+          />
+          <KpiCard
+            label="Jami haqiqiy qarz"
+            value={formatCurrencyCompact(kpis.totalDebt)}
+            description="Markazga to'lanishi lozim summa"
+            icon={<AlertTriangle className="w-5 h-5 text-rose-600" />}
+            accentColor="danger"
+            changeType={kpis.totalDebt > 0 ? 'negative' : 'positive'}
+            index={1}
+          />
+          <KpiCard
+            label="Qarzdor mijozlar"
+            value={`${kpis.debtClients} ta`}
+            description={`${kpis.totalClients} ta mijozdan`}
+            icon={<Wallet className="w-5 h-5 text-amber-500" />}
+            accentColor="gold"
+            index={2}
+          />
+          <KpiCard
+            label="Moliyaviy intizom"
+            value={`${Math.round(((kpis.totalClients - kpis.debtClients) / (kpis.totalClients || 1)) * 100)}%`}
+            description="To'lov intizomi ko'rsatkichi"
+            icon={<CheckCircle2 className="w-5 h-5 text-brand-600" />}
+            accentColor="brand"
+            index={3}
+          />
+        </div>
+      )}
 
       <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
         {/* Quick Tabs */}
@@ -348,7 +379,7 @@ export function BalancePage() {
           >
             Barchasi
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               statusFilter === 'ALL' ? "bg-white/20 text-white" : "bg-warm-200 text-charcoal-600"
             )}>
               {tabCounts.all}
@@ -363,14 +394,14 @@ export function BalancePage() {
             className={cn(
               "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
               statusFilter === 'DEBT'
-                ? "bg-danger-main text-white shadow-xs"
-                : "text-charcoal-600 hover:bg-danger-50 hover:text-danger-main"
+                ? "bg-rose-600 text-white shadow-xs"
+                : "text-charcoal-600 hover:bg-rose-50 hover:text-rose-600"
             )}
           >
             Qarzdorlar
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
-              statusFilter === 'DEBT' ? "bg-white/20 text-white" : "bg-danger-100 text-danger-700"
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+              statusFilter === 'DEBT' ? "bg-white/20 text-white" : "bg-rose-100 text-rose-700"
             )}>
               {tabCounts.debt}
             </span>
@@ -390,7 +421,7 @@ export function BalancePage() {
           >
             Depozitdagilar
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               statusFilter === 'DEPOSIT' ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800"
             )}>
               {tabCounts.deposit}
@@ -411,7 +442,7 @@ export function BalancePage() {
           >
             Nol balans
             <span className={cn(
-              "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
               statusFilter === 'ZERO' ? "bg-white/20 text-white" : "bg-warm-200 text-charcoal-600"
             )}>
               {tabCounts.zero}
@@ -427,7 +458,7 @@ export function BalancePage() {
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Ota-ona yoki bola ismi..."
+                placeholder={isParent ? "Farzand ismi bo'yicha qidirish..." : "Ota-ona yoki bola ismi..."}
                 className="w-full h-9 pl-9 pr-8 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none transition-all"
               />
               {search && (
@@ -466,8 +497,14 @@ export function BalancePage() {
           columns={columns}
           keyExtractor={r => r.parentId}
           tableClassName="min-w-[900px]"
-          emptyTitle="Mijozlar balansi topilmadi"
-          emptyDescription="Qidiruv shartlarini o‘zgartiring yoki filtrni tozalang."
+          emptyTitle={isParent ? "Balans ma'lumotlari topilmadi" : "Mijozlar balansi topilmadi"}
+          emptyDescription={
+            isParent
+              ? "Sizning hisobingiz bo'yicha hech qanday to'lov yoki qarz yozuvlari topilmadi."
+              : hasActiveFilters
+              ? "Qidiruv shartlarini o‘zgartiring yoki filtrni tozalang."
+              : "Mijozlar balansi ma'lumotlari mavjud emas."
+          }
           emptyIcon={<Wallet className="w-5 h-5" />}
         />
 
@@ -483,12 +520,14 @@ export function BalancePage() {
               Jami depozit: <strong className="text-emerald-700 font-semibold tabular-nums">{formatCurrency(kpis.totalDeposit)}</strong>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-danger-500" />
-              Jami qarz: <strong className="text-danger-main font-semibold tabular-nums">{formatCurrency(kpis.totalDebt)}</strong>
+              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              Jami qarz: <strong className="text-rose-600 font-semibold tabular-nums">{formatCurrency(kpis.totalDebt)}</strong>
             </span>
           </div>
           <span className="text-[11px] text-charcoal-400">
-            "To'lov olish" tugmasi orqali tezkor to'lov qayd etish mumkin
+            {canManagePayments
+              ? "\"To'lov olish\" tugmasi orqali tezkor to'lov qayd etish mumkin"
+              : "Hisob-kitoblar avtomatik yangilanib boradi"}
           </span>
         </div>
       </Card>
@@ -509,7 +548,7 @@ export function BalancePage() {
               </div>
               <div className="text-right">
                 <span className="text-[11px] text-charcoal-400 block">Joriy qarz</span>
-                <span className="text-sm font-extrabold text-danger-main">
+                <span className="text-sm font-extrabold text-rose-600">
                   {formatCurrency(paymentModalParent.totalDebt)}
                 </span>
               </div>

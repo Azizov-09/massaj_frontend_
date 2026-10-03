@@ -89,7 +89,7 @@ export function ForbiddenPage() {
     >
       <div className="text-center max-w-sm">
         <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
-          <ShieldAlert className="w-9 h-9 text-danger-main" />
+          <ShieldAlert className="w-9 h-9 text-rose-600" />
         </div>
         <h1 className="text-xl font-bold text-charcoal-900 mb-2">Ruxsat yo'q</h1>
         <p className="text-sm text-charcoal-400 mb-8">
