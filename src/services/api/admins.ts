@@ -13,7 +13,7 @@ export function normalizeAdmin(raw: any): AdminUser {
     status: raw.status === 'ARCHIVED' ? 'ARCHIVED' : raw.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
     createdAt: raw.createdAt || new Date().toISOString(),
     avatar: raw.avatar,
-    lastLogin: raw.lastLogin,
+    lastLogin: raw.lastLogin || raw.lastLoginAt,
   };
 }
 

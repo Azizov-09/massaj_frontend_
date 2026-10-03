@@ -366,18 +366,22 @@ export const useStore = create<Store>()(
             settingsRes,
             notificationsRes,
             activityLogsRes,
+            adminsRes,
+            employeesRes,
           ] = await Promise.allSettled([
-            isParent ? api.portal.getMyChildren() : isSpecialist ? api.portal.getMyAssignedChildren() : api.children.getAll(),
-            api.parents.getAll(),
-            api.specialists.getAll(),
+            isParent ? api.portal.getMyChildren() : isSpecialist ? api.portal.getMyAssignedChildren() : api.children.getAll({ limit: 100 }),
+            api.parents.getAll({ limit: 100 }),
+            api.specialists.getAll({ limit: 100 }),
             api.services.getAll(),
-            isParent ? api.portal.getMyAppointments() : api.appointments.getAll(),
-            isParent ? api.portal.getMySessions() : isSpecialist ? api.portal.getMyConductedSessions() : api.sessions.getAll(),
-            isParent ? api.portal.getMyPayments() : api.finance.getPayments(),
+            isParent ? api.portal.getMyAppointments() : api.appointments.getAll({ limit: 100 }),
+            isParent ? api.portal.getMySessions() : isSpecialist ? api.portal.getMyConductedSessions() : api.sessions.getAll({ limit: 100 }),
+            isParent ? api.portal.getMyPayments() : api.finance.getPayments({ limit: 100 }),
             api.finance.getTransactions(),
             api.platform.getSettings(),
             api.platform.getNotifications(),
             api.platform.getActivityLogs(),
+            api.admins.getAll({ limit: 100 }),
+            api.employees.getAll({ limit: 100 }),
           ]);
 
           set(state => {
@@ -391,6 +395,8 @@ export const useStore = create<Store>()(
             const nextTransactions = transactionsRes.status === 'fulfilled' && transactionsRes.value?.length ? transactionsRes.value : state.transactions;
             const nextNotifications = notificationsRes.status === 'fulfilled' && notificationsRes.value?.length ? notificationsRes.value : state.notifications;
             const nextLogs = activityLogsRes.status === 'fulfilled' && activityLogsRes.value?.length ? activityLogsRes.value : state.activityLogs;
+            const nextAdmins = adminsRes.status === 'fulfilled' && adminsRes.value?.length ? adminsRes.value : state.admins;
+            const nextEmployees = employeesRes.status === 'fulfilled' && employeesRes.value?.length ? employeesRes.value : state.employees;
 
             const nextSettings = settingsRes.status === 'fulfilled' && settingsRes.value
               ? {
@@ -413,6 +419,8 @@ export const useStore = create<Store>()(
               transactions: nextTransactions,
               notifications: nextNotifications,
               activityLogs: nextLogs,
+              admins: nextAdmins,
+              employees: nextEmployees,
               clinicSettings: nextSettings,
               isLoadingData: false,
               isInitialized: true,
