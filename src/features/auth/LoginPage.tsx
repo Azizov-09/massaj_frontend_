@@ -101,18 +101,10 @@ export function LoginPage() {
     setServerError('');
     const result = await login(data.email, data.password);
     if (result.success) {
-      const storeStr = localStorage.getItem('massaj-crm-store');
-      if (storeStr) {
-        try {
-          const parsed = JSON.parse(storeStr);
-          const userRole = parsed?.state?.currentUser?.role;
-          if (userRole && ROLE_REDIRECTS[userRole]) {
-            navigate(ROLE_REDIRECTS[userRole], { replace: true });
-            return;
-          }
-        } catch {
-          // fallback below
-        }
+      const userRole = useStore.getState().currentUser?.role;
+      if (userRole && ROLE_REDIRECTS[userRole]) {
+        navigate(ROLE_REDIRECTS[userRole], { replace: true });
+        return;
       }
       navigate('/dashboard/super-admin', { replace: true });
     } else {
@@ -315,6 +307,27 @@ export function LoginPage() {
               <p className="text-xs sm:text-sm text-charcoal-500 leading-relaxed">
                 Klinik boshqaruv, qabullar monitoringi va shaxsiy kabinetga kirish uchun ma’lumotlaringizni kiriting
               </p>
+            </div>
+
+            {/* Live API Banner */}
+            <div className="mb-5 p-3 rounded-xl bg-emerald-50/90 border border-emerald-200/90 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span className="font-semibold text-emerald-900">
+                  Jonli Backend API (Render)
+                </span>
+              </div>
+              <a
+                href="https://massaj-frontent-demo.vercel.app"
+                target="_blank"
+                rel="noreferrer"
+                className="text-[11px] font-medium text-emerald-700 hover:text-emerald-900 underline"
+              >
+                Demo rejim ↗
+              </a>
             </div>
 
             {/* ─── Interactive Quick Role Switcher (Senior standard) ─── */}

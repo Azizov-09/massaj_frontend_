@@ -20,9 +20,14 @@ export class ApiError extends Error {
   }
 }
 
-// Ensure default points directly to Render backend URL
-const BASE_URL =
-  (import.meta as any).env?.VITE_API_URL || 'https://massaj-backend.onrender.com/api/v1';
+// In browser environments (Vercel deployment or Vite dev server), use relative `/api/v1`
+// to leverage reverse-proxy and bypass browser CORS limitations.
+const DEFAULT_URL =
+  typeof window !== 'undefined'
+    ? '/api/v1'
+    : 'https://massaj-backend.onrender.com/api/v1';
+
+const BASE_URL = (import.meta as any).env?.VITE_API_URL || DEFAULT_URL;
 
 export class ApiClient {
   private token: string | null = null;

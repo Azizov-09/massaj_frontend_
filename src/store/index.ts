@@ -250,7 +250,24 @@ export const useStore = create<Store>()(
         } catch (e) {
           console.warn('[Auth] Logout warning:', e);
         }
-        set({ currentUser: null, isAuthenticated: false });
+        set({
+          currentUser: null,
+          isAuthenticated: false,
+          children: [],
+          parents: [],
+          specialists: [],
+          services: [],
+          appointments: [],
+          sessions: [],
+          payments: [],
+          transactions: [],
+          goals: [],
+          assessments: [],
+          progressNotes: [],
+          notifications: [],
+          activityLogs: [],
+          isInitialized: false,
+        });
       },
 
       updateCurrentUser: (data) => {
@@ -341,16 +358,16 @@ export const useStore = create<Store>()(
           ]);
 
           set(state => {
-            const nextChildren = childrenRes.status === 'fulfilled' && childrenRes.value?.length ? childrenRes.value : state.children;
-            const nextParents = parentsRes.status === 'fulfilled' && parentsRes.value?.length ? parentsRes.value : state.parents;
-            const nextSpecialists = specialistsRes.status === 'fulfilled' && specialistsRes.value?.length ? specialistsRes.value : state.specialists;
-            const nextServices = servicesRes.status === 'fulfilled' && servicesRes.value?.length ? servicesRes.value : state.services;
-            const nextAppointments = appointmentsRes.status === 'fulfilled' && appointmentsRes.value?.length ? appointmentsRes.value : state.appointments;
-            const nextSessions = sessionsRes.status === 'fulfilled' && sessionsRes.value?.length ? sessionsRes.value : state.sessions;
-            const nextPayments = paymentsRes.status === 'fulfilled' && paymentsRes.value?.length ? paymentsRes.value : state.payments;
-            const nextTransactions = transactionsRes.status === 'fulfilled' && transactionsRes.value?.length ? transactionsRes.value : state.transactions;
-            const nextNotifications = notificationsRes.status === 'fulfilled' && notificationsRes.value?.length ? notificationsRes.value : state.notifications;
-            const nextLogs = activityLogsRes.status === 'fulfilled' && activityLogsRes.value?.length ? activityLogsRes.value : state.activityLogs;
+            const nextChildren = childrenRes.status === 'fulfilled' ? (childrenRes.value ?? []) : state.children;
+            const nextParents = parentsRes.status === 'fulfilled' ? (parentsRes.value ?? []) : state.parents;
+            const nextSpecialists = specialistsRes.status === 'fulfilled' ? (specialistsRes.value ?? []) : state.specialists;
+            const nextServices = servicesRes.status === 'fulfilled' ? (servicesRes.value ?? []) : state.services;
+            const nextAppointments = appointmentsRes.status === 'fulfilled' ? (appointmentsRes.value ?? []) : state.appointments;
+            const nextSessions = sessionsRes.status === 'fulfilled' ? (sessionsRes.value ?? []) : state.sessions;
+            const nextPayments = paymentsRes.status === 'fulfilled' ? (paymentsRes.value ?? []) : state.payments;
+            const nextTransactions = transactionsRes.status === 'fulfilled' ? (transactionsRes.value ?? []) : state.transactions;
+            const nextNotifications = notificationsRes.status === 'fulfilled' ? (notificationsRes.value ?? []) : state.notifications;
+            const nextLogs = activityLogsRes.status === 'fulfilled' ? (activityLogsRes.value ?? []) : state.activityLogs;
 
             const nextSettings = settingsRes.status === 'fulfilled' && settingsRes.value
               ? {
@@ -1042,7 +1059,22 @@ export const useStore = create<Store>()(
       },
     }),
     {
-      name: 'massaj-crm-store',
+      name: 'massaj-crm-live-storage-v1',
+      onRehydrateStorage: () => (state) => {
+        // Clear any old mock demo data lingering in legacy keys
+        if (typeof window !== 'undefined') {
+          try {
+            const legacy = localStorage.getItem('massaj-crm-store');
+            if (legacy && (legacy.includes('201.7') || legacy.includes('Alisher Nazarov') || legacy.includes('superadmin@demo.com'))) {
+              localStorage.removeItem('massaj-crm-store');
+            }
+          } catch {}
+        }
+        if (state && state.isAuthenticated) {
+          // Immediately fetch fresh live data from Render backend
+          state.fetchInitialData();
+        }
+      },
       partialize: (state) => ({
         currentUser: state.currentUser,
         isAuthenticated: state.isAuthenticated,
