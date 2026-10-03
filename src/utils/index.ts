@@ -378,3 +378,54 @@ export const MONTH_LABELS = [
   'Noyabr',
   'Dekabr',
 ];
+
+// ─── Secure Password Generator ───────────────────────────
+
+/**
+ * Generates a cryptographically strong password meeting backend criteria:
+ * - At least 12 characters (default: 14)
+ * - Uppercase, lowercase, numbers, and special characters
+ */
+export function generateStrongPassword(length = 14): string {
+  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lower = 'abcdefghijkmnpqrstuvwxyz';
+  const digits = '23456789';
+  const special = '!@#$%^&*';
+  const all = upper + lower + digits + special;
+
+  const getRandomChar = (charset: string) => {
+    const randomBuffer = new Uint32Array(1);
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      crypto.getRandomValues(randomBuffer);
+      return charset[randomBuffer[0] % charset.length];
+    }
+    return charset[Math.floor(Math.random() * charset.length)];
+  };
+
+  // Ensure at least one of each required class
+  const chars = [
+    getRandomChar(upper),
+    getRandomChar(lower),
+    getRandomChar(digits),
+    getRandomChar(special),
+  ];
+
+  while (chars.length < length) {
+    chars.push(getRandomChar(all));
+  }
+
+  // Shuffle array using Fisher-Yates
+  for (let i = chars.length - 1; i > 0; i--) {
+    const randomBuffer = new Uint32Array(1);
+    let j = 0;
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      crypto.getRandomValues(randomBuffer);
+      j = randomBuffer[0] % (i + 1);
+    } else {
+      j = Math.floor(Math.random() * (i + 1));
+    }
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+
+  return chars.join('');
+}

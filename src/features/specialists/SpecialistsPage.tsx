@@ -2,10 +2,11 @@
 import { useState, useMemo } from 'react';
 import {
   Plus, Search, Stethoscope, Users, Award, Clock, X, Phone,
-  Mail, Calendar, Eye, CheckCircle2, ChevronRight, Briefcase
+  Mail, Calendar, Eye, EyeOff, CheckCircle2, ChevronRight, Briefcase,
+  KeyRound, ShieldCheck, RefreshCw
 } from 'lucide-react';
 import { useStore } from '@/store';
-import { getEntityStatusColor, getEntityStatusLabel, cn } from '@/utils';
+import { getEntityStatusColor, getEntityStatusLabel, cn, generateStrongPassword } from '@/utils';
 import { DataTable, Column } from '@/components/tables/DataTable';
 import { Card, Avatar, Badge, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
@@ -19,7 +20,13 @@ import type { Specialist } from '@/types';
 
 const schema = z.object({
   fullName: z.string().min(2, 'Ism kamida 2 ta belgi'),
-  phone: z.string().min(9, 'Telefon'),
+  phone: z.string().min(9, 'Telefon raqamni kiriting'),
+  password: z
+    .string()
+    .min(12, 'Parol kamida 12 ta belgidan iborat bo\'lishi shart')
+    .regex(/[A-Z]/, 'Kamida 1 ta katta harf (A-Z) bo\'lishi shart')
+    .regex(/[a-z]/, 'Kamida 1 ta kichik harf (a-z) bo\'lishi shart')
+    .regex(/[0-9]/, 'Kamida 1 ta raqam (0-9) bo\'lishi shart'),
   email: z.string().email('Email noto\'g\'ri').optional().or(z.literal('')),
   specialization: z.string().min(2, 'Mutaxassislikni kiriting'),
   experienceYears: z.string().optional(),
@@ -553,11 +560,29 @@ export function SpecialistsPage() {
 interface CreateSpecialistFormProps {
   onSuccess: () => void;
   onCancel: () => void;
-  createSpecialist: (data: Omit<Specialist, 'id' | 'createdAt'>) => Specialist;
+  createSpecialist: (data: Omit<Specialist, 'id' | 'createdAt'>, password?: string) => Specialist;
 }
 
 function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateSpecialistFormProps) {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({ resolver: zodResolver(schema) });
+  const [showPassword, setShowPassword] = useState(false);
+  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      fullName: '',
+      phone: '',
+      password: generateStrongPassword(14),
+      email: '',
+      specialization: '',
+      experienceYears: '3',
+      bio: '',
+    },
+  });
+
+  const handleGeneratePassword = () => {
+    const newPwd = generateStrongPassword(14);
+    setValue('password', newPwd, { shouldValidate: true });
+  };
+
   const onSubmit = async (data: FormValues) => {
     await new Promise(r => setTimeout(r, 300));
     createSpecialist({
@@ -571,9 +596,10 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
       workingDays: [1, 2, 3, 4, 5],
       workingHours: { start: '09:00', end: '18:00' },
       bio: data.bio || '',
-    });
+    }, data.password);
     onSuccess();
   };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       <Input label="To'liq ism" required placeholder="Masalan: Dr. Aziz Nazarov" error={errors.fullName?.message} {...register('fullName')} />
@@ -582,6 +608,46 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
         <Input label="Telefon" required type="tel" placeholder="+998901234567" error={errors.phone?.message} {...register('phone')} />
         <Input label="Email" type="email" placeholder="doctor@massaj.uz" {...register('email')} />
       </div>
+
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-charcoal-700 flex items-center gap-1.5">
+            <KeyRound className="w-3.5 h-3.5 text-brand-600" />
+            <span>Kirish paroli</span>
+            <span className="text-danger-main">*</span>
+          </label>
+          <button
+            type="button"
+            onClick={handleGeneratePassword}
+            className="inline-flex items-center gap-1 text-[11px] text-brand-600 hover:text-brand-800 font-medium transition-colors"
+          >
+            <RefreshCw className="w-3 h-3" />
+            Tasodifiy parol generatsiya qilish
+          </button>
+        </div>
+        <Input
+          type={showPassword ? 'text' : 'password'}
+          placeholder="Kamida 12 ta belgi (katta/kichik harf, raqam)"
+          error={errors.password?.message}
+          {...register('password')}
+          className="font-mono text-sm"
+          rightAddon={
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              tabIndex={-1}
+              className="text-charcoal-400 hover:text-charcoal-700 transition-colors focus:outline-none"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          }
+        />
+        <div className="flex items-center gap-1.5 text-[11px] text-charcoal-500 pt-0.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+          <span>Backend talabi: kamida 12 ta belgi, katta harf, kichik harf va raqam.</span>
+        </div>
+      </div>
+
       <Input label="Tajriba (yil)" type="number" placeholder="5" min="0" {...register('experienceYears')} />
       <Textarea label="Qisqacha bio" placeholder="Mutaxassis haqida ma'lumot..." rows={2} {...register('bio')} />
       <div className="flex items-center justify-end gap-3 pt-4 border-t border-warm-100">

@@ -55,6 +55,41 @@ export interface UpdateSpecialistDto {
   bio?: string;
 }
 
+export interface CreateAdminDto {
+  fullName: string;
+  phone: string;
+  role: 'SUPER_ADMIN' | 'ADMIN';
+  password?: string;
+  email?: string;
+}
+
+export interface UpdateAdminDto {
+  fullName?: string;
+  phone?: string;
+  role?: 'SUPER_ADMIN' | 'ADMIN';
+  email?: string;
+  status?: string;
+}
+
+export interface CreateEmployeeDto {
+  fullName: string;
+  position: string;
+  phone: string;
+  email?: string;
+  salary?: number;
+  notes?: string;
+}
+
+export interface UpdateEmployeeDto {
+  fullName?: string;
+  position?: string;
+  phone?: string;
+  email?: string;
+  status?: string;
+  salary?: number;
+  notes?: string;
+}
+
 export interface CreateChildDto {
   firstName: string;
   lastName: string;

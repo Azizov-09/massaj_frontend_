@@ -63,6 +63,8 @@ export interface Employee {
   status: EntityStatus;
   joinedAt: string;
   avatar?: string;
+  salary?: number;
+  notes?: string;
 }
 
 // ─── Specialist ───────────────────────────────────────────

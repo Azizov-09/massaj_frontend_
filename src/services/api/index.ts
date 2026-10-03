@@ -15,6 +15,8 @@ import { FinanceApi } from './finance';
 import { PlatformApi } from './platform';
 import { AnalyticsApi } from './analytics';
 import { PortalApi } from './portal';
+import { AdminsApi } from './admins';
+import { EmployeesApi } from './employees';
 
 export * from './client';
 export * from './types';
@@ -30,6 +32,8 @@ export * from './finance';
 export * from './platform';
 export * from './analytics';
 export * from './portal';
+export * from './admins';
+export * from './employees';
 
 export class AppApi extends ApiClient {
   public auth: AuthApi;
@@ -44,6 +48,8 @@ export class AppApi extends ApiClient {
   public platform: PlatformApi;
   public analytics: AnalyticsApi;
   public portal: PortalApi;
+  public admins: AdminsApi;
+  public employees: EmployeesApi;
 
   constructor(baseUrl?: string) {
     super(baseUrl);
@@ -59,6 +65,8 @@ export class AppApi extends ApiClient {
     this.platform = new PlatformApi(this);
     this.analytics = new AnalyticsApi(this);
     this.portal = new PortalApi(this);
+    this.admins = new AdminsApi(this);
+    this.employees = new EmployeesApi(this);
   }
 }
 

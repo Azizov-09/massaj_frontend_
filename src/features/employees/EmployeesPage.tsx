@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { DataTable, Column } from '@/components/tables/DataTable';
 import { Modal } from '@/components/ui/Modal';
-import { Input } from '@/components/ui/primitives';
+import { Input, Textarea } from '@/components/ui/primitives';
 import type { Employee } from '@/types';
 
 type StatusTab = 'ALL' | 'ACTIVE' | 'INACTIVE';
@@ -37,6 +37,8 @@ export function EmployeesPage() {
     position: 'Katta hamshira',
     phone: '',
     email: '',
+    salary: '',
+    notes: '',
   });
 
   const positions = useMemo(() => {
@@ -76,15 +78,17 @@ export function EmployeesPage() {
     if (!newEmp.fullName || !newEmp.phone) return;
 
     createEmployee({
-      fullName: newEmp.fullName,
-      position: newEmp.position,
-      phone: newEmp.phone,
-      email: newEmp.email || undefined,
+      fullName: newEmp.fullName.trim(),
+      position: newEmp.position.trim(),
+      phone: newEmp.phone.trim(),
+      email: newEmp.email.trim() || undefined,
+      salary: newEmp.salary ? Number(newEmp.salary) : undefined,
+      notes: newEmp.notes.trim() || undefined,
       status: 'ACTIVE',
     });
 
     setShowCreateModal(false);
-    setNewEmp({ fullName: '', position: 'Katta hamshira', phone: '', email: '' });
+    setNewEmp({ fullName: '', position: 'Katta hamshira', phone: '', email: '', salary: '', notes: '' });
   };
 
   const columns: Column<Employee>[] = [
@@ -490,6 +494,22 @@ export function EmployeesPage() {
             placeholder="xodim@massaj.uz"
             value={newEmp.email}
             onChange={e => setNewEmp({ ...newEmp, email: e.target.value })}
+          />
+
+          <Input
+            label="Oylik maosh (so'mda, ixtiyoriy)"
+            type="number"
+            placeholder="Masalan: 3500000"
+            value={newEmp.salary}
+            onChange={e => setNewEmp({ ...newEmp, salary: e.target.value })}
+          />
+
+          <Textarea
+            label="Izoh / Qo'shimcha ma'lumot"
+            rows={2}
+            placeholder="Xodim malakasi, vazifalari yoki qo'shimcha eslatmalar..."
+            value={newEmp.notes}
+            onChange={e => setNewEmp({ ...newEmp, notes: e.target.value })}
           />
 
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-warm-100">

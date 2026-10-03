@@ -97,11 +97,11 @@ interface Actions {
   archiveChild: (id: string) => void;
 
   // Parents
-  createParent: (data: Omit<Parent, 'id' | 'createdAt'>) => Parent;
+  createParent: (data: Omit<Parent, 'id' | 'createdAt'>, password?: string) => Parent;
   updateParent: (id: string, data: Partial<Parent>) => void;
 
   // Specialists
-  createSpecialist: (data: Omit<Specialist, 'id' | 'createdAt'>) => Specialist;
+  createSpecialist: (data: Omit<Specialist, 'id' | 'createdAt'>, password?: string) => Specialist;
   updateSpecialist: (id: string, data: Partial<Specialist>) => void;
 
   // Services
@@ -159,7 +159,7 @@ interface Actions {
   markAllNotificationsRead: (userId?: string, role?: UserRole) => void;
 
   // Admins
-  createAdmin: (data: Omit<AdminUser, 'id' | 'createdAt'>) => AdminUser;
+  createAdmin: (data: Omit<AdminUser, 'id' | 'createdAt'>, password?: string) => AdminUser;
   updateAdmin: (id: string, data: Partial<AdminUser>) => void;
 
   // Employees
@@ -517,14 +517,14 @@ export const useStore = create<Store>()(
       },
 
       // ── Parents Actions ──────────────────────────────────
-      createParent: (data) => {
+      createParent: (data, password) => {
         const parent: Parent = { ...data, id: `par-${generateId()}`, createdAt: new Date().toISOString() };
         set(s => ({ parents: [...s.parents, parent] }));
 
         api.parents.create({
           fullName: parent.fullName,
           phone: parent.phone,
-          password: 'Password123!',
+          password: password || 'Password123!',
           address: parent.address,
         }).then(created => {
           if (created && created.id) {
@@ -552,14 +552,14 @@ export const useStore = create<Store>()(
       },
 
       // ── Specialist Actions ───────────────────────────────
-      createSpecialist: (data) => {
+      createSpecialist: (data, password) => {
         const spec: Specialist = { ...data, id: `spec-${generateId()}`, createdAt: new Date().toISOString() };
         set(s => ({ specialists: [...s.specialists, spec] }));
 
         api.specialists.create({
           fullName: spec.fullName,
           phone: spec.phone,
-          password: 'Password123!',
+          password: password || 'Password123!',
           specialization: spec.specialization,
           experienceYears: spec.experience || 3,
           bio: spec.bio,
@@ -999,15 +999,38 @@ export const useStore = create<Store>()(
       },
 
       // ── Admins ───────────────────────────────────────────
-      createAdmin: (data) => {
+      createAdmin: (data, password) => {
         const admin: AdminUser = { ...data, id: `admin-${generateId()}`, createdAt: new Date().toISOString() };
         set(s => ({ admins: [...s.admins, admin] }));
+
+        api.admins.create({
+          fullName: admin.fullName,
+          phone: admin.phone,
+          email: admin.email,
+          role: admin.role,
+          password: password || 'Admin123!',
+        }).then(created => {
+          if (created && created.id) {
+            set(s => ({
+              admins: s.admins.map(a => a.id === admin.id ? created : a),
+            }));
+          }
+        }).catch(err => {
+          console.warn('[Store] Background createAdmin sync warning:', err);
+        });
+
         get().addToast({ type: 'success', title: 'Admin qo\'shildi' });
         return admin;
       },
 
       updateAdmin: (id, data) => {
         set(s => ({ admins: s.admins.map(a => a.id === id ? { ...a, ...data } : a) }));
+        api.admins.update(id, {
+          fullName: data.fullName,
+          email: data.email,
+        }).catch(err => {
+          console.warn('[Store] Background updateAdmin sync warning:', err);
+        });
         get().addToast({ type: 'success', title: 'Admin yangilandi' });
       },
 
@@ -1015,12 +1038,41 @@ export const useStore = create<Store>()(
       createEmployee: (data) => {
         const emp: Employee = { ...data, id: `emp-${generateId()}`, joinedAt: new Date().toISOString() };
         set(s => ({ employees: [...s.employees, emp] }));
+
+        api.employees.create({
+          fullName: emp.fullName,
+          position: emp.position,
+          phone: emp.phone,
+          email: emp.email,
+          salary: emp.salary,
+          notes: emp.notes,
+        }).then(created => {
+          if (created && created.id) {
+            set(s => ({
+              employees: s.employees.map(e => e.id === emp.id ? created : e),
+            }));
+          }
+        }).catch(err => {
+          console.warn('[Store] Background createEmployee sync warning:', err);
+        });
+
         get().addToast({ type: 'success', title: 'Xodim qo\'shildi' });
         return emp;
       },
 
       updateEmployee: (id, data) => {
         set(s => ({ employees: s.employees.map(e => e.id === id ? { ...e, ...data } : e) }));
+        api.employees.update(id, {
+          fullName: data.fullName,
+          position: data.position,
+          phone: data.phone,
+          email: data.email,
+          status: data.status,
+          salary: data.salary,
+          notes: data.notes,
+        }).catch(err => {
+          console.warn('[Store] Background updateEmployee sync warning:', err);
+        });
         get().addToast({ type: 'success', title: 'Xodim yangilandi' });
       },
 

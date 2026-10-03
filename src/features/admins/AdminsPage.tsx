@@ -5,10 +5,10 @@
 import { useState, useMemo } from 'react';
 import {
   ShieldCheck, Plus, Search, Shield, User,
-  CheckCircle2, Phone, Mail, Calendar, Eye, X
+  CheckCircle2, Phone, Mail, Calendar, Eye, EyeOff, KeyRound, RefreshCw, X
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
-import { formatDate, getEntityStatusColor, getEntityStatusLabel, cn } from '@/utils';
+import { formatDate, getEntityStatusColor, getEntityStatusLabel, cn, generateStrongPassword } from '@/utils';
 import { Card, Badge, Avatar, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
@@ -28,8 +28,9 @@ export function AdminsPage() {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<RoleTab>('ALL');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<AdminUser | null>(null);
-  const [formErrors, setFormErrors] = useState<{ fullName?: string; email?: string; phone?: string }>({});
+  const [formErrors, setFormErrors] = useState<{ fullName?: string; email?: string; phone?: string; password?: string }>({});
 
   // New admin form state
   const [newAdmin, setNewAdmin] = useState({
@@ -37,6 +38,7 @@ export function AdminsPage() {
     email: '',
     phone: '',
     role: 'ADMIN' as 'SUPER_ADMIN' | 'ADMIN',
+    password: generateStrongPassword(14),
   });
 
   const tabCounts = useMemo(() => {
@@ -84,10 +86,19 @@ export function AdminsPage() {
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const errors: { fullName?: string; email?: string; phone?: string } = {};
+    const errors: { fullName?: string; email?: string; phone?: string; password?: string } = {};
     if (!newAdmin.fullName.trim()) errors.fullName = "Ism va familiyani kiriting";
     if (!newAdmin.email.trim() || !newAdmin.email.includes('@')) errors.email = "To'g'ri email manzilini kiriting";
     if (!newAdmin.phone.trim()) errors.phone = "Telefon raqamini kiriting";
+    if (!newAdmin.password || newAdmin.password.length < 12) {
+      errors.password = "Parol kamida 12 ta belgidan iborat bo'lishi shart";
+    } else if (!/[A-Z]/.test(newAdmin.password)) {
+      errors.password = "Kamida 1 ta katta harf (A-Z) bo'lishi shart";
+    } else if (!/[a-z]/.test(newAdmin.password)) {
+      errors.password = "Kamida 1 ta kichik harf (a-z) bo'lishi shart";
+    } else if (!/[0-9]/.test(newAdmin.password)) {
+      errors.password = "Kamida 1 ta raqam (0-9) bo'lishi shart";
+    }
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -100,7 +111,7 @@ export function AdminsPage() {
       phone: newAdmin.phone.trim(),
       role: newAdmin.role,
       status: 'ACTIVE',
-    });
+    }, newAdmin.password);
 
     addToast({
       type: 'success',
@@ -109,7 +120,7 @@ export function AdminsPage() {
     });
 
     setShowCreateModal(false);
-    setNewAdmin({ fullName: '', email: '', phone: '', role: 'ADMIN' });
+    setNewAdmin({ fullName: '', email: '', phone: '', role: 'ADMIN', password: generateStrongPassword(14) });
     setFormErrors({});
   };
 
@@ -543,6 +554,53 @@ export function AdminsPage() {
               if (formErrors.phone) setFormErrors({ ...formErrors, phone: undefined });
             }}
           />
+
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-charcoal-700 flex items-center gap-1.5">
+                <KeyRound className="w-3.5 h-3.5 text-brand-600" />
+                <span>Admin paroli</span>
+                <span className="text-danger-main">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  const newPwd = generateStrongPassword(14);
+                  setNewAdmin({ ...newAdmin, password: newPwd });
+                  if (formErrors.password) setFormErrors({ ...formErrors, password: undefined });
+                }}
+                className="inline-flex items-center gap-1 text-[11px] text-brand-600 hover:text-brand-800 font-medium transition-colors"
+              >
+                <RefreshCw className="w-3 h-3" />
+                Tasodifiy parol generatsiya qilish
+              </button>
+            </div>
+            <Input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Kamida 12 ta belgi (katta/kichik harf, raqam)"
+              value={newAdmin.password}
+              error={formErrors.password}
+              onChange={e => {
+                setNewAdmin({ ...newAdmin, password: e.target.value });
+                if (formErrors.password) setFormErrors({ ...formErrors, password: undefined });
+              }}
+              className="font-mono text-sm"
+              rightAddon={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                  className="text-charcoal-400 hover:text-charcoal-700 transition-colors focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              }
+            />
+            <div className="flex items-center gap-1.5 text-[11px] text-charcoal-500 pt-0.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>Backend talabi: kamida 12 ta belgi, katta harf, kichik harf va raqam.</span>
+            </div>
+          </div>
 
           <Select
             label="Admin roli"
