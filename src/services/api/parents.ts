@@ -4,6 +4,10 @@ import type { Parent } from '@/types';
 
 export function normalizeParent(raw: any): Parent {
   if (!raw) return raw;
+  const parentId = raw.parent?.id || raw.id;
+  const fullName = raw.fullName || raw.user?.fullName || 'Noma’lum Ota-ona';
+  const phone = raw.phone || raw.user?.phone || '';
+  const address = raw.address || raw.parent?.address || '';
   const childrenIds = Array.isArray(raw.children)
     ? raw.children.map((c: any) => String(c.id || c))
     : Array.isArray(raw.childrenIds)
@@ -11,11 +15,11 @@ export function normalizeParent(raw: any): Parent {
     : [];
 
   return {
-    id: String(raw.id),
-    fullName: raw.fullName || 'Noma’lum Ota-ona',
-    phone: raw.phone || '',
-    email: raw.email || `${raw.phone?.replace(/[^0-9]/g, '') || raw.id}@massaj.uz`,
-    address: raw.address || '',
+    id: String(parentId),
+    fullName,
+    phone,
+    email: raw.email || (phone ? `${phone.replace(/[^0-9]/g, '')}@massaj.uz` : `${parentId}@massaj.uz`),
+    address,
     role: 'PARENT',
     status: raw.status === 'ARCHIVED' ? 'ARCHIVED' : raw.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
     childrenIds,

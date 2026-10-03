@@ -4,17 +4,24 @@ import type { Specialist } from '@/types';
 
 export function normalizeSpecialist(raw: any): Specialist {
   if (!raw) return raw;
+  const specialistId = raw.specialist?.id || raw.id;
+  const fullName = raw.fullName || raw.user?.fullName || 'Noma’lum Mutaxassis';
+  const phone = raw.phone || raw.user?.phone || '';
+  const specialization = raw.specialization || raw.specialist?.specialization || 'Pediatriya massaji va reabilitatsiya';
+  const experienceYears = raw.experienceYears ?? raw.specialist?.experienceYears ?? raw.experience ?? 3;
+  const bio = raw.bio || raw.specialist?.bio || '';
+
   return {
-    id: String(raw.id),
-    fullName: raw.fullName || 'Noma’lum Mutaxassis',
-    phone: raw.phone || '',
-    email: raw.email || `${raw.phone?.replace(/[^0-9]/g, '') || raw.id}@massaj.uz`,
+    id: String(specialistId),
+    fullName,
+    phone,
+    email: raw.email || (phone ? `${phone.replace(/[^0-9]/g, '')}@massaj.uz` : `${specialistId}@massaj.uz`),
     role: 'SPECIALIST',
-    specialization: raw.specialization || 'Pediatriya massaji va reabilitatsiya',
-    experience: Number(raw.experienceYears ?? raw.experience ?? 3),
+    specialization,
+    experience: Number(experienceYears),
     workingDays: raw.workingDays || [1, 2, 3, 4, 5, 6],
     workingHours: raw.workingHours || { start: '09:00', end: '18:00' },
-    bio: raw.bio || '',
+    bio,
     rating: Number(raw.rating ?? 4.9),
     status: raw.status === 'ARCHIVED' ? 'ARCHIVED' : raw.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
     createdAt: raw.createdAt || new Date().toISOString(),
