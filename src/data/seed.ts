@@ -557,8 +557,8 @@ function addDays(dateStr: string, days: number): string {
   return d.toISOString().split('T')[0];
 }
 
-// Generate realistic appointments over past 6 months
-const baseDate = '2026-09-26';
+// Generate realistic appointments over past 6 months (dynamically relative to current date)
+const baseDate = new Date().toISOString().split('T')[0];
 
 export const APPOINTMENTS: Appointment[] = [
   // Today's appointments

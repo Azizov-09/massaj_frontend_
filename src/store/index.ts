@@ -192,7 +192,31 @@ export const useStore = create<Store>()(
           return { success: false, error: 'Foydalanuvchi topilmadi' };
         }
 
-        set({ currentUser: user, isAuthenticated: true });
+        const currentChildren = get().children;
+        const needsInit = !currentChildren || currentChildren.length === 0;
+
+        set({
+          currentUser: user,
+          isAuthenticated: true,
+          ...(needsInit ? {
+            admins: ADMINS,
+            employees: EMPLOYEES,
+            specialists: SPECIALISTS,
+            parents: PARENTS,
+            children: CHILDREN,
+            services: SERVICES,
+            appointments: APPOINTMENTS,
+            sessions: SESSIONS,
+            attendance: ATTENDANCE,
+            assessments: ASSESSMENTS,
+            progressNotes: PROGRESS_NOTES,
+            goals: GOALS,
+            transactions: TRANSACTIONS,
+            payments: PAYMENTS,
+            notifications: NOTIFICATIONS,
+            activityLogs: ACTIVITY_LOGS,
+          } : {})
+        });
         return { success: true };
       },
 
@@ -651,7 +675,29 @@ export const useStore = create<Store>()(
       },
     }),
     {
-      name: 'massaj-crm-store',
+      name: 'massaj-crm-demo-storage-v4',
+      onRehydrateStorage: () => (state) => {
+        if (!state || !state.children || state.children.length === 0) {
+          useStore.setState({
+            admins: ADMINS,
+            employees: EMPLOYEES,
+            specialists: SPECIALISTS,
+            parents: PARENTS,
+            children: CHILDREN,
+            services: SERVICES,
+            appointments: APPOINTMENTS,
+            sessions: SESSIONS,
+            attendance: ATTENDANCE,
+            assessments: ASSESSMENTS,
+            progressNotes: PROGRESS_NOTES,
+            goals: GOALS,
+            transactions: TRANSACTIONS,
+            payments: PAYMENTS,
+            notifications: NOTIFICATIONS,
+            activityLogs: ACTIVITY_LOGS,
+          });
+        }
+      },
       partialize: (state) => ({
         currentUser: state.currentUser,
         isAuthenticated: state.isAuthenticated,
