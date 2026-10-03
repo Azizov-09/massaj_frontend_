@@ -35,7 +35,7 @@ describe('API Client Layer Tests', () => {
     const data = await api.get('/health');
     expect(data).toEqual({ status: 'success' });
     expect(fakeFetch).toHaveBeenCalledWith(
-      'http://localhost:3000/api/v1/health',
+      `${api.getBaseUrl()}/health`,
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: 'Bearer mock-secret-token',

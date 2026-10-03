@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 
 const loginSchema = z.object({
-  email: z.string().email("Noto'g'ri email manzil kiritildi"),
+  email: z.string().min(3, "Telefon raqami yoki email kiritilishi shart"),
   password: z.string().min(6, 'Parol kamida 6 ta belgidan iborat bo‘lishi kerak'),
   rememberMe: z.boolean().optional(),
 });
@@ -395,20 +395,20 @@ export function LoginPage() {
 
             {/* ─── Login Form ─── */}
             <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-              {/* Email Input */}
+              {/* Phone or Email Input */}
               <div>
                 <label htmlFor="email" className="block text-xs font-bold text-charcoal-700 mb-1.5">
-                  Email manzil <span className="text-danger-main" aria-hidden>*</span>
+                  Telefon raqami yoki Email <span className="text-danger-main" aria-hidden>*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none">
-                    <Mail className="w-4 h-4" />
+                    <Phone className="w-4 h-4" />
                   </div>
                   <input
                     id="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="email@massaj.uz"
+                    type="text"
+                    autoComplete="username"
+                    placeholder="+998 90 123 45 67 yoki email"
                     {...register('email')}
                     className={cn(
                       'w-full bg-white border rounded-[10px] pl-10 pr-4 py-2.5 text-xs sm:text-sm text-charcoal-900 placeholder:text-charcoal-400 shadow-2xs',
