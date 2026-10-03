@@ -42,7 +42,7 @@ function resolveDefaultBaseUrl(): string {
     return '/api/v1';
   }
 
-  return 'https://massaj-backend.onrender.com/api/v1';
+  return 'http://104.248.29.65/api/v1';
 }
 
 const BASE_URL = resolveDefaultBaseUrl();

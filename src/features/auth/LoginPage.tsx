@@ -38,11 +38,11 @@ interface DemoAccount {
 
 const DEMO_ACCOUNTS: DemoAccount[] = [
   {
-    email: 'superadmin@demo.com',
-    password: 'demo123',
+    email: '+998901000001',
+    password: 'Admin123!',
     role: 'Bosh Admin (Super Admin)',
     shortRole: 'Bosh Admin',
-    tag: 'To‘liq boshqaruv',
+    tag: 'DigitalOcean API',
     icon: ShieldCheck,
     theme: 'brand',
   },
@@ -317,7 +317,7 @@ export function LoginPage() {
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                 </span>
                 <span className="font-semibold text-emerald-900">
-                  Jonli Backend API (Render)
+                  Jonli Backend API (104.248.29.65)
                 </span>
               </div>
               <a

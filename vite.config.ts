@@ -18,7 +18,7 @@ export default defineConfig({
     port: 3001,
     proxy: {
       '/api': {
-        target: 'https://massaj-backend.onrender.com',
+        target: 'http://104.248.29.65',
         changeOrigin: true,
       },
     },
