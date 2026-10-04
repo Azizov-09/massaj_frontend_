@@ -292,7 +292,7 @@ export function AdminsPage() {
         />
       </div>
 
-      <Card className="overflow-hidden border border-warm-200/90 rounded-2xl shadow-xs">
+      <Card className="overflow-visible border border-warm-200/90 rounded-2xl shadow-xs">
         {/* Quick Tabs — Desktop/tablet filter pills */}
         <div className="hidden sm:flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full bg-warm-50/30">
           <button
@@ -403,17 +403,20 @@ export function AdminsPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <select
+          <div className="flex items-center gap-2 w-full sm:w-auto min-w-[200px]">
+            <Select
+              size="sm"
               value={activeTab}
               onChange={e => setActiveTab(e.target.value as RoleTab)}
-              className="w-full sm:w-auto h-10 px-3 text-xs sm:text-sm border border-warm-200 rounded-xl bg-white text-charcoal-700 font-medium focus:border-brand-500 outline-none transition-all cursor-pointer shadow-2xs"
-            >
-              <option value="ALL">Barcha statuslar ({tabCounts.all})</option>
-              <option value="SUPER_ADMIN">Super Adminlar ({tabCounts.superAdmin})</option>
-              <option value="ADMIN">Administratorlar ({tabCounts.admin})</option>
-              <option value="ACTIVE">Faol adminlar ({tabCounts.active})</option>
-            </select>
+              triggerClassName="h-10 rounded-xl text-xs sm:text-sm font-medium border-warm-200 shadow-2xs w-full"
+              options={[
+                { value: 'ALL', label: `Barcha statuslar (${tabCounts.all})` },
+                { value: 'SUPER_ADMIN', label: `Super Adminlar (${tabCounts.superAdmin})` },
+                { value: 'ADMIN', label: `Administratorlar (${tabCounts.admin})` },
+                { value: 'ACTIVE', label: `Faol adminlar (${tabCounts.active})` },
+              ]}
+              aria-label="Status bo'yicha filter"
+            />
           </div>
         </div>
 

@@ -216,7 +216,7 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.15 }}
-                className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-16 sm:top-full mt-2 w-auto sm:w-80 max-w-sm bg-white rounded-[14px] shadow-[0_10px_40px_-8px_rgb(0_0_0/0.12)] border border-warm-200 overflow-hidden z-50"
+                className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-16 sm:top-full mt-2 w-auto sm:w-80 max-w-sm bg-white/98 backdrop-blur-md rounded-2xl shadow-[0_16px_40px_-6px_rgba(24,24,27,0.14),0_6px_16px_-4px_rgba(24,24,27,0.06)] border border-warm-200/90 overflow-hidden z-50"
               >
                 <div className="flex items-center justify-between px-4 py-3 border-b border-warm-100">
                   <span className="text-sm font-semibold text-charcoal-900">Bildirishnomalar</span>
@@ -288,33 +288,33 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.15 }}
                 role="menu"
-                className="absolute right-0 top-full mt-2 w-48 bg-white rounded-[14px] shadow-[0_10px_40px_-8px_rgb(0_0_0/0.12)] border border-warm-200 py-1 overflow-hidden z-50"
+                className="absolute right-0 top-full mt-2 w-52 bg-white/98 backdrop-blur-md rounded-2xl shadow-[0_16px_40px_-6px_rgba(24,24,27,0.14),0_6px_16px_-4px_rgba(24,24,27,0.06)] border border-warm-200/90 p-1.5 overflow-hidden z-50 space-y-0.5"
               >
-                <div className="px-3 py-2 border-b border-warm-100">
-                  <p className="text-xs font-semibold text-charcoal-900 truncate">{currentUser?.fullName}</p>
+                <div className="px-3 py-2 border-b border-warm-100/80 mb-1">
+                  <p className="text-xs font-bold text-charcoal-900 truncate">{currentUser?.fullName}</p>
                   <p className="text-[10px] text-charcoal-400 truncate">{currentUser?.email}</p>
                 </div>
                 <Link
                   to={`${getDashboardPath()}/profile`}
                   role="menuitem"
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-charcoal-700 hover:bg-warm-50 transition-colors"
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs sm:text-sm font-medium text-charcoal-700 hover:bg-warm-100/70 hover:text-charcoal-900 rounded-xl transition-all"
                   onClick={() => setProfileOpen(false)}
                 >
-                  <User className="w-3.5 h-3.5 text-charcoal-400" /> Profil
+                  <User className="w-3.5 h-3.5 text-charcoal-500" /> Profil
                 </Link>
                 <Link
                   to={`${getDashboardPath()}/settings`}
                   role="menuitem"
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-charcoal-700 hover:bg-warm-50 transition-colors"
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs sm:text-sm font-medium text-charcoal-700 hover:bg-warm-100/70 hover:text-charcoal-900 rounded-xl transition-all"
                   onClick={() => setProfileOpen(false)}
                 >
-                  <Settings className="w-3.5 h-3.5 text-charcoal-400" /> Sozlamalar
+                  <Settings className="w-3.5 h-3.5 text-charcoal-500" /> Sozlamalar
                 </Link>
-                <div className="border-t border-warm-100 mt-1 pt-1">
+                <div className="border-t border-warm-100/80 mt-1 pt-1">
                   <button
                     role="menuitem"
                     onClick={handleLogout}
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors w-full text-left"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs sm:text-sm font-medium text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-xl transition-all w-full text-left cursor-pointer"
                   >
                     <LogOut className="w-3.5 h-3.5" /> Chiqish
                   </button>

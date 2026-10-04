@@ -488,7 +488,7 @@ export function AppointmentsPage() {
       </div>
 
       {/* Main Table Card */}
-      <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
+      <Card className="overflow-visible border border-warm-200/90 shadow-xs">
         {/* Top Status Tabs */}
         <div className="px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-1.5 overflow-x-auto touch-scroll-x scrollbar-thin py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">

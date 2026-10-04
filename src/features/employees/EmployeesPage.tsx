@@ -232,7 +232,7 @@ export function EmployeesPage() {
         />
       </div>
 
-      <Card className="overflow-hidden border border-warm-200/90 rounded-2xl shadow-xs">
+      <Card className="overflow-visible border border-warm-200/90 rounded-2xl shadow-xs">
         {/* Quick Tabs — Desktop/tablet filter pills */}
         <div className="hidden sm:flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full bg-warm-50/30">
           <button
@@ -320,26 +320,34 @@ export function EmployeesPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <select
-              value={positionFilter}
-              onChange={e => setPositionFilter(e.target.value)}
-              className="w-full sm:w-auto h-10 px-3 text-xs sm:text-sm border border-warm-200 rounded-xl bg-white text-charcoal-700 font-medium focus:border-brand-500 outline-none transition-all cursor-pointer shadow-2xs"
-            >
-              <option value="">Barcha lavozimlar</option>
-              {positions.map(pos => (
-                <option key={pos} value={pos}>{pos}</option>
-              ))}
-            </select>
-            <select
-              value={activeTab}
-              onChange={e => setActiveTab(e.target.value as any)}
-              className="w-full sm:w-auto h-10 px-3 text-xs sm:text-sm border border-warm-200 rounded-xl bg-white text-charcoal-700 font-medium focus:border-brand-500 outline-none transition-all cursor-pointer shadow-2xs"
-            >
-              <option value="ALL">Barcha holatlar ({employees.length})</option>
-              <option value="ACTIVE">Faol xodimlar ({activeCount})</option>
-              <option value="INACTIVE">Nofaol xodimlar ({inactiveCount})</option>
-            </select>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <div className="w-full sm:w-48">
+              <Select
+                size="sm"
+                value={positionFilter}
+                onChange={e => setPositionFilter(e.target.value)}
+                triggerClassName="h-10 rounded-xl text-xs sm:text-sm font-medium border-warm-200 shadow-2xs w-full"
+                options={[
+                  { value: '', label: 'Barcha lavozimlar' },
+                  ...positions.map(pos => ({ value: pos, label: pos })),
+                ]}
+                aria-label="Lavozim bo'yicha filter"
+              />
+            </div>
+            <div className="w-full sm:w-52">
+              <Select
+                size="sm"
+                value={activeTab}
+                onChange={e => setActiveTab(e.target.value as any)}
+                triggerClassName="h-10 rounded-xl text-xs sm:text-sm font-medium border-warm-200 shadow-2xs w-full"
+                options={[
+                  { value: 'ALL', label: `Barcha holatlar (${employees.length})` },
+                  { value: 'ACTIVE', label: `Faol xodimlar (${activeCount})` },
+                  { value: 'INACTIVE', label: `Nofaol xodimlar (${inactiveCount})` },
+                ]}
+                aria-label="Holat bo'yicha filter"
+              />
+            </div>
           </div>
         </div>
 

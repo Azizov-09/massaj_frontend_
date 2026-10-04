@@ -40,25 +40,26 @@ export interface SelectProps
   menuClassName?: string;
   size?: 'sm' | 'md' | 'lg';
   searchable?: boolean;
+  align?: 'left' | 'right' | 'auto';
 }
 
 const sizeStyles = {
   sm: {
-    trigger: 'px-2.5 py-1.5 text-xs rounded-[8px]',
-    option: 'px-2.5 py-1.5 text-xs rounded-[6px]',
-    icon: 'w-3.5 h-3.5',
+    trigger: 'h-9 px-3 text-xs rounded-xl',
+    option: 'px-3 py-2 text-xs rounded-lg',
+    icon: 'w-4 h-4',
     check: 'w-3.5 h-3.5',
   },
   md: {
-    trigger: 'px-3 py-2 text-sm rounded-[10px]',
-    option: 'px-3 py-2 text-sm rounded-[8px]',
+    trigger: 'h-10 px-3.5 text-xs sm:text-sm rounded-xl',
+    option: 'px-3 py-2 text-xs sm:text-sm rounded-xl',
     icon: 'w-4 h-4',
     check: 'w-4 h-4',
   },
   lg: {
-    trigger: 'px-3.5 py-2.5 text-base rounded-[12px]',
-    option: 'px-3.5 py-2 text-sm rounded-[10px]',
-    icon: 'w-4 h-4',
+    trigger: 'h-11 px-4 text-sm sm:text-base rounded-xl',
+    option: 'px-3.5 py-2.5 text-sm rounded-xl',
+    icon: 'w-4.5 h-4.5',
     check: 'w-4 h-4',
   },
 };
@@ -85,6 +86,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       children,
       size = 'md',
       searchable,
+      align = 'auto',
       ...props
     },
     ref
@@ -101,6 +103,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 
     const [isOpen, setIsOpen] = useState(false);
     const [openUpward, setOpenUpward] = useState(false);
+    const [alignRight, setAlignRight] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
@@ -199,6 +202,15 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         const estimatedHeight = Math.min(allOptions.length * 36 + 40, 260);
 
         setOpenUpward(spaceBelow < estimatedHeight && spaceAbove > spaceBelow);
+
+        if (align === 'right') {
+          setAlignRight(true);
+        } else if (align === 'left') {
+          setAlignRight(false);
+        } else {
+          const spaceRight = window.innerWidth - rect.left;
+          setAlignRight(spaceRight < 240 && rect.right > 240);
+        }
       }
       setIsOpen(prev => {
         const next = !prev;
@@ -342,11 +354,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           onKeyDown={handleTriggerKeyDown}
           className={cn(
             'w-full bg-white border text-left',
-            'flex items-center justify-between gap-2 transition-all duration-150 outline-none cursor-pointer',
-            'hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80',
-            isOpen ? 'border-brand-500 ring-2 ring-brand-100/80 shadow-sm' : 'shadow-none',
-            error ? 'border-danger-main focus:border-danger-main focus:ring-danger-light' : 'border-warm-300',
-            disabled && 'opacity-60 cursor-not-allowed bg-warm-50/50 hover:border-warm-300',
+            'flex items-center justify-between gap-2.5 transition-all duration-150 outline-none cursor-pointer select-none',
+            'border-warm-200/90 shadow-2xs hover:border-warm-300 hover:bg-warm-50/30',
+            'focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15',
+            isOpen ? 'border-brand-500 ring-2 ring-brand-500/15 shadow-sm bg-white' : '',
+            error ? 'border-danger-main focus:border-danger-main focus:ring-danger-light' : '',
+            disabled && 'opacity-60 cursor-not-allowed bg-warm-50/50 hover:border-warm-200',
             currentSize.trigger,
             triggerClassName
           )}
@@ -380,16 +393,17 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               exit={{ opacity: 0, y: openUpward ? 4 : -4, scale: 0.98 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
               className={cn(
-                'absolute z-50 left-0 min-w-full w-max max-w-full bg-white rounded-[14px]',
-                'shadow-[0_12px_36px_-6px_rgba(0,0,0,0.14),0_4px_12px_-2px_rgba(0,0,0,0.06)]',
-                'border border-warm-200/90 py-1 overflow-hidden',
+                'absolute z-50 min-w-full w-full sm:w-max max-w-[calc(100vw-2rem)] bg-white/98 backdrop-blur-md rounded-2xl',
+                'shadow-[0_16px_40px_-6px_rgba(24,24,27,0.14),0_6px_16px_-4px_rgba(24,24,27,0.06)]',
+                'border border-warm-200/90 p-1.5 overflow-hidden',
+                alignRight ? 'right-0' : 'left-0',
                 openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
                 menuClassName
               )}
             >
               {/* Optional search input */}
               {shouldShowSearch && (
-                <div className="p-2 border-b border-warm-100 bg-warm-50/50">
+                <div className="p-1 pb-1.5 mb-1 border-b border-warm-100">
                   <div className="relative">
                     <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none" />
                     <input
@@ -401,7 +415,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                         setHighlightedIndex(0);
                       }}
                       placeholder="Qidirish..."
-                      className="w-full pl-8 pr-2.5 py-1 text-xs bg-white border border-warm-200 rounded-[8px] outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200 text-charcoal-900 placeholder:text-charcoal-400 transition-colors"
+                      className="w-full pl-8 pr-2.5 py-1.5 text-xs bg-warm-50/70 border border-warm-200/80 rounded-lg outline-none focus:border-brand-500 focus:bg-white focus:ring-1 focus:ring-brand-200 text-charcoal-900 placeholder:text-charcoal-400 transition-all"
                       onClick={e => e.stopPropagation()}
                     />
                   </div>
@@ -409,7 +423,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               )}
 
               {/* Options list */}
-              <div className="max-h-60 overflow-y-auto overscroll-contain p-1 space-y-0.5">
+              <div className="max-h-60 overflow-y-auto overscroll-contain space-y-0.5 scrollbar-thin">
                 {filteredOptions.length === 0 ? (
                   <div className="px-3 py-4 text-center text-xs text-charcoal-400 select-none">
                     Hech narsa topilmadi
@@ -430,22 +444,24 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                         }}
                         onMouseEnter={() => setHighlightedIndex(idx)}
                         className={cn(
-                          'w-full flex items-center justify-between text-left transition-colors cursor-pointer select-none',
+                          'w-full flex items-center justify-between text-left transition-all duration-100 cursor-pointer select-none',
                           currentSize.option,
                           isSelected
-                            ? 'bg-brand-50/90 text-brand-700 font-semibold'
+                            ? 'bg-brand-50 text-brand-700 font-semibold shadow-2xs'
                             : isHighlighted
-                              ? 'bg-warm-100/80 text-charcoal-900'
-                              : 'text-charcoal-700 hover:bg-warm-50 hover:text-charcoal-900',
+                              ? 'bg-warm-100/70 text-charcoal-900'
+                              : 'text-charcoal-700 hover:bg-warm-50/80 hover:text-charcoal-900',
                           opt.disabled && 'opacity-40 cursor-not-allowed pointer-events-none'
                         )}
                       >
-                        <span className="truncate flex-1">{opt.label}</span>
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          {opt.icon && <span className="shrink-0 text-charcoal-500">{opt.icon}</span>}
+                          <span className="truncate">{opt.label}</span>
+                        </div>
                         {isSelected && (
-                          <Check
-                            className={cn('text-brand-600 flex-shrink-0 ml-2', currentSize.check)}
-                            aria-hidden
-                          />
+                          <span className="flex items-center justify-center w-4 h-4 rounded-full bg-brand-100 text-brand-600 shrink-0 ml-2">
+                            <Check className="w-3 h-3 stroke-[2.5]" aria-hidden />
+                          </span>
                         )}
                       </div>
                     );

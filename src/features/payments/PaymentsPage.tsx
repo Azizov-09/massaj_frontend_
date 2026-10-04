@@ -292,7 +292,7 @@ export function PaymentsPage() {
         />
       </div>
 
-      <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
+      <Card className="overflow-visible border border-warm-200/90 shadow-xs">
         {/* Quick Tabs */}
         <div className="flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full">
           <button
