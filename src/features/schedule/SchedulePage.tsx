@@ -250,56 +250,56 @@ export function SchedulePage() {
 
       {/* ─── Control Bar ─── */}
       <Card className="p-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           {/* Date Controls */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button
               variant="secondary"
               size="sm"
               onClick={handleToday}
-              className="h-9 px-3 rounded-[10px] text-xs font-semibold text-charcoal-700 bg-white border border-warm-300 hover:bg-warm-50 shadow-2xs cursor-pointer"
+              className="h-9 px-3 rounded-[10px] text-xs font-semibold text-charcoal-700 bg-white border border-warm-300 hover:bg-warm-50 shadow-2xs cursor-pointer shrink-0"
             >
               Bugun
             </Button>
-            <div className="flex items-center bg-white border border-warm-300 rounded-[10px] shadow-2xs hover:border-warm-400 transition-colors h-9">
+            <div className="flex items-center bg-white border border-warm-300 rounded-[10px] shadow-2xs hover:border-warm-400 transition-colors h-9 flex-1 sm:flex-initial">
               <button
                 type="button"
                 onClick={handlePrevDay}
-                className="h-full px-2.5 flex items-center justify-center text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 rounded-l-[9px] transition-colors cursor-pointer"
+                className="h-full px-2.5 flex items-center justify-center text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 rounded-l-[9px] transition-colors cursor-pointer shrink-0"
                 title={viewMode === 'day' ? 'Oldingi kun' : 'Oldingi hafta'}
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
 
               {viewMode === 'day' ? (
-                <div className="flex items-center border-x border-warm-200">
+                <div className="flex items-center border-x border-warm-200 flex-1 sm:flex-initial justify-center">
                   <span className="px-3 text-xs font-semibold text-charcoal-800 whitespace-nowrap min-w-[130px] text-center hidden sm:inline-block">
                     {formattedDateTitle}
                   </span>
-                  <div className="w-32 border-l sm:border-l border-warm-200">
+                  <div className="w-full sm:w-32 border-warm-200">
                     <DatePicker
                       size="sm"
                       value={selectedDate}
                       onChange={e => setSelectedDate(e.target.value)}
                       clearable={false}
                       aria-label="Sanani tanlash"
-                      triggerClassName="border-0 shadow-none rounded-none py-1.5 focus:ring-0 bg-transparent text-center font-medium"
+                      triggerClassName="border-0 shadow-none rounded-none py-1.5 focus:ring-0 bg-transparent text-center font-medium w-full"
                     />
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center border-x border-warm-200">
-                  <span className="px-3 text-xs font-semibold text-charcoal-800 whitespace-nowrap min-w-[130px] text-center">
+                <div className="flex items-center border-x border-warm-200 flex-1 sm:flex-initial justify-center">
+                  <span className="px-3 text-xs font-semibold text-charcoal-800 whitespace-nowrap min-w-[130px] text-center hidden sm:inline-block">
                     {weekDates[0]?.dayNum} - {weekDates[5]?.dayNum} {selectedMonthName}
                   </span>
-                  <div className="w-32 border-l border-warm-200">
+                  <div className="w-full sm:w-32 border-warm-200">
                     <DatePicker
                       size="sm"
                       value={selectedDate}
                       onChange={e => setSelectedDate(e.target.value)}
                       clearable={false}
                       aria-label="Sanani tanlash"
-                      triggerClassName="border-0 shadow-none rounded-none py-1.5 focus:ring-0 bg-transparent text-center font-medium"
+                      triggerClassName="border-0 shadow-none rounded-none py-1.5 focus:ring-0 bg-transparent text-center font-medium w-full"
                     />
                   </div>
                 </div>
@@ -308,7 +308,7 @@ export function SchedulePage() {
               <button
                 type="button"
                 onClick={handleNextDay}
-                className="h-full px-2.5 flex items-center justify-center text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 rounded-r-[9px] transition-colors cursor-pointer"
+                className="h-full px-2.5 flex items-center justify-center text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 rounded-r-[9px] transition-colors cursor-pointer shrink-0"
                 title={viewMode === 'day' ? 'Keyingi kun' : 'Keyingi hafta'}
               >
                 <ChevronRight className="w-4 h-4" />
@@ -317,28 +317,29 @@ export function SchedulePage() {
           </div>
 
           {/* Filters & View Switcher */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
             {currentUser?.role !== 'SPECIALIST' && (
-              <div className="w-48 sm:w-56">
+              <div className="w-full sm:w-56">
                 <Select
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 w-full"
                   value={specialistFilter}
                   onChange={e => setSpecialistFilter(e.target.value)}
-                  className="h-9 text-xs rounded-[10px] shadow-2xs border-warm-300"
-                >
-                  <option value="">Barcha mutaxassislar ({specialists.length})</option>
-                  {specialists.map(s => (
-                    <option key={s.id} value={s.id}>{s.fullName}</option>
-                  ))}
-                </Select>
+                  options={[
+                    { value: '', label: `Barcha mutaxassislar (${specialists.length})` },
+                    ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                  ]}
+                  aria-label="Mutaxassis bo'yicha filter"
+                />
               </div>
             )}
 
-            <div className="flex items-center h-9 p-1 rounded-[10px] bg-warm-100/90 border border-warm-200/80 shadow-2xs gap-1">
+            <div className="grid grid-cols-2 sm:flex items-center h-9 p-1 rounded-[10px] bg-warm-100/90 border border-warm-200/80 shadow-2xs gap-1 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={() => setViewMode('day')}
                 className={cn(
-                  'h-7 px-3 text-xs font-semibold rounded-[7px] transition-all cursor-pointer',
+                  'h-7 px-3 text-xs font-semibold rounded-[7px] transition-all cursor-pointer flex items-center justify-center',
                   viewMode === 'day' ? 'bg-white shadow-xs text-charcoal-900' : 'text-charcoal-500 hover:text-charcoal-900'
                 )}
               >
@@ -348,7 +349,7 @@ export function SchedulePage() {
                 type="button"
                 onClick={() => setViewMode('week')}
                 className={cn(
-                  'h-7 px-3 text-xs font-semibold rounded-[7px] transition-all cursor-pointer',
+                  'h-7 px-3 text-xs font-semibold rounded-[7px] transition-all cursor-pointer flex items-center justify-center',
                   viewMode === 'week' ? 'bg-white shadow-xs text-charcoal-900' : 'text-charcoal-500 hover:text-charcoal-900'
                 )}
               >
