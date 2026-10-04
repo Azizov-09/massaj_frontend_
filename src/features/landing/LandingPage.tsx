@@ -212,8 +212,10 @@ export function LandingPage() {
         </AnimatePresence>
       </header>
 
-      {/* ─── Hero Section ─── */}
-      <section id="hero" className="relative pt-12 pb-20 lg:pt-20 lg:pb-28 overflow-hidden">
+      {/* ─── Main Content Landmark ─── */}
+      <main id="main-content">
+        {/* ─── Hero Section ─── */}
+        <section id="hero" className="relative pt-12 pb-20 lg:pt-20 lg:pb-28 overflow-hidden">
         {/* Decorative background glow */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-1/3 right-10 w-[400px] h-[400px] bg-gold-400/10 rounded-full blur-3xl pointer-events-none" />
@@ -743,6 +745,7 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+      </main>
 
       {/* ─── Footer ─── */}
       <footer className="bg-charcoal-900 text-warm-100 py-12 border-t border-charcoal-800">

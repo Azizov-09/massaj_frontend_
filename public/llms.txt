@@ -1,0 +1,12 @@
+# MASSAJ CRM
+
+> Bolalar massaj va reabilitatsiya markazi axborot va boshqaruv tizimi.
+
+## Asosiy Havolalar
+- [Landing Sahifa](https://massaj-frontent.vercel.app/landing): Klinika xizmatlari, mutaxassislar va qabulga yozilish
+- [Tizimga Kirish](https://massaj-frontent.vercel.app/login): Shifokorlar, ota-onalar va ma'muriyat uchun portal
+
+## Imkoniyatlar
+- Bolalar salomatligi va reabilitatsiya kursi tahlili
+- Shifokor va massaj terapevtlari qabullarini rejalashtirish
+- Shaffof hisob-kitoblar va kvitansiyalar generatsiyasi
