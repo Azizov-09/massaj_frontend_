@@ -516,9 +516,9 @@ export function ProgressPage() {
       </div>
 
       {/* Main Table & Controls Card */}
-      <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
-        {/* Top Status Tabs */}
-        <div className="px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <Card className="overflow-visible border border-warm-200/90 shadow-xs">
+        {/* Top Status Tabs — Desktop/tablet filter pills */}
+        <div className="hidden sm:flex px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 items-center justify-between gap-3">
           <div className="flex items-center gap-1.5 overflow-x-auto touch-scroll-x scrollbar-thin py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
             {[
               { key: 'ALL', label: 'Barchasi', count: tabCounts.all },
@@ -613,6 +613,24 @@ export function ProgressPage() {
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
+          </div>
+
+          {/* Event Type / Tab Select */}
+          <div className="w-full sm:w-48">
+            <Select
+              size="sm"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+              value={activeTab}
+              onChange={e => setActiveTab(e.target.value as EventTypeFilter)}
+              options={[
+                { value: 'ALL', label: `Barcha turlar (${tabCounts.all})` },
+                { value: 'SESSION', label: `Seanslar (${tabCounts.session})` },
+                { value: 'NOTE', label: `Qaydlar (${tabCounts.note})` },
+                { value: 'ASSESSMENT', label: `Baholashlar (${tabCounts.assessment})` },
+                { value: 'WITH_RECOMMENDATION', label: `Tavsiyalar (${tabCounts.recommendation})` },
+              ]}
+              aria-label="Hodisa turi bo'yicha filter"
+            />
           </div>
 
           {/* Child Select */}

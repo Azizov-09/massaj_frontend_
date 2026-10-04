@@ -434,8 +434,8 @@ export function SessionsPage() {
 
       {/* Main Table Card (exact match with Appointments Card) */}
       <Card className="overflow-visible border border-warm-200/90 shadow-xs">
-        {/* Top Status Tabs */}
-        <div className="px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Top Status Tabs — Desktop/tablet filter pills */}
+        <div className="hidden sm:flex px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 items-center justify-between gap-3">
           <div className="flex items-center gap-1.5 overflow-x-auto touch-scroll-x scrollbar-thin py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
             {[
               { key: 'ALL', label: 'Barchasi', count: counts.all },
@@ -502,6 +502,24 @@ export function SessionsPage() {
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
+          </div>
+
+          {/* Status Filter */}
+          <div className="w-full sm:w-48">
+            <Select
+              size="sm"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+              value={statusTab}
+              onChange={e => setStatusTab(e.target.value as StatusTabKey)}
+              options={[
+                { value: 'ALL', label: `Barcha seanslar (${counts.all})` },
+                { value: 'TODAY', label: `Bugun (${counts.today})` },
+                { value: 'IN_PROGRESS', label: `Jarayonda (${counts.inProgress})` },
+                { value: 'COMPLETED', label: `Yakunlangan (${counts.completed})` },
+                { value: 'CANCELLED', label: `Bekor qilingan (${counts.cancelled})` },
+              ]}
+              aria-label="Holat bo'yicha filter"
+            />
           </div>
 
           {/* Specialist Filter (for admin/parent) */}

@@ -362,9 +362,9 @@ export function BalancePage() {
         </div>
       )}
 
-      <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
-        {/* Quick Tabs */}
-        <div className="flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full">
+      <Card className="overflow-visible border border-warm-200/90 shadow-xs">
+        {/* Quick Tabs — Desktop/tablet filter pills */}
+        <div className="hidden sm:flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full bg-warm-50/30">
           <button
             onClick={(e) => {
               setStatusFilter('ALL');
@@ -452,7 +452,7 @@ export function BalancePage() {
 
         {/* Filter bar */}
         <div className="p-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-warm-100 bg-warm-50/40">
-          <div className="flex flex-1 items-center gap-2.5">
+          <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-2.5">
             <div className="relative flex-1 min-w-[200px] max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
               <input
@@ -472,12 +472,28 @@ export function BalancePage() {
               )}
             </div>
 
+            <div className="w-full sm:w-auto min-w-[200px]">
+              <Select
+                size="sm"
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value as any)}
+                triggerClassName="h-9 rounded-[10px] text-xs font-medium border-warm-300 shadow-2xs w-full"
+                options={[
+                  { value: 'ALL', label: `Barcha holatlar (${tabCounts.all})` },
+                  { value: 'DEBT', label: `Qarzdorlar (${tabCounts.debt})` },
+                  { value: 'DEPOSIT', label: `Depozitdagilar (${tabCounts.deposit})` },
+                  { value: 'ZERO', label: `Nol balans (${tabCounts.zero})` },
+                ]}
+                aria-label="Balans holati bo'yicha filter"
+              />
+            </div>
+
             {hasActiveFilters && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={resetFilters}
-                className="h-9 px-2.5 text-xs text-charcoal-500 hover:text-charcoal-800"
+                className="h-9 px-2.5 text-xs text-charcoal-500 hover:text-charcoal-800 w-full sm:w-auto justify-center"
               >
                 Filtrni tozalash
               </Button>

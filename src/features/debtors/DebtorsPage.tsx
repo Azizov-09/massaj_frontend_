@@ -11,7 +11,7 @@ import {
 import { useStore, useAuth } from '@/store';
 import { getTopDebtors } from '@/services/finance.service';
 import { formatCurrency, formatCurrencyCompact, cn } from '@/utils';
-import { Card, Avatar, EmptyState, ProgressBar, Badge } from '@/components/ui/primitives';
+import { Card, Avatar, EmptyState, ProgressBar, Badge, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { DataTable, Column, getAvatarGradient } from '@/components/tables/DataTable';
@@ -267,9 +267,9 @@ export function DebtorsPage() {
       )}
 
       <Card className="overflow-visible border border-warm-200/90 shadow-xs">
-        {/* Quick Tabs */}
+        {/* Quick Tabs — Desktop/tablet filter pills */}
         {!isParent && (
-          <div className="flex items-center gap-1.5 px-4 pt-3.5 pb-2 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full">
+          <div className="hidden sm:flex items-center gap-1.5 px-4 pt-3.5 pb-2 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full bg-warm-50/30">
             <button
               onClick={(e) => {
                 setActiveTab('ALL');
@@ -377,6 +377,24 @@ export function DebtorsPage() {
                 </button>
               )}
             </div>
+
+            {!isParent && (
+              <div className="w-full sm:w-auto min-w-[200px]">
+                <Select
+                  size="sm"
+                  value={activeTab}
+                  onChange={e => setActiveTab(e.target.value as DebtLevel)}
+                  triggerClassName="h-9 rounded-[10px] text-xs font-medium border-warm-300 shadow-2xs w-full"
+                  options={[
+                    { value: 'ALL', label: `Barcha qarzlar (${tabCounts.all})` },
+                    { value: 'HIGH', label: `Katta qarz > 1M (${tabCounts.high})` },
+                    { value: 'MEDIUM', label: `O'rtacha 300k-1M (${tabCounts.medium})` },
+                    { value: 'LOW', label: `Kichik < 300k (${tabCounts.low})` },
+                  ]}
+                  aria-label="Qarz darajasi bo'yicha filter"
+                />
+              </div>
+            )}
 
             {hasActiveFilters && (
               <Button

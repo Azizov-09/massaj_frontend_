@@ -322,8 +322,8 @@ export function TransactionsPage() {
       </div>
 
       <Card className="overflow-visible border border-warm-200/90 shadow-xs">
-        {/* Quick Direction Tabs */}
-        <div className="flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full">
+        {/* Quick Direction Tabs — Desktop/tablet filter pills */}
+        <div className="hidden sm:flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full bg-warm-50/30">
           <button
             onClick={(e) => {
               setActiveTab('ALL');
@@ -434,21 +434,40 @@ export function TransactionsPage() {
               )}
             </div>
 
+            {/* Direction / Tab selector */}
+            <div className="w-full sm:w-44">
+              <Select
+                value={activeTab}
+                onChange={e => setActiveTab(e.target.value as any)}
+                size="sm"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+                options={[
+                  { value: 'ALL', label: `Barchasi (${transactions.length})` },
+                  { value: 'IN', label: `Kirim (${inCount})` },
+                  { value: 'OUT', label: `Chiqim (${outCount})` },
+                  { value: 'EXPENSE', label: `Xarajatlar (${expenseCount})` },
+                ]}
+                aria-label="Yo'nalish bo'yicha filter"
+              />
+            </div>
+
             {/* Type selector */}
-            <div className="w-44">
+            <div className="w-full sm:w-44">
               <Select
                 value={typeFilter}
                 onChange={e => setTypeFilter(e.target.value)}
                 size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
-              >
-                <option value="">Barcha operatsiyalar</option>
-                <option value="PAYMENT">To‘lov (Payment)</option>
-                <option value="SESSION_CHARGE">Seans haqi</option>
-                <option value="REFUND">Qaytarish</option>
-                <option value="ADJUSTMENT">Tuzatish</option>
-                <option value="EXPENSE">Xarajat</option>
-              </Select>
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+                options={[
+                  { value: '', label: 'Barcha operatsiyalar' },
+                  { value: 'PAYMENT', label: 'To‘lov (Payment)' },
+                  { value: 'SESSION_CHARGE', label: 'Seans haqi' },
+                  { value: 'REFUND', label: 'Qaytarish' },
+                  { value: 'ADJUSTMENT', label: 'Tuzatish' },
+                  { value: 'EXPENSE', label: 'Xarajat' },
+                ]}
+                aria-label="Operatsiya turi bo'yicha filter"
+              />
             </div>
 
             {/* Date from & to */}

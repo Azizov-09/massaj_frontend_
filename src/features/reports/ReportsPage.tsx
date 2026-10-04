@@ -189,8 +189,20 @@ export function ReportsPage() {
         </div>
       </div>
 
-      {/* Report Type Switcher Tabs */}
-      <div className="flex flex-nowrap sm:flex-wrap overflow-x-auto touch-scroll-x scrollbar-thin gap-2 pb-1 sm:pb-0 -mx-0.5 px-0.5">
+      {/* Mobile Report Type Dropdown */}
+      <div className="sm:hidden w-full">
+        <Select
+          size="sm"
+          value={reportType}
+          onChange={e => setReportType(e.target.value as ReportType)}
+          triggerClassName="h-10 rounded-xl text-xs font-semibold border-warm-200 shadow-2xs w-full bg-white"
+          options={REPORT_TABS.map(item => ({ value: item.type, label: item.label }))}
+          aria-label="Hisobot turi"
+        />
+      </div>
+
+      {/* Report Type Switcher Tabs — Desktop/tablet pills */}
+      <div className="hidden sm:flex flex-wrap gap-2 pb-1 sm:pb-0">
         {REPORT_TABS.map(item => {
           const Icon = item.icon;
           const isActive = reportType === item.type;

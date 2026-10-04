@@ -421,11 +421,30 @@ export function AttendancePage() {
                 />
               </div>
             )}
+
+            {/* Status Filter */}
+            <div className="w-full sm:w-48">
+              <Select
+                size="sm"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+                value={statusFilterTab}
+                onChange={e => setStatusFilterTab(e.target.value as any)}
+                options={[
+                  { value: 'ALL', label: `Barcha holatlar (${stats.total})` },
+                  { value: 'PRESENT', label: `Kelgan (${stats.present})` },
+                  { value: 'LATE', label: `Kechikkan (${stats.late})` },
+                  { value: 'ABSENT', label: `Sababli (${stats.absent})` },
+                  { value: 'NO_SHOW', label: `Sababsiz (${stats.noShow})` },
+                  { value: 'UNMARKED', label: `Kutilmoqda (${stats.unmarked})` },
+                ]}
+                aria-label="Davomat holati bo'yicha filter"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Quick Status Filter Tabs */}
-        <div className="pt-2 border-t border-warm-100 flex items-center justify-between gap-2 overflow-x-auto touch-scroll-x scrollbar-thin">
+        {/* Quick Status Filter Tabs — Desktop/tablet filter pills */}
+        <div className="hidden sm:flex pt-2 border-t border-warm-100 items-center justify-between gap-2 overflow-x-auto touch-scroll-x scrollbar-thin">
           <div className="flex items-center gap-1.5 flex-nowrap">
             {[
               { key: 'ALL', label: 'Barchasi', count: stats.total },

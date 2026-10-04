@@ -489,8 +489,8 @@ export function AppointmentsPage() {
 
       {/* Main Table Card */}
       <Card className="overflow-visible border border-warm-200/90 shadow-xs">
-        {/* Top Status Tabs */}
-        <div className="px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Top Status Tabs — Desktop/tablet filter pills */}
+        <div className="hidden sm:flex px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 items-center justify-between gap-3">
           <div className="flex items-center gap-1.5 overflow-x-auto touch-scroll-x scrollbar-thin py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
             {[
               { key: 'ALL', label: 'Barchasi', count: counts.all },
@@ -562,6 +562,25 @@ export function AppointmentsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            {/* Status Filter */}
+            <div className="flex-1 min-w-[140px] sm:w-48">
+              <Select
+                size="sm"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+                value={statusTab}
+                onChange={e => setStatusTab(e.target.value as StatusTabKey)}
+                options={[
+                  { value: 'ALL', label: `Barcha qabullar (${counts.all})` },
+                  { value: 'TODAY', label: `Bugun (${counts.today})` },
+                  { value: 'PENDING', label: `Kutilmoqda (${counts.pending})` },
+                  { value: 'COMPLETED', label: `Yakunlangan (${counts.completed})` },
+                  { value: 'CANCELLED', label: `Bekor qilingan (${counts.cancelled})` },
+                  { value: 'NO_SHOW', label: `Kelmagan (${counts.noShow})` },
+                ]}
+                aria-label="Holat bo'yicha filter"
+              />
+            </div>
+
             {/* Specialist Filter (for admin/parent) */}
             {!isSpecialist && (
               <div className="flex-1 min-w-[140px] sm:w-52">

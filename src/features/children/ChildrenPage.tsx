@@ -272,8 +272,8 @@ export function ChildrenPage() {
 
       {/* Main Table Card */}
       <Card className="overflow-visible border border-warm-200/90 shadow-xs">
-        {/* Status Tabs Bar */}
-        <div className="px-3.5 sm:px-4 py-2.5 sm:py-3 bg-warm-50/70 border-b border-warm-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+        {/* Status Tabs Bar — Desktop/tablet filter pills */}
+        <div className="hidden sm:flex px-3.5 sm:px-4 py-2.5 sm:py-3 bg-warm-50/70 border-b border-warm-200/80 items-center justify-between gap-2.5 sm:gap-3">
           <div className="flex items-center gap-1.5 overflow-x-auto touch-scroll-x scrollbar-thin py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
             {[
               { key: '', label: 'Barchasi', count: statusCounts.all },
@@ -339,6 +339,23 @@ export function ChildrenPage() {
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
+          </div>
+
+          {/* Status filter */}
+          <div className="w-full sm:w-48">
+            <Select
+              size="sm"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              options={[
+                { value: '', label: `Barcha holatlar (${statusCounts.all})` },
+                { value: 'ACTIVE', label: `Faol bolalar (${statusCounts.active})` },
+                { value: 'INACTIVE', label: `Nofaol bolalar (${statusCounts.inactive})` },
+                { value: 'ARCHIVED', label: `Arxivlangan (${statusCounts.archived})` },
+              ]}
+              aria-label="Holat bo'yicha filter"
+            />
           </div>
 
           {/* Specialist filter */}

@@ -28,7 +28,7 @@ import {
 import { KpiCard } from '@/components/ui/KpiCard';
 import {
   Card, CardHeader, CardBody, Avatar, Badge,
-  EmptyState, ProgressBar
+  EmptyState, ProgressBar, Select
 } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -238,8 +238,21 @@ export function SuperAdminDashboard() {
       </div>
 
       {/* ─── Date Filter Presets Strip ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2 bg-warm-50/80 rounded-xl border border-warm-200/90 shadow-2xs">
-        <div className="flex items-center gap-1.5 overflow-x-auto touch-scroll-x scrollbar-thin py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2 sm:p-2.5 bg-warm-50/80 rounded-xl border border-warm-200/90 shadow-2xs">
+        {/* Mobile Dropdown */}
+        <div className="sm:hidden w-full">
+          <Select
+            size="sm"
+            value={dateFilter}
+            onChange={e => setDateFilter(e.target.value as DateFilterPreset)}
+            triggerClassName="h-9 rounded-[10px] text-xs font-medium border-warm-300 shadow-2xs w-full bg-white"
+            options={DATE_PRESETS.map(p => ({ value: p.value, label: `Davr: ${p.label}` }))}
+            aria-label="Vaqt oralig'i bo'yicha filter"
+          />
+        </div>
+
+        {/* Desktop / Tablet Pills */}
+        <div className="hidden sm:flex items-center gap-1.5 overflow-x-auto touch-scroll-x scrollbar-thin py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
           {DATE_PRESETS.map(preset => {
             const isActive = dateFilter === preset.value;
             return (

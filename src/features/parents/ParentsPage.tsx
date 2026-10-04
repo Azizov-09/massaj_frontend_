@@ -251,8 +251,8 @@ export function ParentsPage() {
       />
 
       <Card className="overflow-visible border border-warm-200/90 shadow-xs">
-        {/* Quick Tabs */}
-        <div className="flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full">
+        {/* Quick Tabs — Desktop/tablet filter pills */}
+        <div className="hidden sm:flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full bg-warm-50/30">
           <button
             onClick={(e) => {
               setActiveTab('ALL');
@@ -379,6 +379,23 @@ export function ParentsPage() {
                   <X className="w-3.5 h-3.5" />
                 </button>
               )}
+            </div>
+
+            <div className="w-full sm:w-auto min-w-[200px]">
+              <Select
+                size="sm"
+                value={activeTab}
+                onChange={e => setActiveTab(e.target.value as BalanceFilter)}
+                triggerClassName="h-9 rounded-[10px] text-xs font-medium border-warm-300 shadow-2xs w-full"
+                options={[
+                  { value: 'ALL', label: `Barcha holatlar (${tabCounts.all})` },
+                  { value: 'ACTIVE', label: `Faol ota-onalar (${tabCounts.active})` },
+                  { value: 'DEBTORS', label: `Qarzdorlar (${tabCounts.debtors})` },
+                  { value: 'DEPOSIT', label: `Depozitdagilar (${tabCounts.deposit})` },
+                  { value: 'INACTIVE', label: `Nofaol (${tabCounts.inactive})` },
+                ]}
+                aria-label="Holat bo'yicha filter"
+              />
             </div>
 
             {hasActiveFilters && (
