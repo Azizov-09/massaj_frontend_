@@ -4,13 +4,13 @@
 import { useState, useMemo } from 'react';
 import {
   Plus, Search, Calendar, CheckCircle2, XCircle, Play, UserX, X,
-  Clock, Eye, Users, CheckCheck, Phone, ArrowRight
+  Clock, Eye, Users, CheckCheck, Phone, ArrowRight, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import {
   formatDate, getAppointmentStatusColor, getAppointmentStatusLabel, cn
 } from '@/utils';
-import { differenceInYears, parseISO } from 'date-fns';
+import { differenceInYears, parseISO, format, addDays, subDays } from 'date-fns';
 import { DataTable, Column, getAvatarGradient } from '@/components/tables/DataTable';
 import { Card, Avatar, Badge, Select, DatePicker } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
@@ -157,12 +157,32 @@ export function AppointmentsPage() {
     setServiceFilter('');
   };
 
+  const handlePrevDay = () => {
+    const current = dateFilter ? parseISO(dateFilter) : new Date();
+    const prev = format(subDays(current, 1), 'yyyy-MM-dd');
+    setDateFilter(prev);
+    if (statusTab === 'TODAY' && prev !== todayStr) setStatusTab('ALL');
+  };
+
+  const handleNextDay = () => {
+    const current = dateFilter ? parseISO(dateFilter) : new Date();
+    const next = format(addDays(current, 1), 'yyyy-MM-dd');
+    setDateFilter(next);
+    if (statusTab === 'TODAY' && next !== todayStr) setStatusTab('ALL');
+  };
+
+  const handleToday = () => {
+    setDateFilter(todayStr);
+    setStatusTab('TODAY');
+  };
+
   const handleKpiClick = (tab: StatusTabKey) => {
     if (statusTab === tab) {
       setStatusTab('ALL');
     } else {
       setStatusTab(tab);
       if (tab === 'TODAY') setDateFilter('');
+      else if (dateFilter === todayStr) setDateFilter('');
     }
   };
 
@@ -538,10 +558,71 @@ export function AppointmentsPage() {
         </div>
 
         {/* Search & Filters */}
-        {/* Search & Filters */}
-        <div className="p-3 sm:p-3.5 bg-white border-b border-warm-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-          {/* Search Input */}
-          <div className="relative flex-1 w-full sm:max-w-sm">
+        <div className="p-3 sm:p-3.5 bg-white border-b border-warm-100 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2.5">
+          {/* 1. Date Controls (Eng tepada xuddi davomatlardagi kabi) */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleToday}
+              className="h-9 px-3 rounded-[10px] text-xs font-semibold text-charcoal-700 bg-white border border-warm-300 hover:bg-warm-50 shadow-2xs shrink-0 cursor-pointer"
+            >
+              Bugun
+            </Button>
+            <div className="flex items-center bg-white border border-warm-300 rounded-[10px] shadow-2xs hover:border-warm-400 transition-colors h-9 flex-1 sm:flex-initial">
+              <button
+                type="button"
+                onClick={handlePrevDay}
+                className="h-full px-2.5 flex items-center justify-center text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 rounded-l-[9px] transition-colors cursor-pointer shrink-0"
+                title="Oldingi kun"
+                aria-label="Oldingi kun"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="w-full sm:w-36 border-x border-warm-200">
+                <DatePicker
+                  size="sm"
+                  value={dateFilter}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setDateFilter(val);
+                    if (val === todayStr) setStatusTab('TODAY');
+                    else if (statusTab === 'TODAY' && val !== todayStr) setStatusTab('ALL');
+                  }}
+                  clearable={true}
+                  placeholder="Sana bo'yicha..."
+                  aria-label="Sana bo'yicha filter"
+                  triggerClassName="border-0 shadow-none rounded-none py-1.5 focus:ring-0 bg-transparent text-center font-semibold text-xs text-charcoal-800 w-full"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleNextDay}
+                className="h-full px-2.5 flex items-center justify-center text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 rounded-r-[9px] transition-colors cursor-pointer shrink-0"
+                title="Keyingi kun"
+                aria-label="Keyingi kun"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+            {dateFilter && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setDateFilter('');
+                  if (statusTab === 'TODAY') setStatusTab('ALL');
+                }}
+                className="h-9 px-2 rounded-[10px] text-xs font-semibold text-charcoal-500 hover:text-rose-600 hover:bg-rose-50 transition-colors shrink-0 cursor-pointer"
+                title="Barcha sanalarni ko'rsatish"
+              >
+                Barchasi
+              </Button>
+            )}
+          </div>
+
+          {/* 2. Search Input */}
+          <div className="relative flex-1 w-full sm:max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
             <input
               value={search}
@@ -613,33 +694,6 @@ export function AppointmentsPage() {
               />
             </div>
 
-            {/* Date Picker */}
-            <div className="flex items-center gap-1.5 w-full sm:w-auto">
-              <div className="w-full sm:w-40">
-                <DatePicker
-                  size="sm"
-                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                  value={dateFilter}
-                  onChange={e => setDateFilter(e.target.value)}
-                  placeholder="Sana bo'yicha..."
-                  aria-label="Sana bo'yicha filter"
-                />
-              </div>
-              {dateFilter !== todayStr && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDateFilter(todayStr);
-                    setStatusTab('TODAY');
-                  }}
-                  className="hidden sm:inline-flex h-9 px-2.5 rounded-[10px] text-xs font-semibold text-charcoal-700 bg-warm-100 hover:bg-warm-200 border border-warm-200 transition-colors shadow-2xs cursor-pointer shrink-0"
-                  title="Bugungi sanani tanlash"
-                >
-                  Bugun
-                </button>
-              )}
-            </div>
-
             {/* Reset Filters Button */}
             {hasActiveFilters && (
               <button
@@ -649,7 +703,7 @@ export function AppointmentsPage() {
                 title="Barcha filtrlarni bekor qilish"
               >
                 <X className="w-3.5 h-3.5" />
-                <span>Filtrlarni tozalash</span>
+                <span>Tozalash</span>
               </button>
             )}
           </div>
