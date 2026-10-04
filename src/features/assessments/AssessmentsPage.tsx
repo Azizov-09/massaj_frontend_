@@ -293,7 +293,7 @@ export function AssessmentsPage() {
       ),
     },
     {
-      key: 'scores' as any,
+      key: 'scores',
       header: '5 ballik mezonlar',
       className: 'py-3.5',
       cell: (row) => (
@@ -314,7 +314,7 @@ export function AssessmentsPage() {
       ),
     },
     {
-      key: 'avgScore' as any,
+      key: 'avgScore',
       header: 'O‘rtacha ball',
       sortable: true,
       className: 'py-3.5',
@@ -344,7 +344,7 @@ export function AssessmentsPage() {
       ),
     },
     {
-      key: 'actions' as any,
+      key: 'actions',
       header: 'Amallar',
       headerClassName: 'text-right pr-4',
       className: 'py-3.5 text-right',

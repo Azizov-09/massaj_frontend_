@@ -36,18 +36,21 @@ function CreateServiceForm({ onSuccess, onCancel, createService }: CreateService
     resolver: zodResolver(schema), defaultValues: { durationMinutes: '45' }
   });
   const onSubmit = async (data: FormValues) => {
-    await new Promise(r => setTimeout(r, 300));
-    createService({
-      name: data.name,
-      description: data.description || '',
-      price: Number(data.price),
-      durationMinutes: Number(data.durationMinutes),
-      status: 'ACTIVE',
-      category: data.category,
-      ageMin: Number(data.ageMin) || undefined,
-      ageMax: Number(data.ageMax) || undefined,
-    });
-    onSuccess();
+    try {
+      createService({
+        name: data.name,
+        description: data.description || '',
+        price: Number(data.price),
+        durationMinutes: Number(data.durationMinutes),
+        status: 'ACTIVE',
+        category: data.category,
+        ageMin: Number(data.ageMin) || undefined,
+        ageMax: Number(data.ageMax) || undefined,
+      });
+      onSuccess();
+    } catch (err: unknown) {
+      console.error('Service creation error:', err);
+    }
   };
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">

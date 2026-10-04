@@ -395,7 +395,7 @@ export function ProgressPage() {
       ),
     },
     {
-      key: 'actions' as any,
+      key: 'actions',
       header: 'Amallar',
       headerClassName: 'text-right pr-4',
       className: 'py-3.5 text-right',

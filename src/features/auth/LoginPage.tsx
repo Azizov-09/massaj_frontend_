@@ -38,11 +38,11 @@ interface DemoAccount {
 
 const DEMO_ACCOUNTS: DemoAccount[] = [
   {
-    email: '+998901000001',
-    password: 'Admin123!',
+    email: 'superadmin@demo.com',
+    password: 'demo123',
     role: 'Bosh Admin (Super Admin)',
     shortRole: 'Bosh Admin',
-    tag: 'DigitalOcean API',
+    tag: 'Boshqaruv paneli',
     icon: ShieldCheck,
     theme: 'brand',
   },

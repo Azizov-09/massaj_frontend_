@@ -211,7 +211,7 @@ export function PaymentsPage() {
       ),
     },
     {
-      key: 'actions' as any,
+      key: 'actions',
       header: 'Kvitansiya',
       cell: (row) => (
         <div className="flex items-center justify-end">
@@ -603,17 +603,20 @@ function CreatePaymentForm({
   const parentChildren = children.filter(c => c.parentId === selectedParentId);
 
   const onSubmit = async (data: PaymentForm) => {
-    await new Promise(r => setTimeout(r, 300));
-    recordPayment({
-      parentId: data.parentId,
-      childId: data.childId || undefined,
-      amount: Number(data.amount),
-      method: data.method,
-      date: new Date(`${data.date}T12:00:00+05:00`).toISOString(),
-      notes: data.notes,
-      createdBy,
-    });
-    onSuccess();
+    try {
+      recordPayment({
+        parentId: data.parentId,
+        childId: data.childId || undefined,
+        amount: Number(data.amount),
+        method: data.method,
+        date: new Date(`${data.date}T12:00:00+05:00`).toISOString(),
+        notes: data.notes,
+        createdBy,
+      });
+      onSuccess();
+    } catch (err: unknown) {
+      console.error('Payment record error:', err);
+    }
   };
 
   return (

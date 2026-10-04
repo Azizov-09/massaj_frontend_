@@ -47,14 +47,17 @@ export function CreateChildForm({ onSuccess, onCancel, defaultParentId }: Props)
   });
 
   const onSubmit = async (data: FormValues) => {
-    await new Promise(r => setTimeout(r, 300)); // Simulate async
-    createChild({
-      ...data,
-      parentId: effectiveParentId || data.parentId,
-      status: 'ACTIVE',
-      gender: data.gender as 'MALE' | 'FEMALE',
-    });
-    onSuccess();
+    try {
+      createChild({
+        ...data,
+        parentId: effectiveParentId || data.parentId,
+        status: 'ACTIVE',
+        gender: data.gender as 'MALE' | 'FEMALE',
+      });
+      onSuccess();
+    } catch (err: unknown) {
+      console.error('Child creation error:', err);
+    }
   };
 
   return (

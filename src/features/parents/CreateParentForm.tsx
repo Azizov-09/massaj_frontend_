@@ -47,18 +47,21 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
   };
 
   const onSubmit = async (data: FormValues) => {
-    await new Promise(r => setTimeout(r, 300));
-    createParent({
-      fullName: data.fullName,
-      phone: data.phone,
-      email: data.email || `${data.phone.replace(/\D/g, '')}@parent.uz`,
-      address: data.address,
-      notes: data.notes,
-      status: 'ACTIVE',
-      role: 'PARENT',
-      childrenIds: [],
-    }, data.password);
-    onSuccess();
+    try {
+      createParent({
+        fullName: data.fullName,
+        phone: data.phone,
+        email: data.email || `${data.phone.replace(/\D/g, '')}@parent.uz`,
+        address: data.address,
+        notes: data.notes,
+        status: 'ACTIVE',
+        role: 'PARENT',
+        childrenIds: [],
+      }, data.password);
+      onSuccess();
+    } catch (err: unknown) {
+      console.error('Parent creation error:', err);
+    }
   };
 
   return (

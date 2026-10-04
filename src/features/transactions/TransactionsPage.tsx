@@ -214,7 +214,7 @@ export function TransactionsPage() {
       ),
     },
     {
-      key: 'parent' as any,
+      key: 'parent',
       header: 'Mijoz (Ota-ona / Bola)',
       cell: (t: Transaction) => {
         const parent = parents.find(p => p.id === t.parentId);
@@ -247,7 +247,7 @@ export function TransactionsPage() {
       ),
     },
     {
-      key: 'actions' as any,
+      key: 'actions',
       header: 'Amallar',
       cell: (t: Transaction) => (
         <div className="flex items-center justify-end">

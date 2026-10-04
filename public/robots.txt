@@ -1,0 +1,9 @@
+# Robots.txt for MASSAJ CRM
+User-agent: *
+Disallow: /dashboard/
+Disallow: /api/
+Allow: /
+Allow: /landing
+Allow: /login
+
+Sitemap: https://massaj-frontent.vercel.app/sitemap.xml

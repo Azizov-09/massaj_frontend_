@@ -160,7 +160,7 @@ export function EmployeesPage() {
       ),
     },
     {
-      key: 'actions' as any,
+      key: 'actions',
       header: 'Amallar',
       cell: (e) => (
         <div className="flex items-center justify-end">

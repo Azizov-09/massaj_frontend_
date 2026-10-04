@@ -202,7 +202,7 @@ export function AdminsPage() {
       ),
     },
     {
-      key: 'actions' as any,
+      key: 'actions',
       header: 'Amallar',
       cell: (a) => (
         <div className="flex items-center justify-end">

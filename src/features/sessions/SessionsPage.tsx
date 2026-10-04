@@ -289,7 +289,7 @@ export function SessionsPage() {
       ),
     },
     {
-      key: 'actions' as any,
+      key: 'actions',
       header: 'Amallar',
       headerClassName: 'text-right pr-4',
       width: isParent ? '110px' : '180px',
@@ -831,9 +831,12 @@ function CompleteSessionForm({
   });
 
   const onSubmit = async (data: CompleteForm) => {
-    await new Promise(r => setTimeout(r, 300));
-    onComplete(sessionId, data.note, data.observation, data.recommendation);
-    onSuccess();
+    try {
+      onComplete(sessionId, data.note, data.observation, data.recommendation);
+      onSuccess();
+    } catch (err: unknown) {
+      console.error('Session complete error:', err);
+    }
   };
 
   return (

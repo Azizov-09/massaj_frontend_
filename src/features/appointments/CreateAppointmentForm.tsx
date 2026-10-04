@@ -89,8 +89,6 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
   const parent = parents.find(p => p.id === parentId);
 
   const onSubmit = async (data: FormValues) => {
-    await new Promise(r => setTimeout(r, 300));
-
     // Working hours validation
     if (data.startTime < workStart || data.startTime > workEnd) {
       addToast({

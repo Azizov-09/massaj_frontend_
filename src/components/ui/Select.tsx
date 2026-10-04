@@ -335,6 +335,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           aria-expanded={isOpen}
           aria-haspopup="listbox"
           aria-controls={`${selectId}-listbox`}
+          aria-label={props['aria-label'] || label || placeholder || 'Tanlang'}
           aria-invalid={!!error}
           disabled={disabled}
           onClick={handleToggle}

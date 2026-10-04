@@ -169,13 +169,17 @@ export function AppointmentsPage() {
   const handleAction = async () => {
     if (!actionTarget) return;
     setActionLoading(true);
-    await new Promise(r => setTimeout(r, 200));
-    if (actionTarget.action === 'confirm') confirmAppointment(actionTarget.id);
-    if (actionTarget.action === 'cancel') cancelAppointment(actionTarget.id);
-    if (actionTarget.action === 'noshow') markNoShow(actionTarget.id);
-    if (actionTarget.action === 'start') startSession(actionTarget.id);
-    setActionLoading(false);
-    setActionTarget(null);
+    try {
+      if (actionTarget.action === 'confirm') confirmAppointment(actionTarget.id);
+      if (actionTarget.action === 'cancel') cancelAppointment(actionTarget.id);
+      if (actionTarget.action === 'noshow') markNoShow(actionTarget.id);
+      if (actionTarget.action === 'start') startSession(actionTarget.id);
+    } catch (err: unknown) {
+      console.error('Appointment action error:', err);
+    } finally {
+      setActionLoading(false);
+      setActionTarget(null);
+    }
   };
 
   const columns: Column<Appointment>[] = [

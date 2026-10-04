@@ -215,7 +215,7 @@ export function ParentsPage() {
       ),
     },
     {
-      key: 'actions' as any,
+      key: 'actions',
       header: 'Amallar',
       cell: (row) => (
         <div className="flex items-center justify-end gap-1.5">

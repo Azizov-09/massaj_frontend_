@@ -152,7 +152,7 @@ export function SpecialistsPage() {
       ),
     },
     {
-      key: 'workingHours' as any,
+      key: 'workingHours',
       header: 'Ish jadvali',
       cell: (row) => (
         <div className="space-y-1">
@@ -183,7 +183,7 @@ export function SpecialistsPage() {
       ),
     },
     {
-      key: 'sessionsCount' as any,
+      key: 'sessionsCount',
       header: 'Seanslar',
       sortable: true,
       cell: (row) => {
@@ -215,7 +215,7 @@ export function SpecialistsPage() {
       ),
     },
     {
-      key: 'actions' as any,
+      key: 'actions',
       header: 'Amallar',
       cell: (row) => (
         <div className="flex items-center justify-end">
@@ -584,20 +584,23 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
   };
 
   const onSubmit = async (data: FormValues) => {
-    await new Promise(r => setTimeout(r, 300));
-    createSpecialist({
-      fullName: data.fullName,
-      phone: data.phone,
-      email: data.email || '',
-      specialization: data.specialization,
-      experience: Number(data.experienceYears) || 0,
-      status: 'ACTIVE',
-      role: 'SPECIALIST',
-      workingDays: [1, 2, 3, 4, 5],
-      workingHours: { start: '09:00', end: '18:00' },
-      bio: data.bio || '',
-    }, data.password);
-    onSuccess();
+    try {
+      createSpecialist({
+        fullName: data.fullName,
+        phone: data.phone,
+        email: data.email || '',
+        specialization: data.specialization,
+        experience: Number(data.experienceYears) || 0,
+        status: 'ACTIVE',
+        role: 'SPECIALIST',
+        workingDays: [1, 2, 3, 4, 5],
+        workingHours: { start: '09:00', end: '18:00' },
+        bio: data.bio || '',
+      }, data.password);
+      onSuccess();
+    } catch (err: unknown) {
+      console.error('Specialist creation error:', err);
+    }
   };
 
   return (

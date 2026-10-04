@@ -87,7 +87,7 @@ export function DebtorsPage() {
 
   const columns: Column<typeof debtors[0]>[] = [
     {
-      key: 'rank' as any,
+      key: 'rank',
       header: '№',
       width: '48px',
       cell: (_, index) => (
@@ -115,7 +115,7 @@ export function DebtorsPage() {
       ),
     },
     {
-      key: 'debtRatio' as any,
+      key: 'debtRatio',
       header: 'Qarz salmog‘i',
       cell: (d) => {
         const safeMaxDebt = maxDebt > 0 ? maxDebt : 1;
@@ -164,7 +164,7 @@ export function DebtorsPage() {
       ),
     },
     {
-      key: 'actions' as any,
+      key: 'actions',
       header: 'Amallar',
       cell: (d) => (
         <div className="flex items-center justify-end gap-1.5">
