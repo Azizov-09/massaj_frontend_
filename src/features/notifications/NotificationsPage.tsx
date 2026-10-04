@@ -540,12 +540,24 @@ export function NotificationsPage() {
                       className={cn(
                         'group relative flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-[14px] border transition-all duration-200',
                         !notif.isRead
-                          ? 'bg-gradient-to-r from-brand-50/40 via-white to-white border-brand-200/90 shadow-2xs border-l-[4px] border-l-brand-500'
-                          : 'bg-white hover:bg-warm-50/50 border-warm-200/80 shadow-2xs border-l-[4px] border-l-transparent'
+                          ? 'bg-[#fffcf9] hover:bg-[#fff9f3] border-brand-200/90 shadow-2xs'
+                          : 'bg-white hover:bg-warm-50/50 border-warm-200/80 shadow-2xs'
                       )}
                     >
-                      {/* Left Block: Icon & Text Info */}
-                      <div className="flex items-start gap-3 sm:gap-3.5 flex-1 min-w-0">
+                      {/* Left Block: Status Indicator, Icon & Text Info */}
+                      <div className="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0">
+                        {/* Status Indicator Dot on the far left */}
+                        <div className="pt-2 sm:pt-2.5 shrink-0 flex items-center justify-center">
+                          {!notif.isRead ? (
+                            <span className="relative flex h-2.5 w-2.5" title="O'qilmagan xabar">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75" />
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-500 ring-2 ring-brand-100" />
+                            </span>
+                          ) : (
+                            <span className="w-2.5 h-2.5 rounded-full bg-transparent block" />
+                          )}
+                        </div>
+
                         {/* Type Icon Badge */}
                         <div
                           className={cn(
@@ -559,9 +571,9 @@ export function NotificationsPage() {
 
                         {/* Text Content */}
                         <div className="flex-1 min-w-0">
-                          {/* Row 1: Title, Category Badge & Unread Dot */}
+                          {/* Row 1: Title, Category Badge & Status Badge */}
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className={cn('text-sm font-bold text-charcoal-900', !notif.isRead && 'text-charcoal-950')}>
+                            <span className={cn('text-sm font-bold text-charcoal-900', !notif.isRead && 'text-charcoal-950 font-extrabold')}>
                               {notif.title}
                             </span>
 
@@ -570,9 +582,8 @@ export function NotificationsPage() {
                             </Badge>
 
                             {!notif.isRead && (
-                              <span className="relative flex h-2 w-2 ml-0.5">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75" />
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500" />
+                              <span className="text-[10px] font-bold text-brand-700 bg-brand-100/70 border border-brand-200/60 px-1.5 py-0.5 rounded-full">
+                                Yangi
                               </span>
                             )}
                           </div>

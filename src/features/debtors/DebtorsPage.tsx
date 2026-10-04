@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   TrendingDown, Phone, Users, DollarSign, AlertCircle,
   Search, X, CreditCard, ArrowRight, Wallet,
-  Send, PlusCircle, Download, Eye, Clock,
+  Send, Plus, PlusCircle, Download, Eye, Clock,
   ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { differenceInCalendarDays, parseISO, format } from 'date-fns';
@@ -647,15 +647,15 @@ export function DebtorsPage() {
                         Telegram
                       </button>
 
-                      {/* + To'lov Action (Admin only) */}
+                      {/* To'lov Action (Admin only) */}
                       {!isParent && (
                         <button
                           type="button"
                           onClick={() => setPaymentDebtor(d)}
-                          className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg bg-brand-50 text-brand-700 border border-brand-200 text-xs font-semibold hover:bg-brand-100 active:bg-brand-200 transition-colors shadow-2xs cursor-pointer"
+                          className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 active:bg-brand-800 transition-colors shadow-2xs cursor-pointer"
                         >
-                          <PlusCircle className="w-3.5 h-3.5 text-brand-600" />
-                          + To'lov
+                          <Plus className="w-3.5 h-3.5 text-white" />
+                          To'lov
                         </button>
                       )}
 
@@ -808,29 +808,29 @@ export function DebtorsPage() {
                               <Send className="w-3.5 h-3.5 text-sky-600" />
                             </button>
 
-                            {/* + To'lov (Admin only) */}
+                            {/* To'lov (Admin only) */}
                             {!isParent && (
                               <Button
                                 size="xs"
-                                variant="secondary"
+                                variant="primary"
                                 onClick={() => setPaymentDebtor(d)}
-                                className="h-7 text-xs font-semibold bg-brand-50 text-brand-700 border-brand-200 hover:bg-brand-100"
+                                className="h-7 px-2.5 text-xs font-semibold shadow-2xs whitespace-nowrap"
                               >
-                                <PlusCircle className="w-3 h-3 mr-1 text-brand-600" />
-                                + To'lov
+                                <Plus className="w-3.5 h-3.5 mr-1" />
+                                To'lov
                               </Button>
                             )}
 
                             {/* Tafsilotlar */}
-                            <Button
-                              size="xs"
-                              variant="ghost"
+                            <button
+                              type="button"
+                              title="Tafsilotlar"
+                              aria-label="Tafsilotlar"
                               onClick={() => setSelectedDebtor(d)}
-                              className="h-7 text-xs text-charcoal-600 hover:text-brand-700 hover:bg-warm-100"
+                              className="p-1.5 rounded-lg text-charcoal-600 hover:text-brand-700 hover:bg-warm-100 border border-warm-200/80 transition-colors shadow-2xs cursor-pointer"
                             >
-                              Tafsilotlar
-                              <ArrowRight className="w-3 h-3 ml-1 text-charcoal-400" />
-                            </Button>
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -1108,6 +1108,7 @@ export function DebtorsPage() {
         onClose={() => setSelectedDebtor(null)}
         title="Qarzdorlik tafsilotlari"
         size="md"
+        className="sm:max-w-xl"
       >
         {selectedDebtor && (
           <div className="space-y-5">
@@ -1173,42 +1174,44 @@ export function DebtorsPage() {
             </div>
 
             {/* Footer Navigation */}
-            <div className="flex flex-col sm:flex-row items-center justify-end gap-2.5 pt-3 border-t border-warm-200">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-warm-200">
               <Button
                 variant="ghost"
                 onClick={() => setSelectedDebtor(null)}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto text-xs text-charcoal-600 hover:text-charcoal-900"
               >
                 Yopish
               </Button>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  const targetUrl = isParent
-                    ? `/dashboard/parent/children?search=${encodeURIComponent(selectedDebtor.childName)}`
-                    : `/dashboard/super-admin/children?search=${encodeURIComponent(selectedDebtor.childName)}`;
-                  setSelectedDebtor(null);
-                  navigate(targetUrl);
-                }}
-                className="w-full sm:w-auto"
-              >
-                Bola profiliga o'tish
-                <ArrowRight className="w-4 h-4 ml-1.5" />
-              </Button>
-              {!isParent && (
+              <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
                 <Button
-                  variant="primary"
+                  variant="secondary"
                   onClick={() => {
-                    const debtorToPay = selectedDebtor;
+                    const targetUrl = isParent
+                      ? `/dashboard/parent/children?search=${encodeURIComponent(selectedDebtor.childName)}`
+                      : `/dashboard/super-admin/children?search=${encodeURIComponent(selectedDebtor.childName)}`;
                     setSelectedDebtor(null);
-                    setPaymentDebtor(debtorToPay);
+                    navigate(targetUrl);
                   }}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto text-xs whitespace-nowrap"
                 >
-                  <PlusCircle className="w-4 h-4 mr-1.5" />
-                  To'lov qabul qilish
+                  Bola profiliga o'tish
+                  <ArrowRight className="w-3.5 h-3.5 ml-1.5 text-charcoal-500" />
                 </Button>
-              )}
+                {!isParent && (
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      const debtorToPay = selectedDebtor;
+                      setSelectedDebtor(null);
+                      setPaymentDebtor(debtorToPay);
+                    }}
+                    className="w-full sm:w-auto text-xs whitespace-nowrap shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1.5" />
+                    To'lov qabul qilish
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         )}

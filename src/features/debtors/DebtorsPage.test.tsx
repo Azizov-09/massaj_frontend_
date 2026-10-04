@@ -156,8 +156,8 @@ describe('DebtorsPage Component', () => {
       </MemoryRouter>
     );
 
-    // Find and click "+ To'lov"
-    const paymentButtons = screen.getAllByRole('button', { name: /\+ To'lov/i });
+    // Find and click "To'lov"
+    const paymentButtons = screen.getAllByRole('button', { name: /To'lov/i });
     expect(paymentButtons.length).toBeGreaterThan(0);
     fireEvent.click(paymentButtons[0]);
 

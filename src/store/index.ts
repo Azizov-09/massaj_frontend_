@@ -1030,10 +1030,10 @@ export const useStore = create<Store>()(
         const isAdmin = role === 'SUPER_ADMIN' || role === 'ADMIN';
         set(s => ({
           notifications: s.notifications.map(n => {
-            if (isAdmin && (n.userId === 'admin-1' || n.userId === 'admin-2' || n.userId === userId || !n.userId)) {
+            if (isAdmin || !userId) {
               return { ...n, isRead: true };
             }
-            if (n.userId === userId) {
+            if (n.userId === userId || !n.userId) {
               return { ...n, isRead: true };
             }
             return n;

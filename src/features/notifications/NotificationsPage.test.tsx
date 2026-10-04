@@ -133,4 +133,41 @@ describe('NotificationsPage Component', () => {
     const allRead = useStore.getState().notifications.every(n => n.isRead);
     expect(allRead).toBe(true);
   });
+
+  it('marks notifications with diverse userIds (spec, parent) as read when admin clicks mark all', () => {
+    useStore.setState({
+      notifications: [
+        {
+          id: 'n-spec',
+          userId: 'spec-1',
+          type: 'appointment',
+          title: 'Specialist Notif',
+          message: 'Spec message',
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: 'n-parent',
+          userId: 'par-1',
+          type: 'payment',
+          title: 'Parent Notif',
+          message: 'Parent message',
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter>
+        <NotificationsPage />
+      </MemoryRouter>
+    );
+
+    const markAllBtn = screen.getByRole('button', { name: /Barchasini o‘qilgan deb belgilash/i });
+    fireEvent.click(markAllBtn);
+
+    const state = useStore.getState();
+    expect(state.notifications.every(n => n.isRead)).toBe(true);
+  });
 });
