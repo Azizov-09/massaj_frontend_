@@ -13,7 +13,7 @@ import { formatDate, getEntityStatusColor, getEntityStatusLabel, cn } from '@/ut
 import { Card, Badge, Avatar, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
-import { DataTable, Column } from '@/components/tables/DataTable';
+import { DataTable, Column, getAvatarGradient } from '@/components/tables/DataTable';
 import { Modal } from '@/components/ui/Modal';
 import { Input, Textarea } from '@/components/ui/primitives';
 import type { Employee } from '@/types';
@@ -184,8 +184,9 @@ export function EmployeesPage() {
   return (
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-6">
       <PageHeader
-        title="Xodimlar tarkibi"
-        description="Markaz ma’muriyati, hamshiralar, reabilitolog yordamchilari va texnik personal hisobi"
+        icon={<Users className="w-5 h-5 text-white" />}
+        title="Xodimlar"
+        description={`Jami ${employees.length} ta xodim, ${activeCount} ta faol shtat`}
         actions={
           (currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN') && (
             <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreateModal(true)}>
@@ -195,8 +196,8 @@ export function EmployeesPage() {
         }
       />
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+      {/* KPI Cards — Visible on tablet/desktop, cleanly hidden on mobile to give immediate list access matching educorecrm */}
+      <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <KpiCard
           label="Jami xodimlar"
           value={employees.length}
@@ -231,9 +232,9 @@ export function EmployeesPage() {
         />
       </div>
 
-      <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
-        {/* Quick Tabs */}
-        <div className="flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full">
+      <Card className="overflow-hidden border border-warm-200/90 rounded-2xl shadow-xs">
+        {/* Quick Tabs — Desktop/tablet filter pills */}
+        <div className="hidden sm:flex items-center gap-1.5 px-4 py-3 border-b border-warm-200/70 overflow-x-auto touch-scroll-x scrollbar-thin w-full bg-warm-50/30">
           <button
             onClick={(e) => {
               setActiveTab('ALL');
@@ -298,62 +299,51 @@ export function EmployeesPage() {
           </button>
         </div>
 
-        {/* Filter bar */}
-        <div className="p-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-warm-100 bg-warm-50/40">
-          <div className="flex flex-1 flex-wrap items-center gap-2.5">
-            <div className="relative flex-1 min-w-[200px] max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Ism, lavozim yoki telefon..."
-                className="w-full h-9 pl-9 pr-8 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none transition-all"
-              />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-charcoal-400 hover:text-charcoal-600 hover:bg-warm-100 transition-colors"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-
-            <div className="w-52">
-              <Select
-                value={positionFilter}
-                onChange={e => setPositionFilter(e.target.value)}
-                size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
+        {/* Filter bar: Search and status dropdown */}
+        <div className="p-3.5 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-warm-100 bg-white">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Ism, lavozim yoki telefon..."
+              className="w-full h-10 pl-9.5 pr-8 text-xs sm:text-sm border border-warm-200 rounded-xl bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none transition-all"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-charcoal-400 hover:text-charcoal-600 hover:bg-warm-100 transition-colors cursor-pointer"
               >
-                <option value="">Barcha lavozimlar</option>
-                {positions.map(pos => (
-                  <option key={pos} value={pos}>{pos}</option>
-                ))}
-              </Select>
-            </div>
-
-            {hasActiveFilters && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={resetFilters}
-                className="h-9 px-2.5 text-xs text-charcoal-500 hover:text-charcoal-800"
-              >
-                Filtrni tozalash
-              </Button>
+                <X className="w-3.5 h-3.5" />
+              </button>
             )}
           </div>
 
-          <div className="flex items-center justify-between md:justify-end gap-3 text-xs text-charcoal-500">
-            <span>
-              Ko'rsatilmoqda: <strong className="text-charcoal-900 font-semibold">{filtered.length}</strong> / {employees.length}
-            </span>
+          <div className="flex items-center gap-2">
+            <select
+              value={positionFilter}
+              onChange={e => setPositionFilter(e.target.value)}
+              className="w-full sm:w-auto h-10 px-3 text-xs sm:text-sm border border-warm-200 rounded-xl bg-white text-charcoal-700 font-medium focus:border-brand-500 outline-none transition-all cursor-pointer shadow-2xs"
+            >
+              <option value="">Barcha lavozimlar</option>
+              {positions.map(pos => (
+                <option key={pos} value={pos}>{pos}</option>
+              ))}
+            </select>
+            <select
+              value={activeTab}
+              onChange={e => setActiveTab(e.target.value as any)}
+              className="w-full sm:w-auto h-10 px-3 text-xs sm:text-sm border border-warm-200 rounded-xl bg-white text-charcoal-700 font-medium focus:border-brand-500 outline-none transition-all cursor-pointer shadow-2xs"
+            >
+              <option value="ALL">Barcha holatlar ({employees.length})</option>
+              <option value="ACTIVE">Faol xodimlar ({activeCount})</option>
+              <option value="INACTIVE">Nofaol xodimlar ({inactiveCount})</option>
+            </select>
           </div>
         </div>
 
-        {/* Data Table */}
+        {/* Data Table with EducoreCRM Expandable Accordion Architecture */}
         <DataTable
           data={filtered}
           columns={columns}
@@ -363,6 +353,62 @@ export function EmployeesPage() {
           emptyTitle="Xodimlar topilmadi"
           emptyDescription="Qidiruv shartlarini o‘zgartiring yoki filtrni tozalang."
           emptyIcon={<Users className="w-5 h-5" />}
+          mobileCardConfig={(emp, index) => {
+            const initials = emp.fullName
+              ? emp.fullName.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
+              : 'X';
+
+            return {
+              avatarText: initials,
+              avatarGradient: getAvatarGradient(index, emp.fullName),
+              title: emp.fullName,
+              subtitle: emp.position,
+              status: (
+                <span className={cn(
+                  "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold border",
+                  emp.status === 'ACTIVE'
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200/60"
+                    : "bg-warm-100 text-charcoal-600 border-warm-200"
+                )}>
+                  <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", emp.status === 'ACTIVE' ? "bg-emerald-500" : "bg-charcoal-400")} />
+                  {emp.status === 'ACTIVE' ? 'Faol' : 'Nofaol'}
+                </span>
+              ),
+              details: [
+                { label: 'Lavozim', value: emp.position },
+                {
+                  label: 'Telefon',
+                  value: (
+                    <a href={`tel:${emp.phone}`} onClick={e => e.stopPropagation()} className="text-brand-600 font-medium hover:underline">
+                      {emp.phone}
+                    </a>
+                  ),
+                },
+                { label: 'Ishga qabul', value: formatDate(emp.joinedAt) },
+                { label: 'Maosh', value: emp.salary ? `${emp.salary.toLocaleString()} so'm` : 'Belgilanmagan' },
+              ],
+              actions: (
+                <div className="flex flex-wrap items-center gap-2 w-full">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedEmployee(emp)}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-charcoal-500" />
+                    Profilni ko'rish
+                  </button>
+                  <a
+                    href={`tel:${emp.phone}`}
+                    onClick={e => e.stopPropagation()}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
+                  >
+                    <Phone className="w-3.5 h-3.5 text-brand-600" />
+                    Qo'ng'iroq
+                  </a>
+                </div>
+              ),
+            };
+          }}
         />
 
         {/* Footer Summary */}

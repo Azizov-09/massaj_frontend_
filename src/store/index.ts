@@ -161,6 +161,7 @@ interface Actions {
   // Admins
   createAdmin: (data: Omit<AdminUser, 'id' | 'createdAt'>, password?: string) => AdminUser;
   updateAdmin: (id: string, data: Partial<AdminUser>) => void;
+  deleteAdmin: (id: string) => void;
 
   // Employees
   createEmployee: (data: Omit<Employee, 'id' | 'joinedAt'>) => Employee;
@@ -1082,6 +1083,14 @@ export const useStore = create<Store>()(
           console.warn('[Store] Background updateAdmin sync warning:', err);
         });
         get().addToast({ type: 'success', title: 'Admin yangilandi' });
+      },
+
+      deleteAdmin: (id) => {
+        set(s => ({ admins: s.admins.filter(a => a.id !== id) }));
+        api.admins.archive(id).catch(err => {
+          console.warn('[Store] Background deleteAdmin sync warning:', err);
+        });
+        get().addToast({ type: 'success', title: "Admin o'chirildi" });
       },
 
       // ── Employees ────────────────────────────────────────

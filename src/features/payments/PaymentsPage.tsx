@@ -15,7 +15,7 @@ import {
   formatDateTime, formatCurrency, formatCurrencyCompact,
   getPaymentMethodLabel, cn
 } from '@/utils';
-import { DataTable, Column } from '@/components/tables/DataTable';
+import { DataTable, Column, getAvatarGradient } from '@/components/tables/DataTable';
 import { Card, Badge, Avatar } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -236,6 +236,7 @@ export function PaymentsPage() {
   return (
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
       <PageHeader
+        icon={<CreditCard className="w-5 h-5 text-white" />}
         title={isParent ? "To'lovlarim tarixi" : "To'lovlar"}
         description={
           isParent
@@ -251,8 +252,8 @@ export function PaymentsPage() {
         }
       />
 
-      {/* 4 Balanced KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+      {/* 4 Balanced KPI Cards (hidden on mobile for clean list view) */}
+      <div className="hidden md:grid md:grid-cols-4 gap-3.5">
         <KpiCard
           label="Jami tushum"
           value={totalPayments}
@@ -427,67 +428,58 @@ export function PaymentsPage() {
           keyExtractor={r => r.id}
           onRowClick={(p) => setSelectedPayment(p)}
           tableClassName="min-w-[900px]"
-          renderMobileCard={(row) => {
+          mobileCardConfig={(row, index) => {
             const parent = parents.find(p => p.id === row.parentId);
             const child = children.find(c => c.id === row.childId);
+            const initials = parent?.fullName
+              ? parent.fullName.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
+              : 'T';
 
-            return (
-              <div className="p-3.5 space-y-3">
-                {/* Top row: Parent + Amount */}
-                <div className="flex items-start justify-between gap-2.5">
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <Avatar name={parent?.fullName || 'Ota-ona'} size="md" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-charcoal-900 text-sm truncate">
-                        {parent?.fullName ?? 'Noma\'lum ota-ona'}
-                      </p>
-                      {parent?.phone && (
-                        <p className="text-xs text-charcoal-400 font-mono mt-0.5">{parent.phone}</p>
-                      )}
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200/60 tabular-nums shrink-0">
-                    +{formatCurrency(row.amount)}
-                  </span>
-                </div>
-
-                {/* Details strip */}
-                <div className="flex items-center justify-between gap-2 text-xs bg-warm-50/70 p-2.5 rounded-[10px] border border-warm-200/60">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {getMethodBadge(row.method)}
-                    {child && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-800 bg-brand-50/70 px-2 py-0.5 rounded-[6px] border border-brand-200/50">
-                        <Baby className="w-3 h-3 text-brand-600 shrink-0" />
-                        <span className="truncate max-w-[120px]">{child.fullName}</span>
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-right text-[11px] text-charcoal-400 font-medium shrink-0">
-                    {formatDateTime(row.date)}
-                  </div>
-                </div>
-
-                {/* Notes if any */}
-                {row.notes && (
-                  <p className="text-xs text-charcoal-500 italic bg-white px-2.5 py-1.5 rounded-[8px] border border-warm-100 line-clamp-2">
-                    "{row.notes}"
-                  </p>
-                )}
-
-                {/* Footer action */}
-                <div className="flex items-center justify-between pt-1 border-t border-warm-100/70" onClick={e => e.stopPropagation()}>
-                  <span className="text-[11px] text-charcoal-400 font-mono">#{row.id.slice(0, 8)}</span>
+            return {
+              avatarText: initials,
+              avatarGradient: getAvatarGradient(index, parent?.fullName),
+              title: parent?.fullName ?? "Noma'lum ota-ona",
+              subtitle: child ? `${child.fullName} uchun • ${formatDateTime(row.date)}` : formatDateTime(row.date),
+              status: (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 tabular-nums">
+                  +{formatCurrencyCompact(row.amount)}
+                </span>
+              ),
+              details: [
+                {
+                  label: 'To‘lov usuli',
+                  value: getPaymentMethodLabel(row.method)
+                },
+                {
+                  label: 'To‘liq summa',
+                  value: <span className="font-mono font-bold text-emerald-700">{formatCurrency(row.amount)}</span>
+                },
+                {
+                  label: 'Telefon',
+                  value: parent?.phone ? (
+                    <a href={`tel:${parent.phone}`} onClick={e => e.stopPropagation()} className="text-brand-600 font-mono text-xs">
+                      {parent.phone}
+                    </a>
+                  ) : 'Mavjud emas'
+                },
+                {
+                  label: 'Izoh',
+                  value: row.notes || '—'
+                }
+              ],
+              actions: (
+                <div className="flex flex-wrap items-center gap-2 w-full">
                   <button
                     type="button"
                     onClick={() => setSelectedPayment(row)}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:text-brand-700 py-1.5 px-2.5 rounded-[8px] hover:bg-brand-50 transition-colors shrink-0"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
                   >
-                    <span>Kvitansiya</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <Receipt className="w-3.5 h-3.5 text-brand-600" />
+                    Chek / Kvitansiya
                   </button>
                 </div>
-              </div>
-            );
+              )
+            };
           }}
           emptyTitle="To'lovlar topilmadi"
           emptyDescription={

@@ -16,6 +16,25 @@ export interface Column<T> {
   headerClassName?: string;
   cell?: (row: T, index: number) => React.ReactNode;
   render?: (row: T, index: number) => React.ReactNode;
+  hideOnMobile?: boolean;
+  fullWidthOnMobile?: boolean;
+}
+
+export interface MobileCardDetail {
+  label: string;
+  value: React.ReactNode;
+  fullWidth?: boolean;
+}
+
+export interface MobileCardConfig {
+  avatar?: React.ReactNode;
+  avatarText?: string;
+  avatarGradient?: string;
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  status?: React.ReactNode;
+  details?: MobileCardDetail[];
+  actions?: React.ReactNode;
 }
 
 interface DataTableProps<T> {
@@ -32,10 +51,32 @@ interface DataTableProps<T> {
   className?: string;
   tableClassName?: string;
   stickyHeader?: boolean;
-  /** Optional custom mobile card renderer. If provided, renders on < md screens */
-  renderMobileCard?: (row: T, index: number) => React.ReactNode;
+  /** Optional custom mobile card renderer. (row, index, isExpanded, toggleExpand) */
+  renderMobileCard?: (row: T, index: number, isExpanded?: boolean, toggleExpand?: () => void) => React.ReactNode;
+  /** Optional declarative mobile card config for automatic accordion rendering */
+  mobileCardConfig?: (row: T, index: number) => MobileCardConfig;
   /** Whether to force traditional table on mobile instead of card view */
   forceTableOnMobile?: boolean;
+}
+
+export const AVATAR_GRADIENTS = [
+  'from-rose-500 to-red-500',
+  'from-indigo-500 to-violet-600',
+  'from-emerald-500 to-teal-600',
+  'from-blue-500 to-cyan-600',
+  'from-amber-500 to-orange-500',
+  'from-purple-500 to-pink-500',
+  'from-sky-500 to-blue-600',
+  'from-teal-500 to-emerald-600',
+];
+
+export function getAvatarGradient(index: number, text?: string): string {
+  if (text) {
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) hash = text.charCodeAt(i) + ((hash << 5) - hash);
+    return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
+  }
+  return AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length];
 }
 
 const PAGE_SIZES = [10, 20, 50];
@@ -55,6 +96,7 @@ export function DataTable<T>({
   tableClassName,
   stickyHeader,
   renderMobileCard,
+  mobileCardConfig,
   forceTableOnMobile = false,
 }: DataTableProps<T>) {
   const isMobile = useIsMobile();
@@ -62,6 +104,16 @@ export function DataTable<T>({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(defaultPageSize);
+  const [expandedRows, setExpandedRows] = useState<Set<string | number>>(new Set());
+
+  const toggleRowExpand = (id: string | number) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const sorted = useMemo(() => {
     if (!sortKey) return data;
@@ -91,7 +143,7 @@ export function DataTable<T>({
               <div key={i} className="p-3.5 rounded-[12px] bg-white border border-warm-200/80 shadow-2xs space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <Skeleton className="w-9 h-9 rounded-full shrink-0" />
+                    <Skeleton className="w-9 h-9 rounded-xl shrink-0" />
                     <div className="space-y-1.5">
                       <Skeleton className="h-4 w-28 rounded-[4px]" />
                       <Skeleton className="h-3 w-20 rounded-[4px]" />
@@ -135,71 +187,128 @@ export function DataTable<T>({
   const primaryCol = columns[0];
   const statusCol = columns.find(c => String(c.key).toLowerCase() === 'status');
   const actionCol = columns.find(c => String(c.key).toLowerCase() === 'actions');
-  const middleCols = columns.filter(c => c !== primaryCol && c !== statusCol && c !== actionCol);
+  const middleCols = columns.filter(c => c !== primaryCol && c !== statusCol && c !== actionCol && !c.hideOnMobile);
 
   return (
     <div className={cn('flex flex-col', className)}>
-      {/* ─── Mobile Card View (< md) or Desktop Table View (>= md) ─── */}
+      {/* ─── Mobile Accordion View (< md) or Desktop Table View (>= md) ─── */}
       {!forceTableOnMobile && isMobile ? (
         <div className="divide-y divide-warm-100 bg-white">
           {paged.map((row, i) => {
+            const rowId = keyExtractor(row);
+            const isExpanded = expandedRows.has(rowId);
+
             if (renderMobileCard) {
               return (
                 <div
-                  key={keyExtractor(row)}
-                  onClick={onRowClick ? () => onRowClick(row) : undefined}
-                  className={cn(
-                    'transition-colors',
-                    onRowClick && 'cursor-pointer active:bg-warm-50/80'
-                  )}
+                  key={rowId}
+                  className="transition-colors"
                 >
-                  {renderMobileCard(row, i)}
+                  {renderMobileCard(row, (page - 1) * pageSize + i, isExpanded, () => toggleRowExpand(rowId))}
                 </div>
               );
             }
 
-            // Default smart mobile card
-            return (
+            // Mobile Card Config or Default Smart Accordion Row
+            const config = mobileCardConfig ? mobileCardConfig(row, (page - 1) * pageSize + i) : null;
+
+            const title = config?.title ?? (primaryCol && (primaryCol.cell || primaryCol.render || ((r: any) => String(r[primaryCol.key] ?? '')))(row, i));
+            const subtitle = config?.subtitle;
+            const status = config?.status ?? (statusCol && (statusCol.cell || statusCol.render || ((r: any) => String(r[statusCol.key] ?? '')))(row, i));
+
+            const avatarNode = config?.avatar ?? (
               <div
-                key={keyExtractor(row)}
-                onClick={onRowClick ? () => onRowClick(row) : undefined}
                 className={cn(
-                  'p-3.5 transition-colors relative',
-                  onRowClick && 'cursor-pointer active:bg-warm-50/80 hover:bg-warm-50/40'
+                  'w-10 h-10 rounded-xl bg-gradient-to-tr text-white font-bold select-none shadow-xs text-sm flex items-center justify-center flex-shrink-0',
+                  config?.avatarGradient || getAvatarGradient(i, typeof title === 'string' ? title : undefined)
                 )}
               >
-                {/* Header row: Primary info + Status */}
-                <div className="flex items-start justify-between gap-2">
+                {config?.avatarText || (typeof title === 'string' ? title.slice(0, 2).toUpperCase() : String(i + 1))}
+              </div>
+            );
+
+            const details: MobileCardDetail[] = config?.details ?? middleCols.map(col => ({
+              label: col.header || col.title || String(col.key),
+              value: (col.cell || col.render || ((r: any) => String(r[col.key] ?? '')))(row, i),
+              fullWidth: col.fullWidthOnMobile,
+            }));
+
+            const actions = config?.actions ?? (actionCol && (actionCol.cell || actionCol.render || ((r: any) => String(r[actionCol.key] ?? '')))(row, i));
+
+            return (
+              <div
+                key={rowId}
+                className={cn(
+                  'p-3.5 sm:p-4 transition-colors',
+                  isExpanded ? 'bg-warm-50/40' : 'hover:bg-warm-50/50'
+                )}
+              >
+                {/* Collapsed Header */}
+                <div
+                  className="flex items-center gap-3 cursor-pointer select-none"
+                  onClick={() => {
+                    if (onRowClick) onRowClick(row);
+                    else toggleRowExpand(rowId);
+                  }}
+                >
+                  {avatarNode}
                   <div className="min-w-0 flex-1">
-                    {primaryCol && (primaryCol.cell || primaryCol.render || ((r: any) => String(r[primaryCol.key] ?? '')))(row, i)}
-                  </div>
-                  {statusCol && (
-                    <div className="shrink-0">
-                      {(statusCol.cell || statusCol.render || ((r: any) => String(r[statusCol.key] ?? '')))(row, i)}
+                    <div className="font-semibold text-charcoal-900 text-sm truncate leading-tight">
+                      {title}
                     </div>
-                  )}
+                    {subtitle && (
+                      <div className="text-xs text-charcoal-400 truncate mt-0.5">
+                        {subtitle}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                    {status && <div className="shrink-0">{status}</div>}
+                    <button
+                      type="button"
+                      onClick={() => toggleRowExpand(rowId)}
+                      aria-label={isExpanded ? "Yig'ish" : "Batafsil ko'rsatish"}
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-warm-200/90 bg-white text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-50 shadow-2xs transition-colors cursor-pointer"
+                    >
+                      <ChevronDown
+                        className={cn(
+                          'w-4 h-4 transition-transform duration-200',
+                          isExpanded && 'rotate-180'
+                        )}
+                      />
+                    </button>
+                  </div>
                 </div>
 
-                {/* Body fields: 2-column grid */}
-                {middleCols.length > 0 && (
-                  <div className="grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-warm-100/80">
-                    {middleCols.map(col => (
-                      <div key={String(col.key)} className="min-w-0">
-                        <span className="text-[10px] font-bold text-charcoal-400 uppercase tracking-wider block truncate">
-                          {col.header || col.title}
-                        </span>
-                        <div className="text-xs font-medium text-charcoal-800 mt-0.5 truncate">
-                          {(col.cell || col.render || ((r: any) => String(r[col.key] ?? '')))(row, i)}
-                        </div>
+                {/* Expanded Details & Actions */}
+                {isExpanded && (
+                  <div className="mt-3 space-y-3 pt-2.5 border-t border-warm-100 animate-fadeIn">
+                    {details.length > 0 && (
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        {details.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className={cn(
+                              'rounded-xl bg-warm-50/80 px-3 py-2 border border-warm-100/80',
+                              item.fullWidth && 'col-span-2'
+                            )}
+                          >
+                            <p className="text-[10px] uppercase font-bold text-charcoal-400 mb-0.5 tracking-wider truncate">
+                              {item.label}
+                            </p>
+                            <div className="font-medium text-charcoal-700 text-xs break-words">
+                              {item.value}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Actions row */}
-                {actionCol && (
-                  <div className="mt-3 pt-2 border-t border-warm-100/70 flex items-center justify-end" onClick={e => e.stopPropagation()}>
-                    {(actionCol.cell || actionCol.render || ((r: any) => String(r[actionCol.key] ?? '')))(row, i)}
+                    )}
+                    {actions && (
+                      <div className="flex flex-wrap items-center gap-2 pt-1" onClick={e => e.stopPropagation()}>
+                        {actions}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -228,18 +228,30 @@ export function DateFilterTabs({ value, onChange, options = DEFAULT_PRESETS, cla
 interface PageHeaderProps {
   title: string;
   description?: string;
+  icon?: React.ReactNode;
   actions?: React.ReactNode;
   className?: string;
 }
 
-export function PageHeader({ title, description, actions, className }: PageHeaderProps) {
+export function PageHeader({ title, description, icon, actions, className }: PageHeaderProps) {
   return (
-    <div className={cn('flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4', className)}>
-      <div className="flex-1 min-w-0">
-        <h1 className="text-xl font-bold text-charcoal-900">{title}</h1>
-        {description && <p className="text-sm text-charcoal-400 mt-0.5">{description}</p>}
+    <div className={cn('flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4 mb-4 sm:mb-6', className)}>
+      <div className="flex items-center gap-3">
+        {icon && (
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-md shadow-brand-500/20 text-white flex-shrink-0">
+            {icon}
+          </div>
+        )}
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-charcoal-900 tracking-tight leading-tight">{title}</h1>
+          {description && <p className="text-xs sm:text-sm text-charcoal-500 mt-0.5">{description}</p>}
+        </div>
       </div>
-      {actions && <div className="flex items-center gap-2 flex-shrink-0">{actions}</div>}
+      {actions && (
+        <div className="flex w-full sm:w-auto items-center justify-center sm:justify-end gap-2 flex-shrink-0 [&>*]:w-full sm:[&>*]:w-auto">
+          {actions}
+        </div>
+      )}
     </div>
   );
 }

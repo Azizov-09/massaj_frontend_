@@ -11,7 +11,7 @@ import {
   formatDate, getAppointmentStatusColor, getAppointmentStatusLabel, cn
 } from '@/utils';
 import { differenceInYears, parseISO } from 'date-fns';
-import { DataTable, Column } from '@/components/tables/DataTable';
+import { DataTable, Column, getAvatarGradient } from '@/components/tables/DataTable';
 import { Card, Avatar, Badge, Select, DatePicker } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { Modal, ConfirmDialog } from '@/components/ui/Modal';
@@ -399,6 +399,7 @@ export function AppointmentsPage() {
   return (
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
       <PageHeader
+        icon={<Calendar className="w-5 h-5 text-white" />}
         title={isParent ? "Farzandlarim qabullari" : isSpecialist ? "Mening qabullarim" : "Uchrashuvlar"}
         description={
           isParent
@@ -414,8 +415,8 @@ export function AppointmentsPage() {
         }
       />
 
-      {/* KPI Cards Strip (Interactive click-to-filter) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+      {/* KPI Cards Strip (Interactive click-to-filter, hidden on mobile for clean list view) */}
+      <div className="hidden md:grid md:grid-cols-4 gap-3.5">
         <div
           onClick={() => handleKpiClick('TODAY')}
           className={cn(
@@ -642,101 +643,90 @@ export function AppointmentsPage() {
           keyExtractor={r => r.id}
           tableClassName="min-w-[880px]"
           onRowClick={row => setViewingAppointmentId(row.id)}
-          renderMobileCard={(row) => {
+          mobileCardConfig={(row, index) => {
             const child = children.find(c => c.id === row.childId);
             const spec = specialists.find(s => s.id === row.specialistId);
             const parent = child ? parents.find(p => p.id === child.parentId) : null;
             const svc = services.find(s => s.id === row.serviceId);
-            const isCurrentDate = row.date === todayStr;
+            const initials = child?.fullName
+              ? child.fullName.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
+              : 'U';
 
-            return (
-              <div className="p-3.5 space-y-3">
-                {/* Header row: Time & Date + Status */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <div className="inline-flex items-center gap-1.5 text-xs font-bold text-charcoal-900 bg-warm-100 px-2 py-0.5 rounded-[6px] border border-warm-200/80">
-                      <Clock className="w-3 h-3 text-brand-600 shrink-0" />
-                      <span>{row.startTime} – {row.endTime}</span>
-                    </div>
-                    <span className="text-xs font-semibold text-charcoal-600 flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-charcoal-400" />
-                      {formatDate(row.date)}
-                    </span>
-                    {isCurrentDate && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-[4px] bg-emerald-100 text-emerald-700 border border-emerald-200">
-                        Bugun
-                      </span>
-                    )}
-                  </div>
-                  <Badge className={cn('shadow-2xs font-semibold text-[11px] shrink-0', getAppointmentStatusColor(row.status))} dot>
-                    {getAppointmentStatusLabel(row.status)}
-                  </Badge>
-                </div>
-
-                {/* Child info */}
-                <div className="flex items-center gap-2.5">
-                  <Avatar name={child?.fullName || 'Bola'} size="md" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-bold text-charcoal-900 text-sm truncate">{child?.fullName || 'Noma\'lum bola'}</p>
-                    <p className="text-xs text-charcoal-500 truncate mt-0.5">
-                      {parent ? (
-                        <>Ota-ona: <span className="font-semibold text-charcoal-700">{parent.fullName}</span> {parent.phone && `• ${parent.phone}`}</>
-                      ) : (
-                        'Ota-ona biriktirilmagan'
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Specialist and Service details */}
-                <div className="grid grid-cols-2 gap-2 text-xs bg-warm-50/70 p-2.5 rounded-[10px] border border-warm-200/60">
-                  <div className="min-w-0">
-                    <span className="text-[10px] font-bold text-charcoal-400 uppercase tracking-wider block">Mutaxassis</span>
-                    <p className="font-semibold text-charcoal-800 truncate mt-0.5">{spec?.fullName || 'Biriktirilmagan'}</p>
-                    <p className="text-charcoal-400 text-[11px] truncate">{spec?.specialization || 'Mutaxassis'}</p>
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-[10px] font-bold text-charcoal-400 uppercase tracking-wider block">Xizmat</span>
-                    <p className="font-semibold text-charcoal-800 truncate mt-0.5">{svc?.name || 'Xizmat'}</p>
-                    <p className="text-charcoal-400 text-[11px] truncate">{svc?.durationMinutes} daq {svc?.price ? `• ${svc.price.toLocaleString()} so'm` : ''}</p>
-                  </div>
-                </div>
-
-                {/* Action buttons footer */}
-                <div className="flex items-center justify-between gap-2 pt-1 border-t border-warm-100/70" onClick={e => e.stopPropagation()}>
-                  <div className="flex items-center gap-1.5">
-                    {!isParent && row.status === 'SCHEDULED' && (
-                      <button
-                        type="button"
-                        onClick={() => setActionTarget({ id: row.id, action: 'confirm' })}
-                        className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-[8px] text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-2xs"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Tasdiqlash</span>
-                      </button>
-                    )}
-                    {!isParent && ['SCHEDULED', 'CONFIRMED'].includes(row.status) && (
-                      <button
-                        type="button"
-                        onClick={() => setActionTarget({ id: row.id, action: 'cancel' })}
-                        className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-[8px] text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shadow-2xs"
-                      >
-                        <XCircle className="w-3.5 h-3.5" />
-                        <span>Bekor qilish</span>
-                      </button>
-                    )}
-                  </div>
+            return {
+              avatarText: initials,
+              avatarGradient: getAvatarGradient(index, child?.fullName),
+              title: child?.fullName || "Noma'lum bola",
+              subtitle: `${row.startTime} – ${row.endTime} • ${formatDate(row.date)}`,
+              status: (
+                <span className={cn(
+                  "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold border",
+                  getAppointmentStatusColor(row.status)
+                )}>
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-current" />
+                  {getAppointmentStatusLabel(row.status)}
+                </span>
+              ),
+              details: [
+                {
+                  label: 'Mutaxassis',
+                  value: spec ? `${spec.fullName} (${spec.specialization || 'Mutaxassis'})` : 'Biriktirilmagan'
+                },
+                {
+                  label: 'Xizmat',
+                  value: svc ? `${svc.name} (${svc.durationMinutes} daq)` : 'Xizmat'
+                },
+                {
+                  label: 'Ota-ona',
+                  value: parent ? `${parent.fullName} ${parent.phone ? `(${parent.phone})` : ''}` : 'Biriktirilmagan'
+                },
+                {
+                  label: 'Narxi',
+                  value: svc?.price ? `${svc.price.toLocaleString()} so'm` : '0 so\'m'
+                }
+              ],
+              actions: (
+                <div className="flex flex-wrap items-center gap-2 w-full">
                   <button
                     type="button"
                     onClick={() => setViewingAppointmentId(row.id)}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:text-brand-700 py-1.5 px-2.5 rounded-[8px] hover:bg-brand-50 transition-colors shrink-0 ml-auto"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
                   >
-                    <span>Batafsil</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <Eye className="w-3.5 h-3.5 text-charcoal-500" />
+                    Batafsil
                   </button>
+                  {!isParent && row.status === 'SCHEDULED' && (
+                    <button
+                      type="button"
+                      onClick={() => setActionTarget({ id: row.id, action: 'confirm' })}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-medium hover:bg-emerald-100 shadow-2xs cursor-pointer"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Tasdiqlash
+                    </button>
+                  )}
+                  {!isParent && ['SCHEDULED', 'CONFIRMED'].includes(row.status) && (
+                    <button
+                      type="button"
+                      onClick={() => setActionTarget({ id: row.id, action: 'start' })}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-brand-200 bg-brand-50 text-brand-700 text-xs font-medium hover:bg-brand-100 shadow-2xs cursor-pointer"
+                    >
+                      <Play className="w-3.5 h-3.5" />
+                      Boshlash
+                    </button>
+                  )}
+                  {['SCHEDULED', 'CONFIRMED'].includes(row.status) && (
+                    <button
+                      type="button"
+                      onClick={() => setActionTarget({ id: row.id, action: 'cancel' })}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 text-xs font-medium hover:bg-rose-100 shadow-2xs cursor-pointer"
+                    >
+                      <XCircle className="w-3.5 h-3.5" />
+                      Bekor qilish
+                    </button>
+                  )}
                 </div>
-              </div>
-            );
+              )
+            };
           }}
           emptyTitle="Uchrashuvlar topilmadi"
           emptyDescription={hasActiveFilters ? "Kiritilgan filtr parametrlariga mos keluvchi uchrashuvlar topilmadi." : "Hozircha hech qanday uchrashuv mavjud emas."}

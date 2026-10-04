@@ -14,7 +14,7 @@ import { formatCurrency, formatCurrencyCompact, cn } from '@/utils';
 import { Card, Avatar, EmptyState, ProgressBar, Badge } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
-import { DataTable, Column } from '@/components/tables/DataTable';
+import { DataTable, Column, getAvatarGradient } from '@/components/tables/DataTable';
 import { Modal } from '@/components/ui/Modal';
 
 type DebtLevel = 'ALL' | 'HIGH' | 'MEDIUM' | 'LOW';
@@ -188,6 +188,7 @@ export function DebtorsPage() {
   return (
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
       <PageHeader
+        icon={<TrendingDown className="w-5 h-5 text-white" />}
         title={isParent ? "Qarzdorlik holati" : "Qarzdorlar reytingi"}
         description={
           isParent
@@ -197,7 +198,7 @@ export function DebtorsPage() {
       />
 
       {isParent ? (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        <div className="hidden md:grid md:grid-cols-3 gap-3.5">
           <KpiCard
             label="Sizning qarzingiz"
             value={totalDebt}
@@ -226,7 +227,7 @@ export function DebtorsPage() {
           />
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="hidden md:grid md:grid-cols-4 gap-3.5">
           <KpiCard
             label="Jami qarz"
             value={totalDebt}
@@ -403,65 +404,69 @@ export function DebtorsPage() {
           keyExtractor={r => r.childId}
           onRowClick={(d) => setSelectedDebtor(d)}
           tableClassName="min-w-[850px]"
-          renderMobileCard={(d) => {
+          mobileCardConfig={(d, index) => {
             const safeMaxDebt = maxDebt > 0 ? maxDebt : 1;
             const ratio = Math.min(100, Math.round((d.debt / safeMaxDebt) * 100));
+            const initials = d.childName
+              ? d.childName.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
+              : 'Q';
 
-            return (
-              <div className="p-3.5 space-y-3">
-                {/* Top row: Child info + Debt amount */}
-                <div className="flex items-start justify-between gap-2.5">
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <Avatar name={d.childName} size="md" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-charcoal-900 text-sm truncate">
-                        {d.childName}
-                      </p>
-                      <p className="text-xs text-charcoal-500 truncate mt-0.5">
-                        Ota-ona: <span className="text-charcoal-800 font-semibold">{d.parentName || '—'}</span>
-                      </p>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-rose-50 text-rose-600 border border-rose-200 font-extrabold text-xs tabular-nums shrink-0">
-                    <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
-                    -{formatCurrency(d.debt)}
-                  </span>
-                </div>
-
-                {/* Progress ratio */}
-                <div className="space-y-1 bg-warm-50/70 p-2.5 rounded-[10px] border border-warm-200/60">
-                  <div className="flex justify-between text-[11px] text-charcoal-600 font-medium">
-                    <span>Qarz salmog‘i darajasi</span>
-                    <span className="font-bold text-charcoal-800">{ratio}%</span>
-                  </div>
-                  <ProgressBar value={ratio} fillClassName="bg-rose-500" />
-                </div>
-
-                {/* Footer strip: Phone + Tafsilot */}
-                <div className="flex items-center justify-between gap-2 pt-1 border-t border-warm-100/70" onClick={e => e.stopPropagation()}>
-                  {d.parentPhone ? (
-                    <a
-                      href={`tel:${d.parentPhone}`}
-                      className="inline-flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700 font-mono font-semibold py-1 px-2 rounded-[6px] hover:bg-brand-50 transition-colors"
-                    >
-                      <Phone className="w-3.5 h-3.5" />
-                      <span>{d.parentPhone}</span>
+            return {
+              avatarText: initials,
+              avatarGradient: getAvatarGradient(index, d.childName),
+              title: d.childName,
+              subtitle: `Ota-ona: ${d.parentName || '—'}`,
+              status: (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 font-extrabold text-xs tabular-nums">
+                  <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+                  -{formatCurrencyCompact(d.debt)}
+                </span>
+              ),
+              details: [
+                {
+                  label: 'Ota-ona',
+                  value: d.parentName || '—'
+                },
+                {
+                  label: 'Qarzdorlik',
+                  value: <span className="font-mono font-bold text-rose-600">{formatCurrency(d.debt)}</span>
+                },
+                {
+                  label: 'Telefon',
+                  value: d.parentPhone ? (
+                    <a href={`tel:${d.parentPhone}`} onClick={e => e.stopPropagation()} className="text-brand-600 font-mono text-xs">
+                      {d.parentPhone}
                     </a>
-                  ) : (
-                    <span className="text-xs text-charcoal-400 italic">Telefon kiritilmagan</span>
-                  )}
-
+                  ) : 'Kiritilmagan'
+                },
+                {
+                  label: 'Salmoq darajasi',
+                  value: `${ratio}%`
+                }
+              ],
+              actions: (
+                <div className="flex flex-wrap items-center gap-2 w-full">
                   <button
                     type="button"
                     onClick={() => setSelectedDebtor(d)}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:text-brand-700 py-1.5 px-2.5 rounded-[8px] hover:bg-brand-50 transition-colors shrink-0 ml-auto"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
                   >
-                    <span>Tafsilot</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3.5 h-3.5 text-charcoal-500" />
+                    Tafsilotlar
                   </button>
+                  {d.parentPhone && (
+                    <a
+                      href={`tel:${d.parentPhone}`}
+                      onClick={e => e.stopPropagation()}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
+                    >
+                      <Phone className="w-3.5 h-3.5 text-brand-600" />
+                      Qo'ng'iroq
+                    </a>
+                  )}
                 </div>
-              </div>
-            );
+              )
+            };
           }}
           emptyTitle="Qarzdorlar topilmadi"
           emptyDescription={
