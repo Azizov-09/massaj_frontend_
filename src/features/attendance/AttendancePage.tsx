@@ -331,39 +331,39 @@ export function AttendancePage() {
       <Card className="p-4 space-y-3.5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           {/* Date Picker & Prev/Next */}
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center gap-2.5 w-full lg:w-auto">
             <Button
               variant="secondary"
               size="sm"
               onClick={setToday}
-              className="h-9 px-3 rounded-[10px] text-xs font-semibold text-charcoal-700 bg-white border border-warm-300 hover:bg-warm-50 shadow-2xs"
+              className="h-9 px-3 rounded-[10px] text-xs font-semibold text-charcoal-700 bg-white border border-warm-300 hover:bg-warm-50 shadow-2xs shrink-0 cursor-pointer"
             >
               Bugun
             </Button>
-            <div className="flex items-center bg-white border border-warm-300 rounded-[10px] shadow-2xs hover:border-warm-400 transition-colors h-9">
+            <div className="flex items-center bg-white border border-warm-300 rounded-[10px] shadow-2xs hover:border-warm-400 transition-colors h-9 flex-1 lg:flex-initial">
               <button
                 type="button"
                 onClick={prevDay}
-                className="h-full px-2.5 flex items-center justify-center text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 rounded-l-[9px] transition-colors cursor-pointer"
+                className="h-full px-2.5 flex items-center justify-center text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 rounded-l-[9px] transition-colors cursor-pointer shrink-0"
                 title="Oldingi kun"
                 aria-label="Oldingi kun"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <div className="w-36 border-x border-warm-200">
+              <div className="w-full sm:w-36 border-x border-warm-200 flex-1 sm:flex-initial">
                 <DatePicker
                   size="sm"
                   value={selectedDate}
                   onChange={e => setSelectedDate(e.target.value)}
                   clearable={false}
                   aria-label="Sanani tanlash"
-                  triggerClassName="border-0 shadow-none rounded-none py-1.5 focus:ring-0 bg-transparent text-center font-semibold text-xs text-charcoal-800"
+                  triggerClassName="border-0 shadow-none rounded-none py-1.5 focus:ring-0 bg-transparent text-center font-semibold text-xs text-charcoal-800 w-full"
                 />
               </div>
               <button
                 type="button"
                 onClick={nextDay}
-                className="h-full px-2.5 flex items-center justify-center text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 rounded-r-[9px] transition-colors cursor-pointer"
+                className="h-full px-2.5 flex items-center justify-center text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 rounded-r-[9px] transition-colors cursor-pointer shrink-0"
                 title="Keyingi kun"
                 aria-label="Keyingi kun"
               >

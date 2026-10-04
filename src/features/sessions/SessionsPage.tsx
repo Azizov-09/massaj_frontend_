@@ -523,7 +523,7 @@ export function SessionsPage() {
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <div className="w-full sm:w-36 border-x border-warm-200">
+              <div className="w-full sm:w-36 border-x border-warm-200 flex-1 sm:flex-initial">
                 <DatePicker
                   size="sm"
                   value={dateFilter}
