@@ -482,7 +482,7 @@ export function SessionsPage() {
         </div>
 
         {/* Search & Filters */}
-        <div className="p-3.5 bg-white border-b border-warm-100 flex flex-wrap items-center gap-2.5">
+        <div className="p-3.5 bg-white border-b border-warm-100 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5">
           {/* Search Input */}
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
@@ -504,7 +504,7 @@ export function SessionsPage() {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:flex-wrap sm:items-center sm:gap-2 sm:w-auto">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5 w-full sm:w-auto">
             {/* Status Filter */}
             <div className="w-full sm:w-48">
               <Select
@@ -556,7 +556,7 @@ export function SessionsPage() {
             </div>
 
             {/* Date Picker */}
-            <div className={cn("w-full sm:w-auto flex items-center gap-1.5", isSpecialist && "col-span-2 sm:col-span-1")}>
+            <div className="flex items-center gap-1.5 w-full sm:w-auto">
               <div className="w-full sm:w-40">
                 <DatePicker
                   size="sm"
@@ -587,7 +587,7 @@ export function SessionsPage() {
               <button
                 type="button"
                 onClick={resetAllFilters}
-                className="col-span-2 sm:col-span-1 h-9 inline-flex items-center justify-center gap-1.5 px-3 rounded-[10px] text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors shadow-2xs cursor-pointer w-full sm:w-auto ml-auto sm:ml-0"
+                className="h-9 inline-flex items-center justify-center gap-1.5 px-3 rounded-[10px] text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors shadow-2xs cursor-pointer w-full sm:w-auto ml-auto sm:ml-0"
                 title="Barcha filtrlarni bekor qilish"
               >
                 <X className="w-3.5 h-3.5" />

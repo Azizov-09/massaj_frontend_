@@ -406,59 +406,40 @@ export function AttendancePage() {
               )}
             </div>
 
-            {currentUser?.role !== 'SPECIALIST' ? (
-              <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:gap-2.5 sm:w-auto">
-                <div className="w-full sm:w-56">
-                  <Select
-                    size="sm"
-                    triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                    value={specialistFilter}
-                    onChange={e => setSpecialistFilter(e.target.value)}
-                    options={[
-                      { value: '', label: 'Barcha mutaxassislar' },
-                      ...specialists.map(s => ({ value: s.id, label: s.fullName })),
-                    ]}
-                    aria-label="Mutaxassis bo'yicha filter"
-                  />
-                </div>
-
-                <div className="w-full sm:w-48">
-                  <Select
-                    size="sm"
-                    triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                    value={statusFilterTab}
-                    onChange={e => setStatusFilterTab(e.target.value as any)}
-                    options={[
-                      { value: 'ALL', label: `Barcha holatlar (${stats.total})` },
-                      { value: 'PRESENT', label: `Kelgan (${stats.present})` },
-                      { value: 'LATE', label: `Kechikkan (${stats.late})` },
-                      { value: 'ABSENT', label: `Sababli (${stats.absent})` },
-                      { value: 'NO_SHOW', label: `Sababsiz (${stats.noShow})` },
-                      { value: 'UNMARKED', label: `Kutilmoqda (${stats.unmarked})` },
-                    ]}
-                    aria-label="Davomat holati bo'yicha filter"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="w-full sm:w-48">
+            {currentUser?.role !== 'SPECIALIST' && (
+              <div className="w-full sm:w-56">
                 <Select
                   size="sm"
                   triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                  value={statusFilterTab}
-                  onChange={e => setStatusFilterTab(e.target.value as any)}
+                  value={specialistFilter}
+                  onChange={e => setSpecialistFilter(e.target.value)}
                   options={[
-                    { value: 'ALL', label: `Barcha holatlar (${stats.total})` },
-                    { value: 'PRESENT', label: `Kelgan (${stats.present})` },
-                    { value: 'LATE', label: `Kechikkan (${stats.late})` },
-                    { value: 'ABSENT', label: `Sababli (${stats.absent})` },
-                    { value: 'NO_SHOW', label: `Sababsiz (${stats.noShow})` },
-                    { value: 'UNMARKED', label: `Kutilmoqda (${stats.unmarked})` },
+                    { value: '', label: 'Barcha mutaxassislar' },
+                    ...specialists.map(s => ({ value: s.id, label: s.fullName })),
                   ]}
-                  aria-label="Davomat holati bo'yicha filter"
+                  aria-label="Mutaxassis bo'yicha filter"
                 />
               </div>
             )}
+
+            {/* Status Filter */}
+            <div className="w-full sm:w-48">
+              <Select
+                size="sm"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                value={statusFilterTab}
+                onChange={e => setStatusFilterTab(e.target.value as any)}
+                options={[
+                  { value: 'ALL', label: `Barcha holatlar (${stats.total})` },
+                  { value: 'PRESENT', label: `Kelgan (${stats.present})` },
+                  { value: 'LATE', label: `Kechikkan (${stats.late})` },
+                  { value: 'ABSENT', label: `Sababli (${stats.absent})` },
+                  { value: 'NO_SHOW', label: `Sababsiz (${stats.noShow})` },
+                  { value: 'UNMARKED', label: `Kutilmoqda (${stats.unmarked})` },
+                ]}
+                aria-label="Davomat holati bo'yicha filter"
+              />
+            </div>
           </div>
         </div>
 

@@ -216,7 +216,7 @@ export function GoalsPage() {
       {/* Filter strip */}
       <Card className="p-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:gap-3 sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
             <div className="w-full sm:w-56">
               <Select
                 size="sm"

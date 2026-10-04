@@ -341,40 +341,38 @@ export function ChildrenPage() {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:gap-2.5 sm:w-auto">
-            {/* Status filter */}
-            <div className="w-full sm:w-48">
-              <Select
-                size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
-                options={[
-                  { value: '', label: `Barcha holatlar (${statusCounts.all})` },
-                  { value: 'ACTIVE', label: `Faol bolalar (${statusCounts.active})` },
-                  { value: 'INACTIVE', label: `Nofaol bolalar (${statusCounts.inactive})` },
-                  { value: 'ARCHIVED', label: `Arxivlangan (${statusCounts.archived})` },
-                ]}
-                aria-label="Holat bo'yicha filter"
-              />
-            </div>
+          {/* Status filter */}
+          <div className="w-full sm:w-48">
+            <Select
+              size="sm"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              options={[
+                { value: '', label: `Barcha holatlar (${statusCounts.all})` },
+                { value: 'ACTIVE', label: `Faol bolalar (${statusCounts.active})` },
+                { value: 'INACTIVE', label: `Nofaol bolalar (${statusCounts.inactive})` },
+                { value: 'ARCHIVED', label: `Arxivlangan (${statusCounts.archived})` },
+              ]}
+              aria-label="Holat bo'yicha filter"
+            />
+          </div>
 
-            {/* Specialist filter */}
-            <div className="w-full sm:w-56">
-              <Select
-                size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                value={specialistFilter}
-                onChange={e => setSpecialistFilter(e.target.value)}
-                options={[
-                  { value: '', label: 'Barcha mutaxassislar' },
-                  ...specialists
-                    .filter(s => s.status === 'ACTIVE')
-                    .map(s => ({ value: s.id, label: s.fullName })),
-                ]}
-                aria-label="Mutaxassis bo'yicha filter"
-              />
-            </div>
+          {/* Specialist filter */}
+          <div className="w-full sm:w-56">
+            <Select
+              size="sm"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+              value={specialistFilter}
+              onChange={e => setSpecialistFilter(e.target.value)}
+              options={[
+                { value: '', label: 'Barcha mutaxassislar' },
+                ...specialists
+                  .filter(s => s.status === 'ACTIVE')
+                  .map(s => ({ value: s.id, label: s.fullName })),
+              ]}
+              aria-label="Mutaxassis bo'yicha filter"
+            />
           </div>
 
           {activeFilterCount > 0 && (

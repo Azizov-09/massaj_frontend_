@@ -600,7 +600,7 @@ export function AssessmentsPage() {
         </div>
 
         {/* Search & Filters */}
-        <div className="p-3.5 bg-white border-b border-warm-100 flex flex-wrap items-center gap-2.5">
+        <div className="p-3.5 bg-white border-b border-warm-100 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5">
           {/* Search Input */}
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
@@ -639,50 +639,34 @@ export function AssessmentsPage() {
             />
           </div>
 
-          {!isSpecialist ? (
-            <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:gap-2.5 sm:w-auto">
-              {/* Child Select */}
-              <div className="w-full sm:w-56">
-                <Select
-                  size="sm"
-                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                  value={selectedChildId}
-                  onChange={e => setSelectedChildId(e.target.value)}
-                  options={[
-                    { value: '', label: 'Barcha bolalar' },
-                    ...children.map(c => ({ value: c.id, label: c.fullName })),
-                  ]}
-                  aria-label="Bola bo'yicha filter"
-                />
-              </div>
+          {/* Child Select */}
+          <div className="w-full sm:w-56">
+            <Select
+              size="sm"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+              value={selectedChildId}
+              onChange={e => setSelectedChildId(e.target.value)}
+              options={[
+                { value: '', label: 'Barcha bolalar' },
+                ...children.map(c => ({ value: c.id, label: c.fullName })),
+              ]}
+              aria-label="Bola bo'yicha filter"
+            />
+          </div>
 
-              {/* Specialist Select */}
-              <div className="w-full sm:w-52">
-                <Select
-                  size="sm"
-                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                  value={specialistFilter}
-                  onChange={e => setSpecialistFilter(e.target.value)}
-                  options={[
-                    { value: '', label: 'Barcha mutaxassislar' },
-                    ...specialists.map(s => ({ value: s.id, label: s.fullName })),
-                  ]}
-                  aria-label="Mutaxassis bo'yicha filter"
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="w-full sm:w-56">
+          {/* Specialist Select */}
+          {!isSpecialist && (
+            <div className="w-full sm:w-52">
               <Select
                 size="sm"
                 triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                value={selectedChildId}
-                onChange={e => setSelectedChildId(e.target.value)}
+                value={specialistFilter}
+                onChange={e => setSpecialistFilter(e.target.value)}
                 options={[
-                  { value: '', label: 'Barcha bolalar' },
-                  ...children.map(c => ({ value: c.id, label: c.fullName })),
+                  { value: '', label: 'Barcha mutaxassislar' },
+                  ...specialists.map(s => ({ value: s.id, label: s.fullName })),
                 ]}
-                aria-label="Bola bo'yicha filter"
+                aria-label="Mutaxassis bo'yicha filter"
               />
             </div>
           )}

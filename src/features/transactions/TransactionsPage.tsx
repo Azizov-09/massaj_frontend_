@@ -413,7 +413,7 @@ export function TransactionsPage() {
 
         {/* Filter bar */}
         <div className="p-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-warm-100 bg-warm-50/40">
-          <div className="flex flex-1 flex-wrap items-center gap-2.5">
+          <div className="flex flex-1 flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5">
             {/* Search */}
             <div className="relative flex-1 min-w-[180px] max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
@@ -434,42 +434,40 @@ export function TransactionsPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:gap-2 sm:w-auto">
-              {/* Direction / Tab selector */}
-              <div className="w-full sm:w-44">
-                <Select
-                  value={activeTab}
-                  onChange={e => setActiveTab(e.target.value as any)}
-                  size="sm"
-                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                  options={[
-                    { value: 'ALL', label: `Barchasi (${transactions.length})` },
-                    { value: 'IN', label: `Kirim (${inCount})` },
-                    { value: 'OUT', label: `Chiqim (${outCount})` },
-                    { value: 'EXPENSE', label: `Xarajatlar (${expenseCount})` },
-                  ]}
-                  aria-label="Yo'nalish bo'yicha filter"
-                />
-              </div>
+            {/* Direction / Tab selector */}
+            <div className="w-full sm:w-44">
+              <Select
+                value={activeTab}
+                onChange={e => setActiveTab(e.target.value as any)}
+                size="sm"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                options={[
+                  { value: 'ALL', label: `Barchasi (${transactions.length})` },
+                  { value: 'IN', label: `Kirim (${inCount})` },
+                  { value: 'OUT', label: `Chiqim (${outCount})` },
+                  { value: 'EXPENSE', label: `Xarajatlar (${expenseCount})` },
+                ]}
+                aria-label="Yo'nalish bo'yicha filter"
+              />
+            </div>
 
-              {/* Type selector */}
-              <div className="w-full sm:w-44">
-                <Select
-                  value={typeFilter}
-                  onChange={e => setTypeFilter(e.target.value)}
-                  size="sm"
-                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                  options={[
-                    { value: '', label: 'Barcha operatsiyalar' },
-                    { value: 'PAYMENT', label: 'To‘lov (Payment)' },
-                    { value: 'SESSION_CHARGE', label: 'Seans haqi' },
-                    { value: 'REFUND', label: 'Qaytarish' },
-                    { value: 'ADJUSTMENT', label: 'Tuzatish' },
-                    { value: 'EXPENSE', label: 'Xarajat' },
-                  ]}
-                  aria-label="Operatsiya turi bo'yicha filter"
-                />
-              </div>
+            {/* Type selector */}
+            <div className="w-full sm:w-44">
+              <Select
+                value={typeFilter}
+                onChange={e => setTypeFilter(e.target.value)}
+                size="sm"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                options={[
+                  { value: '', label: 'Barcha operatsiyalar' },
+                  { value: 'PAYMENT', label: 'To‘lov (Payment)' },
+                  { value: 'SESSION_CHARGE', label: 'Seans haqi' },
+                  { value: 'REFUND', label: 'Qaytarish' },
+                  { value: 'ADJUSTMENT', label: 'Tuzatish' },
+                  { value: 'EXPENSE', label: 'Xarajat' },
+                ]}
+                aria-label="Operatsiya turi bo'yicha filter"
+              />
             </div>
 
             {/* Date from & to */}
