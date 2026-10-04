@@ -147,9 +147,9 @@ export function SuperAdminDashboard() {
   const totalFilteredAppointmentsCount = aptDonutData.reduce((acc, d) => acc + d.value, 0);
 
   return (
-    <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
+    <div className="px-3.5 sm:px-4 lg:px-6 py-4 sm:py-6 max-w-[1600px] mx-auto space-y-4 sm:space-y-5">
       {/* ─── Executive Page Header ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-1">
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 tracking-tight">
@@ -166,12 +166,13 @@ export function SuperAdminDashboard() {
         </div>
 
         {/* Quick Header Actions */}
-        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto [&>button]:flex-1 sm:[&>button]:flex-initial">
           <Button
             size="sm"
             variant="secondary"
             leftIcon={<FileText className="w-4 h-4" />}
             onClick={() => navigate('/dashboard/super-admin/reports')}
+            className="justify-center"
           >
             Hisobotlar
           </Button>
@@ -179,6 +180,7 @@ export function SuperAdminDashboard() {
             size="sm"
             leftIcon={<Plus className="w-4 h-4" />}
             onClick={() => setShowCreateAppointmentModal(true)}
+            className="justify-center"
           >
             Yangi qabul
           </Button>

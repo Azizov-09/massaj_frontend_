@@ -357,8 +357,8 @@ export function DebtorsPage() {
 
         {/* Filter bar */}
         <div className="p-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-warm-100 bg-warm-50/40">
-          <div className="flex flex-1 items-center gap-2.5">
-            <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-2.5">
+            <div className="relative flex-1 w-full sm:max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
               <input
                 value={search}
@@ -382,7 +382,7 @@ export function DebtorsPage() {
                 variant="ghost"
                 size="sm"
                 onClick={resetFilters}
-                className="h-9 px-2.5 text-xs text-charcoal-500 hover:text-charcoal-800"
+                className="h-9 px-2.5 text-xs text-charcoal-500 hover:text-charcoal-800 w-full sm:w-auto justify-center"
               >
                 Filtrni tozalash
               </Button>
@@ -403,6 +403,66 @@ export function DebtorsPage() {
           keyExtractor={r => r.childId}
           onRowClick={(d) => setSelectedDebtor(d)}
           tableClassName="min-w-[850px]"
+          renderMobileCard={(d) => {
+            const safeMaxDebt = maxDebt > 0 ? maxDebt : 1;
+            const ratio = Math.min(100, Math.round((d.debt / safeMaxDebt) * 100));
+
+            return (
+              <div className="p-3.5 space-y-3">
+                {/* Top row: Child info + Debt amount */}
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <Avatar name={d.childName} size="md" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-charcoal-900 text-sm truncate">
+                        {d.childName}
+                      </p>
+                      <p className="text-xs text-charcoal-500 truncate mt-0.5">
+                        Ota-ona: <span className="text-charcoal-800 font-semibold">{d.parentName || '—'}</span>
+                      </p>
+                    </div>
+                  </div>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-rose-50 text-rose-600 border border-rose-200 font-extrabold text-xs tabular-nums shrink-0">
+                    <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+                    -{formatCurrency(d.debt)}
+                  </span>
+                </div>
+
+                {/* Progress ratio */}
+                <div className="space-y-1 bg-warm-50/70 p-2.5 rounded-[10px] border border-warm-200/60">
+                  <div className="flex justify-between text-[11px] text-charcoal-600 font-medium">
+                    <span>Qarz salmog‘i darajasi</span>
+                    <span className="font-bold text-charcoal-800">{ratio}%</span>
+                  </div>
+                  <ProgressBar value={ratio} fillClassName="bg-rose-500" />
+                </div>
+
+                {/* Footer strip: Phone + Tafsilot */}
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-warm-100/70" onClick={e => e.stopPropagation()}>
+                  {d.parentPhone ? (
+                    <a
+                      href={`tel:${d.parentPhone}`}
+                      className="inline-flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700 font-mono font-semibold py-1 px-2 rounded-[6px] hover:bg-brand-50 transition-colors"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                      <span>{d.parentPhone}</span>
+                    </a>
+                  ) : (
+                    <span className="text-xs text-charcoal-400 italic">Telefon kiritilmagan</span>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDebtor(d)}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:text-brand-700 py-1.5 px-2.5 rounded-[8px] hover:bg-brand-50 transition-colors shrink-0 ml-auto"
+                  >
+                    <span>Tafsilot</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          }}
           emptyTitle="Qarzdorlar topilmadi"
           emptyDescription={
             isParent

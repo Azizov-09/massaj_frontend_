@@ -208,7 +208,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         {isMobile ? (
           <button
             onClick={onMobileClose}
-            className="ml-auto p-1.5 rounded-[8px] text-charcoal-400 hover:text-charcoal-700 hover:bg-warm-100 transition-colors cursor-pointer"
+            className="ml-auto w-9 h-9 flex items-center justify-center rounded-[8px] text-charcoal-400 hover:text-charcoal-700 hover:bg-warm-100 active:bg-warm-200 transition-colors cursor-pointer"
             aria-label="Yopish"
           >
             <X className="w-5 h-5" />
@@ -240,7 +240,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
       {/* Role badge */}
       {(isMobile || !collapsed) && currentUser && (
         <div className="px-4 py-2">
-          <div className="px-2 py-1 rounded-[8px] bg-brand-50 inline-flex items-center gap-1.5 border border-brand-200/60">
+          <div className="px-2.5 py-1 rounded-[8px] bg-brand-50 inline-flex items-center gap-1.5 border border-brand-200/60">
             <div className="w-1.5 h-1.5 rounded-full bg-brand-500" />
             <span className="text-xs font-semibold text-brand-700">{getRoleLabel(currentUser.role)}</span>
           </div>
@@ -252,7 +252,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         {navGroups.map(group => (
           <div key={group.label} className="mb-1">
             {(isMobile || !collapsed) && (
-              <p className="px-2 py-1.5 text-[10px] font-semibold text-charcoal-400 uppercase tracking-wider">
+              <p className="px-2.5 py-1.5 text-[10px] font-semibold text-charcoal-400 uppercase tracking-wider">
                 {group.label}
               </p>
             )}
@@ -264,11 +264,12 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
                 onClick={onMobileClose}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-2.5 px-2.5 py-2 rounded-[10px] text-sm font-medium transition-all duration-150 relative group',
+                    'flex items-center gap-2.5 rounded-[10px] font-medium transition-all duration-150 relative group',
+                    isMobile ? 'min-h-[42px] px-3 py-2.5 text-sm' : 'px-2.5 py-2 text-sm',
                     !isMobile && collapsed && 'justify-center px-2',
                     isActive
-                      ? 'bg-brand-500 text-white shadow-sm'
-                      : 'text-charcoal-600 hover:bg-warm-100 hover:text-charcoal-900'
+                      ? 'bg-brand-500 text-white shadow-xs font-semibold'
+                      : 'text-charcoal-600 hover:bg-warm-100 hover:text-charcoal-900 active:bg-warm-200/60'
                   )
                 }
                 title={!isMobile && collapsed ? item.label : undefined}
@@ -351,11 +352,11 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
               aria-hidden
             />
             <motion.aside
-              initial={{ x: -280 }}
+              initial={{ x: -300 }}
               animate={{ x: 0 }}
-              exit={{ x: -280 }}
+              exit={{ x: -300 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed left-0 top-0 bottom-0 w-[280px] max-w-[85vw] bg-white border-r border-warm-200 z-[70] lg:hidden flex flex-col shadow-2xl safe-top safe-bottom"
+              className="fixed left-0 top-0 bottom-0 w-[290px] max-w-[85vw] bg-white border-r border-warm-200 z-[70] lg:hidden flex flex-col shadow-2xl safe-top safe-bottom"
             >
               {renderSidebarContent(true)}
             </motion.aside>

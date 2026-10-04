@@ -91,11 +91,11 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 shrink-0 bg-white/95 backdrop-blur-md border-b border-warm-200/90 px-4 lg:px-6 h-14 flex items-center gap-4 shadow-2xs safe-top">
+    <header className="sticky top-0 z-40 shrink-0 bg-white/90 backdrop-blur-md border-b border-warm-200/80 px-3.5 sm:px-4 lg:px-6 h-14 flex items-center gap-2.5 sm:gap-4 shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] safe-top">
       {/* Mobile menu button */}
       <button
         onClick={onMobileMenuOpen}
-        className="lg:hidden p-2 rounded-[8px] text-charcoal-600 hover:bg-warm-100 transition-colors"
+        className="lg:hidden w-9 h-9 flex items-center justify-center rounded-[10px] text-charcoal-700 hover:bg-warm-100 active:bg-warm-200 transition-colors cursor-pointer shrink-0"
         aria-label="Menyu"
       >
         <Menu className="w-5 h-5" />
@@ -104,22 +104,27 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
       {/* Breadcrumbs / Title */}
       <div className="flex-1 min-w-0">
         {breadcrumbs && breadcrumbs.length > 0 ? (
-          <nav aria-label="Joylashuv" className="flex items-center gap-1.5 text-sm">
-            {breadcrumbs.map((crumb, i) => (
-              <span key={i} className="flex items-center gap-1.5">
-                {i > 0 && <span className="text-charcoal-300">/</span>}
-                {crumb.path ? (
-                  <Link to={crumb.path} className="text-charcoal-400 hover:text-charcoal-700 transition-colors font-medium">
-                    {crumb.label}
-                  </Link>
-                ) : (
-                  <span className="text-charcoal-800 font-semibold">{crumb.label}</span>
-                )}
-              </span>
-            ))}
-          </nav>
+          <>
+            <nav aria-label="Joylashuv" className="hidden sm:flex items-center gap-1.5 text-sm">
+              {breadcrumbs.map((crumb, i) => (
+                <span key={i} className="flex items-center gap-1.5">
+                  {i > 0 && <span className="text-charcoal-300">/</span>}
+                  {crumb.path ? (
+                    <Link to={crumb.path} className="text-charcoal-400 hover:text-charcoal-700 transition-colors font-medium">
+                      {crumb.label}
+                    </Link>
+                  ) : (
+                    <span className="text-charcoal-800 font-semibold">{crumb.label}</span>
+                  )}
+                </span>
+              ))}
+            </nav>
+            <h1 className="sm:hidden text-sm font-bold text-charcoal-900 truncate">
+              {breadcrumbs[breadcrumbs.length - 1]?.label}
+            </h1>
+          </>
         ) : title ? (
-          <h1 className="text-sm font-semibold text-charcoal-900">{title}</h1>
+          <h1 className="text-sm font-bold text-charcoal-900 truncate">{title}</h1>
         ) : null}
       </div>
 
@@ -129,10 +134,10 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
         <div className="relative" ref={undefined}>
           <button
             onClick={() => setSearchOpen(v => !v)}
-            className="p-2 rounded-[8px] text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-[9px] text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 active:bg-warm-200 transition-colors cursor-pointer"
             aria-label="Qidirish"
           >
-            <Search className="w-4.5 h-4.5 w-[18px] h-[18px]" />
+            <Search className="w-4.5 h-4.5" />
           </button>
           <AnimatePresence>
             {searchOpen && (

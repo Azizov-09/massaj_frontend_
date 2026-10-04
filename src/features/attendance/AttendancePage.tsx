@@ -384,15 +384,15 @@ export function AttendancePage() {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative w-48 sm:w-60">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
+            <div className="relative w-full sm:w-60">
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Bola yoki mutaxassis..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full h-9 text-xs pl-8.5 pr-8 border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 shadow-2xs placeholder:text-charcoal-400 transition-all"
+                className="w-full h-9 text-xs pl-8.5 pr-8 border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 shadow-2xs placeholder:text-charcoal-400 transition-all font-medium"
               />
               {search && (
                 <button
@@ -407,10 +407,10 @@ export function AttendancePage() {
             </div>
 
             {currentUser?.role !== 'SPECIALIST' && (
-              <div className="w-48 sm:w-56">
+              <div className="w-full sm:w-56">
                 <Select
                   size="sm"
-                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
                   value={specialistFilter}
                   onChange={e => setSpecialistFilter(e.target.value)}
                   options={[
@@ -568,7 +568,7 @@ export function AttendancePage() {
                                   type="button"
                                   onClick={() => handleMark(appointment.id, appointment.childId, appointment.specialistId, opt.status, status)}
                                   className={cn(
-                                    'h-8 px-1.5 flex items-center justify-center gap-1.5 rounded-[7px] text-xs font-semibold transition-all duration-150 cursor-pointer active:scale-95',
+                                    'h-9 min-h-[36px] sm:h-8 sm:min-h-[32px] px-1 flex items-center justify-center gap-1 rounded-[8px] text-[11px] sm:text-xs font-semibold transition-all duration-150 cursor-pointer active:scale-95',
                                     isSelected
                                       ? cn(opt.activeClass, 'ring-1 ring-black/5')
                                       : 'text-charcoal-600 hover:text-charcoal-900 hover:bg-white/80'

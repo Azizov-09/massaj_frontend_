@@ -69,4 +69,27 @@ describe('Utils test suite', () => {
     expect(result.balance).toBe(300000);
     expect(result.debt).toBe(0);
   });
+
+  it('determines mobile viewport correctly with useIsMobile', async () => {
+    const { renderHook, act } = await import('@testing-library/react');
+    const { useIsMobile } = await import('./index');
+
+    // Default window.innerWidth in jsdom is 1024
+    const { result } = renderHook(() => useIsMobile(768));
+    expect(result.current).toBe(false);
+
+    // Simulate mobile viewport resize
+    act(() => {
+      window.innerWidth = 390;
+      window.dispatchEvent(new Event('resize'));
+    });
+    expect(result.current).toBe(true);
+
+    // Restore desktop
+    act(() => {
+      window.innerWidth = 1024;
+      window.dispatchEvent(new Event('resize'));
+    });
+    expect(result.current).toBe(false);
+  });
 });

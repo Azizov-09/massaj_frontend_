@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import {
   Plus, Search, Calendar, CheckCircle2, XCircle, Play, UserX, X,
-  Clock, Eye, Users, CheckCheck, Phone
+  Clock, Eye, Users, CheckCheck, Phone, ArrowRight
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import {
@@ -408,7 +408,7 @@ export function AppointmentsPage() {
             : `Jami ${appointments.length} ta uchrashuv`
         }
         actions={
-          <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>
+          <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)} className="w-full sm:w-auto">
             {isParent ? "Qabulga yozilish" : "Uchrashuv qo'shish"}
           </Button>
         }
@@ -537,9 +537,10 @@ export function AppointmentsPage() {
         </div>
 
         {/* Search & Filters */}
-        <div className="p-3.5 bg-white border-b border-warm-100 flex flex-wrap items-center gap-2.5">
+        {/* Search & Filters */}
+        <div className="p-3 sm:p-3.5 bg-white border-b border-warm-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
           {/* Search Input */}
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <div className="relative flex-1 w-full sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
             <input
               value={search}
@@ -559,77 +560,79 @@ export function AppointmentsPage() {
             )}
           </div>
 
-          {/* Specialist Filter (for admin/parent) */}
-          {!isSpecialist && (
-            <div className="w-44 sm:w-52">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            {/* Specialist Filter (for admin/parent) */}
+            {!isSpecialist && (
+              <div className="flex-1 min-w-[140px] sm:w-52">
+                <Select
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+                  value={specialistFilter}
+                  onChange={e => setSpecialistFilter(e.target.value)}
+                  options={[
+                    { value: '', label: 'Barcha mutaxassislar' },
+                    ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                  ]}
+                  aria-label="Mutaxassis bo'yicha filter"
+                />
+              </div>
+            )}
+
+            {/* Service Filter */}
+            <div className="flex-1 min-w-[140px] sm:w-48">
               <Select
                 size="sm"
                 triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
-                value={specialistFilter}
-                onChange={e => setSpecialistFilter(e.target.value)}
+                value={serviceFilter}
+                onChange={e => setServiceFilter(e.target.value)}
                 options={[
-                  { value: '', label: 'Barcha mutaxassislar' },
-                  ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                  { value: '', label: 'Barcha xizmatlar' },
+                  ...services.map(s => ({ value: s.id, label: s.name })),
                 ]}
-                aria-label="Mutaxassis bo'yicha filter"
+                aria-label="Xizmat bo'yicha filter"
               />
             </div>
-          )}
 
-          {/* Service Filter */}
-          <div className="w-40 sm:w-48">
-            <Select
-              size="sm"
-              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
-              value={serviceFilter}
-              onChange={e => setServiceFilter(e.target.value)}
-              options={[
-                { value: '', label: 'Barcha xizmatlar' },
-                ...services.map(s => ({ value: s.id, label: s.name })),
-              ]}
-              aria-label="Xizmat bo'yicha filter"
-            />
-          </div>
-
-          {/* Date Picker */}
-          <div className="flex items-center gap-1.5">
-            <div className="w-36 sm:w-40">
-              <DatePicker
-                size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
-                value={dateFilter}
-                onChange={e => setDateFilter(e.target.value)}
-                placeholder="Sana bo'yicha..."
-                aria-label="Sana bo'yicha filter"
-              />
+            {/* Date Picker */}
+            <div className="flex items-center gap-1.5 flex-1 min-w-[140px] sm:w-auto">
+              <div className="w-full sm:w-40">
+                <DatePicker
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+                  value={dateFilter}
+                  onChange={e => setDateFilter(e.target.value)}
+                  placeholder="Sana bo'yicha..."
+                  aria-label="Sana bo'yicha filter"
+                />
+              </div>
+              {dateFilter !== todayStr && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDateFilter(todayStr);
+                    setStatusTab('TODAY');
+                  }}
+                  className="h-9 px-2.5 rounded-[10px] text-xs font-semibold text-charcoal-700 bg-warm-100 hover:bg-warm-200 border border-warm-200 transition-colors shadow-2xs cursor-pointer shrink-0"
+                  title="Bugungi sanani tanlash"
+                >
+                  Bugun
+                </button>
+              )}
             </div>
-            {dateFilter !== todayStr && (
+
+            {/* Reset Filters Button */}
+            {hasActiveFilters && (
               <button
                 type="button"
-                onClick={() => {
-                  setDateFilter(todayStr);
-                  setStatusTab('TODAY');
-                }}
-                className="h-9 px-2.5 rounded-[10px] text-xs font-semibold text-charcoal-700 bg-warm-100 hover:bg-warm-200 border border-warm-200 transition-colors shadow-2xs cursor-pointer shrink-0"
-                title="Bugungi sanani tanlash"
+                onClick={resetAllFilters}
+                className="h-9 inline-flex items-center justify-center gap-1.5 px-3 rounded-[10px] text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors shadow-2xs cursor-pointer w-full sm:w-auto ml-auto sm:ml-0"
+                title="Barcha filtrlarni bekor qilish"
               >
-                Bugun
+                <X className="w-3.5 h-3.5" />
+                <span>Filtrlarni tozalash</span>
               </button>
             )}
           </div>
-
-          {/* Reset Filters Button */}
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={resetAllFilters}
-              className="h-9 inline-flex items-center gap-1.5 px-3 rounded-[10px] text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors shadow-2xs cursor-pointer ml-auto sm:ml-0"
-              title="Barcha filtrlarni bekor qilish"
-            >
-              <X className="w-3.5 h-3.5" />
-              <span>Filtrlarni tozalash</span>
-            </button>
-          )}
         </div>
 
         {/* Data Table */}
@@ -639,6 +642,102 @@ export function AppointmentsPage() {
           keyExtractor={r => r.id}
           tableClassName="min-w-[880px]"
           onRowClick={row => setViewingAppointmentId(row.id)}
+          renderMobileCard={(row) => {
+            const child = children.find(c => c.id === row.childId);
+            const spec = specialists.find(s => s.id === row.specialistId);
+            const parent = child ? parents.find(p => p.id === child.parentId) : null;
+            const svc = services.find(s => s.id === row.serviceId);
+            const isCurrentDate = row.date === todayStr;
+
+            return (
+              <div className="p-3.5 space-y-3">
+                {/* Header row: Time & Date + Status */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="inline-flex items-center gap-1.5 text-xs font-bold text-charcoal-900 bg-warm-100 px-2 py-0.5 rounded-[6px] border border-warm-200/80">
+                      <Clock className="w-3 h-3 text-brand-600 shrink-0" />
+                      <span>{row.startTime} – {row.endTime}</span>
+                    </div>
+                    <span className="text-xs font-semibold text-charcoal-600 flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-charcoal-400" />
+                      {formatDate(row.date)}
+                    </span>
+                    {isCurrentDate && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-[4px] bg-emerald-100 text-emerald-700 border border-emerald-200">
+                        Bugun
+                      </span>
+                    )}
+                  </div>
+                  <Badge className={cn('shadow-2xs font-semibold text-[11px] shrink-0', getAppointmentStatusColor(row.status))} dot>
+                    {getAppointmentStatusLabel(row.status)}
+                  </Badge>
+                </div>
+
+                {/* Child info */}
+                <div className="flex items-center gap-2.5">
+                  <Avatar name={child?.fullName || 'Bola'} size="md" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-charcoal-900 text-sm truncate">{child?.fullName || 'Noma\'lum bola'}</p>
+                    <p className="text-xs text-charcoal-500 truncate mt-0.5">
+                      {parent ? (
+                        <>Ota-ona: <span className="font-semibold text-charcoal-700">{parent.fullName}</span> {parent.phone && `• ${parent.phone}`}</>
+                      ) : (
+                        'Ota-ona biriktirilmagan'
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Specialist and Service details */}
+                <div className="grid grid-cols-2 gap-2 text-xs bg-warm-50/70 p-2.5 rounded-[10px] border border-warm-200/60">
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-bold text-charcoal-400 uppercase tracking-wider block">Mutaxassis</span>
+                    <p className="font-semibold text-charcoal-800 truncate mt-0.5">{spec?.fullName || 'Biriktirilmagan'}</p>
+                    <p className="text-charcoal-400 text-[11px] truncate">{spec?.specialization || 'Mutaxassis'}</p>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-bold text-charcoal-400 uppercase tracking-wider block">Xizmat</span>
+                    <p className="font-semibold text-charcoal-800 truncate mt-0.5">{svc?.name || 'Xizmat'}</p>
+                    <p className="text-charcoal-400 text-[11px] truncate">{svc?.durationMinutes} daq {svc?.price ? `• ${svc.price.toLocaleString()} so'm` : ''}</p>
+                  </div>
+                </div>
+
+                {/* Action buttons footer */}
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-warm-100/70" onClick={e => e.stopPropagation()}>
+                  <div className="flex items-center gap-1.5">
+                    {!isParent && row.status === 'SCHEDULED' && (
+                      <button
+                        type="button"
+                        onClick={() => setActionTarget({ id: row.id, action: 'confirm' })}
+                        className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-[8px] text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-2xs"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Tasdiqlash</span>
+                      </button>
+                    )}
+                    {!isParent && ['SCHEDULED', 'CONFIRMED'].includes(row.status) && (
+                      <button
+                        type="button"
+                        onClick={() => setActionTarget({ id: row.id, action: 'cancel' })}
+                        className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-[8px] text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shadow-2xs"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        <span>Bekor qilish</span>
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setViewingAppointmentId(row.id)}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:text-brand-700 py-1.5 px-2.5 rounded-[8px] hover:bg-brand-50 transition-colors shrink-0 ml-auto"
+                  >
+                    <span>Batafsil</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          }}
           emptyTitle="Uchrashuvlar topilmadi"
           emptyDescription={hasActiveFilters ? "Kiritilgan filtr parametrlariga mos keluvchi uchrashuvlar topilmadi." : "Hozircha hech qanday uchrashuv mavjud emas."}
           emptyIcon={<Calendar className="w-6 h-6 text-charcoal-400" />}

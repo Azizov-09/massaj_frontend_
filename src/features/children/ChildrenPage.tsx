@@ -258,12 +258,12 @@ export function ChildrenPage() {
   ];
 
   return (
-    <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
+    <div className="px-3.5 sm:px-4 lg:px-6 py-4 sm:py-6 max-w-[1600px] mx-auto space-y-4 sm:space-y-5">
       <PageHeader
         title={isParent ? "Farzandlarim" : "Bolalar"}
         description={isParent ? `Sizning ro'yxatdagi ${baseChildren.length} ta farzandingiz` : `Jami ${allChildren.length} ta bola, ${allChildren.filter(c => c.status === 'ACTIVE').length} ta faol`}
         actions={
-          <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>
+          <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)} className="w-full sm:w-auto">
             {isParent ? "Farzand qo'shish" : "Bola qo'shish"}
           </Button>
         }
@@ -272,7 +272,7 @@ export function ChildrenPage() {
       {/* Main Table Card */}
       <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
         {/* Status Tabs Bar */}
-        <div className="px-4 py-3 bg-warm-50/70 border-b border-warm-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="px-3.5 sm:px-4 py-2.5 sm:py-3 bg-warm-50/70 border-b border-warm-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
           <div className="flex items-center gap-1.5 overflow-x-auto touch-scroll-x scrollbar-thin py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
             {[
               { key: '', label: 'Barchasi', count: statusCounts.all },
@@ -318,9 +318,9 @@ export function ChildrenPage() {
         </div>
 
         {/* Filters Bar */}
-        <div className="p-3.5 bg-white border-b border-warm-100 flex flex-wrap items-center gap-2.5">
+        <div className="p-3 sm:p-3.5 bg-white border-b border-warm-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
           {/* Search */}
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <div className="relative flex-1 w-full sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
             <input
               value={search}
@@ -341,7 +341,7 @@ export function ChildrenPage() {
           </div>
 
           {/* Specialist filter */}
-          <div className="w-48 sm:w-56">
+          <div className="w-full sm:w-56">
             <Select
               size="sm"
               triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
@@ -361,7 +361,7 @@ export function ChildrenPage() {
             <button
               type="button"
               onClick={resetFilters}
-              className="h-9 inline-flex items-center gap-1.5 px-3 rounded-[10px] text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors shadow-2xs cursor-pointer ml-auto sm:ml-0"
+              className="h-9 inline-flex items-center justify-center gap-1.5 px-3 rounded-[10px] text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors shadow-2xs cursor-pointer w-full sm:w-auto"
               title="Barcha filtrlarni bekor qilish"
             >
               <X className="w-3.5 h-3.5" />
@@ -370,13 +370,123 @@ export function ChildrenPage() {
           )}
         </div>
 
-        {/* Data Table */}
+        {/* Data Table with Bespoke Mobile Cards */}
         <DataTable
           data={filtered}
           columns={columns}
           keyExtractor={r => r.id}
           tableClassName="min-w-[900px]"
           onRowClick={r => setSelectedChild(r)}
+          renderMobileCard={(row) => {
+            const parent = parents.find(p => p.id === row.parentId);
+            const spec = specialists.find(s => s.id === row.assignedSpecialistId);
+            const bal = balancesMap.get(row.id) ?? { balance: 0, debt: 0 };
+            const next = nextAppointmentsMap.get(row.id);
+
+            return (
+              <div className="p-3.5 space-y-3">
+                {/* Header row: Avatar + Name + Diagnosis + Status */}
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <Avatar name={row.fullName} size="md" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-bold text-charcoal-900 text-sm truncate">
+                          {row.fullName}
+                        </span>
+                        {row.diagnosis && (
+                          <span className="text-[10px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded shrink-0">
+                            {row.diagnosis}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5 text-xs text-charcoal-500">
+                        <span className="font-semibold text-charcoal-700">{formatAge(row.dateOfBirth)}</span>
+                        <span>•</span>
+                        <span className="text-charcoal-400">{formatDate(row.dateOfBirth)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Badge className={cn('shadow-2xs font-semibold shrink-0 text-[11px]', getEntityStatusColor(row.status))} dot>
+                    {getEntityStatusLabel(row.status)}
+                  </Badge>
+                </div>
+
+                {/* Info block: Parent & Specialist */}
+                <div className="grid grid-cols-2 gap-2 text-xs bg-warm-50/70 p-2.5 rounded-[10px] border border-warm-200/60">
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-bold text-charcoal-400 uppercase tracking-wider block">Ota-ona</span>
+                    {parent ? (
+                      <div className="mt-0.5">
+                        <p className="font-semibold text-charcoal-800 truncate">{parent.fullName}</p>
+                        {parent.phone && (
+                          <a
+                            href={`tel:${parent.phone}`}
+                            onClick={e => e.stopPropagation()}
+                            className="text-brand-600 hover:text-brand-700 font-mono text-[11px] hover:underline block truncate mt-0.5"
+                          >
+                            {parent.phone}
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-charcoal-400 italic text-[11px]">Biriktirilmagan</span>
+                    )}
+                  </div>
+
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-bold text-charcoal-400 uppercase tracking-wider block">Mutaxassis</span>
+                    {spec ? (
+                      <div className="mt-0.5">
+                        <p className="font-semibold text-charcoal-800 truncate">{spec.fullName}</p>
+                        <p className="text-charcoal-400 text-[11px] truncate">{spec.specialization || 'Mutaxassis'}</p>
+                      </div>
+                    ) : (
+                      <span className="text-charcoal-400 text-[11px]">Biriktirilmagan</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Footer row: Balance + Next appointment + View action */}
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-warm-100/70">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {bal.balance > 0 && (
+                      <span className="inline-flex items-center text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[6px] border border-emerald-200/80 tabular-nums">
+                        +{formatCurrencyCompact(bal.balance)}
+                      </span>
+                    )}
+                    {bal.debt > 0 && (
+                      <span className="inline-flex items-center text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-[6px] border border-rose-200/80 tabular-nums">
+                        Qarz: {formatCurrencyCompact(bal.debt)}
+                      </span>
+                    )}
+                    {bal.balance === 0 && bal.debt === 0 && (
+                      <span className="text-charcoal-400 text-xs font-semibold">0 so'm</span>
+                    )}
+
+                    {next && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-charcoal-600 bg-warm-100/80 px-2 py-0.5 rounded-[6px]">
+                        <Calendar className="w-3 h-3 text-brand-600 shrink-0" />
+                        <span>{formatDate(next.date)}</span>
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedChild(row);
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:text-brand-700 py-1 px-2 rounded-[6px] hover:bg-brand-50 transition-colors shrink-0"
+                  >
+                    <span>Batafsil</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          }}
           emptyTitle="Bolalar topilmadi"
           emptyDescription={activeFilterCount > 0 ? "Qidiruv shartlariga mos bola topilmadi. Filtrlarni tozalab ko'ring." : "Hozircha hech qanday bola kiritilmagan."}
           emptyIcon={<Baby className="w-5 h-5 text-charcoal-400" />}

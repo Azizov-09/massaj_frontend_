@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import {
   Plus, Search, Wallet, TrendingUp, Receipt, Calendar,
   CreditCard, Banknote, ArrowLeftRight, Clock, X, Eye,
-  CheckCircle2, Printer, Baby, User
+  CheckCircle2, Printer, Baby, User, ArrowRight
 } from 'lucide-react';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -244,7 +244,7 @@ export function PaymentsPage() {
         }
         actions={
           canManagePayments ? (
-            <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>
+            <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)} className="w-full sm:w-auto">
               To'lov qabul qilish
             </Button>
           ) : undefined
@@ -380,9 +380,9 @@ export function PaymentsPage() {
         </div>
 
         {/* Filter bar */}
-        <div className="p-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-warm-100 bg-warm-50/40">
-          <div className="flex flex-1 items-center gap-2.5">
-            <div className="relative flex-1 min-w-[200px] max-w-sm">
+        <div className="p-3 sm:p-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-warm-100 bg-warm-50/40">
+          <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-2.5">
+            <div className="relative flex-1 w-full sm:max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
               <input
                 value={search}
@@ -406,7 +406,7 @@ export function PaymentsPage() {
                 variant="ghost"
                 size="sm"
                 onClick={resetFilters}
-                className="h-9 px-2.5 text-xs text-charcoal-500 hover:text-charcoal-800"
+                className="h-9 px-2.5 text-xs text-charcoal-500 hover:text-charcoal-800 w-full sm:w-auto justify-center"
               >
                 Filtrni tozalash
               </Button>
@@ -427,6 +427,68 @@ export function PaymentsPage() {
           keyExtractor={r => r.id}
           onRowClick={(p) => setSelectedPayment(p)}
           tableClassName="min-w-[900px]"
+          renderMobileCard={(row) => {
+            const parent = parents.find(p => p.id === row.parentId);
+            const child = children.find(c => c.id === row.childId);
+
+            return (
+              <div className="p-3.5 space-y-3">
+                {/* Top row: Parent + Amount */}
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <Avatar name={parent?.fullName || 'Ota-ona'} size="md" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-charcoal-900 text-sm truncate">
+                        {parent?.fullName ?? 'Noma\'lum ota-ona'}
+                      </p>
+                      {parent?.phone && (
+                        <p className="text-xs text-charcoal-400 font-mono mt-0.5">{parent.phone}</p>
+                      )}
+                    </div>
+                  </div>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200/60 tabular-nums shrink-0">
+                    +{formatCurrency(row.amount)}
+                  </span>
+                </div>
+
+                {/* Details strip */}
+                <div className="flex items-center justify-between gap-2 text-xs bg-warm-50/70 p-2.5 rounded-[10px] border border-warm-200/60">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {getMethodBadge(row.method)}
+                    {child && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-800 bg-brand-50/70 px-2 py-0.5 rounded-[6px] border border-brand-200/50">
+                        <Baby className="w-3 h-3 text-brand-600 shrink-0" />
+                        <span className="truncate max-w-[120px]">{child.fullName}</span>
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-right text-[11px] text-charcoal-400 font-medium shrink-0">
+                    {formatDateTime(row.date)}
+                  </div>
+                </div>
+
+                {/* Notes if any */}
+                {row.notes && (
+                  <p className="text-xs text-charcoal-500 italic bg-white px-2.5 py-1.5 rounded-[8px] border border-warm-100 line-clamp-2">
+                    "{row.notes}"
+                  </p>
+                )}
+
+                {/* Footer action */}
+                <div className="flex items-center justify-between pt-1 border-t border-warm-100/70" onClick={e => e.stopPropagation()}>
+                  <span className="text-[11px] text-charcoal-400 font-mono">#{row.id.slice(0, 8)}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPayment(row)}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:text-brand-700 py-1.5 px-2.5 rounded-[8px] hover:bg-brand-50 transition-colors shrink-0"
+                  >
+                    <span>Kvitansiya</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          }}
           emptyTitle="To'lovlar topilmadi"
           emptyDescription={
             hasActiveFilters

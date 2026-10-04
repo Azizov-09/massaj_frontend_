@@ -243,7 +243,7 @@ export function ParentsPage() {
         title="Ota-onalar"
         description={`Jami ${parents.length} ta ota-ona ro'yxati va ularning bolalari`}
         actions={
-          <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>
+          <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)} className="w-full sm:w-auto">
             Ota-ona qo'shish
           </Button>
         }
@@ -359,15 +359,15 @@ export function ParentsPage() {
         </div>
 
         {/* Filter bar */}
-        <div className="p-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-warm-100 bg-warm-50/40">
-          <div className="flex flex-1 items-center gap-2.5">
-            <div className="relative flex-1 min-w-[200px] max-w-md">
+        <div className="p-3 sm:p-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-warm-100 bg-warm-50/40">
+          <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-2.5">
+            <div className="relative flex-1 w-full sm:max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Ota-ona ismi, telefon yoki bola ismi..."
-                className="w-full h-9 pl-9 pr-8 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none transition-all"
+                className="w-full h-9 pl-9 pr-8 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none transition-all font-medium"
               />
               {search && (
                 <button
@@ -385,7 +385,7 @@ export function ParentsPage() {
                 variant="ghost"
                 size="sm"
                 onClick={resetFilters}
-                className="h-9 px-2.5 text-xs text-charcoal-500 hover:text-charcoal-800"
+                className="h-9 px-2.5 text-xs text-charcoal-500 hover:text-charcoal-800 w-full sm:w-auto justify-center"
               >
                 Filtrni tozalash
               </Button>
@@ -406,6 +406,59 @@ export function ParentsPage() {
           keyExtractor={r => r.id}
           onRowClick={(parent) => setSelectedParent(parent)}
           tableClassName="min-w-[850px]"
+          renderMobileCard={(row) => {
+            const childCount = row.childrenIds?.length || 0;
+            return (
+              <div className="p-3.5 space-y-3">
+                {/* Header: Avatar + Parent name + Status */}
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <Avatar name={row.fullName} size="md" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-charcoal-900 text-sm truncate">{row.fullName}</p>
+                      {row.phone && (
+                        <a
+                          href={`tel:${row.phone}`}
+                          onClick={e => e.stopPropagation()}
+                          className="text-xs text-brand-600 hover:text-brand-700 font-mono mt-0.5 inline-block"
+                        >
+                          {row.phone}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <Badge className={cn('shadow-2xs font-semibold shrink-0 text-[11px]', getEntityStatusColor(row.status))} dot>
+                    {getEntityStatusLabel(row.status)}
+                  </Badge>
+                </div>
+
+                {/* Info strip: Children + Address/Email */}
+                <div className="grid grid-cols-2 gap-2 text-xs bg-warm-50/70 p-2.5 rounded-[10px] border border-warm-200/60">
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-bold text-charcoal-400 uppercase tracking-wider block">Farzandlar</span>
+                    <p className="font-semibold text-charcoal-800 mt-0.5">{childCount} nafar bola</p>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-bold text-charcoal-400 uppercase tracking-wider block">Manzil</span>
+                    <p className="text-charcoal-700 truncate mt-0.5">{row.address || 'Kiritilmagan'}</p>
+                  </div>
+                </div>
+
+                {/* Footer action */}
+                <div className="flex items-center justify-between pt-1 border-t border-warm-100/70" onClick={e => e.stopPropagation()}>
+                  <span className="text-[11px] text-charcoal-400 font-mono">#{row.id.slice(0, 8)}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedParent(row)}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:text-brand-700 py-1.5 px-2.5 rounded-[8px] hover:bg-brand-50 transition-colors shrink-0"
+                  >
+                    <span>Batafsil</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          }}
           emptyTitle="Ota-onalar topilmadi"
           emptyDescription={
             hasActiveFilters
