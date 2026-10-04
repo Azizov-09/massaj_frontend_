@@ -619,7 +619,7 @@ export function ProgressPage() {
           <div className="w-full sm:w-48">
             <Select
               size="sm"
-              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
               value={activeTab}
               onChange={e => setActiveTab(e.target.value as EventTypeFilter)}
               options={[
@@ -633,34 +633,50 @@ export function ProgressPage() {
             />
           </div>
 
-          {/* Child Select */}
-          <div className="w-48 sm:w-56">
-            <Select
-              size="sm"
-              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
-              value={selectedChildId}
-              onChange={e => setSelectedChildId(e.target.value)}
-              options={[
-                { value: '', label: isParent ? "Barcha farzandlarim" : "Barcha bolalar" },
-                ...availableChildren.map(c => ({ value: c.id, label: c.fullName })),
-              ]}
-              aria-label="Bola bo'yicha filter"
-            />
-          </div>
+          {!isSpecialist && !isParent ? (
+            <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:gap-2.5 sm:w-auto">
+              {/* Child Select */}
+              <div className="w-full sm:w-56">
+                <Select
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                  value={selectedChildId}
+                  onChange={e => setSelectedChildId(e.target.value)}
+                  options={[
+                    { value: '', label: isParent ? "Barcha farzandlarim" : "Barcha bolalar" },
+                    ...availableChildren.map(c => ({ value: c.id, label: c.fullName })),
+                  ]}
+                  aria-label="Bola bo'yicha filter"
+                />
+              </div>
 
-          {/* Specialist Select */}
-          {!isSpecialist && !isParent && (
-            <div className="w-44 sm:w-52">
+              {/* Specialist Select */}
+              <div className="w-full sm:w-52">
+                <Select
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                  value={specialistFilter}
+                  onChange={e => setSpecialistFilter(e.target.value)}
+                  options={[
+                    { value: '', label: 'Barcha mutaxassislar' },
+                    ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                  ]}
+                  aria-label="Mutaxassis bo'yicha filter"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="w-full sm:w-56">
               <Select
                 size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
-                value={specialistFilter}
-                onChange={e => setSpecialistFilter(e.target.value)}
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                value={selectedChildId}
+                onChange={e => setSelectedChildId(e.target.value)}
                 options={[
-                  { value: '', label: 'Barcha mutaxassislar' },
-                  ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                  { value: '', label: isParent ? "Barcha farzandlarim" : "Barcha bolalar" },
+                  ...availableChildren.map(c => ({ value: c.id, label: c.fullName })),
                 ]}
-                aria-label="Mutaxassis bo'yicha filter"
+                aria-label="Bola bo'yicha filter"
               />
             </div>
           )}
@@ -670,7 +686,7 @@ export function ProgressPage() {
             <button
               type="button"
               onClick={resetAllFilters}
-              className="px-3 py-1.5 rounded-[10px] text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200/80 shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="h-9 px-3 rounded-[10px] text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 shadow-2xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto ml-auto sm:ml-0"
             >
               <X className="w-3.5 h-3.5" />
               <span>Filtrlarni tozalash</span>

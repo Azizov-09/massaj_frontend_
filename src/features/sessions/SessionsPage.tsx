@@ -504,95 +504,97 @@ export function SessionsPage() {
             )}
           </div>
 
-          {/* Status Filter */}
-          <div className="w-full sm:w-48">
-            <Select
-              size="sm"
-              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
-              value={statusTab}
-              onChange={e => setStatusTab(e.target.value as StatusTabKey)}
-              options={[
-                { value: 'ALL', label: `Barcha seanslar (${counts.all})` },
-                { value: 'TODAY', label: `Bugun (${counts.today})` },
-                { value: 'IN_PROGRESS', label: `Jarayonda (${counts.inProgress})` },
-                { value: 'COMPLETED', label: `Yakunlangan (${counts.completed})` },
-                { value: 'CANCELLED', label: `Bekor qilingan (${counts.cancelled})` },
-              ]}
-              aria-label="Holat bo'yicha filter"
-            />
-          </div>
-
-          {/* Specialist Filter (for admin/parent) */}
-          {!isSpecialist && (
-            <div className="w-44 sm:w-52">
+          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:flex-wrap sm:items-center sm:gap-2 sm:w-auto">
+            {/* Status Filter */}
+            <div className="w-full sm:w-48">
               <Select
                 size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
-                value={specialistFilter}
-                onChange={e => setSpecialistFilter(e.target.value)}
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                value={statusTab}
+                onChange={e => setStatusTab(e.target.value as StatusTabKey)}
                 options={[
-                  { value: '', label: 'Barcha mutaxassislar' },
-                  ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                  { value: 'ALL', label: `Barcha seanslar (${counts.all})` },
+                  { value: 'TODAY', label: `Bugun (${counts.today})` },
+                  { value: 'IN_PROGRESS', label: `Jarayonda (${counts.inProgress})` },
+                  { value: 'COMPLETED', label: `Yakunlangan (${counts.completed})` },
+                  { value: 'CANCELLED', label: `Bekor qilingan (${counts.cancelled})` },
                 ]}
-                aria-label="Mutaxassis bo'yicha filter"
+                aria-label="Holat bo'yicha filter"
               />
             </div>
-          )}
 
-          {/* Service Filter */}
-          <div className="w-40 sm:w-48">
-            <Select
-              size="sm"
-              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
-              value={serviceFilter}
-              onChange={e => setServiceFilter(e.target.value)}
-              options={[
-                { value: '', label: 'Barcha xizmatlar' },
-                ...services.map(s => ({ value: s.id, label: s.name })),
-              ]}
-              aria-label="Xizmat bo'yicha filter"
-            />
-          </div>
+            {/* Specialist Filter (for admin/parent) */}
+            {!isSpecialist && (
+              <div className="w-full sm:w-52">
+                <Select
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                  value={specialistFilter}
+                  onChange={e => setSpecialistFilter(e.target.value)}
+                  options={[
+                    { value: '', label: 'Barcha mutaxassislar' },
+                    ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                  ]}
+                  aria-label="Mutaxassis bo'yicha filter"
+                />
+              </div>
+            )}
 
-          {/* Date Picker */}
-          <div className="flex items-center gap-1.5">
-            <div className="w-36 sm:w-40">
-              <DatePicker
+            {/* Service Filter */}
+            <div className="w-full sm:w-48">
+              <Select
                 size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
-                value={dateFilter}
-                onChange={e => setDateFilter(e.target.value)}
-                placeholder="Sana bo'yicha..."
-                aria-label="Sana bo'yicha filter"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                value={serviceFilter}
+                onChange={e => setServiceFilter(e.target.value)}
+                options={[
+                  { value: '', label: 'Barcha xizmatlar' },
+                  ...services.map(s => ({ value: s.id, label: s.name })),
+                ]}
+                aria-label="Xizmat bo'yicha filter"
               />
             </div>
-            {dateFilter !== todayStr && (
+
+            {/* Date Picker */}
+            <div className={cn("w-full sm:w-auto flex items-center gap-1.5", isSpecialist && "col-span-2 sm:col-span-1")}>
+              <div className="w-full sm:w-40">
+                <DatePicker
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                  value={dateFilter}
+                  onChange={e => setDateFilter(e.target.value)}
+                  placeholder="Sana bo'yicha..."
+                  aria-label="Sana bo'yicha filter"
+                />
+              </div>
+              {dateFilter !== todayStr && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDateFilter(todayStr);
+                    setStatusTab('TODAY');
+                  }}
+                  className="hidden sm:inline-flex h-9 px-2.5 rounded-[10px] text-xs font-semibold text-charcoal-700 bg-warm-100 hover:bg-warm-200 border border-warm-200 transition-colors shadow-2xs cursor-pointer shrink-0"
+                  title="Bugungi sanani tanlash"
+                >
+                  Bugun
+                </button>
+              )}
+            </div>
+
+            {/* Reset Filters Button */}
+            {hasActiveFilters && (
               <button
                 type="button"
-                onClick={() => {
-                  setDateFilter(todayStr);
-                  setStatusTab('TODAY');
-                }}
-                className="h-9 px-2.5 rounded-[10px] text-xs font-semibold text-charcoal-700 bg-warm-100 hover:bg-warm-200 border border-warm-200 transition-colors shadow-2xs cursor-pointer shrink-0"
-                title="Bugungi sanani tanlash"
+                onClick={resetAllFilters}
+                className="col-span-2 sm:col-span-1 h-9 inline-flex items-center justify-center gap-1.5 px-3 rounded-[10px] text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors shadow-2xs cursor-pointer w-full sm:w-auto ml-auto sm:ml-0"
+                title="Barcha filtrlarni bekor qilish"
               >
-                Bugun
+                <X className="w-3.5 h-3.5" />
+                <span>Filtrlarni tozalash</span>
               </button>
             )}
           </div>
-
-          {/* Reset Filters Button */}
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={resetAllFilters}
-              className="h-9 inline-flex items-center gap-1.5 px-3 rounded-[10px] text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors shadow-2xs cursor-pointer ml-auto sm:ml-0"
-              title="Barcha filtrlarni bekor qilish"
-            >
-              <X className="w-3.5 h-3.5" />
-              <span>Filtrlarni tozalash</span>
-            </button>
-          )}
         </div>
 
         {/* Data Table */}

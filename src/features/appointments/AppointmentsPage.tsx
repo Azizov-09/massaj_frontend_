@@ -561,12 +561,12 @@ export function AppointmentsPage() {
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:flex-wrap sm:items-center sm:gap-2 sm:w-auto">
             {/* Status Filter */}
-            <div className="flex-1 min-w-[140px] sm:w-48">
+            <div className="w-full sm:w-48">
               <Select
                 size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
                 value={statusTab}
                 onChange={e => setStatusTab(e.target.value as StatusTabKey)}
                 options={[
@@ -583,10 +583,10 @@ export function AppointmentsPage() {
 
             {/* Specialist Filter (for admin/parent) */}
             {!isSpecialist && (
-              <div className="flex-1 min-w-[140px] sm:w-52">
+              <div className="w-full sm:w-52">
                 <Select
                   size="sm"
-                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
                   value={specialistFilter}
                   onChange={e => setSpecialistFilter(e.target.value)}
                   options={[
@@ -599,10 +599,10 @@ export function AppointmentsPage() {
             )}
 
             {/* Service Filter */}
-            <div className="flex-1 min-w-[140px] sm:w-48">
+            <div className="w-full sm:w-48">
               <Select
                 size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
                 value={serviceFilter}
                 onChange={e => setServiceFilter(e.target.value)}
                 options={[
@@ -614,11 +614,11 @@ export function AppointmentsPage() {
             </div>
 
             {/* Date Picker */}
-            <div className="flex items-center gap-1.5 flex-1 min-w-[140px] sm:w-auto">
+            <div className={cn("w-full sm:w-auto flex items-center gap-1.5", isSpecialist && "col-span-2 sm:col-span-1")}>
               <div className="w-full sm:w-40">
                 <DatePicker
                   size="sm"
-                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
                   value={dateFilter}
                   onChange={e => setDateFilter(e.target.value)}
                   placeholder="Sana bo'yicha..."
@@ -632,7 +632,7 @@ export function AppointmentsPage() {
                     setDateFilter(todayStr);
                     setStatusTab('TODAY');
                   }}
-                  className="h-9 px-2.5 rounded-[10px] text-xs font-semibold text-charcoal-700 bg-warm-100 hover:bg-warm-200 border border-warm-200 transition-colors shadow-2xs cursor-pointer shrink-0"
+                  className="hidden sm:inline-flex h-9 px-2.5 rounded-[10px] text-xs font-semibold text-charcoal-700 bg-warm-100 hover:bg-warm-200 border border-warm-200 transition-colors shadow-2xs cursor-pointer shrink-0"
                   title="Bugungi sanani tanlash"
                 >
                   Bugun
@@ -645,7 +645,7 @@ export function AppointmentsPage() {
               <button
                 type="button"
                 onClick={resetAllFilters}
-                className="h-9 inline-flex items-center justify-center gap-1.5 px-3 rounded-[10px] text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors shadow-2xs cursor-pointer w-full sm:w-auto ml-auto sm:ml-0"
+                className="col-span-2 sm:col-span-1 h-9 inline-flex items-center justify-center gap-1.5 px-3 rounded-[10px] text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors shadow-2xs cursor-pointer w-full sm:w-auto ml-auto sm:ml-0"
                 title="Barcha filtrlarni bekor qilish"
               >
                 <X className="w-3.5 h-3.5" />

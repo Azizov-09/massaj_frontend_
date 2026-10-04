@@ -434,63 +434,65 @@ export function TransactionsPage() {
               )}
             </div>
 
-            {/* Direction / Tab selector */}
-            <div className="w-full sm:w-44">
-              <Select
-                value={activeTab}
-                onChange={e => setActiveTab(e.target.value as any)}
-                size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
-                options={[
-                  { value: 'ALL', label: `Barchasi (${transactions.length})` },
-                  { value: 'IN', label: `Kirim (${inCount})` },
-                  { value: 'OUT', label: `Chiqim (${outCount})` },
-                  { value: 'EXPENSE', label: `Xarajatlar (${expenseCount})` },
-                ]}
-                aria-label="Yo'nalish bo'yicha filter"
-              />
-            </div>
+            <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:gap-2 sm:w-auto">
+              {/* Direction / Tab selector */}
+              <div className="w-full sm:w-44">
+                <Select
+                  value={activeTab}
+                  onChange={e => setActiveTab(e.target.value as any)}
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                  options={[
+                    { value: 'ALL', label: `Barchasi (${transactions.length})` },
+                    { value: 'IN', label: `Kirim (${inCount})` },
+                    { value: 'OUT', label: `Chiqim (${outCount})` },
+                    { value: 'EXPENSE', label: `Xarajatlar (${expenseCount})` },
+                  ]}
+                  aria-label="Yo'nalish bo'yicha filter"
+                />
+              </div>
 
-            {/* Type selector */}
-            <div className="w-full sm:w-44">
-              <Select
-                value={typeFilter}
-                onChange={e => setTypeFilter(e.target.value)}
-                size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
-                options={[
-                  { value: '', label: 'Barcha operatsiyalar' },
-                  { value: 'PAYMENT', label: 'To‘lov (Payment)' },
-                  { value: 'SESSION_CHARGE', label: 'Seans haqi' },
-                  { value: 'REFUND', label: 'Qaytarish' },
-                  { value: 'ADJUSTMENT', label: 'Tuzatish' },
-                  { value: 'EXPENSE', label: 'Xarajat' },
-                ]}
-                aria-label="Operatsiya turi bo'yicha filter"
-              />
+              {/* Type selector */}
+              <div className="w-full sm:w-44">
+                <Select
+                  value={typeFilter}
+                  onChange={e => setTypeFilter(e.target.value)}
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                  options={[
+                    { value: '', label: 'Barcha operatsiyalar' },
+                    { value: 'PAYMENT', label: 'To‘lov (Payment)' },
+                    { value: 'SESSION_CHARGE', label: 'Seans haqi' },
+                    { value: 'REFUND', label: 'Qaytarish' },
+                    { value: 'ADJUSTMENT', label: 'Tuzatish' },
+                    { value: 'EXPENSE', label: 'Xarajat' },
+                  ]}
+                  aria-label="Operatsiya turi bo'yicha filter"
+                />
+              </div>
             </div>
 
             {/* Date from & to */}
-            <div className="flex items-center gap-1.5 text-xs">
-              <div className="w-32">
+            <div className="flex items-center gap-1.5 text-xs w-full sm:w-auto">
+              <div className="flex-1 sm:w-32">
                 <DatePicker
                   size="sm"
                   value={dateFrom}
                   onChange={e => setDateFrom(e.target.value)}
                   placeholder="Dan"
                   aria-label="Boshlanish sanasi"
-                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 w-full"
                 />
               </div>
-              <span className="text-charcoal-400">—</span>
-              <div className="w-32">
+              <span className="text-charcoal-400 shrink-0">—</span>
+              <div className="flex-1 sm:w-32">
                 <DatePicker
                   size="sm"
                   value={dateTo}
                   onChange={e => setDateTo(e.target.value)}
                   placeholder="Gacha"
                   aria-label="Tugash sanasi"
-                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 w-full"
                 />
               </div>
             </div>
@@ -500,7 +502,7 @@ export function TransactionsPage() {
                 variant="ghost"
                 size="sm"
                 onClick={resetFilters}
-                className="h-9 px-2.5 text-xs text-charcoal-500 hover:text-charcoal-800"
+                className="h-9 px-2.5 text-xs text-charcoal-500 hover:text-charcoal-800 w-full sm:w-auto ml-auto sm:ml-0"
               >
                 Filtrni tozalash
               </Button>

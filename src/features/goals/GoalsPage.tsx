@@ -216,11 +216,11 @@ export function GoalsPage() {
       {/* Filter strip */}
       <Card className="p-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:gap-3 sm:w-auto">
             <div className="w-full sm:w-56">
               <Select
                 size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 w-full"
                 value={selectedChildId}
                 onChange={e => setSelectedChildId(e.target.value)}
                 options={[
@@ -234,7 +234,7 @@ export function GoalsPage() {
             <div className="w-full sm:w-48">
               <Select
                 size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300"
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 w-full"
                 value={selectedStatus}
                 onChange={e => setSelectedStatus(e.target.value)}
                 options={[

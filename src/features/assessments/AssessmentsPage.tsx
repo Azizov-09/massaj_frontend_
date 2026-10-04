@@ -626,7 +626,7 @@ export function AssessmentsPage() {
           <div className="w-full sm:w-48">
             <Select
               size="sm"
-              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
+              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
               value={scoreTab}
               onChange={e => setScoreTab(e.target.value as ScoreFilter)}
               options={[
@@ -639,34 +639,50 @@ export function AssessmentsPage() {
             />
           </div>
 
-          {/* Child Select */}
-          <div className="w-48 sm:w-56">
-            <Select
-              size="sm"
-              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
-              value={selectedChildId}
-              onChange={e => setSelectedChildId(e.target.value)}
-              options={[
-                { value: '', label: 'Barcha bolalar' },
-                ...children.map(c => ({ value: c.id, label: c.fullName })),
-              ]}
-              aria-label="Bola bo'yicha filter"
-            />
-          </div>
+          {!isSpecialist ? (
+            <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:gap-2.5 sm:w-auto">
+              {/* Child Select */}
+              <div className="w-full sm:w-56">
+                <Select
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                  value={selectedChildId}
+                  onChange={e => setSelectedChildId(e.target.value)}
+                  options={[
+                    { value: '', label: 'Barcha bolalar' },
+                    ...children.map(c => ({ value: c.id, label: c.fullName })),
+                  ]}
+                  aria-label="Bola bo'yicha filter"
+                />
+              </div>
 
-          {/* Specialist Select */}
-          {!isSpecialist && (
-            <div className="w-44 sm:w-52">
+              {/* Specialist Select */}
+              <div className="w-full sm:w-52">
+                <Select
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                  value={specialistFilter}
+                  onChange={e => setSpecialistFilter(e.target.value)}
+                  options={[
+                    { value: '', label: 'Barcha mutaxassislar' },
+                    ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                  ]}
+                  aria-label="Mutaxassis bo'yicha filter"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="w-full sm:w-56">
               <Select
                 size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium"
-                value={specialistFilter}
-                onChange={e => setSpecialistFilter(e.target.value)}
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                value={selectedChildId}
+                onChange={e => setSelectedChildId(e.target.value)}
                 options={[
-                  { value: '', label: 'Barcha mutaxassislar' },
-                  ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                  { value: '', label: 'Barcha bolalar' },
+                  ...children.map(c => ({ value: c.id, label: c.fullName })),
                 ]}
-                aria-label="Mutaxassis bo'yicha filter"
+                aria-label="Bola bo'yicha filter"
               />
             </div>
           )}
@@ -676,7 +692,7 @@ export function AssessmentsPage() {
             <button
               type="button"
               onClick={resetAllFilters}
-              className="h-9 inline-flex items-center gap-1.5 px-3 rounded-[10px] text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors shadow-2xs cursor-pointer ml-auto sm:ml-0"
+              className="h-9 inline-flex items-center justify-center gap-1.5 px-3 rounded-[10px] text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors shadow-2xs cursor-pointer w-full sm:w-auto ml-auto sm:ml-0"
               title="Barcha filtrlarni bekor qilish"
             >
               <X className="w-3.5 h-3.5" />
