@@ -47,13 +47,20 @@ function resolveDefaultBaseUrl(): string {
 
 const BASE_URL = resolveDefaultBaseUrl();
 
+export interface RequestOptions extends RequestInit {
+  _retry?: boolean;
+}
+
 export class ApiClient {
   private token: string | null = null;
+  private refreshToken: string | null = null;
   private baseUrl: string;
+  private refreshPromise: Promise<string | null> | null = null;
 
   constructor(baseUrl: string = BASE_URL) {
     this.baseUrl = baseUrl.replace(/\/+$/, '');
     this.token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    this.refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refresh_token') : null;
   }
 
   public setToken(token: string | null) {
@@ -72,6 +79,73 @@ export class ApiClient {
       this.token = localStorage.getItem('access_token');
     }
     return this.token;
+  }
+
+  public setRefreshToken(token: string | null) {
+    this.refreshToken = token;
+    if (typeof window !== 'undefined') {
+      if (token) {
+        localStorage.setItem('refresh_token', token);
+      } else {
+        localStorage.removeItem('refresh_token');
+      }
+    }
+  }
+
+  public getRefreshToken(): string | null {
+    if (!this.refreshToken && typeof window !== 'undefined') {
+      this.refreshToken = localStorage.getItem('refresh_token');
+    }
+    return this.refreshToken;
+  }
+
+  public async refreshAccessToken(): Promise<string | null> {
+    if (this.refreshPromise) {
+      return this.refreshPromise;
+    }
+
+    this.refreshPromise = (async () => {
+      try {
+        const storedRefreshToken = this.getRefreshToken();
+        const refreshUrl = this.buildUrl('/auth/refresh');
+        const res = await fetch(refreshUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            refreshToken: storedRefreshToken || '',
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error('Token refresh rejected');
+        }
+
+        const data = await res.json();
+        const newAccess = data?.accessToken || data?.data?.accessToken || data?.token;
+        const newRefresh = data?.refreshToken || data?.data?.refreshToken;
+
+        if (newAccess) {
+          this.setToken(newAccess);
+          if (newRefresh) {
+            this.setRefreshToken(newRefresh);
+          }
+          return newAccess;
+        }
+        return null;
+      } catch {
+        this.setToken(null);
+        this.setRefreshToken(null);
+        return null;
+      } finally {
+        this.refreshPromise = null;
+      }
+    })();
+
+    return this.refreshPromise;
   }
 
   public getBaseUrl(): string {
@@ -100,7 +174,7 @@ export class ApiClient {
 
   public async request<T>(
     endpoint: string,
-    options: RequestInit = {},
+    options: RequestOptions = {},
     params?: Record<string, any>
   ): Promise<T> {
     const url = this.buildUrl(endpoint, params);
@@ -124,17 +198,23 @@ export class ApiClient {
       });
 
       if (!response.ok) {
+        // Automatic 401 retry interceptor
+        if (response.status === 401) {
+          console.warn('[ApiClient] 401 Unauthorized encountered from backend:', url);
+          const isAuthPath = endpoint.includes('/auth/login') || endpoint.includes('/auth/refresh');
+          if (!isAuthPath && !options._retry) {
+            const newToken = await this.refreshAccessToken();
+            if (newToken) {
+              return this.request<T>(endpoint, { ...options, _retry: true }, params);
+            }
+          }
+        }
+
         let errData: any;
         try {
           errData = await response.json();
         } catch {
           errData = { message: response.statusText };
-        }
-
-        // If unauthorized and we have a token, clear it
-        if (response.status === 401) {
-          // Token expired or invalid
-          console.warn('[ApiClient] 401 Unauthorized encountered from backend:', url);
         }
 
         const errorMessage =

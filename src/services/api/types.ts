@@ -9,6 +9,7 @@ export interface LoginDto {
 
 export interface LoginResponse {
   accessToken: string;
+  refreshToken?: string;
   user: {
     id: string;
     phone: string;
@@ -129,7 +130,7 @@ export interface UpdateServiceDto {
 
 export interface RecordPaymentDto {
   parentId: string;
-  childId: string;
+  childId?: string;
   amount: number;
   method: 'CASH' | 'CARD' | 'TRANSFER';
   note?: string;

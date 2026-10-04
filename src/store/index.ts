@@ -452,7 +452,7 @@ export const useStore = create<Store>()(
 
       // ── Children Actions ─────────────────────────────────
       createChild: (data) => {
-        const child: Child = { ...data, id: `child-${generateId()}`, createdAt: new Date().toISOString() };
+        const child: Child = { ...data, id: generateId(), createdAt: new Date().toISOString() };
         set(s => ({
           children: [...s.children, child],
           parents: s.parents.map(p =>
@@ -482,6 +482,11 @@ export const useStore = create<Store>()(
           }
         }).catch(err => {
           console.warn('[Store] Background createChild sync warning:', err);
+          get().addToast({
+            type: 'warning',
+            title: 'Sinxronizatsiya ogohlantirishi',
+            description: 'Bola lokal saqlandi, ammo serverga sinxron qilinmadi.',
+          });
         });
 
         get().addActivityLog({
@@ -526,7 +531,7 @@ export const useStore = create<Store>()(
 
       // ── Parents Actions ──────────────────────────────────
       createParent: (data, password) => {
-        const parent: Parent = { ...data, id: `par-${generateId()}`, createdAt: new Date().toISOString() };
+        const parent: Parent = { ...data, id: generateId(), createdAt: new Date().toISOString() };
         set(s => ({ parents: [...s.parents, parent] }));
 
         api.parents.create({
@@ -542,6 +547,11 @@ export const useStore = create<Store>()(
           }
         }).catch(err => {
           console.warn('[Store] Background createParent sync warning:', err);
+          get().addToast({
+            type: 'warning',
+            title: 'Sinxronizatsiya ogohlantirishi',
+            description: 'Ota-ona lokal saqlandi, ammo serverga sinxron qilinmadi.',
+          });
         });
 
         get().addToast({ type: 'success', title: 'Qo\'shildi', description: `${parent.fullName} tizimga qo'shildi` });
@@ -561,7 +571,7 @@ export const useStore = create<Store>()(
 
       // ── Specialist Actions ───────────────────────────────
       createSpecialist: (data, password) => {
-        const spec: Specialist = { ...data, id: `spec-${generateId()}`, createdAt: new Date().toISOString() };
+        const spec: Specialist = { ...data, id: generateId(), createdAt: new Date().toISOString() };
         set(s => ({ specialists: [...s.specialists, spec] }));
 
         api.specialists.create({
@@ -579,6 +589,11 @@ export const useStore = create<Store>()(
           }
         }).catch(err => {
           console.warn('[Store] Background createSpecialist sync warning:', err);
+          get().addToast({
+            type: 'warning',
+            title: 'Sinxronizatsiya ogohlantirishi',
+            description: 'Mutaxassis lokal saqlandi, ammo serverga sinxron qilinmadi.',
+          });
         });
 
         get().addToast({ type: 'success', title: 'Mutaxassis qo\'shildi' });
@@ -599,7 +614,7 @@ export const useStore = create<Store>()(
 
       // ── Service Actions ──────────────────────────────────
       createService: (data) => {
-        const svc: Service = { ...data, id: `svc-${generateId()}`, createdAt: new Date().toISOString() };
+        const svc: Service = { ...data, id: generateId(), createdAt: new Date().toISOString() };
         set(s => ({ services: [...s.services, svc] }));
 
         api.services.create({
@@ -615,6 +630,11 @@ export const useStore = create<Store>()(
           }
         }).catch(err => {
           console.warn('[Store] Background createService sync warning:', err);
+          get().addToast({
+            type: 'warning',
+            title: 'Sinxronizatsiya ogohlantirishi',
+            description: 'Xizmat lokal saqlandi, ammo serverga sinxron qilinmadi.',
+          });
         });
 
         get().addToast({ type: 'success', title: 'Xizmat qo\'shildi' });
@@ -652,7 +672,7 @@ export const useStore = create<Store>()(
 
       // ── Appointment Actions ──────────────────────────────
       createAppointment: (data) => {
-        const apt: Appointment = { ...data, id: `apt-${generateId()}`, createdAt: new Date().toISOString() };
+        const apt: Appointment = { ...data, id: generateId(), createdAt: new Date().toISOString() };
         set(s => ({ appointments: [...s.appointments, apt] }));
 
         // Async API dispatch
@@ -674,6 +694,11 @@ export const useStore = create<Store>()(
           }
         }).catch(err => {
           console.warn('[Store] Background createAppointment sync warning:', err);
+          get().addToast({
+            type: 'warning',
+            title: 'Sinxronizatsiya ogohlantirishi',
+            description: 'Uchrashuv lokal saqlandi, ammo serverga sinxron qilinmadi.',
+          });
         });
 
         get().addActivityLog({
@@ -743,7 +768,7 @@ export const useStore = create<Store>()(
         if (!apt) throw new Error('Uchrashuv topilmadi');
         get().startAppointment(appointmentId);
         const session: Session = {
-          id: `ses-${generateId()}`,
+          id: generateId(),
           appointmentId,
           childId: apt.childId,
           specialistId: apt.specialistId,
@@ -785,7 +810,7 @@ export const useStore = create<Store>()(
         const child = get().children.find(c => c.id === session.childId);
 
         const txn: Transaction = {
-          id: `txn-ses-${generateId()}`,
+          id: generateId(),
           type: 'SESSION_CHARGE',
           direction: 'OUT',
           amount,
@@ -814,7 +839,7 @@ export const useStore = create<Store>()(
 
       // ── Attendance ───────────────────────────────────────
       recordAttendance: (data) => {
-        const record: AttendanceRecord = { ...data, id: `att-${generateId()}`, createdAt: new Date().toISOString() };
+        const record: AttendanceRecord = { ...data, id: generateId(), createdAt: new Date().toISOString() };
         set(s => ({
           attendance: [
             ...s.attendance.filter(a => a.appointmentId !== data.appointmentId),
@@ -842,7 +867,7 @@ export const useStore = create<Store>()(
 
       // ── Assessments ──────────────────────────────────────
       createAssessment: (data) => {
-        const assessment: Assessment = { ...data, id: `asmnt-${generateId()}`, createdAt: new Date().toISOString() };
+        const assessment: Assessment = { ...data, id: generateId(), createdAt: new Date().toISOString() };
         set(s => ({ assessments: [...s.assessments, assessment] }));
 
         api.clinical.createAssessment({
@@ -863,7 +888,7 @@ export const useStore = create<Store>()(
 
       // ── Progress Notes ───────────────────────────────────
       createProgressNote: (data) => {
-        const note: ProgressNote = { ...data, id: `prg-${generateId()}`, createdAt: new Date().toISOString() };
+        const note: ProgressNote = { ...data, id: generateId(), createdAt: new Date().toISOString() };
         set(s => ({ progressNotes: [...s.progressNotes, note] }));
 
         api.clinical.createProgress({
@@ -880,7 +905,7 @@ export const useStore = create<Store>()(
 
       // ── Goals ────────────────────────────────────────────
       createGoal: (data) => {
-        const goal: Goal = { ...data, id: `goal-${generateId()}`, createdAt: new Date().toISOString() };
+        const goal: Goal = { ...data, id: generateId(), createdAt: new Date().toISOString() };
         set(s => ({ goals: [...s.goals, goal] }));
 
         api.clinical.createGoal({
@@ -914,8 +939,8 @@ export const useStore = create<Store>()(
 
       // ── Payments ─────────────────────────────────────────
       recordPayment: (data) => {
-        const payId = `pay-${generateId()}`;
-        const txnId = `txn-pay-${generateId()}`;
+        const payId = generateId();
+        const txnId = generateId();
         const now = new Date().toISOString();
 
         const payment: Payment = {
@@ -950,16 +975,28 @@ export const useStore = create<Store>()(
           transactions: [...s.transactions, txn],
         }));
 
-        if (data.parentId && data.childId) {
+        if (data.parentId) {
           api.finance.recordPayment({
             parentId: data.parentId,
-            childId: data.childId,
+            childId: data.childId || undefined,
             amount: data.amount,
             method: data.method,
             note: data.notes,
             paidAt: data.date,
+            idempotencyKey: generateId(),
+          }).then(created => {
+            if (created && created.id) {
+              set(s => ({
+                payments: s.payments.map(p => p.id === payment.id ? created : p),
+              }));
+            }
           }).catch(err => {
             console.warn('[Store] Background recordPayment sync warning:', err);
+            get().addToast({
+              type: 'warning',
+              title: "Serverga to'lov saqlanmadi",
+              description: "To'lov lokal qayd etildi, lekin server bilan bog'lanishda xatolik yuz berdi.",
+            });
           });
         }
 
@@ -1008,7 +1045,7 @@ export const useStore = create<Store>()(
 
       // ── Admins ───────────────────────────────────────────
       createAdmin: (data, password) => {
-        const admin: AdminUser = { ...data, id: `admin-${generateId()}`, createdAt: new Date().toISOString() };
+        const admin: AdminUser = { ...data, id: generateId(), createdAt: new Date().toISOString() };
         set(s => ({ admins: [...s.admins, admin] }));
 
         api.admins.create({
@@ -1025,6 +1062,11 @@ export const useStore = create<Store>()(
           }
         }).catch(err => {
           console.warn('[Store] Background createAdmin sync warning:', err);
+          get().addToast({
+            type: 'warning',
+            title: 'Sinxronizatsiya ogohlantirishi',
+            description: 'Admin lokal saqlandi, ammo serverga sinxron qilinmadi.',
+          });
         });
 
         get().addToast({ type: 'success', title: 'Admin qo\'shildi' });
@@ -1044,7 +1086,7 @@ export const useStore = create<Store>()(
 
       // ── Employees ────────────────────────────────────────
       createEmployee: (data) => {
-        const emp: Employee = { ...data, id: `emp-${generateId()}`, joinedAt: new Date().toISOString() };
+        const emp: Employee = { ...data, id: generateId(), joinedAt: new Date().toISOString() };
         set(s => ({ employees: [...s.employees, emp] }));
 
         api.employees.create({
@@ -1062,6 +1104,11 @@ export const useStore = create<Store>()(
           }
         }).catch(err => {
           console.warn('[Store] Background createEmployee sync warning:', err);
+          get().addToast({
+            type: 'warning',
+            title: 'Sinxronizatsiya ogohlantirishi',
+            description: 'Xodim lokal saqlandi, ammo serverga sinxron qilinmadi.',
+          });
         });
 
         get().addToast({ type: 'success', title: 'Xodim qo\'shildi' });
@@ -1086,7 +1133,7 @@ export const useStore = create<Store>()(
 
       // ── Activity Log ──────────────────────────────────────
       addActivityLog: (log) => {
-        const entry: ActivityLog = { ...log, id: `log-${generateId()}`, timestamp: new Date().toISOString() };
+        const entry: ActivityLog = { ...log, id: generateId(), timestamp: new Date().toISOString() };
         set(s => ({ activityLogs: [entry, ...s.activityLogs] }));
       },
 
