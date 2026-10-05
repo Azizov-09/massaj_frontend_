@@ -254,14 +254,19 @@ export const useStore = create<Store>()(
           }
 
           const rawMsg = err?.message || "Email yoki parol noto'g'ri";
-          const friendlyMsg =
+          const isAuthError =
+            err?.status === 401 ||
+            err?.status === 422 ||
             rawMsg.includes('401') ||
+            rawMsg.includes('422') ||
             rawMsg.includes('Invalid') ||
             rawMsg.includes('Failed to parse') ||
             rawMsg.includes('fetch failed') ||
-            rawMsg.includes('ECONNREFUSED')
-              ? "Email yoki parol noto'g'ri"
-              : rawMsg;
+            rawMsg.includes('ECONNREFUSED');
+
+          const friendlyMsg = isAuthError
+            ? "Email yoki parol noto'g'ri"
+            : rawMsg;
           return { success: false, error: friendlyMsg };
         }
 

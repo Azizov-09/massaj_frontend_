@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '@/utils';
-import { Orb } from '@/components/ui/thinking-orbs';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface ModalProps {
   isOpen: boolean;
@@ -209,7 +209,7 @@ export function ConfirmDialog({
           disabled={loading}
           className={cn('w-full sm:flex-1 px-4 py-2.5 text-sm font-medium rounded-[10px] transition-colors inline-flex items-center justify-center gap-2 cursor-pointer', confirmColor)}
         >
-          {loading && <Orb state="working" size={16} className="text-white shrink-0" />}
+          {loading && <Spinner size={16} className="text-white shrink-0" />}
           <span>{loading ? 'Yuklanmoqda...' : finalConfirmLabel}</span>
         </button>
       </div>

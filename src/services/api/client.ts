@@ -21,25 +21,39 @@ export class ApiError extends Error {
 }
 
 function resolveDefaultBaseUrl(): string {
+  const isTest =
+    (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') ||
+    (import.meta as any).env?.MODE === 'test' ||
+    Boolean((import.meta as any).env?.VITEST);
+
   const envUrl = (import.meta as any).env?.VITE_API_URL;
-  if (envUrl) return envUrl;
+
+  if (isTest) {
+    if (envUrl && (envUrl.startsWith('http://') || envUrl.startsWith('https://'))) {
+      return envUrl;
+    }
+    return 'http://localhost:3000/api/v1';
+  }
+
+  if (envUrl) {
+    if (envUrl.startsWith('http://') || envUrl.startsWith('https://')) {
+      return envUrl;
+    }
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      return `${window.location.origin}${envUrl.startsWith('/') ? '' : '/'}${envUrl}`;
+    }
+    return `http://localhost:3000${envUrl.startsWith('/') ? '' : '/'}${envUrl}`;
+  }
 
   const isBrowser =
     typeof window !== 'undefined' &&
     typeof window.document !== 'undefined' &&
     window.location &&
+    window.location.origin &&
     window.location.protocol.startsWith('http');
 
-  const isTest =
-    (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') ||
-    (import.meta as any).env?.MODE === 'test';
-
-  if (isTest) {
-    return 'http://localhost:3000/api/v1';
-  }
-
   if (isBrowser) {
-    return '/api/v1';
+    return `${window.location.origin}/api/v1`;
   }
 
   return 'http://104.248.29.65/api/v1';

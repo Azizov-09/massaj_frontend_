@@ -8,12 +8,12 @@ import { ProtectedRoute, RoleRedirect, NotFoundPage, ForbiddenPage } from '@/fea
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { RouteErrorPage, DashboardSectionError } from '@/components/ui/RouteErrorPage';
 import { lazyWithRetry } from '@/utils/lazyWithRetry';
-import { Orb } from '@/components/ui/thinking-orbs';
+import { Spinner } from '@/components/ui/Spinner';
 
 // Loading fallback component
 const PageLoader = () => (
   <div className="min-h-[50vh] flex flex-col items-center justify-center gap-3">
-    <Orb state="working" size={40} className="text-brand-500" label="Yuklanmoqda" />
+    <Spinner size={36} className="text-brand-500" label="Yuklanmoqda" />
     <span className="text-xs font-medium text-charcoal-400">Yuklanmoqda...</span>
   </div>
 );
