@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { SpecialistDashboard } from './SpecialistDashboard';
@@ -114,4 +114,34 @@ describe('SpecialistDashboard Component', () => {
     expect(screen.getByText('Tezkor klinik kuzatuv qaydi')).toBeInTheDocument();
     expect(screen.getByText('Bemor bola')).toBeInTheDocument();
   });
+
+  it('renders mobile schedule dropdown filter and filters list when option selected', () => {
+    render(
+      <MemoryRouter>
+        <SpecialistDashboard />
+      </MemoryRouter>
+    );
+
+    const combobox = screen.getByRole('combobox', { name: "Bugungi qabullar filtri" });
+    expect(combobox).toBeInTheDocument();
+
+    // Open dropdown and select "Yakunlangan"
+    fireEvent.click(combobox);
+    const listbox = screen.getByRole('listbox');
+    const completedOption = within(listbox).getByText(/Yakunlangan/);
+    fireEvent.click(completedOption);
+
+    expect(screen.getByText('Qabullar topilmadi')).toBeInTheDocument();
+
+    // Open dropdown and select "Barchasi"
+    fireEvent.click(combobox);
+    const allOption = within(screen.getByRole('listbox')).getByText(/Barchasi/);
+    fireEvent.click(allOption);
+
+    expect(screen.getAllByText('Asilbek Abdullayev').length).toBeGreaterThanOrEqual(1);
+  });
 });
+
+
+
+

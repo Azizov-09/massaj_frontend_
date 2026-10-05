@@ -265,8 +265,25 @@ export function SpecialistDashboard() {
                   </p>
                 </div>
 
-                {/* Status Tabs */}
-                <div className="flex items-center gap-1 bg-white p-0.5 rounded-[8px] border border-warm-200/90 shadow-2xs">
+                {/* Mobile Schedule Filter Dropdown (< sm) */}
+                <div className="sm:hidden w-full">
+                  <Select
+                    size="sm"
+                    value={scheduleFilter}
+                    onChange={e => setScheduleFilter(e.target.value as ScheduleFilter)}
+                    triggerClassName="h-9 rounded-[10px] text-xs font-semibold border-warm-300 shadow-2xs w-full bg-white"
+                    options={[
+                      { value: 'ALL', label: `Barchasi (${todayAppointments.length})` },
+                      { value: 'PENDING', label: `Kutilayotgan (${todayAppointments.filter(a => a.status === 'SCHEDULED' || a.status === 'CONFIRMED').length})` },
+                      { value: 'IN_PROGRESS', label: `Jarayonda (${inProgressTodayCount})` },
+                      { value: 'COMPLETED', label: `Yakunlangan (${completedTodayCount})` },
+                    ]}
+                    aria-label="Bugungi qabullar filtri"
+                  />
+                </div>
+
+                {/* Desktop Status Tabs (>= sm) */}
+                <div className="hidden sm:flex items-center gap-1 bg-white p-0.5 rounded-[8px] border border-warm-200/90 shadow-2xs">
                   {[
                     { key: 'ALL', label: 'Barchasi', count: todayAppointments.length },
                     { key: 'PENDING', label: 'Kutilayotgan', count: todayAppointments.filter(a => a.status === 'SCHEDULED' || a.status === 'CONFIRMED').length },

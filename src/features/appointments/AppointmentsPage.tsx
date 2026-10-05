@@ -643,8 +643,8 @@ export function AppointmentsPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5 w-full sm:w-auto">
-            {/* Status Filter */}
-            <div className="w-full sm:w-48">
+            {/* Status Filter (Mobile only: on desktop, pills tab bar handles status) */}
+            <div className="sm:hidden w-full">
               <Select
                 size="sm"
                 triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
@@ -662,36 +662,39 @@ export function AppointmentsPage() {
               />
             </div>
 
-            {/* Specialist Filter (for admin/parent) */}
-            {!isSpecialist && (
-              <div className="w-full sm:w-52">
+            {/* Specialist & Service Filters — 2-column grid on mobile to save vertical space */}
+            <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
+              {/* Specialist Filter (for admin/parent) */}
+              {!isSpecialist && (
+                <div className="w-full sm:w-52">
+                  <Select
+                    size="sm"
+                    triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                    value={specialistFilter}
+                    onChange={e => setSpecialistFilter(e.target.value)}
+                    options={[
+                      { value: '', label: 'Barcha mutaxassislar' },
+                      ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                    ]}
+                    aria-label="Mutaxassis bo'yicha filter"
+                  />
+                </div>
+              )}
+
+              {/* Service Filter */}
+              <div className={cn("w-full sm:w-48", isSpecialist && "col-span-2 sm:col-span-1")}>
                 <Select
                   size="sm"
                   triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                  value={specialistFilter}
-                  onChange={e => setSpecialistFilter(e.target.value)}
+                  value={serviceFilter}
+                  onChange={e => setServiceFilter(e.target.value)}
                   options={[
-                    { value: '', label: 'Barcha mutaxassislar' },
-                    ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                    { value: '', label: 'Barcha xizmatlar' },
+                    ...services.map(s => ({ value: s.id, label: s.name })),
                   ]}
-                  aria-label="Mutaxassis bo'yicha filter"
+                  aria-label="Xizmat bo'yicha filter"
                 />
               </div>
-            )}
-
-            {/* Service Filter */}
-            <div className="w-full sm:w-48">
-              <Select
-                size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                value={serviceFilter}
-                onChange={e => setServiceFilter(e.target.value)}
-                options={[
-                  { value: '', label: 'Barcha xizmatlar' },
-                  ...services.map(s => ({ value: s.id, label: s.name })),
-                ]}
-                aria-label="Xizmat bo'yicha filter"
-              />
             </div>
 
             {/* Reset Filters Button */}

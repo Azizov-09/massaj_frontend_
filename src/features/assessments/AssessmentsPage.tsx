@@ -622,8 +622,8 @@ export function AssessmentsPage() {
             )}
           </div>
 
-          {/* Score / Status Tab Select */}
-          <div className="w-full sm:w-48">
+          {/* Score / Status Tab Select (Mobile only: on desktop, pills tab bar handles score filter) */}
+          <div className="sm:hidden w-full">
             <Select
               size="sm"
               triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
@@ -639,37 +639,40 @@ export function AssessmentsPage() {
             />
           </div>
 
-          {/* Child Select */}
-          <div className="w-full sm:w-56">
-            <Select
-              size="sm"
-              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-              value={selectedChildId}
-              onChange={e => setSelectedChildId(e.target.value)}
-              options={[
-                { value: '', label: 'Barcha bolalar' },
-                ...children.map(c => ({ value: c.id, label: c.fullName })),
-              ]}
-              aria-label="Bola bo'yicha filter"
-            />
-          </div>
-
-          {/* Specialist Select */}
-          {!isSpecialist && (
-            <div className="w-full sm:w-52">
+          {/* Child & Specialist Filters — 2-column grid on mobile to save vertical space */}
+          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
+            {/* Child Select */}
+            <div className={cn("w-full sm:w-56", isSpecialist && "col-span-2 sm:col-span-1")}>
               <Select
                 size="sm"
                 triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                value={specialistFilter}
-                onChange={e => setSpecialistFilter(e.target.value)}
+                value={selectedChildId}
+                onChange={e => setSelectedChildId(e.target.value)}
                 options={[
-                  { value: '', label: 'Barcha mutaxassislar' },
-                  ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                  { value: '', label: 'Barcha bolalar' },
+                  ...children.map(c => ({ value: c.id, label: c.fullName })),
                 ]}
-                aria-label="Mutaxassis bo'yicha filter"
+                aria-label="Bola bo'yicha filter"
               />
             </div>
-          )}
+
+            {/* Specialist Select */}
+            {!isSpecialist && (
+              <div className="w-full sm:w-52">
+                <Select
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                  value={specialistFilter}
+                  onChange={e => setSpecialistFilter(e.target.value)}
+                  options={[
+                    { value: '', label: 'Barcha mutaxassislar' },
+                    ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                  ]}
+                  aria-label="Mutaxassis bo'yicha filter"
+                />
+              </div>
+            )}
+          </div>
 
           {/* Reset Filters Button */}
           {hasActiveFilters && (

@@ -615,8 +615,8 @@ export function ProgressPage() {
             )}
           </div>
 
-          {/* Event Type / Tab Select */}
-          <div className="w-full sm:w-48">
+          {/* Event Type / Tab Select (Mobile only: on desktop, pills tab bar handles event type) */}
+          <div className="sm:hidden w-full">
             <Select
               size="sm"
               triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
@@ -633,37 +633,40 @@ export function ProgressPage() {
             />
           </div>
 
-          {/* Child Select */}
-          <div className="w-full sm:w-56">
-            <Select
-              size="sm"
-              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-              value={selectedChildId}
-              onChange={e => setSelectedChildId(e.target.value)}
-              options={[
-                { value: '', label: isParent ? "Barcha farzandlarim" : "Barcha bolalar" },
-                ...availableChildren.map(c => ({ value: c.id, label: c.fullName })),
-              ]}
-              aria-label="Bola bo'yicha filter"
-            />
-          </div>
-
-          {/* Specialist Select */}
-          {!isSpecialist && !isParent && (
-            <div className="w-full sm:w-52">
+          {/* Child & Specialist Filters — 2-column grid on mobile to save vertical space */}
+          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
+            {/* Child Select */}
+            <div className={cn("w-full sm:w-56", (isSpecialist || isParent) && "col-span-2 sm:col-span-1")}>
               <Select
                 size="sm"
                 triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                value={specialistFilter}
-                onChange={e => setSpecialistFilter(e.target.value)}
+                value={selectedChildId}
+                onChange={e => setSelectedChildId(e.target.value)}
                 options={[
-                  { value: '', label: 'Barcha mutaxassislar' },
-                  ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                  { value: '', label: isParent ? "Barcha farzandlarim" : "Barcha bolalar" },
+                  ...availableChildren.map(c => ({ value: c.id, label: c.fullName })),
                 ]}
-                aria-label="Mutaxassis bo'yicha filter"
+                aria-label="Bola bo'yicha filter"
               />
             </div>
-          )}
+
+            {/* Specialist Select */}
+            {!isSpecialist && !isParent && (
+              <div className="w-full sm:w-52">
+                <Select
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                  value={specialistFilter}
+                  onChange={e => setSpecialistFilter(e.target.value)}
+                  options={[
+                    { value: '', label: 'Barcha mutaxassislar' },
+                    ...specialists.map(s => ({ value: s.id, label: s.fullName })),
+                  ]}
+                  aria-label="Mutaxassis bo'yicha filter"
+                />
+              </div>
+            )}
+          </div>
 
           {/* Reset Filters */}
           {hasActiveFilters && (

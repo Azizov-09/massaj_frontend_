@@ -341,8 +341,8 @@ export function ChildrenPage() {
             )}
           </div>
 
-          {/* Status filter */}
-          <div className="w-full sm:w-48">
+          {/* Status filter (Mobile only: on desktop, pills tab bar handles status) */}
+          <div className="sm:hidden w-full">
             <Select
               size="sm"
               triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
