@@ -91,6 +91,24 @@ describe('NotificationsPage Component', () => {
     expect(screen.queryByText('Seans yakunlandi')).not.toBeInTheDocument();
   });
 
+  it('renders and filters by mobile category dropdown', () => {
+    render(
+      <MemoryRouter>
+        <NotificationsPage />
+      </MemoryRouter>
+    );
+
+    const categorySelect = screen.getByRole('combobox', { name: 'Bildirishnoma toifasi' });
+    expect(categorySelect).toBeInTheDocument();
+
+    fireEvent.click(categorySelect);
+    const paymentOption = screen.getByRole('option', { name: /To‘lovlar/i });
+    fireEvent.click(paymentOption);
+
+    expect(screen.getByText("To'lov qabul qilindi")).toBeInTheDocument();
+    expect(screen.queryByText('Yangi uchrashuv')).not.toBeInTheDocument();
+  });
+
   it('filters notifications by search keyword', () => {
     render(
       <MemoryRouter>

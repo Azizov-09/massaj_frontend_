@@ -124,6 +124,17 @@ export function NotificationsPage() {
     return c;
   }, [userNotifs, unreadTotal]);
 
+  const notificationTabs = useMemo(() => [
+    { key: 'ALL' as const, label: 'Barchasi', count: categoryCounts.all },
+    { key: 'UNREAD' as const, label: 'O‘qilmagan', count: categoryCounts.unread },
+    { key: 'APPOINTMENT' as const, label: 'Uchrashuvlar', count: categoryCounts.appointment },
+    { key: 'PAYMENT' as const, label: 'To‘lovlar', count: categoryCounts.payment },
+    { key: 'SESSION' as const, label: 'Seanslar', count: categoryCounts.session },
+    { key: 'ASSESSMENT' as const, label: 'Baholash', count: categoryCounts.assessment },
+    { key: 'SCHEDULE' as const, label: 'Jadval', count: categoryCounts.schedule },
+    { key: 'SYSTEM' as const, label: 'Tizim', count: categoryCounts.system },
+  ], [categoryCounts]);
+
   // Filtered & sorted notifications
   const filteredNotifs = useMemo(() => {
     let result = [...userNotifs];
@@ -372,24 +383,30 @@ export function NotificationsPage() {
 
       {/* Control Card: Tabs & Search Filter Strip */}
       <Card className="p-3 sm:p-3.5 border border-warm-200/90 shadow-xs space-y-3">
-        {/* Row 1: Filter Tabs (Pills) */}
-        <div className="flex items-center gap-1.5 overflow-x-auto touch-scroll-x scrollbar-thin py-0.5 -mx-1 px-1">
-          {[
-            { key: 'ALL', label: 'Barchasi', count: categoryCounts.all },
-            { key: 'UNREAD', label: 'O‘qilmagan', count: categoryCounts.unread },
-            { key: 'APPOINTMENT', label: 'Uchrashuvlar', count: categoryCounts.appointment },
-            { key: 'PAYMENT', label: 'To‘lovlar', count: categoryCounts.payment },
-            { key: 'SESSION', label: 'Seanslar', count: categoryCounts.session },
-            { key: 'ASSESSMENT', label: 'Baholash', count: categoryCounts.assessment },
-            { key: 'SCHEDULE', label: 'Jadval', count: categoryCounts.schedule },
-            { key: 'SYSTEM', label: 'Tizim', count: categoryCounts.system },
-          ].map(tab => {
+        {/* Row 1: Mobile Category Dropdown (< sm) */}
+        <div className="sm:hidden w-full">
+          <Select
+            size="sm"
+            value={activeTab}
+            onChange={e => setActiveTab(e.target.value as NotificationTab)}
+            triggerClassName="h-10 rounded-xl text-xs font-semibold shadow-2xs border-warm-300 w-full bg-white"
+            options={notificationTabs.map(tab => ({
+              value: tab.key,
+              label: `${tab.label} (${tab.count})`,
+            }))}
+            aria-label="Bildirishnoma toifasi"
+          />
+        </div>
+
+        {/* Row 1: Desktop Filter Tabs (Pills) (>= sm) */}
+        <div className="hidden sm:flex items-center gap-1.5 overflow-x-auto touch-scroll-x scrollbar-thin py-0.5 -mx-1 px-1">
+          {notificationTabs.map(tab => {
             const isActive = activeTab === tab.key;
             return (
               <button
                 key={tab.key}
                 type="button"
-                onClick={() => setActiveTab(tab.key as NotificationTab)}
+                onClick={() => setActiveTab(tab.key)}
                 className={cn(
                   'shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs font-semibold transition-all cursor-pointer whitespace-nowrap select-none',
                   isActive
@@ -435,35 +452,38 @@ export function NotificationsPage() {
             )}
           </div>
 
-          {/* Read status filter */}
-          <div className="w-full sm:w-44">
-            <Select
-              size="sm"
-              value={readFilter}
-              onChange={e => setReadFilter(e.target.value as ReadStatusFilter)}
-              options={[
-                { value: 'ALL', label: 'Barcha holatlar' },
-                { value: 'UNREAD', label: "O'qilmaganlar" },
-                { value: 'READ', label: "O'qilganlar" },
-              ]}
-              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-              aria-label="Holat bo'yicha saralash"
-            />
-          </div>
+          {/* Secondary filter dropdowns: 2 columns on mobile, row on tablet/desktop */}
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2.5 sm:w-auto">
+            {/* Read status filter */}
+            <div className="w-full sm:w-44">
+              <Select
+                size="sm"
+                value={readFilter}
+                onChange={e => setReadFilter(e.target.value as ReadStatusFilter)}
+                options={[
+                  { value: 'ALL', label: 'Barcha holatlar' },
+                  { value: 'UNREAD', label: "O'qilmaganlar" },
+                  { value: 'READ', label: "O'qilganlar" },
+                ]}
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                aria-label="Holat bo'yicha saralash"
+              />
+            </div>
 
-          {/* Sort order */}
-          <div className="w-full sm:w-44">
-            <Select
-              size="sm"
-              value={sortOrder}
-              onChange={e => setSortOrder(e.target.value as SortOrder)}
-              options={[
-                { value: 'NEWEST', label: 'Eng yangilari oldin' },
-                { value: 'OLDEST', label: 'Eng eskilari oldin' },
-              ]}
-              triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-              aria-label="Vaqt bo'yicha tartiblash"
-            />
+            {/* Sort order */}
+            <div className="w-full sm:w-44">
+              <Select
+                size="sm"
+                value={sortOrder}
+                onChange={e => setSortOrder(e.target.value as SortOrder)}
+                options={[
+                  { value: 'NEWEST', label: 'Eng yangilari oldin' },
+                  { value: 'OLDEST', label: 'Eng eskilari oldin' },
+                ]}
+                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                aria-label="Vaqt bo'yicha tartiblash"
+              />
+            </div>
           </div>
 
           {/* Reset button if active */}
@@ -472,7 +492,7 @@ export function NotificationsPage() {
               variant="ghost"
               size="sm"
               onClick={clearAllFilters}
-              className="h-9 px-3 text-xs font-semibold text-charcoal-500 hover:text-rose-600 hover:bg-rose-50 transition-colors shrink-0 cursor-pointer"
+              className="h-9 px-3 text-xs font-semibold text-charcoal-500 hover:text-rose-600 hover:bg-rose-50 transition-colors shrink-0 cursor-pointer w-full sm:w-auto justify-center"
               title="Barcha filtrlarni tozalash"
             >
               <RotateCcw className="w-3.5 h-3.5 mr-1" />
