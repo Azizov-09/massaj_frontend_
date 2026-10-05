@@ -43,6 +43,8 @@ describe('ReportsPage Component', () => {
       amount: 500000,
       date: '2026-03-01T10:00:00Z',
       description: 'Kurs uchun to‘lov',
+      createdAt: '2026-03-01T10:00:00Z',
+      createdBy: 'admin-1',
     },
   ];
 
