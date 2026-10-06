@@ -56,18 +56,20 @@ function CreateServiceForm({ onSuccess, onCancel, createService }: CreateService
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       <Input label="Xizmat nomi" required placeholder="Terapevtik massaj" error={errors.name?.message} {...register('name')} />
       <Textarea label="Tavsif" placeholder="Xizmat haqida qisqacha..." rows={2} {...register('description')} />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <Input label="Narx (so'm)" required type="number" placeholder="150000" min="1000" error={errors.price?.message} {...register('price')} />
         <Input label="Davomiyligi (daqiqa)" required type="number" placeholder="45" min="15" max="120" error={errors.durationMinutes?.message} {...register('durationMinutes')} />
       </div>
-      <div className="grid grid-cols-3 gap-4">
-        <Input label="Kategoriya" placeholder="Massaj, LFK..." {...register('category')} />
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="col-span-2 sm:col-span-1">
+          <Input label="Kategoriya" placeholder="Massaj, LFK..." {...register('category')} />
+        </div>
         <Input label="Min yosh" type="number" placeholder="1" min="0" max="18" {...register('ageMin')} />
         <Input label="Max yosh" type="number" placeholder="18" min="0" max="18" {...register('ageMax')} />
       </div>
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-warm-100">
-        <Button variant="secondary" type="button" onClick={onCancel}>Bekor qilish</Button>
-        <Button type="submit" loading={isSubmitting}>Saqlash</Button>
+      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-4 border-t border-warm-100">
+        <Button variant="secondary" type="button" onClick={onCancel} className="w-full sm:w-auto">Bekor qilish</Button>
+        <Button type="submit" loading={isSubmitting} className="w-full sm:w-auto">Saqlash</Button>
       </div>
     </form>
   );

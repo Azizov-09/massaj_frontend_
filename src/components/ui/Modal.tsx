@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════
 //  Modal Dialog — Accessible, animated modal
 // ═══════════════════════════════════════════════════════
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useId } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '@/utils';
@@ -43,6 +43,7 @@ export function Modal({
   scrollable = false,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -90,8 +91,9 @@ export function Modal({
         <div
           className="fixed inset-0 z-[70] overflow-y-auto p-2.5 sm:p-4 flex min-h-full items-center justify-center safe-top safe-bottom"
           role="dialog"
-          aria-modal
-          aria-label={title}
+          aria-modal="true"
+          aria-labelledby={title ? titleId : undefined}
+          aria-label={title ? undefined : 'Muloqot oynasi'}
         >
           {/* Backdrop */}
           <motion.div
@@ -119,15 +121,15 @@ export function Modal({
           >
             {/* Header */}
             {(title || !hideClose) && (
-              <div className="flex items-start justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-warm-100 rounded-t-[16px]">
+              <div className="flex items-start justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-warm-100 rounded-t-[16px] flex-shrink-0">
                 <div>
-                  {title && <h2 className="text-base font-semibold text-charcoal-900">{title}</h2>}
+                  {title && <h2 id={titleId} className="text-base font-semibold text-charcoal-900">{title}</h2>}
                   {description && <p className="text-xs sm:text-sm text-charcoal-400 mt-0.5">{description}</p>}
                 </div>
                 {!hideClose && (
                   <button
                     onClick={onClose}
-                    className="ml-4 text-charcoal-400 hover:text-charcoal-700 rounded-full p-1 hover:bg-warm-100 transition-colors flex-shrink-0 cursor-pointer"
+                    className="ml-4 text-charcoal-400 hover:text-charcoal-700 rounded-full w-8 h-8 flex items-center justify-center hover:bg-warm-100 active:bg-warm-200 transition-colors flex-shrink-0 cursor-pointer"
                     aria-label="Yopish"
                   >
                     <X className="w-5 h-5" />
@@ -136,12 +138,12 @@ export function Modal({
               </div>
             )}
             {/* Body */}
-            <div className={cn('flex-1 px-4 sm:px-6 py-4 sm:py-5 overflow-y-auto max-h-[calc(92vh-130px)]', bodyClassName)}>
+            <div className={cn('flex-1 min-h-0 px-4 sm:px-6 py-4 sm:py-5 overflow-y-auto max-h-[calc(92vh-130px)]', bodyClassName)}>
               {children}
             </div>
             {/* Footer */}
             {footer && (
-              <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-warm-100 bg-warm-50/50 rounded-b-[16px] flex flex-wrap items-center justify-end gap-2">
+              <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-warm-100 bg-warm-50/50 rounded-b-[16px] flex flex-wrap items-center justify-end gap-2 flex-shrink-0">
                 {footer}
               </div>
             )}

@@ -949,11 +949,11 @@ export function AssessmentsPage() {
             onChange={e => setFormData({ ...formData, professionalObservation: e.target.value })}
           />
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-warm-100">
-            <Button variant="secondary" type="button" onClick={() => setShowCreateModal(false)}>
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-4 border-t border-warm-100">
+            <Button variant="secondary" type="button" onClick={() => setShowCreateModal(false)} className="w-full sm:w-auto">
               Bekor qilish
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="w-full sm:w-auto">
               Baholashni saqlash
             </Button>
           </div>

@@ -568,11 +568,11 @@ export function EmployeesPage() {
             onChange={e => setNewEmp({ ...newEmp, notes: e.target.value })}
           />
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-warm-100">
-            <Button variant="secondary" type="button" onClick={() => setShowCreateModal(false)}>
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-warm-100">
+            <Button variant="secondary" type="button" onClick={() => setShowCreateModal(false)} className="w-full sm:w-auto">
               Bekor qilish
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="w-full sm:w-auto">
               Xodimni saqlash
             </Button>
           </div>

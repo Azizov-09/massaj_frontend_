@@ -24,6 +24,7 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const notifications = useStore(s => s.notifications);
   const markRead = useStore(s => s.markNotificationRead);
@@ -39,14 +40,26 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
 
   const unreadCount = userNotifs.filter(n => !n.isRead).length;
 
-  // Close dropdowns on outside click
+  // Close dropdowns on outside click or Escape key
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
+    };
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setNotifOpen(false);
+        setProfileOpen(false);
+        setSearchOpen(false);
+      }
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    window.addEventListener('keydown', keyHandler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      window.removeEventListener('keydown', keyHandler);
+    };
   }, []);
 
   // Search results
@@ -131,7 +144,7 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
       {/* Actions */}
       <div className="flex items-center gap-1">
         {/* Search */}
-        <div className="relative" ref={undefined}>
+        <div className="relative" ref={searchRef}>
           <button
             onClick={() => setSearchOpen(v => !v)}
             className="w-9 h-9 flex items-center justify-center rounded-[9px] text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 active:bg-warm-200 transition-colors cursor-pointer"

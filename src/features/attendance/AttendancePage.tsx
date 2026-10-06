@@ -749,11 +749,11 @@ export function AttendancePage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-warm-100">
-              <Button type="button" variant="secondary" size="sm" onClick={() => setEditingNoteRecord(null)}>
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-2.5 pt-3 border-t border-warm-100">
+              <Button type="button" variant="secondary" size="sm" onClick={() => setEditingNoteRecord(null)} className="w-full sm:w-auto">
                 Bekor qilish
               </Button>
-              <Button type="submit" size="sm">
+              <Button type="submit" size="sm" className="w-full sm:w-auto">
                 Izohni saqlash
               </Button>
             </div>

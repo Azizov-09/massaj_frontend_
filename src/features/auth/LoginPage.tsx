@@ -550,7 +550,7 @@ export function LoginPage() {
         title="Parolni qayta tiklash"
         size="sm"
       >
-        <div className="p-5 space-y-4 text-xs text-charcoal-600">
+        <div className="space-y-4 text-xs text-charcoal-600">
           <div className="p-3.5 rounded-xl bg-warm-100/70 border border-warm-200/80 flex items-start gap-3">
             <HelpCircle className="w-5 h-5 text-brand-600 shrink-0 mt-0.5" />
             <div>
@@ -578,7 +578,7 @@ export function LoginPage() {
           </div>
 
           <div className="pt-2 flex justify-end">
-            <Button variant="secondary" onClick={() => setShowForgotModal(false)}>
+            <Button variant="secondary" onClick={() => setShowForgotModal(false)} className="w-full sm:w-auto">
               Tushunarli
             </Button>
           </div>

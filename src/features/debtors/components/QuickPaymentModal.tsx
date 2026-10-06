@@ -202,12 +202,12 @@ export function QuickPaymentModal({
           </div>
 
           {/* Modal Buttons */}
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-warm-200">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-3 border-t border-warm-200">
             <Button
               type="button"
-              variant="ghost"
+              variant="secondary"
               onClick={onClose}
-              className="text-xs"
+              className="w-full sm:w-auto text-xs"
             >
               Bekor qilish
             </Button>
@@ -215,7 +215,7 @@ export function QuickPaymentModal({
               type="submit"
               variant="primary"
               disabled={isSubmitting}
-              className="text-xs px-4"
+              className="w-full sm:w-auto text-xs px-4"
             >
               {isSubmitting ? "Saqlanmoqda..." : "To'lovni tasdiqlash"}
             </Button>
