@@ -1,5 +1,6 @@
 import { cn, getInitials, getAvatarColor } from '@/utils';
 import { forwardRef } from 'react';
+import { Orb, type OrbState } from '@/components/ui/thinking-orbs';
 
 // ─── Badge ────────────────────────────────────────────────
 
@@ -314,23 +315,26 @@ export function Spinner({
   );
 }
 
-// ─── LoadingState (Spinner) ────────────────────────────────
+// ─── LoadingState (Thinking Orb / Globus) ─────────────────
+
+export { Orb, type OrbState };
 
 export function LoadingState({
   message = "Yuklanmoqda...",
   subMessage,
   size = 36,
+  state = "working",
   className,
 }: {
   message?: string;
   subMessage?: string;
   size?: number;
-  state?: string;
+  state?: OrbState;
   className?: string;
 }) {
   return (
     <div className={cn("flex flex-col items-center justify-center gap-3 py-10 text-center", className)}>
-      <Spinner size={size} className="text-brand-500" label={message} />
+      <Orb state={state} size={size} className="text-brand-500" label={message} />
       <div>
         <p className="text-sm font-semibold text-charcoal-800">{message}</p>
         {subMessage && <p className="text-xs text-charcoal-500 mt-0.5">{subMessage}</p>}
