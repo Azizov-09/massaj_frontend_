@@ -472,7 +472,8 @@ export function BalancePage() {
               )}
             </div>
 
-            <div className="w-full sm:w-auto min-w-[200px]">
+            {/* Status filter (Mobile only: on desktop, pills tab bar handles status) */}
+            <div className="sm:hidden w-full">
               <Select
                 size="sm"
                 value={statusFilter}

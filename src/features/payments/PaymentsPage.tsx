@@ -402,7 +402,8 @@ export function PaymentsPage() {
               )}
             </div>
 
-            <div className="w-full sm:w-auto min-w-[200px]">
+            {/* Payment method filter (Mobile only: on desktop, pills tab bar handles methods) */}
+            <div className="sm:hidden w-full">
               <Select
                 size="sm"
                 value={activeTab}

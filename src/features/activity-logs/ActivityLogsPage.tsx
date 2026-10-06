@@ -100,37 +100,40 @@ export function ActivityLogsPage() {
               />
             </div>
 
-            <div className="w-full sm:w-44">
-              <Select
-                value={actionFilter}
-                onChange={e => setActionFilter(e.target.value)}
-                size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 w-full"
-              >
-                <option value="">Barcha harakatlar</option>
-                <option value="CREATE">Yaratish</option>
-                <option value="UPDATE">Tahrirlash</option>
-                <option value="COMPLETE">Yakunlash</option>
-                <option value="CANCEL">Bekor qilish</option>
-                <option value="PAYMENT">To‘lov</option>
-                <option value="LOGIN">Kirish</option>
-              </Select>
-            </div>
+            {/* Filters on mobile: 2-column grid; on desktop: inline */}
+            <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
+              <div className="w-full sm:w-44">
+                <Select
+                  value={actionFilter}
+                  onChange={e => setActionFilter(e.target.value)}
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 w-full"
+                >
+                  <option value="">Barcha harakatlar</option>
+                  <option value="CREATE">Yaratish</option>
+                  <option value="UPDATE">Tahrirlash</option>
+                  <option value="COMPLETE">Yakunlash</option>
+                  <option value="CANCEL">Bekor qilish</option>
+                  <option value="PAYMENT">To‘lov</option>
+                  <option value="LOGIN">Kirish</option>
+                </Select>
+              </div>
 
-            <div className="w-full sm:w-44">
-              <Select
-                value={entityFilter}
-                onChange={e => setEntityFilter(e.target.value)}
-                size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 w-full"
-              >
-                <option value="">Barcha ob’ektlar</option>
-                <option value="appointment">Uchrashuv</option>
-                <option value="session">Seans</option>
-                <option value="child">Bola</option>
-                <option value="parent">Ota-ona</option>
-                <option value="specialist">Mutaxassis</option>
-              </Select>
+              <div className="w-full sm:w-44">
+                <Select
+                  value={entityFilter}
+                  onChange={e => setEntityFilter(e.target.value)}
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 w-full"
+                >
+                  <option value="">Barcha ob’ektlar</option>
+                  <option value="appointment">Uchrashuv</option>
+                  <option value="session">Seans</option>
+                  <option value="child">Bola</option>
+                  <option value="parent">Ota-ona</option>
+                  <option value="specialist">Mutaxassis</option>
+                </Select>
+              </div>
             </div>
           </div>
 

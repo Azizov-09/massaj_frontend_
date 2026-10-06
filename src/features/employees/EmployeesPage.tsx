@@ -320,7 +320,8 @@ export function EmployeesPage() {
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          {/* Filters on mobile: 2-column grid; on desktop: inline */}
+          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
             <div className="w-full sm:w-48">
               <Select
                 size="sm"
@@ -334,7 +335,8 @@ export function EmployeesPage() {
                 aria-label="Lavozim bo'yicha filter"
               />
             </div>
-            <div className="w-full sm:w-52">
+            {/* Status filter (Mobile only: on desktop, pills tab bar handles status) */}
+            <div className="sm:hidden w-full">
               <Select
                 size="sm"
                 value={activeTab}

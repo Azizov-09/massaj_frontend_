@@ -434,40 +434,43 @@ export function TransactionsPage() {
               )}
             </div>
 
-            {/* Direction / Tab selector */}
-            <div className="w-full sm:w-44">
-              <Select
-                value={activeTab}
-                onChange={e => setActiveTab(e.target.value as any)}
-                size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                options={[
-                  { value: 'ALL', label: `Barchasi (${transactions.length})` },
-                  { value: 'IN', label: `Kirim (${inCount})` },
-                  { value: 'OUT', label: `Chiqim (${outCount})` },
-                  { value: 'EXPENSE', label: `Xarajatlar (${expenseCount})` },
-                ]}
-                aria-label="Yo'nalish bo'yicha filter"
-              />
-            </div>
+            {/* Filters on mobile: 2-column grid; on desktop: inline */}
+            <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
+              {/* Direction / Tab selector (Mobile only: on desktop, pills tab bar handles direction) */}
+              <div className="sm:hidden w-full">
+                <Select
+                  value={activeTab}
+                  onChange={e => setActiveTab(e.target.value as any)}
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                  options={[
+                    { value: 'ALL', label: `Barchasi (${transactions.length})` },
+                    { value: 'IN', label: `Kirim (${inCount})` },
+                    { value: 'OUT', label: `Chiqim (${outCount})` },
+                    { value: 'EXPENSE', label: `Xarajatlar (${expenseCount})` },
+                  ]}
+                  aria-label="Yo'nalish bo'yicha filter"
+                />
+              </div>
 
-            {/* Type selector */}
-            <div className="w-full sm:w-44">
-              <Select
-                value={typeFilter}
-                onChange={e => setTypeFilter(e.target.value)}
-                size="sm"
-                triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                options={[
-                  { value: '', label: 'Barcha operatsiyalar' },
-                  { value: 'PAYMENT', label: 'To‘lov (Payment)' },
-                  { value: 'SESSION_CHARGE', label: 'Seans haqi' },
-                  { value: 'REFUND', label: 'Qaytarish' },
-                  { value: 'ADJUSTMENT', label: 'Tuzatish' },
-                  { value: 'EXPENSE', label: 'Xarajat' },
-                ]}
-                aria-label="Operatsiya turi bo'yicha filter"
-              />
+              {/* Type selector */}
+              <div className="w-full sm:w-44">
+                <Select
+                  value={typeFilter}
+                  onChange={e => setTypeFilter(e.target.value)}
+                  size="sm"
+                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
+                  options={[
+                    { value: '', label: 'Barcha operatsiyalar' },
+                    { value: 'PAYMENT', label: 'To‘lov (Payment)' },
+                    { value: 'SESSION_CHARGE', label: 'Seans haqi' },
+                    { value: 'REFUND', label: 'Qaytarish' },
+                    { value: 'ADJUSTMENT', label: 'Tuzatish' },
+                    { value: 'EXPENSE', label: 'Xarajat' },
+                  ]}
+                  aria-label="Operatsiya turi bo'yicha filter"
+                />
+              </div>
             </div>
 
             {/* Date from & to */}
