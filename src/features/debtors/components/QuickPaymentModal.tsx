@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════
 //  QuickPaymentModal — Fast Payment Modal for Debtors
 // ═══════════════════════════════════════════════════════
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { DollarSign, CreditCard, Wallet } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/utils';
@@ -30,19 +30,22 @@ export function QuickPaymentModal({
   onSubmit,
   isSubmitting = false,
 }: QuickPaymentModalProps) {
-  const [paymentAmount, setPaymentAmount] = useState<string>('');
+  const [prevDebtorId, setPrevDebtorId] = useState<string | undefined>(() => debtor?.childId);
+  const [paymentAmount, setPaymentAmount] = useState<string>(() => (debtor ? String(debtor.debt) : ''));
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'CARD' | 'TRANSFER'>('CASH');
-  const [paymentDate, setPaymentDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
-  const [paymentNotes, setPaymentNotes] = useState<string>('');
+  const [paymentDate, setPaymentDate] = useState<string>(() => format(new Date(), 'yyyy-MM-dd'));
+  const [paymentNotes, setPaymentNotes] = useState<string>(() =>
+    debtor ? `Qarzdorlikni so'ndirish (${debtor.childName})` : ''
+  );
 
-  useEffect(() => {
-    if (debtor) {
-      setPaymentAmount(String(debtor.debt));
-      setPaymentMethod('CASH');
-      setPaymentDate(format(new Date(), 'yyyy-MM-dd'));
-      setPaymentNotes(`Qarzdorlikni so'ndirish (${debtor.childName})`);
-    }
-  }, [debtor]);
+  // Synchronize state when debtor prop changes during render
+  if (debtor && debtor.childId !== prevDebtorId) {
+    setPrevDebtorId(debtor.childId);
+    setPaymentAmount(String(debtor.debt));
+    setPaymentMethod('CASH');
+    setPaymentDate(format(new Date(), 'yyyy-MM-dd'));
+    setPaymentNotes(`Qarzdorlikni so'ndirish (${debtor.childName})`);
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

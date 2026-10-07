@@ -12,10 +12,10 @@ import {
   TrendingUp, TrendingDown, DollarSign, Baby,
   Calendar, Activity, ArrowRight, CheckCircle2,
   Stethoscope, Clock, ShieldCheck, Plus, Eye,
-  UserCheck, AlertCircle, Phone, FileText, ChevronRight
+  AlertCircle, FileText, ChevronRight
 } from 'lucide-react';
 import { format, parseISO, differenceInYears } from 'date-fns';
-import { useStore, useAuth } from '@/store';
+import { useStore } from '@/store';
 import {
   calculateFinancialSummary, getRevenueByDay,
   getAppointmentStats, getTopDebtors, getSpecialistWorkload
@@ -27,7 +27,7 @@ import {
 } from '@/utils';
 import { KpiCard } from '@/components/ui/KpiCard';
 import {
-  Card, CardHeader, CardBody, Avatar, Badge,
+  Card, CardBody, Avatar,
   EmptyState, ProgressBar, Select
 } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
@@ -67,7 +67,6 @@ const DATE_PRESETS: { value: DateFilterPreset; label: string }[] = [
 
 export function SuperAdminDashboard() {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
 
   const [dateFilter, setDateFilter] = useState<DateFilterPreset>('thisMonth');
   const [scheduleFilter, setScheduleFilter] = useState<'ALL' | 'CONFIRMED' | 'PENDING' | 'COMPLETED'>('ALL');

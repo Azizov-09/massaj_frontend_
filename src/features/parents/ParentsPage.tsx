@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Plus, Search, Users, Phone, Mail, MapPin, Eye,
-  X, Baby, ArrowRight, AlertCircle, Wallet, ArrowUpRight
+  X, Baby, ArrowRight, AlertCircle, Wallet
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { calculateParentBalance } from '@/services/finance.service';

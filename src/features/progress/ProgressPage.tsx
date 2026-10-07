@@ -6,9 +6,9 @@
 import { useState, useMemo } from 'react';
 import {
   TrendingUp, Plus, Activity, FileText, ClipboardCheck,
-  Search, X, Calendar, User, Eye, LayoutGrid, Table as TableIcon,
-  Clock, Stethoscope, Copy, Check, AlertCircle, Award, Baby,
-  ArrowRight, HeartPulse, ChevronRight
+  Search, X, Calendar, Eye, LayoutGrid, Table as TableIcon,
+  Stethoscope, Copy, Check, AlertCircle,
+  HeartPulse, ChevronRight
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate, cn } from '@/utils';

@@ -4,8 +4,8 @@
 import { useState, useMemo } from 'react';
 import {
   Plus, Search, Wallet, TrendingUp, Receipt, Calendar,
-  CreditCard, Banknote, ArrowLeftRight, Clock, X, Eye,
-  CheckCircle2, Printer, Baby, User, ArrowRight
+  CreditCard, Banknote, ArrowLeftRight, Clock, X,
+  Printer, Baby
 } from 'lucide-react';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';

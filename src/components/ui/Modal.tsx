@@ -40,7 +40,7 @@ export function Modal({
   className,
   bodyClassName,
   hideClose,
-  scrollable = false,
+  scrollable = true,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -138,7 +138,7 @@ export function Modal({
               </div>
             )}
             {/* Body */}
-            <div className={cn('flex-1 min-h-0 px-4 sm:px-6 py-4 sm:py-5 overflow-y-auto max-h-[calc(92vh-130px)]', bodyClassName)}>
+            <div className={cn('flex-1 min-h-0 px-4 sm:px-6 py-4 sm:py-5 max-h-[calc(92vh-130px)]', scrollable ? 'overflow-y-auto' : 'overflow-hidden', bodyClassName)}>
               {children}
             </div>
             {/* Footer */}

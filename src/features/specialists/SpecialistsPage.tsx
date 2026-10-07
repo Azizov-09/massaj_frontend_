@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react';
 import {
   Plus, Search, Stethoscope, Users, Award, Clock, X, Phone,
-  Mail, Calendar, Eye, EyeOff, CheckCircle2, ChevronRight, Briefcase,
+  Mail, Calendar, Eye, EyeOff, CheckCircle2,
   KeyRound, ShieldCheck, RefreshCw
 } from 'lucide-react';
 import { useStore } from '@/store';
@@ -388,6 +388,17 @@ export function SpecialistsPage() {
               aria-label="Holat bo'yicha filter"
             />
           </div>
+
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="h-10 px-3 rounded-xl border border-warm-200 bg-warm-50 text-xs font-semibold text-charcoal-600 hover:bg-warm-100 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+              Tozalash
+            </button>
+          )}
         </div>
 
         {/* Data Table with EducoreCRM Expandable Accordion Architecture */}

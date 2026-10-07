@@ -3,16 +3,15 @@
 // ═══════════════════════════════════════════════════════
 
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Activity, Plus, AlertCircle, TrendingUp, ArrowRight,
-  Search, X, Calendar, User, Eye, LayoutGrid, Table as TableIcon,
-  CheckCircle2, Award, Baby, Star, Sparkles, Filter, ChevronRight
+  Search, X, Calendar, Eye, LayoutGrid, Table as TableIcon,
+  Award, Baby, Star
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate, cn } from '@/utils';
 import { differenceInYears, parseISO } from 'date-fns';
-import { Card, Avatar, Badge, Select, EmptyState, ProgressBar, Textarea } from '@/components/ui/primitives';
+import { Card, Avatar, Select, EmptyState, ProgressBar, Textarea } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { DataTable, Column } from '@/components/tables/DataTable';
@@ -31,7 +30,6 @@ const criteriaLabels = [
 ];
 
 export function AssessmentsPage() {
-  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const assessments = useStore(s => s.assessments);
   const children = useStore(s => s.children);

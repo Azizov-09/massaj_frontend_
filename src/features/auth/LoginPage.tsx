@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Eye, EyeOff, Heart, ArrowRight, ArrowLeft, ShieldCheck,
-  Activity, Users, Lock, Mail, Stethoscope, Baby,
+  Users, Lock, Stethoscope, Baby,
   Sparkles, CheckCircle2, Phone, HelpCircle, Shield
 } from 'lucide-react';
 import { cn } from '@/utils';
@@ -76,7 +76,6 @@ const ROLE_REDIRECTS: Record<string, string> = {
 export function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const addToast = useStore(s => s.addToast);
 
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState('');

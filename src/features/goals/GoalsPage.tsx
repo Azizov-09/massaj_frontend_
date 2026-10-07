@@ -346,7 +346,9 @@ export function GoalsPage() {
                       <div
                         onClick={(e) => {
                           e.stopPropagation();
-                          !isParent && handleOpenEdit(goal);
+                          if (!isParent) {
+                            handleOpenEdit(goal);
+                          }
                         }}
                         title={`Mutaxassis sharhi: ${goal.specialistNote}`}
                         className={cn(

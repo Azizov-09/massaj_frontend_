@@ -5,15 +5,14 @@
 import { useState, useMemo } from 'react';
 import {
   CreditCard, ArrowDownLeft, ArrowUpRight, Search,
-  Download, RefreshCw, Calendar, Clock, X, Eye, Baby,
-  Wallet, FileText, CheckCircle2, AlertCircle
+  Download, RefreshCw, Calendar, X, Eye, Baby
 } from 'lucide-react';
 import { useStore } from '@/store';
 import {
   formatCurrency, formatCurrencyCompact, formatDate,
   formatDateTime, cn
 } from '@/utils';
-import { Card, Badge, Avatar, Select, DatePicker } from '@/components/ui/primitives';
+import { Card, Avatar, Select, DatePicker } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { DataTable, Column } from '@/components/tables/DataTable';

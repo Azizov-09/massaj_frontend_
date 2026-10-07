@@ -453,3 +453,15 @@ export function useIsMobile(breakpoint = 768): boolean {
 
   return isMobile;
 }
+
+/**
+ * Normalizes Uzbek text for resilient searching across apostrophe variants
+ * (' vs ‘ vs ’ vs ʻ vs `) and case.
+ */
+export function normalizeUzbekSearch(text: string | null | undefined): string {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .replace(/['‘’ʻ`´]/g, "'")
+    .trim();
+}

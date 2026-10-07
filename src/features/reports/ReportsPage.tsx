@@ -7,15 +7,15 @@
 import { useState, useMemo } from 'react';
 import {
   FileText, Download, Users, CreditCard, Activity,
-  CheckCircle2, Calendar, Filter, ArrowDownLeft,
-  ArrowUpRight, AlertCircle, Search, X, Baby, Phone,
-  Clock, XCircle
+  CheckCircle2, Calendar, ArrowDownLeft,
+  ArrowUpRight, Search, X, Baby, Phone,
+  Clock
 } from 'lucide-react';
 import { useStore } from '@/store';
 import {
   formatCurrency, formatDate, formatDateTime, cn
 } from '@/utils';
-import { Card, Select, DatePicker, Badge, EmptyState } from '@/components/ui/primitives';
+import { Card, Select, DatePicker, Badge } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
 import { DataTable, Column, MobileCardConfig } from '@/components/tables/DataTable';

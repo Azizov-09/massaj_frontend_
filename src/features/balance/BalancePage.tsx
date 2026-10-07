@@ -5,7 +5,7 @@
 import { useState, useMemo } from 'react';
 import {
   Wallet, TrendingUp, AlertTriangle, CheckCircle2,
-  Search, CreditCard, X, Baby, Phone, ArrowUpRight,
+  Search, CreditCard, X, Baby, Phone,
   AlertCircle, Users
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';

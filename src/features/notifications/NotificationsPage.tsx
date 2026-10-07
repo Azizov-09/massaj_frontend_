@@ -5,10 +5,9 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Bell, BellOff, BellRing, CheckCheck, CreditCard,
+  Bell, BellRing, CheckCheck, CreditCard,
   Calendar, Activity, ClipboardCheck, Clock, Search,
-  X, Check, RotateCcw, ArrowRight, Sparkles, Filter,
-  CalendarDays, Layers, Inbox
+  X, Check, RotateCcw, ArrowRight, Inbox
 } from 'lucide-react';
 import { parseISO, isToday, isYesterday, differenceInCalendarDays } from 'date-fns';
 import { useStore, useAuth } from '@/store';
@@ -16,7 +15,7 @@ import { formatRelativeTime, formatDateTime, cn } from '@/utils';
 import { Card, Badge, EmptyState, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
-import type { Notification, NotificationType, UserRole } from '@/types';
+import type { Notification, NotificationType } from '@/types';
 
 type NotificationTab = 'ALL' | 'UNREAD' | 'APPOINTMENT' | 'PAYMENT' | 'SESSION' | 'ASSESSMENT' | 'SCHEDULE' | 'SYSTEM';
 type ReadStatusFilter = 'ALL' | 'UNREAD' | 'READ';

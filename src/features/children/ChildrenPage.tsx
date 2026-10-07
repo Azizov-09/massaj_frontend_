@@ -1,14 +1,14 @@
 // ═══════════════════════════════════════════════════════
 //  Children List Page — Full CRUD management
 // ═══════════════════════════════════════════════════════
-import { useState, useMemo, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Search, Baby, ArrowRight, X, Calendar, Clock, Eye, Users, Phone } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Plus, Search, Baby, X, Calendar, Clock, Eye, Users, Phone } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { calculateChildBalance } from '@/services/finance.service';
 import {
   formatAge, formatDate, formatCurrencyCompact,
-  getEntityStatusColor, getEntityStatusLabel, cn
+  getEntityStatusColor, getEntityStatusLabel, normalizeUzbekSearch, cn
 } from '@/utils';
 import { DataTable, Column, getAvatarGradient } from '@/components/tables/DataTable';
 import { Card, Avatar, Badge, Select } from '@/components/ui/primitives';
@@ -20,7 +20,6 @@ import type { Child } from '@/types';
 
 export function ChildrenPage() {
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const allChildren = useStore(s => s.children);
   const specialists = useStore(s => s.specialists);
@@ -36,24 +35,29 @@ export function ChildrenPage() {
     return allChildren;
   }, [allChildren, isParent, currentUser]);
 
+  const [prevSearchParam, setPrevSearchParam] = useState(() => searchParams.get('search'));
   const [search, setSearch] = useState(() => searchParams.get('search') || '');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [specialistFilter, setSpecialistFilter] = useState<string>('');
   const [showCreate, setShowCreate] = useState(false);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
 
-  useEffect(() => {
-    const q = searchParams.get('search');
-    if (q) setSearch(q);
-  }, [searchParams]);
+  // Synchronize URL search param adjustments during render without triggering cascading effects
+  const urlSearch = searchParams.get('search');
+  if (urlSearch !== prevSearchParam) {
+    setPrevSearchParam(urlSearch);
+    if (urlSearch !== null) {
+      setSearch(urlSearch);
+    }
+  }
 
   const filtered = useMemo(() => {
     let result = baseChildren;
     if (search) {
-      const q = search.toLowerCase();
+      const q = normalizeUzbekSearch(search);
       result = result.filter(c =>
-        c.fullName?.toLowerCase().includes(q) ||
-        parents.find(p => p.id === c.parentId)?.fullName?.toLowerCase().includes(q)
+        normalizeUzbekSearch(c.fullName).includes(q) ||
+        normalizeUzbekSearch(parents.find(p => p.id === c.parentId)?.fullName).includes(q)
       );
     }
     if (statusFilter) result = result.filter(c => c.status === statusFilter);

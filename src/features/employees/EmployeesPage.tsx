@@ -350,6 +350,16 @@ export function EmployeesPage() {
                 aria-label="Holat bo'yicha filter"
               />
             </div>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="col-span-2 sm:col-span-1 h-10 px-3 rounded-xl border border-warm-200 bg-warm-50 text-xs font-semibold text-charcoal-600 hover:bg-warm-100 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+                Tozalash
+              </button>
+            )}
           </div>
         </div>
 

@@ -8,13 +8,13 @@ import { useNavigate } from 'react-router-dom';
 import {
   Calendar, CheckCircle2, Clock, Play, Award,
   Users, Activity, ChevronRight, FileText, Plus,
-  Stethoscope, AlertCircle, HeartPulse, User,
+  Stethoscope, AlertCircle, HeartPulse,
   CalendarCheck, ArrowRight, ClipboardList
 } from 'lucide-react';
 import { useAuth, useStore } from '@/store';
 import { formatDate, cn, getAppointmentStatusColor, getAppointmentStatusLabel } from '@/utils';
 import { differenceInYears, parseISO } from 'date-fns';
-import { Card, CardHeader, CardBody, Badge, Avatar, EmptyState, ProgressBar, Textarea, Select } from '@/components/ui/primitives';
+import { Card, Badge, Avatar, EmptyState, ProgressBar, Textarea, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';

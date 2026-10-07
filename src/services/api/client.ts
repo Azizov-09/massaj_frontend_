@@ -56,7 +56,7 @@ function resolveDefaultBaseUrl(): string {
     return `${window.location.origin}/api/v1`;
   }
 
-  return 'http://104.248.29.65/api/v1';
+  return '/api/v1';
 }
 
 const BASE_URL = resolveDefaultBaseUrl();

@@ -7,14 +7,14 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Heart, Calendar, CheckCircle2, CreditCard,
-  AlertCircle, Plus, Copy, Check, Clock, Stethoscope,
-  Activity, ArrowRight, Baby, UserCheck, ChevronRight
+  AlertCircle, Plus, Copy, Check, Stethoscope,
+  Baby, ChevronRight
 } from 'lucide-react';
 import { useAuth, useStore } from '@/store';
 import { formatCurrency, formatDate, cn } from '@/utils';
 import { differenceInYears, parseISO } from 'date-fns';
 import { calculateParentBalance } from '@/services/finance.service';
-import { Card, CardHeader, CardBody, Badge, Avatar, EmptyState, ProgressBar } from '@/components/ui/primitives';
+import { Card, Badge, Avatar, EmptyState, ProgressBar } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
