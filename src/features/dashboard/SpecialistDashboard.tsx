@@ -9,7 +9,7 @@ import {
   Calendar, CheckCircle2, Clock, Play, Award,
   Users, Activity, ChevronRight, FileText, Plus,
   Stethoscope, AlertCircle, HeartPulse, User,
-  CalendarCheck, ArrowRight
+  CalendarCheck, ArrowRight, ClipboardList
 } from 'lucide-react';
 import { useAuth, useStore } from '@/store';
 import { formatDate, cn, getAppointmentStatusColor, getAppointmentStatusLabel } from '@/utils';
@@ -88,7 +88,7 @@ export function SpecialistDashboard() {
 
   const handleStartAppointmentSession = (aptId: string) => {
     startSession(aptId);
-    navigate('/dashboard/specialist/sessions');
+    navigate('/dashboard/specialist/schedule');
   };
 
   const handleSaveNote = (e: React.FormEvent) => {
@@ -154,10 +154,10 @@ export function SpecialistDashboard() {
           </Button>
           <Button
             size="sm"
-            leftIcon={<Activity className="w-4 h-4" />}
-            onClick={() => navigate('/dashboard/specialist/sessions')}
+            leftIcon={<ClipboardList className="w-4 h-4" />}
+            onClick={() => navigate('/dashboard/specialist/attendance')}
           >
-            Seanslar bo‘limi
+            Davomat bo‘limi
           </Button>
         </div>
       </div>
@@ -397,7 +397,7 @@ export function SpecialistDashboard() {
                               variant="secondary"
                               className="bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100"
                               leftIcon={<Activity className="w-3.5 h-3.5" />}
-                              onClick={() => navigate('/dashboard/specialist/sessions')}
+                              onClick={() => navigate('/dashboard/specialist/schedule')}
                             >
                               Jarayonda (O‘tish)
                             </Button>
@@ -421,10 +421,10 @@ export function SpecialistDashboard() {
               <span>Bugun jami reja: <strong>{todayAppointments.length} ta bemor</strong></span>
               <button
                 type="button"
-                onClick={() => navigate('/dashboard/specialist/sessions')}
+                onClick={() => navigate('/dashboard/specialist/schedule')}
                 className="font-bold text-brand-600 hover:text-brand-700 inline-flex items-center gap-1 cursor-pointer"
               >
-                Barcha faol seanslarni ochish <ChevronRight className="w-3.5 h-3.5" />
+                To‘liq jadvalni ochish <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </Card>

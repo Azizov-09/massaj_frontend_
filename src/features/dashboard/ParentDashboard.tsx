@@ -18,7 +18,7 @@ import { Card, CardHeader, CardBody, Badge, Avatar, EmptyState, ProgressBar } fr
 import { Button } from '@/components/ui/Button';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
-import { CreateAppointmentForm } from '@/features/appointments/CreateAppointmentForm';
+import { CreateAppointmentForm } from '@/features/schedule/CreateAppointmentForm';
 
 export function ParentDashboard() {
   const { currentUser } = useAuth();
@@ -410,10 +410,10 @@ export function ParentDashboard() {
             <div className="p-3 bg-warm-50/70 border-t border-warm-100 text-center">
               <button
                 type="button"
-                onClick={() => navigate('/dashboard/parent/appointments')}
+                onClick={() => navigate('/dashboard/parent/children')}
                 className="text-xs text-brand-600 hover:text-brand-700 font-bold inline-flex items-center gap-1 cursor-pointer"
               >
-                Barcha qabullar tarixini ko‘rish <ChevronRight className="w-3.5 h-3.5" />
+                Bolalar ro‘yxatini ko‘rish <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </Card>

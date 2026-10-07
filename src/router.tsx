@@ -37,10 +37,8 @@ const ParentDashboard = lazyWithRetry(() => import('@/features/dashboard/ParentD
 const SpecialistDashboard = lazyWithRetry(() => import('@/features/dashboard/SpecialistDashboard').then(m => ({ default: m.SpecialistDashboard })));
 
 // Operations & Clinical
-const AppointmentsPage = lazyWithRetry(() => import('@/features/appointments/AppointmentsPage').then(m => ({ default: m.AppointmentsPage })));
 const SchedulePage = lazyWithRetry(() => import('@/features/schedule/SchedulePage').then(m => ({ default: m.SchedulePage })));
 const AttendancePage = lazyWithRetry(() => import('@/features/attendance/AttendancePage').then(m => ({ default: m.AttendancePage })));
-const SessionsPage = lazyWithRetry(() => import('@/features/sessions/SessionsPage').then(m => ({ default: m.SessionsPage })));
 const ServicesPage = lazyWithRetry(() => import('@/features/services/ServicesPage').then(m => ({ default: m.ServicesPage })));
 const AssessmentsPage = lazyWithRetry(() => import('@/features/assessments/AssessmentsPage').then(m => ({ default: m.AssessmentsPage })));
 const ProgressPage = lazyWithRetry(() => import('@/features/progress/ProgressPage').then(m => ({ default: m.ProgressPage })));
@@ -84,10 +82,8 @@ const superAdminRoutes = {
     { path: 'specialists', element: withSuspense(SpecialistsPage) },
     { path: 'parents', element: withSuspense(ParentsPage) },
     { path: 'children', element: withSuspense(ChildrenPage) },
-    { path: 'appointments', element: withSuspense(AppointmentsPage) },
     { path: 'schedule', element: withSuspense(SchedulePage) },
     { path: 'attendance', element: withSuspense(AttendancePage) },
-    { path: 'sessions', element: withSuspense(SessionsPage) },
     { path: 'services', element: withSuspense(ServicesPage) },
     { path: 'assessments', element: withSuspense(AssessmentsPage) },
     { path: 'progress', element: withSuspense(ProgressPage) },
@@ -117,10 +113,8 @@ const specialistRoutes = {
   ),
   children: [
     { index: true, element: withSuspense(SpecialistDashboard) },
-    { path: 'appointments', element: withSuspense(AppointmentsPage) },
     { path: 'schedule', element: withSuspense(SchedulePage) },
     { path: 'attendance', element: withSuspense(AttendancePage) },
-    { path: 'sessions', element: withSuspense(SessionsPage) },
     { path: 'children', element: withSuspense(ChildrenPage) },
     { path: 'assessments', element: withSuspense(AssessmentsPage) },
     { path: 'progress', element: withSuspense(ProgressPage) },
@@ -143,8 +137,6 @@ const parentRoutes = {
   children: [
     { index: true, element: withSuspense(ParentDashboard) },
     { path: 'children', element: withSuspense(ChildrenPage) },
-    { path: 'appointments', element: withSuspense(AppointmentsPage) },
-    { path: 'sessions', element: withSuspense(SessionsPage) },
     { path: 'progress', element: withSuspense(ProgressPage) },
     { path: 'payments', element: withSuspense(PaymentsPage) },
     { path: 'balance', element: withSuspense(BalancePage) },

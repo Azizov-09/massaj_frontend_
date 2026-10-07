@@ -365,8 +365,6 @@ export const useStore = create<Store>()(
             parentsRes,
             specialistsRes,
             servicesRes,
-            appointmentsRes,
-            sessionsRes,
             paymentsRes,
             transactionsRes,
             settingsRes,
@@ -379,8 +377,6 @@ export const useStore = create<Store>()(
             api.parents.getAll({ limit: 100 }),
             api.specialists.getAll({ limit: 100 }),
             api.services.getAll(),
-            isParent ? api.portal.getMyAppointments() : api.appointments.getAll({ limit: 100 }),
-            isParent ? api.portal.getMySessions() : isSpecialist ? api.portal.getMyConductedSessions() : api.sessions.getAll({ limit: 100 }),
             isParent ? api.portal.getMyPayments() : api.finance.getPayments({ limit: 100 }),
             api.finance.getTransactions(),
             api.platform.getSettings(),
@@ -395,8 +391,6 @@ export const useStore = create<Store>()(
             const nextParents = parentsRes.status === 'fulfilled' && parentsRes.value?.length ? parentsRes.value : state.parents;
             const nextSpecialists = specialistsRes.status === 'fulfilled' && specialistsRes.value?.length ? specialistsRes.value : state.specialists;
             const nextServices = servicesRes.status === 'fulfilled' && servicesRes.value?.length ? servicesRes.value : state.services;
-            const nextAppointments = appointmentsRes.status === 'fulfilled' && appointmentsRes.value?.length ? appointmentsRes.value : state.appointments;
-            const nextSessions = sessionsRes.status === 'fulfilled' && sessionsRes.value?.length ? sessionsRes.value : state.sessions;
             const nextPayments = paymentsRes.status === 'fulfilled' && paymentsRes.value?.length ? paymentsRes.value : state.payments;
             const nextTransactions = transactionsRes.status === 'fulfilled' && transactionsRes.value?.length ? transactionsRes.value : state.transactions;
             const nextNotifications = notificationsRes.status === 'fulfilled' && notificationsRes.value?.length ? notificationsRes.value : state.notifications;
@@ -419,8 +413,8 @@ export const useStore = create<Store>()(
               parents: nextParents,
               specialists: nextSpecialists,
               services: nextServices,
-              appointments: nextAppointments,
-              sessions: nextSessions,
+              appointments: state.appointments,
+              sessions: state.sessions,
               payments: nextPayments,
               transactions: nextTransactions,
               notifications: nextNotifications,
@@ -681,32 +675,6 @@ export const useStore = create<Store>()(
         const apt: Appointment = { ...data, id: generateId(), createdAt: new Date().toISOString() };
         set(s => ({ appointments: [...s.appointments, apt] }));
 
-        // Async API dispatch
-        const startAt = `${apt.date}T${apt.startTime}:00.000Z`;
-        const endAt = `${apt.date}T${apt.endTime}:00.000Z`;
-        api.appointments.create({
-          childId: apt.childId,
-          parentId: apt.parentId,
-          specialistId: apt.specialistId,
-          serviceId: apt.serviceId,
-          startAt,
-          endAt,
-          notes: apt.notes,
-        }).then(created => {
-          if (created && created.id) {
-            set(s => ({
-              appointments: s.appointments.map(a => a.id === apt.id ? created : a),
-            }));
-          }
-        }).catch(err => {
-          console.warn('[Store] Background createAppointment sync warning:', err);
-          get().addToast({
-            type: 'warning',
-            title: 'Sinxronizatsiya ogohlantirishi',
-            description: 'Uchrashuv lokal saqlandi, ammo serverga sinxron qilinmadi.',
-          });
-        });
-
         get().addActivityLog({
           actorId: get().currentUser?.id ?? 'system',
           actorName: get().currentUser?.fullName ?? 'Sistema',
@@ -720,47 +688,24 @@ export const useStore = create<Store>()(
 
       updateAppointment: (id, data) => {
         set(s => ({ appointments: s.appointments.map(a => a.id === id ? { ...a, ...data, updatedAt: new Date().toISOString() } : a) }));
-        const payload: any = {};
-        if (data.specialistId) payload.specialistId = data.specialistId;
-        if (data.serviceId) payload.serviceId = data.serviceId;
-        if (data.notes !== undefined) payload.notes = data.notes;
-        if (data.date && data.startTime && data.endTime) {
-          payload.startAt = `${data.date}T${data.startTime}:00.000Z`;
-          payload.endAt = `${data.date}T${data.endTime}:00.000Z`;
-        }
-        api.appointments.update(id, payload).catch(err => {
-          console.warn('[Store] Background updateAppointment sync warning:', err);
-        });
       },
 
       confirmAppointment: (id) => {
         set(s => ({ appointments: s.appointments.map(a => a.id === id ? { ...a, status: 'CONFIRMED', updatedAt: new Date().toISOString() } : a) }));
-        api.appointments.confirm(id).catch(err => {
-          console.warn('[Store] Background confirmAppointment sync warning:', err);
-        });
         get().addToast({ type: 'success', title: 'Uchrashuv tasdiqlandi' });
       },
 
       startAppointment: (id) => {
         set(s => ({ appointments: s.appointments.map(a => a.id === id ? { ...a, status: 'IN_PROGRESS', updatedAt: new Date().toISOString() } : a) }));
-        api.appointments.start(id).catch(err => {
-          console.warn('[Store] Background startAppointment sync warning:', err);
-        });
       },
 
       cancelAppointment: (id) => {
         set(s => ({ appointments: s.appointments.map(a => a.id === id ? { ...a, status: 'CANCELLED', updatedAt: new Date().toISOString() } : a) }));
-        api.appointments.cancel(id).catch(err => {
-          console.warn('[Store] Background cancelAppointment sync warning:', err);
-        });
         get().addToast({ type: 'info', title: 'Bekor qilindi', description: 'Uchrashuv bekor qilindi' });
       },
 
       markNoShow: (id) => {
         set(s => ({ appointments: s.appointments.map(a => a.id === id ? { ...a, status: 'NO_SHOW', updatedAt: new Date().toISOString() } : a) }));
-        api.appointments.markNoShow(id).catch(err => {
-          console.warn('[Store] Background markNoShow sync warning:', err);
-        });
         get().addToast({ type: 'warning', title: 'Kelmagan deb belgilandi' });
       },
 
@@ -803,11 +748,6 @@ export const useStore = create<Store>()(
 
         // Complete the linked appointment
         get().completeAppointment(session.appointmentId);
-
-        // Async API dispatch
-        api.sessions.complete(sessionId, { note, observation, recommendation }).catch(err => {
-          console.warn('[Store] Background completeSession sync warning:', err);
-        });
 
         // Create SESSION_CHARGE transaction
         const service = get().services.find(sv => sv.id === session.serviceId);

@@ -143,34 +143,6 @@ export interface RefundDto {
   note?: string;
 }
 
-export interface CreateAppointmentDto {
-  childId: string;
-  parentId: string;
-  specialistId: string;
-  serviceId: string;
-  startAt: string; // ISO 8601
-  endAt: string; // ISO 8601
-  notes?: string;
-}
-
-export interface UpdateAppointmentDto {
-  specialistId?: string;
-  serviceId?: string;
-  startAt?: string;
-  endAt?: string;
-  notes?: string;
-}
-
-export interface CompleteSessionDto {
-  note?: string;
-  observation?: string;
-  recommendation?: string;
-}
-
-export interface CancelSessionDto {
-  note?: string;
-}
-
 export interface CreateAttendanceDto {
   appointmentId: string;
   status: 'PRESENT' | 'ABSENT' | 'LATE' | 'NO_SHOW';

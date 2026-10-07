@@ -14,7 +14,7 @@ import { Card, Badge, Select, DatePicker, Avatar } from '@/components/ui/primiti
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
-import { CreateAppointmentForm } from '@/features/appointments/CreateAppointmentForm';
+import { CreateAppointmentForm } from './CreateAppointmentForm';
 import type { Appointment } from '@/types';
 
 const DEFAULT_TIME_SLOTS = [

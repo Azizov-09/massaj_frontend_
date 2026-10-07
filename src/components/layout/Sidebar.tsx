@@ -5,8 +5,8 @@ import { useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutDashboard, Users, Baby, Calendar, Clock, ClipboardList,
-  Stethoscope, Activity, Target, Wallet, CreditCard, BarChart3,
+  LayoutDashboard, Users, Baby, Clock, ClipboardList,
+  Stethoscope, Target, Wallet, CreditCard, BarChart3,
   FileText, Bell, ScrollText, Settings, ChevronLeft, ChevronRight,
   LogOut, User, Shield, Briefcase, Heart, TrendingDown, TrendingUp, X,
 } from 'lucide-react';
@@ -45,10 +45,8 @@ function getSuperAdminNav(unreadCount: number): NavGroup[] {
     {
       label: 'Operatsiyalar',
       items: [
-        { label: 'Uchrashuvlar', path: '/dashboard/super-admin/appointments', icon: <Calendar className="w-4 h-4" /> },
         { label: 'Jadval', path: '/dashboard/super-admin/schedule', icon: <Clock className="w-4 h-4" /> },
         { label: 'Davomat', path: '/dashboard/super-admin/attendance', icon: <ClipboardList className="w-4 h-4" /> },
-        { label: 'Seanslar', path: '/dashboard/super-admin/sessions', icon: <Activity className="w-4 h-4" /> },
         { label: 'Xizmatlar', path: '/dashboard/super-admin/services', icon: <Heart className="w-4 h-4" /> },
       ],
     },
@@ -93,8 +91,6 @@ function getParentNav(unreadCount: number): NavGroup[] {
       label: 'Bolalarim',
       items: [
         { label: 'Bolalarim', path: '/dashboard/parent/children', icon: <Baby className="w-4 h-4" /> },
-        { label: 'Uchrashuvlar', path: '/dashboard/parent/appointments', icon: <Calendar className="w-4 h-4" /> },
-        { label: 'Seans tarixi', path: '/dashboard/parent/sessions', icon: <Activity className="w-4 h-4" /> },
         { label: 'Rivojlanish', path: '/dashboard/parent/progress', icon: <TrendingUp className="w-4 h-4" /> },
       ],
     },
@@ -127,8 +123,6 @@ function getSpecialistNav(unreadCount: number): NavGroup[] {
     {
       label: 'Klinik faoliyat',
       items: [
-        { label: 'Seanslar', path: '/dashboard/specialist/sessions', icon: <Activity className="w-4 h-4" /> },
-        { label: 'Uchrashuvlar', path: '/dashboard/specialist/appointments', icon: <Calendar className="w-4 h-4" /> },
         { label: 'Jadvalim', path: '/dashboard/specialist/schedule', icon: <Clock className="w-4 h-4" /> },
         { label: 'Davomat', path: '/dashboard/specialist/attendance', icon: <ClipboardList className="w-4 h-4" /> },
         { label: 'Bolalar', path: '/dashboard/specialist/children', icon: <Baby className="w-4 h-4" /> },

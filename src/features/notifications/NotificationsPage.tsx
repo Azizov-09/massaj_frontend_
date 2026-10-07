@@ -226,15 +226,21 @@ export function NotificationsPage() {
       : '/dashboard/super-admin';
 
     if (notif.relatedEntity) {
-      if (notif.relatedEntity.type === 'appointment') return { path: `${basePath}/appointments`, label: "Qabullarga o'tish" };
-      if (notif.relatedEntity.type === 'session') return { path: `${basePath}/sessions`, label: "Seanslarga o'tish" };
+      if (notif.relatedEntity.type === 'appointment' || notif.relatedEntity.type === 'session') {
+        return role === 'PARENT'
+          ? { path: `${basePath}/children`, label: "Bolalar sahifasiga" }
+          : { path: `${basePath}/schedule`, label: "Jadvalga o'tish" };
+      }
       if (notif.relatedEntity.type === 'child') return { path: `${basePath}/children`, label: "Bolalar sahifasiga" };
       if (notif.relatedEntity.type === 'payment') return { path: role === 'PARENT' ? `${basePath}/payments` : `${basePath}/transactions`, label: "To'lovlarga o'tish" };
       if (notif.relatedEntity.type === 'specialist') return { path: `${basePath}/specialists`, label: "Mutaxassisga o'tish" };
     }
 
-    if (notif.type === 'appointment') return { path: `${basePath}/appointments`, label: "Qabullarga o'tish" };
-    if (notif.type === 'session') return { path: `${basePath}/sessions`, label: "Seanslarga o'tish" };
+    if (notif.type === 'appointment' || notif.type === 'session') {
+      return role === 'PARENT'
+        ? { path: `${basePath}/children`, label: "Bolalar sahifasiga" }
+        : { path: `${basePath}/schedule`, label: "Jadvalga o'tish" };
+    }
     if (notif.type === 'payment') return { path: role === 'PARENT' ? `${basePath}/payments` : `${basePath}/transactions`, label: "Moliya bo'limiga" };
     if (notif.type === 'schedule') return { path: `${basePath}/schedule`, label: "Jadvalga o'tish" };
     if (notif.type === 'assessment') return { path: role === 'PARENT' ? `${basePath}/children` : `${basePath}/assessments`, label: "Baholashga o'tish" };

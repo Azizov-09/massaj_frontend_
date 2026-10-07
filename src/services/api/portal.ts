@@ -1,10 +1,8 @@
 import type { ApiClient } from './client';
 import { normalizeChild } from './children';
-import { normalizeAppointment } from './appointments';
-import { normalizeSession } from './sessions';
 import { normalizeAssessment, normalizeProgress, normalizeGoal } from './clinical';
 import { normalizePayment } from './finance';
-import type { Child, Appointment, Session, Assessment, ProgressNote, Goal, Payment } from '@/types';
+import type { Child, Assessment, ProgressNote, Goal, Payment } from '@/types';
 
 export class PortalApi {
   constructor(private client: ApiClient) {}
@@ -14,18 +12,6 @@ export class PortalApi {
     const res = await this.client.get<any>('/parent/my-children');
     const list = Array.isArray(res) ? res : res?.data || [];
     return list.map(normalizeChild);
-  }
-
-  public async getMyAppointments(): Promise<Appointment[]> {
-    const res = await this.client.get<any>('/parent/my-appointments');
-    const list = Array.isArray(res) ? res : res?.data || [];
-    return list.map(normalizeAppointment);
-  }
-
-  public async getMySessions(): Promise<Session[]> {
-    const res = await this.client.get<any>('/parent/my-sessions');
-    const list = Array.isArray(res) ? res : res?.data || [];
-    return list.map(normalizeSession);
   }
 
   public async getMyAssessments(): Promise<Assessment[]> {
@@ -72,12 +58,6 @@ export class PortalApi {
     const res = await this.client.get<any>('/specialist/my-children');
     const list = Array.isArray(res) ? res : res?.data || [];
     return list.map(normalizeChild);
-  }
-
-  public async getMyConductedSessions(): Promise<Session[]> {
-    const res = await this.client.get<any>('/specialist/my-sessions');
-    const list = Array.isArray(res) ? res : res?.data || [];
-    return list.map(normalizeSession);
   }
 
   public async getMyAuthoredAssessments(): Promise<Assessment[]> {
