@@ -79,7 +79,6 @@ export function LoginPage() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState('');
-  const [selectedDemoRole, setSelectedDemoRole] = useState<string>('superadmin@demo.com');
   const [showForgotModal, setShowForgotModal] = useState(false);
 
   const {
@@ -90,8 +89,8 @@ export function LoginPage() {
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'superadmin@demo.com',
-      password: 'demo123',
+      email: '',
+      password: '',
       rememberMe: true,
     },
   });
@@ -109,12 +108,6 @@ export function LoginPage() {
     } else {
       setServerError(result.error ?? "Login yoki parol noto'g'ri");
     }
-  };
-
-  const handleSelectDemo = (acc: DemoAccount) => {
-    setSelectedDemoRole(acc.email);
-    setValue('email', acc.email, { shouldValidate: true });
-    setValue('password', acc.password, { shouldValidate: true });
   };
 
   const handleForgotHelp = () => {
@@ -306,103 +299,6 @@ export function LoginPage() {
               <p className="text-xs sm:text-sm text-charcoal-500 leading-relaxed">
                 Klinik boshqaruv, qabullar monitoringi va shaxsiy kabinetga kirish uchun ma’lumotlaringizni kiriting
               </p>
-            </div>
-
-            {/* Live API Banner */}
-            <div className="mb-5 p-3 rounded-xl bg-emerald-50/90 border border-emerald-200/90 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </span>
-                <span className="font-semibold text-emerald-900">
-                  Jonli Backend API (104.248.29.65)
-                </span>
-              </div>
-              <a
-                href="https://massaj-frontent-demo.vercel.app"
-                target="_blank"
-                rel="noreferrer"
-                className="text-[11px] font-medium text-emerald-700 hover:text-emerald-900 underline"
-              >
-                Demo rejim ↗
-              </a>
-            </div>
-
-            {/* ─── Interactive Quick Role Switcher (Senior standard) ─── */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-charcoal-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-brand-500" />
-                  Tezkor demo hisoblar
-                </span>
-                <span className="text-[11px] text-charcoal-400">Rolni tanlang:</span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {DEMO_ACCOUNTS.map(acc => {
-                  const Icon = acc.icon;
-                  const isSelected = selectedDemoRole === acc.email;
-                  return (
-                    <button
-                      key={acc.email}
-                      type="button"
-                      onClick={() => handleSelectDemo(acc)}
-                      className={cn(
-                        'relative p-2.5 rounded-[12px] border text-left transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[64px] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
-                        isSelected
-                          ? acc.theme === 'brand'
-                            ? 'bg-brand-50/80 border-brand-400 shadow-sm shadow-brand-500/10 ring-1 ring-brand-400'
-                            : acc.theme === 'sage'
-                            ? 'bg-emerald-50/80 border-emerald-400 shadow-sm shadow-emerald-500/10 ring-1 ring-emerald-400'
-                            : 'bg-amber-50/80 border-amber-400 shadow-sm shadow-amber-500/10 ring-1 ring-amber-400'
-                          : 'bg-warm-50/60 border-warm-200/80 hover:bg-white hover:border-warm-300'
-                      )}
-                    >
-                      <div className="flex items-center justify-between gap-1 w-full">
-                        <span
-                          className={cn(
-                            'w-6 h-6 rounded-[7px] flex items-center justify-center shrink-0',
-                            isSelected
-                              ? acc.theme === 'brand'
-                                ? 'bg-brand-600 text-white'
-                                : acc.theme === 'sage'
-                                ? 'bg-emerald-600 text-white'
-                                : 'bg-amber-600 text-white'
-                              : 'bg-warm-200/80 text-charcoal-600 group-hover:text-charcoal-900'
-                          )}
-                        >
-                          <Icon className="w-3.5 h-3.5" />
-                        </span>
-                        {isSelected && (
-                          <CheckCircle2
-                            className={cn(
-                              'w-4 h-4',
-                              acc.theme === 'brand'
-                                ? 'text-brand-600'
-                                : acc.theme === 'sage'
-                                ? 'text-emerald-600'
-                                : 'text-amber-600'
-                            )}
-                          />
-                        )}
-                      </div>
-
-                      <div className="mt-2">
-                        <p
-                          className={cn(
-                            'text-xs font-bold leading-tight truncate',
-                            isSelected ? 'text-charcoal-900' : 'text-charcoal-700'
-                          )}
-                        >
-                          {acc.role}
-                        </p>
-                        <p className="text-[10px] text-charcoal-400 mt-0.5">demo123</p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
             </div>
 
             {/* ─── Login Form ─── */}
