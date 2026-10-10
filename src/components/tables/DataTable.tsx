@@ -420,20 +420,20 @@ export function DataTable<T>({
 
       {/* Pagination Footer */}
       {sorted.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 px-3.5 sm:px-4.5 py-3 border-t border-warm-100 bg-warm-50/60 relative z-20">
-          <div className="flex items-center gap-2 text-xs font-medium text-charcoal-600">
-            <span>Sahifada:</span>
-            <div className="w-18 sm:w-20 relative z-30">
+        <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-t border-warm-100 bg-warm-50/70 relative z-20">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-medium text-charcoal-600">
+            <span className="hidden xs:inline">Sahifada:</span>
+            <div className="w-16 sm:w-20 relative z-30">
               <Select
                 value={String(pageSize)}
                 onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
                 size="sm"
-                triggerClassName="h-8 rounded-[8px] text-xs font-semibold shadow-2xs border-warm-300"
+                triggerClassName="h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg text-[11px] sm:text-xs font-semibold shadow-2xs border-warm-300 bg-white"
                 options={PAGE_SIZES.map(ps => ({ value: String(ps), label: String(ps) }))}
                 aria-label="Sahifadagi yozuvlar soni"
               />
             </div>
-            <span className="text-charcoal-400 tabular-nums">
+            <span className="text-charcoal-500 tabular-nums text-[11px] sm:text-xs whitespace-nowrap">
               {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, sorted.length)} / <strong className="text-charcoal-800 font-bold">{sorted.length}</strong>
             </span>
           </div>
@@ -441,25 +441,25 @@ export function DataTable<T>({
           {totalPages > 1 && (
             <>
               {/* Mobile compact pagination */}
-              <div className="flex sm:hidden items-center gap-1.5 ml-auto">
-                <span className="text-xs font-semibold text-charcoal-700 tabular-nums mr-1">
-                  {page} / {totalPages}
+              <div className="flex sm:hidden items-center gap-1 ml-auto">
+                <span className="text-[11px] font-semibold text-charcoal-700 tabular-nums px-1">
+                  {page}/{totalPages}
                 </span>
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="w-8 h-8 flex items-center justify-center rounded-[8px] border border-warm-200 bg-white text-charcoal-600 hover:text-charcoal-900 active:bg-warm-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs transition-colors"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg border border-warm-200 bg-white text-charcoal-600 hover:text-charcoal-900 active:bg-warm-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs transition-colors"
                   aria-label="Oldingi sahifa"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="w-8 h-8 flex items-center justify-center rounded-[8px] border border-warm-200 bg-white text-charcoal-600 hover:text-charcoal-900 active:bg-warm-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs transition-colors"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg border border-warm-200 bg-white text-charcoal-600 hover:text-charcoal-900 active:bg-warm-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs transition-colors"
                   aria-label="Keyingi sahifa"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 

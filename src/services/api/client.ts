@@ -121,6 +121,13 @@ export class ApiClient {
     this.refreshPromise = (async () => {
       try {
         const storedRefreshToken = this.getRefreshToken();
+        // If there is no valid refresh token stored (backend requires at least 20 chars), don't fire request
+        if (!storedRefreshToken || storedRefreshToken.length < 20) {
+          this.setToken(null);
+          this.setRefreshToken(null);
+          return null;
+        }
+
         const refreshUrl = this.buildUrl('/auth/refresh');
         const res = await fetch(refreshUrl, {
           method: 'POST',
@@ -130,7 +137,7 @@ export class ApiClient {
           },
           credentials: 'include',
           body: JSON.stringify({
-            refreshToken: storedRefreshToken || '',
+            refreshToken: storedRefreshToken,
           }),
         });
 

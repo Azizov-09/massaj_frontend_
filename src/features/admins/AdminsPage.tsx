@@ -5,7 +5,7 @@
 import { useState, useMemo } from 'react';
 import {
   ShieldCheck, Plus, Search, Shield, User,
-  CheckCircle2, Phone, Mail, Calendar, Eye, EyeOff, KeyRound, RefreshCw, X
+  CheckCircle2, Phone, Mail, Calendar, Eye, EyeOff, KeyRound, RefreshCw, X, Pencil
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate, getEntityStatusColor, getEntityStatusLabel, cn, generateStrongPassword } from '@/utils';
@@ -32,7 +32,22 @@ export function AdminsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<AdminUser | null>(null);
+  const [editingAdmin, setEditingAdmin] = useState<AdminUser | null>(null);
+  const [editForm, setEditForm] = useState<{
+    fullName: string;
+    email: string;
+    phone: string;
+    role: 'SUPER_ADMIN' | 'ADMIN';
+    status: 'ACTIVE' | 'INACTIVE';
+  }>({
+    fullName: '',
+    email: '',
+    phone: '',
+    role: 'ADMIN',
+    status: 'ACTIVE',
+  });
   const [formErrors, setFormErrors] = useState<{ fullName?: string; email?: string; phone?: string; password?: string }>({});
+  const [editFormErrors, setEditFormErrors] = useState<{ fullName?: string; email?: string; phone?: string }>({});
 
   // New admin form state
   const [newAdmin, setNewAdmin] = useState({
@@ -124,6 +139,61 @@ export function AdminsPage() {
     setShowCreateModal(false);
     setNewAdmin({ fullName: '', email: '', phone: '', role: 'ADMIN', password: generateStrongPassword(14) });
     setFormErrors({});
+  };
+
+  const handleOpenEdit = (admin: AdminUser) => {
+    setEditingAdmin(admin);
+    setEditForm({
+      fullName: admin.fullName,
+      email: admin.email || '',
+      phone: admin.phone || '',
+      role: admin.role,
+      status: admin.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
+    });
+    setEditFormErrors({});
+  };
+
+  const handleUpdateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAdmin) return;
+
+    const errors: { fullName?: string; email?: string; phone?: string } = {};
+    if (!editForm.fullName.trim()) errors.fullName = 'Ism familiya kiritilishi shart';
+    if (!editForm.phone.trim()) {
+      errors.phone = 'Telefon raqam kiritilishi shart';
+    } else if (!/^\+?[0-9]{9,15}$/.test(editForm.phone.replace(/[\s-]/g, ''))) {
+      errors.phone = "Noto'g'ri telefon raqami formati";
+    }
+    if (editForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email)) {
+      errors.email = "Noto'g'ri email formati";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setEditFormErrors(errors);
+      return;
+    }
+
+    updateAdmin(editingAdmin.id, {
+      fullName: editForm.fullName.trim(),
+      email: editForm.email.trim(),
+      phone: editForm.phone.trim(),
+      role: editForm.role,
+      status: editForm.status,
+    });
+
+    if (selectedAdmin && selectedAdmin.id === editingAdmin.id) {
+      setSelectedAdmin({
+        ...selectedAdmin,
+        fullName: editForm.fullName.trim(),
+        email: editForm.email.trim(),
+        phone: editForm.phone.trim(),
+        role: editForm.role,
+        status: editForm.status,
+      });
+    }
+
+    setEditingAdmin(null);
+    setEditFormErrors({});
   };
 
   const handleToggleAdminStatus = (admin: AdminUser) => {
@@ -223,7 +293,7 @@ export function AdminsPage() {
       key: 'actions',
       header: 'Amallar',
       cell: (a) => (
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-1.5">
           <Button
             variant="ghost"
             size="sm"
@@ -236,6 +306,20 @@ export function AdminsPage() {
             <Eye className="w-3.5 h-3.5 mr-1" />
             Ko'rish
           </Button>
+          {currentUser?.role === 'SUPER_ADMIN' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenEdit(a);
+              }}
+              className="h-8 px-2.5 text-xs text-brand-600 border-brand-200 hover:bg-brand-50 hover:border-brand-300"
+            >
+              <Pencil className="w-3.5 h-3.5 mr-1" />
+              Tahrirlash
+            </Button>
+          )}
         </div>
       ),
     },
@@ -484,8 +568,18 @@ export function AdminsPage() {
                     className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
                   >
                     <Eye className="w-3.5 h-3.5 text-charcoal-500" />
-                    Tahrirlash
+                    Ko'rish
                   </button>
+                  {currentUser?.role === 'SUPER_ADMIN' && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEdit(admin)}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-brand-200 bg-brand-50 text-brand-700 text-xs font-medium hover:bg-brand-100 active:bg-brand-200 shadow-2xs cursor-pointer"
+                    >
+                      <Pencil className="w-3.5 h-3.5 text-brand-600" />
+                      Tahrirlash
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => handleToggleAdminStatus(admin)}
@@ -594,10 +688,20 @@ export function AdminsPage() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-warm-100">
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-warm-100">
               <Button variant="secondary" onClick={() => setSelectedAdmin(null)}>
                 Yopish
               </Button>
+              {currentUser?.role === 'SUPER_ADMIN' && (
+                <Button
+                  onClick={() => {
+                    handleOpenEdit(selectedAdmin);
+                  }}
+                  leftIcon={<Pencil className="w-4 h-4" />}
+                >
+                  Tahrirlash
+                </Button>
+              )}
             </div>
           </div>
         </Modal>
@@ -719,6 +823,86 @@ export function AdminsPage() {
           <div className="pb-12" />
         </form>
       </Modal>
+
+      {/* ─── Edit Admin Modal (SuperAdmin only) ─── */}
+      {editingAdmin && (
+        <Modal
+          isOpen={!!editingAdmin}
+          onClose={() => setEditingAdmin(null)}
+          title="Administrator ma’lumotlarini tahrirlash"
+          size="md"
+          bodyClassName="pb-6"
+          footer={
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 w-full">
+              <Button variant="secondary" type="button" onClick={() => setEditingAdmin(null)} className="w-full sm:w-auto">
+                Bekor qilish
+              </Button>
+              <Button type="submit" form="edit-admin-form" className="w-full sm:w-auto">
+                O‘zgarishlarni saqlash
+              </Button>
+            </div>
+          }
+        >
+          <form id="edit-admin-form" onSubmit={handleUpdateSubmit} className="space-y-4">
+            <Input
+              label="To‘liq ism"
+              required
+              placeholder="Masalan: Sardor Rustamov"
+              value={editForm.fullName}
+              error={editFormErrors.fullName}
+              onChange={e => {
+                setEditForm({ ...editForm, fullName: e.target.value });
+                if (editFormErrors.fullName) setEditFormErrors({ ...editFormErrors, fullName: undefined });
+              }}
+            />
+
+            <Input
+              label="Email"
+              type="email"
+              placeholder="admin@massaj.uz"
+              value={editForm.email}
+              error={editFormErrors.email}
+              onChange={e => {
+                setEditForm({ ...editForm, email: e.target.value });
+                if (editFormErrors.email) setEditFormErrors({ ...editFormErrors, email: undefined });
+              }}
+            />
+
+            <Input
+              label="Telefon raqam"
+              required
+              type="tel"
+              placeholder="+998901234567"
+              value={editForm.phone}
+              error={editFormErrors.phone}
+              onChange={e => {
+                setEditForm({ ...editForm, phone: e.target.value });
+                if (editFormErrors.phone) setEditFormErrors({ ...editFormErrors, phone: undefined });
+              }}
+            />
+
+            <Select
+              label="Admin roli"
+              value={editForm.role}
+              onChange={e => setEditForm({ ...editForm, role: e.target.value as 'SUPER_ADMIN' | 'ADMIN' })}
+            >
+              <option value="ADMIN">Administrator (Cheklangan ruxsatlar)</option>
+              <option value="SUPER_ADMIN">Super Administrator (To‘liq ruxsatlar)</option>
+            </Select>
+
+            <Select
+              label="Hisob holati"
+              value={editForm.status}
+              onChange={e => setEditForm({ ...editForm, status: e.target.value as 'ACTIVE' | 'INACTIVE' })}
+            >
+              <option value="ACTIVE">Faol (Tizimga kirish mumkin)</option>
+              <option value="INACTIVE">Nofaol (Tizimga kirish cheklangan)</option>
+            </Select>
+
+            <div className="pb-8" />
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

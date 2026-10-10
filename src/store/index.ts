@@ -1125,6 +1125,9 @@ export const useStore = create<Store>()(
         api.admins.update(id, {
           fullName: data.fullName,
           email: data.email,
+          phone: data.phone,
+          role: data.role,
+          status: data.status,
         }).catch(err => {
           console.warn('[Store] Background updateAdmin sync warning:', err);
         });
