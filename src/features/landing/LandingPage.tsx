@@ -137,12 +137,13 @@ export function LandingPage() {
           </Link>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center gap-8">
+          {/* Desktop Nav Links */}
+          <nav className="hidden xl:flex items-center gap-1 2xl:gap-2">
             {navLinks.map(link => (
               <a
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-charcoal-700 hover:text-brand-500 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-sm font-medium text-charcoal-700 hover:text-brand-600 hover:bg-brand-50/60 transition-all whitespace-nowrap"
               >
                 {link.label}
               </a>
@@ -150,14 +151,15 @@ export function LandingPage() {
           </nav>
 
           {/* Action CTAs */}
-          <div className="hidden sm:flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2.5">
             <Link to="/login">
-              <Button variant="ghost" size="md">
+              <Button variant="ghost" size="sm" className="whitespace-nowrap font-medium text-charcoal-700 hover:text-brand-600">
                 Tizimga kirish
               </Button>
             </Link>
             <Button
-              size="md"
+              size="sm"
+              className="whitespace-nowrap shadow-sm shadow-brand-500/20 font-semibold"
               leftIcon={<Calendar className="w-4 h-4" />}
               onClick={() => setBookingModalOpen(true)}
             >
@@ -165,13 +167,13 @@ export function LandingPage() {
             </Button>
           </div>
 
-          {/* Mobile hamburger */}
-          <div className="lg:hidden flex items-center gap-2">
+          {/* Mobile/Tablet hamburger */}
+          <div className="xl:hidden flex items-center gap-2">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Mobil menyuni ochish yoki yopish"
               aria-expanded={mobileMenuOpen}
-              className="p-2 text-charcoal-700 hover:bg-warm-100 rounded-lg"
+              className="p-2 text-charcoal-700 hover:bg-warm-100 rounded-lg transition-colors"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -185,22 +187,22 @@ export function LandingPage() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden border-b border-warm-200 bg-white px-4 py-6 space-y-4"
+              className="xl:hidden border-b border-warm-200 bg-white/98 backdrop-blur-md px-5 py-6 space-y-4 shadow-lg"
             >
-              <div className="flex flex-col space-y-3">
+              <div className="flex flex-col space-y-2">
                 {navLinks.map(link => (
                   <a
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="text-base font-medium text-charcoal-700 hover:text-brand-500"
+                    className="px-3 py-2 rounded-lg text-base font-medium text-charcoal-700 hover:text-brand-600 hover:bg-warm-50 transition-colors"
                   >
                     {link.label}
                   </a>
                 ))}
               </div>
-              <div className="pt-4 border-t border-warm-100 flex flex-col gap-2">
-                <Link to="/login" className="w-full">
+              <div className="pt-4 border-t border-warm-100 flex flex-col gap-2.5 sm:hidden">
+                <Link to="/login" className="w-full" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="secondary" className="w-full">Tizimga kirish</Button>
                 </Link>
                 <Button className="w-full" onClick={() => { setMobileMenuOpen(false); setBookingModalOpen(true); }}>
@@ -254,35 +256,9 @@ export function LandingPage() {
                 </Button>
                 <Link to="/login">
                   <Button variant="secondary" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>
-                    Demo tizimni ko‘rish
+                    Tizimga kirish
                   </Button>
                 </Link>
-              </div>
-
-              {/* Demo accounts quick pills */}
-              <div className="pt-4 flex flex-wrap items-center gap-2 text-xs text-charcoal-500">
-                <span className="font-semibold text-charcoal-700">Tezkor kirish:</span>
-                <button
-                  type="button"
-                  onClick={() => navigate('/login?role=super-admin')}
-                  className="cursor-pointer bg-white px-2.5 py-1 rounded-md border border-warm-200 hover:border-brand-500 hover:text-brand-500 transition-colors shadow-2xs font-medium"
-                >
-                  Super Admin
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/login?role=specialist')}
-                  className="cursor-pointer bg-white px-2.5 py-1 rounded-md border border-warm-200 hover:border-brand-500 hover:text-brand-500 transition-colors shadow-2xs font-medium"
-                >
-                  Mutaxassis
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/login?role=parent')}
-                  className="cursor-pointer bg-white px-2.5 py-1 rounded-md border border-warm-200 hover:border-brand-500 hover:text-brand-500 transition-colors shadow-2xs font-medium"
-                >
-                  Ota-ona
-                </button>
               </div>
             </motion.div>
 
