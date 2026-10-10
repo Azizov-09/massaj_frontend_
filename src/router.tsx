@@ -2,7 +2,7 @@
 //  App Router — React Router with Code-Splitting & RBAC
 // ═══════════════════════════════════════════════════════
 import { Suspense } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ProtectedRoute, RoleRedirect, NotFoundPage, ForbiddenPage } from '@/features/auth/guards';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
@@ -82,7 +82,7 @@ const superAdminRoutes = {
     { path: 'specialists', element: withSuspense(SpecialistsPage) },
     { path: 'parents', element: withSuspense(ParentsPage) },
     { path: 'children', element: withSuspense(ChildrenPage) },
-    { path: 'schedule', element: withSuspense(SchedulePage) },
+    { path: 'schedule', element: <Navigate to="/dashboard/super-admin/attendance" replace /> },
     { path: 'attendance', element: withSuspense(AttendancePage) },
     { path: 'services', element: withSuspense(ServicesPage) },
     { path: 'assessments', element: withSuspense(AssessmentsPage) },
@@ -113,7 +113,7 @@ const specialistRoutes = {
   ),
   children: [
     { index: true, element: withSuspense(SpecialistDashboard) },
-    { path: 'schedule', element: withSuspense(SchedulePage) },
+    { path: 'schedule', element: <Navigate to="/dashboard/specialist/attendance" replace /> },
     { path: 'attendance', element: withSuspense(AttendancePage) },
     { path: 'children', element: withSuspense(ChildrenPage) },
     { path: 'assessments', element: withSuspense(AssessmentsPage) },

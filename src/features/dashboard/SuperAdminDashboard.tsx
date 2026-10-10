@@ -456,7 +456,7 @@ export function SuperAdminDashboard() {
               <p className="text-xs text-charcoal-400 mt-0.5">{totalFilteredAppointmentsCount} ta jami muolaja</p>
             </div>
             <Link
-              to="/dashboard/super-admin/schedule"
+              to="/dashboard/super-admin/attendance"
               className="text-xs text-brand-600 hover:text-brand-700 font-bold flex items-center gap-1"
             >
               Hammasi <ArrowRight className="w-3.5 h-3.5" />
@@ -628,10 +628,10 @@ export function SuperAdminDashboard() {
 
           <div className="p-2.5 bg-warm-50/60 border-t border-warm-100 text-center">
             <Link
-              to="/dashboard/super-admin/schedule"
+              to="/dashboard/super-admin/attendance"
               className="text-xs text-brand-600 hover:text-brand-700 font-bold inline-flex items-center gap-1"
             >
-              To‘liq jadvalni ko‘rish <ChevronRight className="w-3.5 h-3.5" />
+              To‘liq davomatni ko‘rish <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </Card>
@@ -934,10 +934,10 @@ export function SuperAdminDashboard() {
                   variant="secondary"
                   onClick={() => {
                     setViewingAppointment(null);
-                    navigate('/dashboard/super-admin/schedule');
+                    navigate('/dashboard/super-admin/attendance');
                   }}
                 >
-                  Jadval bo‘limiga o‘tish
+                  Davomat bo‘limiga o‘tish
                 </Button>
                 <Button size="sm" onClick={() => setViewingAppointment(null)}>
                   Yopish

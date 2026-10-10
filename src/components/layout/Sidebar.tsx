@@ -45,7 +45,6 @@ function getSuperAdminNav(unreadCount: number): NavGroup[] {
     {
       label: 'Operatsiyalar',
       items: [
-        { label: 'Jadval', path: '/dashboard/super-admin/schedule', icon: <Clock className="w-4 h-4" /> },
         { label: 'Davomat', path: '/dashboard/super-admin/attendance', icon: <ClipboardList className="w-4 h-4" /> },
         { label: 'Xizmatlar', path: '/dashboard/super-admin/services', icon: <Heart className="w-4 h-4" /> },
       ],
@@ -123,7 +122,6 @@ function getSpecialistNav(unreadCount: number): NavGroup[] {
     {
       label: 'Klinik faoliyat',
       items: [
-        { label: 'Jadvalim', path: '/dashboard/specialist/schedule', icon: <Clock className="w-4 h-4" /> },
         { label: 'Davomat', path: '/dashboard/specialist/attendance', icon: <ClipboardList className="w-4 h-4" /> },
         { label: 'Bolalar', path: '/dashboard/specialist/children', icon: <Baby className="w-4 h-4" /> },
       ],

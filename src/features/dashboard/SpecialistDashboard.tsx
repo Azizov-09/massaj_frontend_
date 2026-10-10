@@ -135,9 +135,9 @@ export function SpecialistDashboard() {
             size="sm"
             variant="secondary"
             leftIcon={<Calendar className="w-4 h-4" />}
-            onClick={() => navigate('/dashboard/specialist/schedule')}
+            onClick={() => navigate('/dashboard/specialist/attendance')}
           >
-            Haftalik jadval
+            Davomat
           </Button>
           <Button
             size="sm"
@@ -517,15 +517,6 @@ export function SpecialistDashboard() {
                 onClick={() => navigate('/dashboard/specialist/attendance')}
               >
                 Davomat
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="justify-start text-xs font-medium"
-                leftIcon={<Calendar className="w-3.5 h-3.5 text-blue-600" />}
-                onClick={() => navigate('/dashboard/specialist/schedule')}
-              >
-                Jadval
               </Button>
             </div>
           </Card>
