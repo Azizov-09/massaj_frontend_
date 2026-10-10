@@ -37,6 +37,23 @@ describe('Utils test suite', () => {
     expect(getInitials('')).toBe('');
   });
 
+  it('formats Uzbek phone numbers correctly as user types', async () => {
+    const { formatUzbekPhoneInput } = await import('./index');
+    expect(formatUzbekPhoneInput('')).toBe('');
+    expect(formatUzbekPhoneInput('9')).toBe('+998 (9');
+    expect(formatUzbekPhoneInput('90')).toBe('+998 (90) ');
+    expect(formatUzbekPhoneInput('90123')).toBe('+998 (90) 123');
+    expect(formatUzbekPhoneInput('9012345')).toBe('+998 (90) 123-45');
+    expect(formatUzbekPhoneInput('901234567')).toBe('+998 (90) 123-45-67');
+    expect(formatUzbekPhoneInput('+998901234567')).toBe('+998 (90) 123-45-67');
+  });
+
+  it('formats date strictly in dd.MM.yyyy format', async () => {
+    const { formatDate } = await import('./index');
+    expect(formatDate('2024-03-24')).toBe('24.03.2024');
+    expect(formatDate(null)).toBe('—');
+  });
+
   it('calculates parent balance correctly', () => {
     const mockTransactions: Transaction[] = [
       {

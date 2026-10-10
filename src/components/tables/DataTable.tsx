@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════
 //  Data Table — Reusable sortable, paginated table
 // ═══════════════════════════════════════════════════════
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn, sortBy, paginate, useIsMobile } from '@/utils';
 import { EmptyState, Skeleton, Select } from '@/components/ui/primitives';
@@ -57,6 +57,12 @@ interface DataTableProps<T> {
   mobileCardConfig?: (row: T, index: number) => MobileCardConfig;
   /** Whether to force traditional table on mobile instead of card view */
   forceTableOnMobile?: boolean;
+  /** Controlled page number (1-based) */
+  page?: number;
+  /** Callback fired when current page changes */
+  onPageChange?: (page: number) => void;
+  /** Callback fired with the current visible range and count */
+  onPaginationChange?: (range: { start: number; end: number; total: number; page: number; pageSize: number }) => void;
 }
 
 export const AVATAR_GRADIENTS = [
@@ -98,13 +104,28 @@ export function DataTable<T>({
   renderMobileCard,
   mobileCardConfig,
   forceTableOnMobile = false,
+  page: controlledPage,
+  onPageChange,
+  onPaginationChange,
 }: DataTableProps<T>) {
   const isMobile = useIsMobile();
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [page, setPage] = useState(1);
+  const [internalPage, setInternalPage] = useState(1);
+  const [prevData, setPrevData] = useState(data);
   const [pageSize, setPageSize] = useState(defaultPageSize);
   const [expandedRows, setExpandedRows] = useState<Set<string | number>>(new Set());
+
+  // Synchronize internal page during render when data prop changes
+  if (data !== prevData) {
+    setPrevData(data);
+    if (controlledPage === undefined) {
+      setInternalPage(1);
+    }
+  }
+
+  const isControlledPage = controlledPage !== undefined;
+  const rawPage = isControlledPage ? controlledPage : internalPage;
 
   const toggleRowExpand = (id: string | number) => {
     setExpandedRows(prev => {
@@ -120,8 +141,25 @@ export function DataTable<T>({
     return sortBy(data, sortKey as keyof T, sortOrder);
   }, [data, sortKey, sortOrder]);
 
-  const totalPages = Math.ceil(sorted.length / pageSize);
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const page = Math.min(Math.max(1, rawPage), totalPages);
+
+  const setPage = (updater: number | ((prev: number) => number)) => {
+    const nextPage = typeof updater === 'function' ? updater(page) : updater;
+    if (!isControlledPage) {
+      setInternalPage(nextPage);
+    }
+    onPageChange?.(nextPage);
+  };
+
   const paged = useMemo(() => paginate(sorted, page, pageSize), [sorted, page, pageSize]);
+
+  // Notify parent of visible range
+  useEffect(() => {
+    const start = sorted.length === 0 ? 0 : (page - 1) * pageSize + 1;
+    const end = Math.min(page * pageSize, sorted.length);
+    onPaginationChange?.({ start, end, total: sorted.length, page, pageSize });
+  }, [page, pageSize, sorted.length, onPaginationChange]);
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -317,7 +355,7 @@ export function DataTable<T>({
         </div>
       ) : (
         /* Desktop Table View */
-        <div className="overflow-x-auto touch-scroll-x scrollbar-thin">
+        <div className="w-full max-w-full overflow-x-auto touch-scroll-x scrollbar-thin">
           <table className={cn('w-full border-collapse min-w-[600px]', tableClassName)}>
             <thead className={cn(stickyHeader && 'sticky top-0 z-10')}>
               <tr className="bg-warm-50/80 border-b border-warm-200/90">
@@ -380,12 +418,12 @@ export function DataTable<T>({
         </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 px-3.5 sm:px-4.5 py-3 border-t border-warm-100 bg-warm-50/60">
+      {/* Pagination Footer */}
+      {sorted.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 px-3.5 sm:px-4.5 py-3 border-t border-warm-100 bg-warm-50/60 relative z-20">
           <div className="flex items-center gap-2 text-xs font-medium text-charcoal-600">
             <span>Sahifada:</span>
-            <div className="w-18 sm:w-20">
+            <div className="w-18 sm:w-20 relative z-30">
               <Select
                 value={String(pageSize)}
                 onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
@@ -400,31 +438,33 @@ export function DataTable<T>({
             </span>
           </div>
 
-          {/* Mobile compact pagination */}
-          <div className="flex sm:hidden items-center gap-1.5 ml-auto">
-            <span className="text-xs font-semibold text-charcoal-700 tabular-nums mr-1">
-              {page} / {totalPages}
-            </span>
-            <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="w-8 h-8 flex items-center justify-center rounded-[8px] border border-warm-200 bg-white text-charcoal-600 hover:text-charcoal-900 active:bg-warm-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs transition-colors"
-              aria-label="Oldingi sahifa"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="w-8 h-8 flex items-center justify-center rounded-[8px] border border-warm-200 bg-white text-charcoal-600 hover:text-charcoal-900 active:bg-warm-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs transition-colors"
-              aria-label="Keyingi sahifa"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+          {totalPages > 1 && (
+            <>
+              {/* Mobile compact pagination */}
+              <div className="flex sm:hidden items-center gap-1.5 ml-auto">
+                <span className="text-xs font-semibold text-charcoal-700 tabular-nums mr-1">
+                  {page} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="w-8 h-8 flex items-center justify-center rounded-[8px] border border-warm-200 bg-white text-charcoal-600 hover:text-charcoal-900 active:bg-warm-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs transition-colors"
+                  aria-label="Oldingi sahifa"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="w-8 h-8 flex items-center justify-center rounded-[8px] border border-warm-200 bg-white text-charcoal-600 hover:text-charcoal-900 active:bg-warm-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs transition-colors"
+                  aria-label="Keyingi sahifa"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
 
-          {/* Desktop/tablet numbered pagination */}
-          <div className="hidden sm:flex items-center gap-1">
+              {/* Desktop/tablet numbered pagination */}
+              <div className="hidden sm:flex items-center gap-1">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
@@ -475,8 +515,10 @@ export function DataTable<T>({
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
-        </div>
+        </>
       )}
+    </div>
+  )}
     </div>
   );
 }

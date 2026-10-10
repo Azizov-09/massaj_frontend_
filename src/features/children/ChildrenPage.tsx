@@ -1,21 +1,26 @@
 // ═══════════════════════════════════════════════════════
-//  Children List Page — Full CRUD management
+//  Children List Page — Full CRUD management & Optimizations
 // ═══════════════════════════════════════════════════════
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Search, Baby, X, Calendar, Clock, Eye, Users, Phone } from 'lucide-react';
+import {
+  Plus, Search, Baby, X, Calendar, Clock, Eye, Users, Phone,
+  Edit, Archive, RotateCcw
+} from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { calculateChildBalance } from '@/services/finance.service';
 import {
   formatAge, formatDate, formatCurrencyCompact,
   getEntityStatusColor, getEntityStatusLabel, normalizeUzbekSearch, cn
 } from '@/utils';
+import { useDebounce } from '@/hooks/useDebounce';
 import { DataTable, Column, getAvatarGradient } from '@/components/tables/DataTable';
 import { Card, Avatar, Badge, Select } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
 import { CreateChildForm } from './CreateChildForm';
+import { EditChildModal } from './EditChildModal';
 import type { Child } from '@/types';
 
 export function ChildrenPage() {
@@ -26,6 +31,8 @@ export function ChildrenPage() {
   const parents = useStore(s => s.parents);
   const transactions = useStore(s => s.transactions);
   const appointments = useStore(s => s.appointments);
+  const updateChild = useStore(s => s.updateChild);
+  const archiveChild = useStore(s => s.archiveChild);
 
   const isParent = currentUser?.role === 'PARENT';
   const baseChildren = useMemo(() => {
@@ -36,25 +43,32 @@ export function ChildrenPage() {
   }, [allChildren, isParent, currentUser]);
 
   const [prevSearchParam, setPrevSearchParam] = useState(() => searchParams.get('search'));
-  const [search, setSearch] = useState(() => searchParams.get('search') || '');
+  const [searchInput, setSearchInput] = useState(() => searchParams.get('search') || '');
+  const debouncedSearch = useDebounce(searchInput, 350);
+
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [specialistFilter, setSpecialistFilter] = useState<string>('');
+  const [page, setPage] = useState(1);
+  const [visibleRange, setVisibleRange] = useState<{ start: number; end: number; total: number } | null>(null);
+
   const [showCreate, setShowCreate] = useState(false);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+  const [editingChild, setEditingChild] = useState<Child | null>(null);
 
-  // Synchronize URL search param adjustments during render without triggering cascading effects
+  // Synchronize URL search param adjustments during render
   const urlSearch = searchParams.get('search');
   if (urlSearch !== prevSearchParam) {
     setPrevSearchParam(urlSearch);
     if (urlSearch !== null) {
-      setSearch(urlSearch);
+      setSearchInput(urlSearch);
     }
   }
 
+  // Filter children based on debounced search, status, and specialist
   const filtered = useMemo(() => {
     let result = baseChildren;
-    if (search) {
-      const q = normalizeUzbekSearch(search);
+    if (debouncedSearch) {
+      const q = normalizeUzbekSearch(debouncedSearch);
       result = result.filter(c =>
         normalizeUzbekSearch(c.fullName).includes(q) ||
         normalizeUzbekSearch(parents.find(p => p.id === c.parentId)?.fullName).includes(q)
@@ -63,17 +77,18 @@ export function ChildrenPage() {
     if (statusFilter) result = result.filter(c => c.status === statusFilter);
     if (specialistFilter) result = result.filter(c => c.assignedSpecialistId === specialistFilter);
     return result;
-  }, [baseChildren, search, statusFilter, specialistFilter, parents]);
+  }, [baseChildren, debouncedSearch, statusFilter, specialistFilter, parents]);
 
-  const activeFilterCount = [statusFilter, specialistFilter].filter(Boolean).length + (search ? 1 : 0);
+  const activeFilterCount = [statusFilter, specialistFilter].filter(Boolean).length + (debouncedSearch ? 1 : 0);
 
   const resetFilters = () => {
-    setSearch('');
+    setSearchInput('');
     setStatusFilter('');
     setSpecialistFilter('');
+    setPage(1);
   };
 
-  // Status counts for tabs
+  // Status counts for cards and tabs (recalculates immediately in real-time)
   const statusCounts = useMemo(() => {
     return {
       all: baseChildren.length,
@@ -106,34 +121,42 @@ export function ChildrenPage() {
     return { balancesMap: bMap, nextAppointmentsMap: aMap };
   }, [baseChildren, transactions, appointments]);
 
+  // Exact visible range string matching the bottom pagination
+  const rangeDisplay = useMemo(() => {
+    if (!visibleRange || visibleRange.total === 0) {
+      return filtered.length === 0 ? '0' : `1–${Math.min(10, filtered.length)}`;
+    }
+    return `${visibleRange.start}–${visibleRange.end}`;
+  }, [visibleRange, filtered.length]);
+
   const columns: Column<Child>[] = [
     {
       key: 'fullName',
       header: 'Bola',
       sortable: true,
-      className: 'py-3.5',
+      className: 'py-3.5 max-w-[220px]',
       cell: (row) => {
         const parent = parents.find(p => p.id === row.parentId);
         return (
-          <div className="flex items-center gap-3">
-            <Avatar name={row.fullName} size="sm" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
-            <div className="min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <Avatar name={row.fullName} size="sm" className="ring-2 ring-warm-100 shadow-2xs shrink-0 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <p className="font-semibold text-charcoal-900 text-sm truncate group-hover:text-brand-600 transition-colors">
+                <p className="font-semibold text-charcoal-900 text-sm truncate max-w-[180px] sm:max-w-[200px] group-hover:text-brand-600 transition-colors">
                   {row.fullName}
                 </p>
                 {row.diagnosis && (
-                  <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded shrink-0">
+                  <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded shrink-0 flex-shrink-0">
                     {row.diagnosis}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-charcoal-500 truncate flex items-center gap-1 mt-0.5">
+              <p className="text-xs text-charcoal-500 truncate flex items-center gap-1 mt-0.5 max-w-[200px]">
                 {parent ? (
                   <>
-                    <Users className="w-3 h-3 text-charcoal-400 shrink-0" />
-                    <span>{parent.fullName}</span>
-                    {parent.phone && <span className="text-charcoal-400 font-mono text-[11px]">• {parent.phone}</span>}
+                    <Users className="w-3 h-3 text-charcoal-400 shrink-0 flex-shrink-0" />
+                    <span className="truncate">{parent.fullName}</span>
+                    {parent.phone && <span className="text-charcoal-400 font-mono text-[11px] shrink-0">• {parent.phone}</span>}
                   </>
                 ) : (
                   <span className="text-charcoal-400 italic text-[11px]">Ota-ona biriktirilmagan</span>
@@ -148,9 +171,9 @@ export function ChildrenPage() {
       key: 'dateOfBirth',
       header: 'Yoshi',
       sortable: true,
-      className: 'py-3.5',
+      className: 'py-3.5 whitespace-nowrap',
       cell: (row) => (
-        <div>
+        <div className="whitespace-nowrap">
           <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-warm-100/90 text-charcoal-800 text-xs font-semibold border border-warm-200/80 shadow-2xs">
             {formatAge(row.dateOfBirth)}
           </span>
@@ -161,13 +184,13 @@ export function ChildrenPage() {
     {
       key: 'assignedSpecialistId',
       header: 'Biriktirilgan mutaxassis',
-      className: 'py-3.5',
+      className: 'py-3.5 max-w-[180px]',
       cell: (row) => {
         const spec = specialists.find(s => s.id === row.assignedSpecialistId);
         return spec ? (
-          <div className="flex items-center gap-2">
-            <Avatar name={spec.fullName} size="xs" className="ring-1 ring-warm-200 shrink-0" />
-            <div className="min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <Avatar name={spec.fullName} size="xs" className="ring-1 ring-warm-200 shrink-0 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
               <span className="text-sm font-medium text-charcoal-900 truncate block">{spec.fullName}</span>
               <span className="text-[11px] text-charcoal-400 truncate block">{spec.specialization || 'Mutaxassis'}</span>
             </div>
@@ -179,18 +202,18 @@ export function ChildrenPage() {
     },
     {
       key: 'nextAppointment',
-      header: "Keyingi uchrashuv",
-      className: 'py-3.5',
+      header: "Keyingi seans",
+      className: 'py-3.5 whitespace-nowrap',
       cell: (row) => {
         const next = nextAppointmentsMap.get(row.id);
         return next ? (
-          <div>
+          <div className="whitespace-nowrap">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-charcoal-800">
-              <Calendar className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+              <Calendar className="w-3.5 h-3.5 text-brand-600 shrink-0 flex-shrink-0" />
               <span>{formatDate(next.date)}</span>
             </div>
             <div className="inline-flex items-center gap-1 text-[11px] font-medium text-charcoal-600 bg-warm-100/80 px-1.5 py-0.5 rounded mt-0.5">
-              <Clock className="w-3 h-3 text-charcoal-400 shrink-0" />
+              <Clock className="w-3 h-3 text-charcoal-400 shrink-0 flex-shrink-0" />
               <span>{next.startTime} – {next.endTime}</span>
             </div>
           </div>
@@ -202,11 +225,11 @@ export function ChildrenPage() {
     {
       key: 'balance',
       header: 'Balans',
-      className: 'py-3.5',
+      className: 'py-3.5 whitespace-nowrap',
       cell: (row) => {
         const bal = balancesMap.get(row.id) ?? { balance: 0, debt: 0 };
         return (
-          <div>
+          <div className="whitespace-nowrap shrink-0 flex-shrink-0">
             {bal.balance > 0 && (
               <span className="inline-flex items-center text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[6px] border border-emerald-200/80 tabular-nums">
                 +{formatCurrencyCompact(bal.balance)}
@@ -228,9 +251,9 @@ export function ChildrenPage() {
       key: 'status',
       header: 'Holat',
       sortable: true,
-      className: 'py-3.5',
+      className: 'py-3.5 whitespace-nowrap',
       cell: (row) => (
-        <Badge className={cn('shadow-2xs font-semibold', getEntityStatusColor(row.status))} dot>
+        <Badge className={cn('shadow-2xs font-semibold whitespace-nowrap shrink-0 flex-shrink-0', getEntityStatusColor(row.status))} dot>
           {getEntityStatusLabel(row.status)}
         </Badge>
       ),
@@ -239,8 +262,8 @@ export function ChildrenPage() {
       key: 'actions',
       header: 'Amallar',
       headerClassName: 'text-right pr-4',
-      className: 'py-3.5 text-right',
-      width: '100px',
+      className: 'py-3.5 text-right whitespace-nowrap',
+      width: '140px',
       cell: (row) => (
         <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
           <Button
@@ -250,12 +273,51 @@ export function ChildrenPage() {
               e.stopPropagation();
               setSelectedChild(row);
             }}
-            className="h-8 px-2.5 text-xs text-charcoal-600 hover:text-brand-700 hover:bg-brand-50/60"
-            title="Batafsil ma'lumot"
+            className="h-8 px-2 text-xs text-charcoal-600 hover:text-brand-700 hover:bg-brand-50/60"
+            title="Batafsil ko'rish"
           >
             <Eye className="w-3.5 h-3.5 mr-1" />
             Ko'rish
           </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditingChild(row);
+            }}
+            className="h-8 w-8 p-0 text-charcoal-500 hover:text-amber-700 hover:bg-amber-50/60"
+            title="Tahrirlash"
+          >
+            <Edit className="w-3.5 h-3.5" />
+          </Button>
+          {row.status === 'ARCHIVED' ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                updateChild(row.id, { status: 'ACTIVE' });
+              }}
+              className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50/60"
+              title="Arxivdan qaytarish"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                archiveChild(row.id);
+              }}
+              className="h-8 w-8 p-0 text-charcoal-400 hover:text-rose-600 hover:bg-rose-50/60"
+              title="Arxivlash"
+            >
+              <Archive className="w-3.5 h-3.5" />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -266,7 +328,7 @@ export function ChildrenPage() {
       <PageHeader
         icon={<Baby className="w-5 h-5 text-white" />}
         title={isParent ? "Farzandlarim" : "Bolalar"}
-        description={isParent ? `Sizning ro'yxatdagi ${baseChildren.length} ta farzandingiz` : `Jami ${allChildren.length} ta bola, ${allChildren.filter(c => c.status === 'ACTIVE').length} ta faol`}
+        description={isParent ? `Sizning ro'yxatdagi ${baseChildren.length} ta farzandingiz` : `Jami ${statusCounts.all} ta bola, ${statusCounts.active} ta faol`}
         actions={
           <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)} className="w-full sm:w-auto">
             {isParent ? "Farzand qo'shish" : "Bola qo'shish"}
@@ -274,9 +336,100 @@ export function ChildrenPage() {
         }
       />
 
+      {/* Real-time KPI Counter Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <button
+          type="button"
+          onClick={() => { setStatusFilter(''); setPage(1); }}
+          className={cn(
+            'p-4 rounded-xl border text-left transition-all cursor-pointer shadow-2xs hover:shadow-sm',
+            statusFilter === ''
+              ? 'bg-charcoal-900 border-charcoal-900 text-white shadow-xs'
+              : 'bg-white border-warm-200/90 hover:border-warm-300 text-charcoal-900'
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className={cn('text-xs font-semibold', statusFilter === '' ? 'text-charcoal-300' : 'text-charcoal-500')}>
+              Jami bolalar
+            </span>
+            <Users className={cn('w-4 h-4', statusFilter === '' ? 'text-warm-300' : 'text-charcoal-400')} />
+          </div>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl font-bold tabular-nums">{statusCounts.all}</span>
+            <span className={cn('text-xs font-medium', statusFilter === '' ? 'text-charcoal-300' : 'text-charcoal-400')}>bola</span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => { setStatusFilter('ACTIVE'); setPage(1); }}
+          className={cn(
+            'p-4 rounded-xl border text-left transition-all cursor-pointer shadow-2xs hover:shadow-sm',
+            statusFilter === 'ACTIVE'
+              ? 'bg-emerald-700 border-emerald-700 text-white shadow-xs'
+              : 'bg-white border-warm-200/90 hover:border-warm-300 text-charcoal-900'
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className={cn('text-xs font-semibold', statusFilter === 'ACTIVE' ? 'text-emerald-100' : 'text-emerald-700')}>
+              Faol
+            </span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          </div>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className={cn('text-2xl font-bold tabular-nums', statusFilter === 'ACTIVE' ? 'text-white' : 'text-emerald-600')}>{statusCounts.active}</span>
+            <span className={cn('text-xs font-medium', statusFilter === 'ACTIVE' ? 'text-emerald-100' : 'text-charcoal-400')}>faol</span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => { setStatusFilter('INACTIVE'); setPage(1); }}
+          className={cn(
+            'p-4 rounded-xl border text-left transition-all cursor-pointer shadow-2xs hover:shadow-sm',
+            statusFilter === 'INACTIVE'
+              ? 'bg-amber-700 border-amber-700 text-white shadow-xs'
+              : 'bg-white border-warm-200/90 hover:border-warm-300 text-charcoal-900'
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className={cn('text-xs font-semibold', statusFilter === 'INACTIVE' ? 'text-amber-100' : 'text-amber-700')}>
+              Nofaol
+            </span>
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+          </div>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className={cn('text-2xl font-bold tabular-nums', statusFilter === 'INACTIVE' ? 'text-white' : 'text-amber-600')}>{statusCounts.inactive}</span>
+            <span className={cn('text-xs font-medium', statusFilter === 'INACTIVE' ? 'text-amber-100' : 'text-charcoal-400')}>nofaol</span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => { setStatusFilter('ARCHIVED'); setPage(1); }}
+          className={cn(
+            'p-4 rounded-xl border text-left transition-all cursor-pointer shadow-2xs hover:shadow-sm',
+            statusFilter === 'ARCHIVED'
+              ? 'bg-charcoal-800 border-charcoal-800 text-white shadow-xs'
+              : 'bg-white border-warm-200/90 hover:border-warm-300 text-charcoal-900'
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className={cn('text-xs font-semibold', statusFilter === 'ARCHIVED' ? 'text-charcoal-300' : 'text-charcoal-500')}>
+              Arxivlangan
+            </span>
+            <Archive className={cn('w-4 h-4', statusFilter === 'ARCHIVED' ? 'text-charcoal-300' : 'text-charcoal-400')} />
+          </div>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className={cn('text-2xl font-bold tabular-nums', statusFilter === 'ARCHIVED' ? 'text-white' : 'text-charcoal-600')}>{statusCounts.archived}</span>
+            <span className={cn('text-xs font-medium', statusFilter === 'ARCHIVED' ? 'text-charcoal-300' : 'text-charcoal-400')}>arxiv</span>
+          </div>
+        </button>
+      </div>
+
       {/* Main Table Card */}
-      <Card className="overflow-visible border border-warm-200/90 shadow-xs">
-        {/* Status Tabs Bar — Desktop/tablet filter pills */}
+      <Card className="w-full max-w-full overflow-hidden border border-warm-200/90 shadow-xs">
+        {/* Status Tabs Bar */}
         <div className="hidden sm:flex px-3.5 sm:px-4 py-2.5 sm:py-3 bg-warm-50/70 border-b border-warm-200/80 items-center justify-between gap-2.5 sm:gap-3">
           <div className="flex items-center gap-1.5 overflow-x-auto touch-scroll-x scrollbar-thin py-0.5 w-full sm:w-auto -mx-0.5 px-0.5">
             {[
@@ -292,6 +445,7 @@ export function ChildrenPage() {
                   type="button"
                   onClick={(e) => {
                     setStatusFilter(tab.key);
+                    setPage(1);
                     e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
                   }}
                   className={cn(
@@ -317,26 +471,32 @@ export function ChildrenPage() {
 
           <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
             <span className="text-xs font-medium text-charcoal-500 bg-white px-2.5 py-1 rounded-[8px] border border-warm-200/80 shadow-2xs">
-              Ko‘rsatilmoqda: <strong className="text-charcoal-900 font-bold">{filtered.length}</strong> / {baseChildren.length}
+              Ko‘rsatilmoqda: <strong className="text-charcoal-900 font-bold">{rangeDisplay}</strong> / {baseChildren.length}
             </span>
           </div>
         </div>
 
         {/* Filters Bar */}
-        <div className="p-3 sm:p-3.5 bg-white border-b border-warm-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-          {/* Search */}
+        <div className="p-3 sm:p-3.5 bg-white border-b border-warm-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 relative z-30">
+          {/* Search with 350ms Debounce */}
           <div className="relative flex-1 w-full sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
             <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
+              value={searchInput}
+              onChange={e => {
+                setSearchInput(e.target.value);
+                setPage(1);
+              }}
               placeholder={isParent ? "Farzand ismi bo'yicha qidirish..." : "Bola yoki ota-ona ismi bo'yicha..."}
               className="w-full h-9 pl-9 pr-8 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 outline-none transition-all font-medium text-charcoal-800"
             />
-            {search && (
+            {searchInput && (
               <button
                 type="button"
-                onClick={() => setSearch('')}
+                onClick={() => {
+                  setSearchInput('');
+                  setPage(1);
+                }}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700 p-0.5 rounded-full cursor-pointer"
                 title="Qidiruvni tozalash"
               >
@@ -345,15 +505,18 @@ export function ChildrenPage() {
             )}
           </div>
 
-          {/* Filters on mobile: 2-column grid; on desktop: inline */}
+          {/* Filters */}
           <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
-            {/* Status filter (Mobile only: on desktop, pills tab bar handles status) */}
-            <div className="sm:hidden w-full">
+            {/* Status filter on mobile */}
+            <div className="sm:hidden w-full relative z-30">
               <Select
                 size="sm"
                 triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
                 value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
+                onChange={e => {
+                  setStatusFilter(e.target.value);
+                  setPage(1);
+                }}
                 options={[
                   { value: '', label: `Barcha holatlar (${statusCounts.all})` },
                   { value: 'ACTIVE', label: `Faol bolalar (${statusCounts.active})` },
@@ -365,12 +528,15 @@ export function ChildrenPage() {
             </div>
 
             {/* Specialist filter */}
-            <div className="w-full sm:w-56">
+            <div className="w-full sm:w-56 relative z-30">
               <Select
                 size="sm"
                 triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
                 value={specialistFilter}
-                onChange={e => setSpecialistFilter(e.target.value)}
+                onChange={e => {
+                  setSpecialistFilter(e.target.value);
+                  setPage(1);
+                }}
                 options={[
                   { value: '', label: 'Barcha mutaxassislar' },
                   ...specialists
@@ -395,11 +561,14 @@ export function ChildrenPage() {
           )}
         </div>
 
-        {/* Data Table with Bespoke Mobile Cards */}
+        {/* Data Table */}
         <DataTable
           data={filtered}
           columns={columns}
           keyExtractor={r => r.id}
+          page={page}
+          onPageChange={setPage}
+          onPaginationChange={setVisibleRange}
           tableClassName="min-w-[900px]"
           onRowClick={r => setSelectedChild(r)}
           mobileCardConfig={(row, index) => {
@@ -418,7 +587,7 @@ export function ChildrenPage() {
               subtitle: `${formatAge(row.dateOfBirth)} • ${row.diagnosis || 'Massaj'}`,
               status: (
                 <span className={cn(
-                  "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold border",
+                  "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold border whitespace-nowrap shrink-0",
                   getEntityStatusColor(row.status)
                 )}>
                   <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-current" />
@@ -473,6 +642,14 @@ export function ChildrenPage() {
                     <Eye className="w-3.5 h-3.5 text-charcoal-500" />
                     Batafsil ko'rish
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingChild(row)}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
+                  >
+                    <Edit className="w-3.5 h-3.5 text-amber-600" />
+                    Tahrirlash
+                  </button>
                   {parent?.phone && (
                     <a
                       href={`tel:${parent.phone}`}
@@ -480,7 +657,7 @@ export function ChildrenPage() {
                       className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
                     >
                       <Phone className="w-3.5 h-3.5 text-brand-600" />
-                      Ota-onaga qo'ng'iroq
+                      Qo'ng'iroq
                     </a>
                   )}
                 </div>
@@ -511,6 +688,8 @@ export function ChildrenPage() {
             <span className="text-emerald-700 font-medium">Faol: <strong className="font-bold">{statusCounts.active}</strong></span>
             <span className="hidden sm:inline-block text-warm-300">•</span>
             <span className="text-charcoal-600 font-medium">Nofaol: <strong className="font-bold">{statusCounts.inactive}</strong></span>
+            <span className="hidden sm:inline-block text-warm-300">•</span>
+            <span className="text-charcoal-500 font-medium">Arxivlangan: <strong className="font-bold">{statusCounts.archived}</strong></span>
           </div>
           <span className="text-[11px] text-charcoal-400 font-medium">
             Profilni ochish uchun qator ustiga bosing
@@ -529,7 +708,7 @@ export function ChildrenPage() {
           <div className="space-y-5">
             {/* Header info */}
             <div className="flex items-start gap-4 p-4 rounded-xl bg-warm-50 border border-warm-200/70">
-              <Avatar name={selectedChild.fullName} size="lg" className="text-base font-bold" />
+              <Avatar name={selectedChild.fullName} size="lg" className="text-base font-bold shrink-0 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="text-base font-bold text-charcoal-900 truncate">
@@ -629,8 +808,68 @@ export function ChildrenPage() {
                 </p>
               </div>
             )}
+
+            {/* Modal Actions */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-4 border-t border-warm-200">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const current = selectedChild;
+                    setSelectedChild(null);
+                    setEditingChild(current);
+                  }}
+                  leftIcon={<Edit className="w-3.5 h-3.5 text-amber-600" />}
+                >
+                  Tahrirlash
+                </Button>
+                {selectedChild.status === 'ARCHIVED' ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-emerald-700 border-emerald-300 hover:bg-emerald-50"
+                    onClick={() => {
+                      updateChild(selectedChild.id, { status: 'ACTIVE' });
+                      setSelectedChild({ ...selectedChild, status: 'ACTIVE' });
+                    }}
+                    leftIcon={<RotateCcw className="w-3.5 h-3.5 text-emerald-600" />}
+                  >
+                    Faollashtirish
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-rose-700 border-rose-300 hover:bg-rose-50"
+                    onClick={() => {
+                      archiveChild(selectedChild.id);
+                      setSelectedChild({ ...selectedChild, status: 'ARCHIVED' });
+                    }}
+                    leftIcon={<Archive className="w-3.5 h-3.5 text-rose-600" />}
+                  >
+                    Arxivga o'tkazish
+                  </Button>
+                )}
+              </div>
+              <Button variant="secondary" size="sm" onClick={() => setSelectedChild(null)}>
+                Yopish
+              </Button>
+            </div>
           </div>
         </Modal>
+      )}
+
+      {/* Edit Child Modal */}
+      {editingChild && (
+        <EditChildModal
+          isOpen={!!editingChild}
+          child={editingChild}
+          onClose={() => setEditingChild(null)}
+          onSuccess={() => {
+            setEditingChild(null);
+          }}
+        />
       )}
 
       {/* Create child modal */}

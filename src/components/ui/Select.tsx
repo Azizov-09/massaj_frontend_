@@ -330,7 +330,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     const currentSize = sizeStyles[size];
 
     return (
-      <div className={cn('relative w-full', className)} ref={containerRef}>
+      <div className={cn('relative w-full', isOpen && 'z-50', className)} ref={containerRef}>
         {label && (
           <label htmlFor={selectId} className="block text-sm font-medium text-charcoal-700 mb-1.5">
             {label}
