@@ -609,8 +609,19 @@ export function AdminsPage() {
         onClose={() => setShowCreateModal(false)}
         title="Yangi administrator qo‘shish"
         size="md"
+        bodyClassName="pb-6"
+        footer={
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 w-full">
+            <Button variant="secondary" type="button" onClick={() => setShowCreateModal(false)} className="w-full sm:w-auto">
+              Bekor qilish
+            </Button>
+            <Button type="submit" form="create-admin-form" className="w-full sm:w-auto">
+              Adminni saqlash
+            </Button>
+          </div>
+        }
       >
-        <form onSubmit={handleCreateSubmit} className="space-y-4">
+        <form id="create-admin-form" onSubmit={handleCreateSubmit} className="space-y-4">
           <Input
             label="To‘liq ism"
             required
@@ -705,14 +716,7 @@ export function AdminsPage() {
             <option value="SUPER_ADMIN">Super Administrator (To‘liq ruxsatlar)</option>
           </Select>
 
-          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-warm-100">
-            <Button variant="secondary" type="button" onClick={() => setShowCreateModal(false)} className="w-full sm:w-auto">
-              Bekor qilish
-            </Button>
-            <Button type="submit" className="w-full sm:w-auto">
-              Adminni saqlash
-            </Button>
-          </div>
+          <div className="pb-12" />
         </form>
       </Modal>
     </div>

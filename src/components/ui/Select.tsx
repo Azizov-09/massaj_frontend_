@@ -192,16 +192,18 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       if (disabled) return;
       if (!isOpen && containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
-        const modal = containerRef.current.closest('[role="dialog"]') as HTMLElement | null;
-        const modalRect = modal?.getBoundingClientRect();
+        // Check available space within nearest scroll container or modal/viewport
+        const scrollContainer = containerRef.current.closest('.overflow-y-auto, [role="dialog"]') as HTMLElement | null;
+        const containerBounds = scrollContainer?.getBoundingClientRect();
 
-        const bottomLimit = modalRect ? modalRect.bottom : window.innerHeight;
-        const topLimit = modalRect ? modalRect.top : 0;
+        const bottomLimit = containerBounds ? containerBounds.bottom : window.innerHeight;
+        const topLimit = containerBounds ? containerBounds.top : 0;
         const spaceBelow = bottomLimit - rect.bottom;
         const spaceAbove = rect.top - topLimit;
-        const estimatedHeight = Math.min(allOptions.length * 36 + 40, 260);
+        const estimatedHeight = Math.min(allOptions.length * 40 + (shouldShowSearch ? 48 : 16), 260);
 
-        setOpenUpward(spaceBelow < estimatedHeight && spaceAbove > spaceBelow);
+        // Open upward if space below is less than required height and space above is sufficient or larger
+        setOpenUpward(spaceBelow < estimatedHeight && (spaceAbove >= estimatedHeight || spaceAbove > spaceBelow));
 
         if (align === 'right') {
           setAlignRight(true);
