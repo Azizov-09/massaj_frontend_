@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import type { Notification, NotificationType } from '@/types';
 
-type NotificationTab = 'ALL' | 'UNREAD' | 'APPOINTMENT' | 'PAYMENT' | 'SESSION' | 'ASSESSMENT' | 'SCHEDULE' | 'SYSTEM';
+type NotificationTab = 'ALL' | 'UNREAD' | 'APPOINTMENT' | 'PAYMENT' | 'DEBT' | 'SESSION' | 'ASSESSMENT' | 'SCHEDULE' | 'SYSTEM';
 type ReadStatusFilter = 'ALL' | 'UNREAD' | 'READ';
 type SortOrder = 'NEWEST' | 'OLDEST';
 
@@ -46,6 +46,14 @@ const TYPE_CONFIG: Record<NotificationType, TypeConfig> = {
     iconBg: 'bg-emerald-50',
     iconColor: 'text-emerald-600',
     borderColor: 'border-emerald-200/80',
+  },
+  debt: {
+    label: 'Qarzdorlik',
+    badgeVariant: 'warning',
+    icon: CreditCard,
+    iconBg: 'bg-rose-50',
+    iconColor: 'text-rose-600',
+    borderColor: 'border-rose-200/80',
   },
   session: {
     label: 'Seans',
@@ -110,6 +118,7 @@ export function NotificationsPage() {
       unread: unreadTotal,
       appointment: 0,
       payment: 0,
+      debt: 0,
       session: 0,
       assessment: 0,
       schedule: 0,
@@ -126,10 +135,11 @@ export function NotificationsPage() {
   const notificationTabs = useMemo(() => [
     { key: 'ALL' as const, label: 'Barchasi', count: categoryCounts.all },
     { key: 'UNREAD' as const, label: 'O‘qilmagan', count: categoryCounts.unread },
-    { key: 'APPOINTMENT' as const, label: 'Uchrashuvlar', count: categoryCounts.appointment },
+    { key: 'DEBT' as const, label: 'Qarzdorlik', count: categoryCounts.debt },
     { key: 'PAYMENT' as const, label: 'To‘lovlar', count: categoryCounts.payment },
     { key: 'SESSION' as const, label: 'Seanslar', count: categoryCounts.session },
     { key: 'ASSESSMENT' as const, label: 'Baholash', count: categoryCounts.assessment },
+    { key: 'APPOINTMENT' as const, label: 'Uchrashuvlar', count: categoryCounts.appointment },
     { key: 'SCHEDULE' as const, label: 'Jadval', count: categoryCounts.schedule },
     { key: 'SYSTEM' as const, label: 'Tizim', count: categoryCounts.system },
   ], [categoryCounts]);
@@ -141,6 +151,8 @@ export function NotificationsPage() {
     // Filter by active tab
     if (activeTab === 'UNREAD') {
       result = result.filter(n => !n.isRead);
+    } else if (activeTab === 'DEBT') {
+      result = result.filter(n => n.type === 'debt');
     } else if (activeTab === 'APPOINTMENT') {
       result = result.filter(n => n.type === 'appointment');
     } else if (activeTab === 'PAYMENT') {
@@ -241,6 +253,7 @@ export function NotificationsPage() {
         : { path: `${basePath}/schedule`, label: "Jadvalga o'tish" };
     }
     if (notif.type === 'payment') return { path: role === 'PARENT' ? `${basePath}/payments` : `${basePath}/transactions`, label: "Moliya bo'limiga" };
+    if (notif.type === 'debt') return { path: role === 'PARENT' ? `${basePath}/debt` : `${basePath}/debtors`, label: "Qarzdorlik bo'limiga o'tish" };
     if (notif.type === 'schedule') return { path: `${basePath}/schedule`, label: "Jadvalga o'tish" };
     if (notif.type === 'assessment') return { path: role === 'PARENT' ? `${basePath}/children` : `${basePath}/assessments`, label: "Baholashga o'tish" };
 

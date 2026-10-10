@@ -874,7 +874,7 @@ export const NOTIFICATIONS: Notification[] = [
   { id: 'notif-7', userId: 'spec-1', type: 'assessment', title: 'Yangi baholash so\'rovi', message: "Amir Aliyev uchun oylik baholash vaqti keldi.", isRead: false, relatedEntity: { type: 'child', id: 'child-1' }, createdAt: '2026-09-25T16:00:00+05:00' },
   // Demo parent notification
   { id: 'notif-8', userId: 'par-1', type: 'appointment', title: 'Uchrashuvingiz tasdiqlandi', message: "Ertangi 09:00 dagi Amir Aliyev bilan uchrashuv tasdiqlandi.", isRead: false, relatedEntity: { type: 'appointment', id: 'apt-1' }, createdAt: '2026-09-25T15:00:00+05:00' },
-  { id: 'notif-9', userId: 'par-1', type: 'payment', title: 'Balans eslatmasi', message: "Zara Aliyeva uchun balans kamaymoqda. Iltimos to'ldirishni unutmang.", isRead: false, createdAt: '2026-09-24T12:00:00+05:00' },
+  { id: 'notif-9', userId: 'par-1', type: 'debt', title: 'Qarzdorlik haqida ogohlantirish', message: "Amir Aliyevning seansi yakunlandi. Balansingizda mablag' tugadi, qarzdorlik: 150,000 so'm. Iltimos, hisobni to'ldiring.", isRead: false, createdAt: '2026-09-24T12:00:00+05:00' },
   // Many more for admin
   ...Array.from({ length: 90 }, (_, i): Notification => ({
     id: `notif-${10 + i}`,

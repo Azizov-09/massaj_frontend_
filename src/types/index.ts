@@ -169,7 +169,7 @@ export interface Session {
 export interface AttendanceRecord {
   id: string;
   childId: string;
-  appointmentId: string;
+  appointmentId?: string;
   specialistId: string;
   date: string; // ISO date
   status: AttendanceStatus;
@@ -260,6 +260,7 @@ export interface Payment {
 export type NotificationType =
   | 'appointment'
   | 'payment'
+  | 'debt'
   | 'schedule'
   | 'session'
   | 'assessment'

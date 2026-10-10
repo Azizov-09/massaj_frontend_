@@ -38,6 +38,11 @@ export class PortalApi {
     return list.map(normalizePayment);
   }
 
+  public async getMyAttendances(): Promise<any[]> {
+    const res = await this.client.get<any>('/parent/my-attendances');
+    return Array.isArray(res) ? res : res?.data || [];
+  }
+
   public async getMyBalance(): Promise<{ balance: number; debt: number }> {
     const res = await this.client.get<any>('/parent/my-balance');
     return res?.data || res || { balance: 0, debt: 0 };
@@ -50,8 +55,17 @@ export class PortalApi {
 
   // ─── Specialist Portal ───
   public async getMySchedule(): Promise<any> {
-    const res = await this.client.get<any>('/specialist/my-schedule');
-    return res?.data || res;
+    try {
+      const res = await this.client.get<any>('/specialist/my-attendances');
+      return res?.data || res;
+    } catch {
+      return [];
+    }
+  }
+
+  public async getMySpecialistAttendances(): Promise<any[]> {
+    const res = await this.client.get<any>('/specialist/my-attendances');
+    return Array.isArray(res) ? res : res?.data || [];
   }
 
   public async getMyAssignedChildren(): Promise<Child[]> {

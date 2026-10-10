@@ -7,6 +7,7 @@ import { persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
 import { generateId } from '@/utils';
 import { api } from '@/services/api';
+import { calculateParentBalance } from '@/services/finance.service';
 import type {
   AdminUser, Specialist, Parent, Child, Service,
   Appointment, Session, AttendanceRecord, Assessment,
@@ -154,6 +155,7 @@ interface Actions {
   }) => Payment;
 
   // Notifications
+  addNotification: (data: Omit<Notification, 'id' | 'createdAt' | 'isRead'> & { isRead?: boolean }) => Notification;
   markNotificationRead: (id: string) => void;
   markNotificationUnread: (id: string) => void;
   markAllNotificationsRead: (userId?: string, role?: UserRole) => void;
@@ -802,6 +804,43 @@ export const useStore = create<Store>()(
           description: `${child?.fullName ?? ''} bilan seans yakunlandi`,
         });
 
+        // 1. In-app bildirishnoma: Seans yakunlandi (Admin va mutaxassis uchun)
+        const specialist = get().specialists.find(sp => sp.id === session.specialistId);
+        get().addNotification({
+          userId: 'admin-1',
+          type: 'session',
+          title: 'Seans yakunlandi',
+          message: `${specialist?.fullName ?? 'Mutaxassis'} ${child?.fullName ?? 'Bemor'} bilan seans yakunladi.`,
+          relatedEntity: { type: 'session', id: sessionId },
+        });
+
+        // 2. In-app bildirishnoma: Ota-onaga balans va qarzdorlik holati haqida
+        const targetParentId = apt?.parentId ?? child?.parentId;
+        if (targetParentId) {
+          // Hisoblangan balans va qarzni tekshirish
+          const updatedTxns = [...get().transactions, txn];
+          const allParentChildren = get().children.filter(c => c.parentId === targetParentId).map(c => c.id);
+          const parentFin = calculateParentBalance(targetParentId, allParentChildren, updatedTxns);
+
+          if (parentFin.debt > 0) {
+            get().addNotification({
+              userId: targetParentId,
+              type: 'debt',
+              title: 'Qarzdorlik haqida ogohlantirish',
+              message: `${child?.fullName ?? 'Farzandingiz'}ning seansi yakunlandi (${formatAmount(amount)} so'm). Hisobingizda mablag' yetarli emas, joriy qarzdorlik: ${formatAmount(parentFin.debt)} so'm. Iltimos, hisobni to'ldiring.`,
+              relatedEntity: { type: 'child', id: session.childId },
+            });
+          } else {
+            get().addNotification({
+              userId: targetParentId,
+              type: 'session',
+              title: 'Seans yakunlandi',
+              message: `${child?.fullName ?? 'Farzandingiz'}ning ${service?.name ?? 'muolaja'} seansi yakunlandi. Qoldiq balans: ${formatAmount(parentFin.balance)} so'm.`,
+              relatedEntity: { type: 'child', id: session.childId },
+            });
+          }
+        }
+
         get().addToast({ type: 'success', title: 'Seans yakunlandi', description: `${formatAmount(amount)} so'm hisoblandi` });
       },
 
@@ -810,12 +849,20 @@ export const useStore = create<Store>()(
         const record: AttendanceRecord = { ...data, id: generateId(), createdAt: new Date().toISOString() };
         set(s => ({
           attendance: [
-            ...s.attendance.filter(a => a.appointmentId !== data.appointmentId),
+            ...s.attendance.filter(a => {
+              if (data.appointmentId && a.appointmentId) {
+                return a.appointmentId !== data.appointmentId;
+              }
+              return !(a.childId === data.childId && a.date === data.date);
+            }),
             record,
           ],
         }));
 
         api.clinical.recordAttendance({
+          childId: data.childId,
+          specialistId: data.specialistId,
+          date: data.date,
           appointmentId: data.appointmentId,
           status: data.status,
           note: data.note,
@@ -826,9 +873,9 @@ export const useStore = create<Store>()(
         get().addToast({ type: 'success', title: 'Davomat belgilandi' });
       },
 
-      removeAttendance: (appointmentId) => {
+      removeAttendance: (idOrAppointmentId) => {
         set(s => ({
-          attendance: s.attendance.filter(a => a.appointmentId !== appointmentId),
+          attendance: s.attendance.filter(a => a.id !== idOrAppointmentId && a.appointmentId !== idOrAppointmentId),
         }));
         get().addToast({ type: 'info', title: 'Davomat bekor qilindi' });
       },
@@ -977,11 +1024,43 @@ export const useStore = create<Store>()(
           description: `${parent?.fullName ?? ''} dan ${formatAmount(data.amount)} so'm qabul qilindi`,
         });
 
+        // In-app bildirishnoma yaratish: Ota-onaga va adminlarga
+        if (data.parentId) {
+          get().addNotification({
+            userId: data.parentId,
+            type: 'payment',
+            title: "To'lov qabul qilindi",
+            message: `${formatAmount(data.amount)} so'm to'lov qabul qilindi. Balansingiz yangilandi.`,
+            relatedEntity: { type: 'payment', id: payId },
+          });
+        }
+        // Adminlarga ham bildirishnoma:
+        get().addNotification({
+          userId: 'admin-1',
+          type: 'payment',
+          title: "To'lov qabul qilindi",
+          message: `${parent?.fullName ?? 'Mijoz'}dan ${formatAmount(data.amount)} so'm to'lov qabul qilindi.`,
+          relatedEntity: { type: 'payment', id: payId },
+        });
+
         get().addToast({ type: 'success', title: "To'lov qabul qilindi", description: `${formatAmount(data.amount)} so'm` });
         return payment;
       },
 
       // ── Notifications ────────────────────────────────────
+      addNotification: (data) => {
+        const notif: Notification = {
+          ...data,
+          id: generateId(),
+          isRead: data.isRead ?? false,
+          createdAt: new Date().toISOString(),
+        };
+        set(s => ({
+          notifications: [notif, ...s.notifications],
+        }));
+        return notif;
+      },
+
       markNotificationRead: (id) => {
         set(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, isRead: true } : n) }));
         api.platform.markNotificationRead(id).catch(err => {

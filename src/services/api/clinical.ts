@@ -15,10 +15,10 @@ export function normalizeAttendance(raw: any): AttendanceRecord {
   if (!raw) return raw;
   return {
     id: String(raw.id),
-    appointmentId: String(raw.appointmentId || ''),
+    appointmentId: raw.appointmentId ? String(raw.appointmentId) : undefined,
     childId: String(raw.childId || raw.appointment?.childId || ''),
     specialistId: String(raw.specialistId || raw.appointment?.specialistId || ''),
-    date: raw.date || (raw.createdAt ? raw.createdAt.split('T')[0] : new Date().toISOString().split('T')[0]),
+    date: raw.date ? (typeof raw.date === 'string' ? raw.date.split('T')[0] : new Date(raw.date).toISOString().split('T')[0]) : (raw.createdAt ? raw.createdAt.split('T')[0] : new Date().toISOString().split('T')[0]),
     status: raw.status || 'PRESENT',
     note: raw.note,
     createdAt: raw.createdAt || new Date().toISOString(),
