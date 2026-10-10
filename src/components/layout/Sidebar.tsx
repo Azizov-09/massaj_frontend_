@@ -36,7 +36,6 @@ function getSuperAdminNav(unreadCount: number): NavGroup[] {
       label: 'Boshqaruv',
       items: [
         { label: 'Adminlar', path: '/dashboard/super-admin/admins', icon: <Shield className="w-4 h-4" /> },
-        { label: 'Xodimlar', path: '/dashboard/super-admin/employees', icon: <Briefcase className="w-4 h-4" /> },
         { label: 'Mutaxassislar', path: '/dashboard/super-admin/specialists', icon: <Stethoscope className="w-4 h-4" /> },
         { label: 'Ota-onalar', path: '/dashboard/super-admin/parents', icon: <Users className="w-4 h-4" /> },
         { label: 'Bolalar', path: '/dashboard/super-admin/children', icon: <Baby className="w-4 h-4" /> },

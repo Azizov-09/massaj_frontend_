@@ -78,7 +78,7 @@ const superAdminRoutes = {
   children: [
     { index: true, element: withSuspense(SuperAdminDashboard) },
     { path: 'admins', element: withSuspense(AdminsPage) },
-    { path: 'employees', element: withSuspense(EmployeesPage) },
+    { path: 'employees', element: <Navigate to="/dashboard/super-admin/specialists" replace /> },
     { path: 'specialists', element: withSuspense(SpecialistsPage) },
     { path: 'parents', element: withSuspense(ParentsPage) },
     { path: 'children', element: withSuspense(ChildrenPage) },
