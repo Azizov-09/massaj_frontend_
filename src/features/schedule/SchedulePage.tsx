@@ -4,8 +4,8 @@
 
 import { useState, useMemo } from 'react';
 import {
-  ChevronLeft, ChevronRight, Plus,
-  CheckCircle2, Play, XCircle,
+  ChevronLeft, ChevronRight,
+  CheckCircle2,
   Calendar, Clock, CalendarCheck
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
@@ -14,7 +14,6 @@ import { Card, Badge, Select, DatePicker, Avatar } from '@/components/ui/primiti
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
-import { CreateAppointmentForm } from './CreateAppointmentForm';
 import type { Appointment } from '@/types';
 
 const DEFAULT_TIME_SLOTS = [
@@ -41,9 +40,6 @@ export function SchedulePage() {
   const children = useStore(s => s.children);
   const specialists = useStore(s => s.specialists);
   const services = useStore(s => s.services);
-  const confirmAppointment = useStore(s => s.confirmAppointment);
-  const startSession = useStore(s => s.startSession);
-  const cancelAppointment = useStore(s => s.cancelAppointment);
   const clinicSettings = useStore(s => s.clinicSettings);
 
   const timeSlots = useMemo(() => {
@@ -68,17 +64,6 @@ export function SchedulePage() {
 
   // Selected appointment for detail drawer/modal
   const [activeAppointment, setActiveAppointment] = useState<Appointment | null>(null);
-
-  // Create Appointment modal state with prefilled date/time
-  const [showCreate, setShowCreate] = useState(false);
-  const [createInitialDate, setCreateInitialDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
-  const [createInitialTime, setCreateInitialTime] = useState<string>('09:00');
-
-  const handleOpenCreate = (date?: string, time?: string) => {
-    setCreateInitialDate(date || selectedDate);
-    setCreateInitialTime(time || '09:00');
-    setShowCreate(true);
-  };
 
   // Date navigation helpers
   const handlePrevDay = () => {
@@ -180,22 +165,6 @@ export function SchedulePage() {
     return { total, pending, completed, freeSlots };
   }, [filteredAppointments, viewMode, weekDates, timeSlots]);
 
-  // Appointment action handlers
-  const handleConfirm = (id: string) => {
-    confirmAppointment(id);
-    setActiveAppointment(null);
-  };
-
-  const handleStart = (id: string) => {
-    startSession(id);
-    setActiveAppointment(null);
-  };
-
-  const handleCancel = (id: string) => {
-    cancelAppointment(id);
-    setActiveAppointment(null);
-  };
-
   return (
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
       <PageHeader
@@ -204,11 +173,6 @@ export function SchedulePage() {
           currentUser?.role === 'SPECIALIST'
             ? "Mening kunlik va haftalik uchrashuvlar taqvimim hamda bandlik jadvali"
             : "Kunlik va haftalik uchrashuvlar taqvimi hamda bandlik monitoringi"
-        }
-        actions={
-          <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => handleOpenCreate(selectedDate, '09:00')}>
-            Yangi uchrashuv
-          </Button>
         }
       />
 
@@ -432,29 +396,10 @@ export function SchedulePage() {
                   {/* Slot Content Area */}
                   <div className="flex-1 p-2 sm:p-3 flex items-stretch">
                     {slotApts.length === 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => handleOpenCreate(selectedDate, time)}
-                        className="w-full min-h-[76px] sm:min-h-[92px] h-full border-2 border-dashed border-warm-200/90 hover:border-brand-400 bg-warm-50/20 hover:bg-brand-50/30 rounded-[14px] p-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 transition-all duration-150 group/slot cursor-pointer text-left focus:outline-hidden focus:ring-2 focus:ring-brand-400"
-                      >
-                        <div className="flex items-center gap-2.5 sm:gap-3">
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-warm-100 group-hover/slot:bg-brand-100 text-charcoal-400 group-hover/slot:text-brand-600 flex items-center justify-center transition-colors shadow-2xs shrink-0">
-                            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover/slot:rotate-90 duration-200" />
-                          </div>
-                          <div>
-                            <span className="text-xs font-semibold text-charcoal-700 group-hover/slot:text-brand-800 transition-colors block">
-                              Bo‘sh vaqt sloti — {time}
-                            </span>
-                            <span className="text-[10px] sm:text-[11px] text-charcoal-400 group-hover/slot:text-brand-600 transition-colors line-clamp-1 sm:line-clamp-none">
-                              Ushbu soatga yangi uchrashuv belgilash uchun bosing
-                            </span>
-                          </div>
-                        </div>
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 bg-white group-hover/slot:bg-brand-50 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-warm-200 group-hover/slot:border-brand-300 shadow-2xs transition-all duration-150 self-end sm:self-auto shrink-0">
-                          <Plus className="w-3.5 h-3.5" />
-                          Yozilish
-                        </span>
-                      </button>
+                      <div className="w-full min-h-[76px] sm:min-h-[92px] h-full border border-dashed border-warm-200/90 bg-warm-50/20 rounded-[14px] p-2.5 sm:px-4 sm:py-3 flex items-center justify-between">
+                        <span className="text-xs font-medium text-charcoal-400">Bo‘sh vaqt oralig‘i</span>
+                        <span className="text-[11px] text-charcoal-400 font-mono">{time}</span>
+                      </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 w-full items-stretch">
                         {slotApts.map(apt => {
@@ -495,17 +440,6 @@ export function SchedulePage() {
                             </div>
                           );
                         })}
-                        {slotApts.length > 0 && slotApts.length < 3 && (
-                          <button
-                            type="button"
-                            onClick={() => handleOpenCreate(selectedDate, time)}
-                            className="border border-dashed border-warm-200 hover:border-brand-300 bg-warm-50/20 hover:bg-brand-50/30 rounded-[14px] p-3 flex items-center justify-center gap-1.5 text-xs font-medium text-charcoal-400 hover:text-brand-700 transition-all cursor-pointer min-h-[92px] h-full"
-                            title="Ushbu soatga yana uchrashuv qo‘shish"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                            <span>+ Qo‘shish</span>
-                          </button>
-                        )}
                       </div>
                     )}
                   </div>
@@ -574,14 +508,12 @@ export function SchedulePage() {
                         )}
                       >
                         {apts.length === 0 ? (
-                          <button
-                            type="button"
-                            onClick={() => handleOpenCreate(w.dateStr, time)}
-                            className="w-full h-full min-h-[58px] rounded-lg border border-dashed border-warm-200/90 group-hover/wcell:border-brand-400 bg-warm-50/20 group-hover/wcell:bg-brand-50/40 flex items-center justify-center text-charcoal-300 group-hover/wcell:text-brand-600 transition-all cursor-pointer"
-                            title={`${w.dayName}, ${time} ga uchrashuv yozish`}
+                          <div
+                            className="w-full h-full min-h-[58px] rounded-lg border border-dashed border-warm-200/60 bg-warm-50/10 flex items-center justify-center text-charcoal-300"
+                            title={`${w.dayName}, ${time}`}
                           >
-                            <Plus className="w-4 h-4 opacity-40 group-hover/wcell:opacity-100 transition-opacity" />
-                          </button>
+                            <span className="text-[11px] text-charcoal-400 font-mono">—</span>
+                          </div>
                         ) : (
                           apts.map(apt => {
                             const child = children.find(c => c.id === apt.childId);
@@ -671,87 +603,17 @@ export function SchedulePage() {
               )}
 
               {/* Actions */}
-              <div className="flex flex-wrap items-center justify-end gap-2.5 pt-4 border-t border-warm-100">
-                {activeAppointment.status === 'SCHEDULED' && (
-                  <Button
-                    size="sm"
-                    variant="success"
-                    leftIcon={<CheckCircle2 className="w-4 h-4" />}
-                    onClick={() => handleConfirm(activeAppointment.id)}
-                    className="shadow-2xs font-semibold"
-                  >
-                    Tasdiqlash
-                  </Button>
-                )}
-                {activeAppointment.status === 'CONFIRMED' && (
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    leftIcon={<Play className="w-3.5 h-3.5" />}
-                    onClick={() => handleStart(activeAppointment.id)}
-                    className="shadow-2xs font-semibold"
-                  >
-                    Seansni boshlash
-                  </Button>
-                )}
-                {activeAppointment.status === 'SCHEDULED' && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    leftIcon={<Play className="w-3.5 h-3.5 text-brand-600" />}
-                    onClick={() => handleStart(activeAppointment.id)}
-                  >
-                    Seansni boshlash
-                  </Button>
-                )}
-                {activeAppointment.status === 'IN_PROGRESS' && (
-                  <div className="flex items-center gap-2 text-xs font-semibold text-brand-700 bg-brand-50 px-3 py-1.5 rounded-[10px] border border-brand-200">
-                    <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
-                    Seans ayni paytda davom etmoqda
-                  </div>
-                )}
-                {activeAppointment.status === 'COMPLETED' && (
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-[10px] border border-emerald-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    Seans muvaffaqiyatli yakunlangan
-                  </div>
-                )}
-                {activeAppointment.status === 'CANCELLED' && (
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-700 bg-rose-50 px-3 py-1.5 rounded-[10px] border border-rose-200">
-                    <XCircle className="w-4 h-4 text-rose-600" />
-                    Uchrashuv bekor qilingan
-                  </div>
-                )}
-                {['SCHEDULED', 'CONFIRMED'].includes(activeAppointment.status) && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-rose-600 hover:bg-rose-50 hover:text-rose-700 ml-auto sm:ml-0"
-                    leftIcon={<XCircle className="w-3.5 h-3.5" />}
-                    onClick={() => handleCancel(activeAppointment.id)}
-                  >
-                    Bekor qilish
-                  </Button>
-                )}
+              <div className="flex flex-wrap items-center justify-between gap-2.5 pt-4 border-t border-warm-100">
+                <div className="text-xs text-charcoal-500 font-medium">
+                  Holat: <span className="font-semibold text-charcoal-800">{getAppointmentStatusLabel(activeAppointment.status)}</span>
+                </div>
+                <Button size="sm" variant="secondary" onClick={() => setActiveAppointment(null)}>
+                  Yopish
+                </Button>
               </div>
             </div>
           );
         })()}
-      </Modal>
-
-      {/* ─── Create Appointment Modal ─── */}
-      <Modal
-        isOpen={showCreate}
-        onClose={() => setShowCreate(false)}
-        title="Yangi uchrashuv belgilash"
-        size="md"
-      >
-        <CreateAppointmentForm
-          defaultDate={createInitialDate}
-          defaultTime={createInitialTime}
-          onSuccess={() => setShowCreate(false)}
-          onCancel={() => setShowCreate(false)}
-        />
       </Modal>
     </div>
   );

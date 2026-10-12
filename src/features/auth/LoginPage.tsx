@@ -10,8 +10,8 @@ import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Eye, EyeOff, Heart, ArrowRight, ArrowLeft, ShieldCheck,
-  Users, Lock, Stethoscope, Baby,
-  Sparkles, CheckCircle2, Phone, HelpCircle, Shield
+  Users, Lock, Stethoscope,
+  Phone, HelpCircle, Shield
 } from 'lucide-react';
 import { cn } from '@/utils';
 import { useAuth, useStore } from '@/store';
@@ -26,45 +26,6 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-interface DemoAccount {
-  email: string;
-  password: string;
-  role: string;
-  shortRole: string;
-  tag: string;
-  icon: typeof ShieldCheck;
-  theme: 'brand' | 'sage' | 'gold';
-}
-
-const DEMO_ACCOUNTS: DemoAccount[] = [
-  {
-    email: 'superadmin@demo.com',
-    password: 'demo123',
-    role: 'Bosh Admin (Super Admin)',
-    shortRole: 'Bosh Admin',
-    tag: 'Boshqaruv paneli',
-    icon: ShieldCheck,
-    theme: 'brand',
-  },
-  {
-    email: 'specialist@demo.com',
-    password: 'demo123',
-    role: 'Mutaxassis (Specialist)',
-    shortRole: 'Mutaxassis',
-    tag: 'Klinik seanslar',
-    icon: Stethoscope,
-    theme: 'sage',
-  },
-  {
-    email: 'parent@demo.com',
-    password: 'demo123',
-    role: 'Ota-ona (Parent)',
-    shortRole: 'Ota-ona',
-    tag: 'Bola kabineti',
-    icon: Baby,
-    theme: 'gold',
-  },
-];
 
 const ROLE_REDIRECTS: Record<string, string> = {
   SUPER_ADMIN: '/dashboard/super-admin',
@@ -84,7 +45,6 @@ export function LoginPage() {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),

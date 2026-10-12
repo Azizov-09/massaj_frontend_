@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Heart, Shield, Calendar, Clock, MapPin, Phone,
@@ -24,7 +24,6 @@ import {
 } from './landing.data';
 
 export function LandingPage() {
-  const navigate = useNavigate();
   const allServices = useStore(s => s.services);
   const allSpecialists = useStore(s => s.specialists);
   const services = useMemo(() => allServices.filter(s => s.status === 'ACTIVE'), [allServices]);

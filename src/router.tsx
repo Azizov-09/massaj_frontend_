@@ -49,7 +49,6 @@ const ChildrenPage = lazyWithRetry(() => import('@/features/children/ChildrenPag
 const ParentsPage = lazyWithRetry(() => import('@/features/parents/ParentsPage').then(m => ({ default: m.ParentsPage })));
 const SpecialistsPage = lazyWithRetry(() => import('@/features/specialists/SpecialistsPage').then(m => ({ default: m.SpecialistsPage })));
 const AdminsPage = lazyWithRetry(() => import('@/features/admins/AdminsPage').then(m => ({ default: m.AdminsPage })));
-const EmployeesPage = lazyWithRetry(() => import('@/features/employees/EmployeesPage').then(m => ({ default: m.EmployeesPage })));
 
 // Finance
 const PaymentsPage = lazyWithRetry(() => import('@/features/payments/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
@@ -82,7 +81,7 @@ const superAdminRoutes = {
     { path: 'specialists', element: withSuspense(SpecialistsPage) },
     { path: 'parents', element: withSuspense(ParentsPage) },
     { path: 'children', element: withSuspense(ChildrenPage) },
-    { path: 'schedule', element: <Navigate to="/dashboard/super-admin/attendance" replace /> },
+    { path: 'schedule', element: withSuspense(SchedulePage) },
     { path: 'attendance', element: withSuspense(AttendancePage) },
     { path: 'services', element: withSuspense(ServicesPage) },
     { path: 'assessments', element: withSuspense(AssessmentsPage) },
@@ -113,7 +112,7 @@ const specialistRoutes = {
   ),
   children: [
     { index: true, element: withSuspense(SpecialistDashboard) },
-    { path: 'schedule', element: <Navigate to="/dashboard/specialist/attendance" replace /> },
+    { path: 'schedule', element: withSuspense(SchedulePage) },
     { path: 'attendance', element: withSuspense(AttendancePage) },
     { path: 'children', element: withSuspense(ChildrenPage) },
     { path: 'assessments', element: withSuspense(AssessmentsPage) },
