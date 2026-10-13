@@ -28,7 +28,6 @@ const withSuspense = (Component: React.LazyExoticComponent<React.ComponentType<a
 // ─── Lazy Pages (with automatic chunk reload recovery) ───
 
 // Public
-const LandingPage = lazyWithRetry(() => import('@/features/landing/LandingPage').then(m => ({ default: m.LandingPage })));
 const LoginPage = lazyWithRetry(() => import('@/features/auth/LoginPage').then(m => ({ default: m.LoginPage })));
 
 // Dashboards
@@ -153,7 +152,6 @@ const router = createBrowserRouter([
     errorElement: <RouteErrorPage />,
     children: [
       { index: true, element: <RoleRedirect /> },
-      { path: 'landing', element: withSuspense(LandingPage) },
       { path: 'login', element: withSuspense(LoginPage) },
       { path: '403', element: <ForbiddenPage /> },
       { path: '404', element: <NotFoundPage /> },

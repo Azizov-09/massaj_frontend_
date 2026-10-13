@@ -3,13 +3,13 @@
 // ═══════════════════════════════════════════════════════
 
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Eye, EyeOff, Heart, ArrowRight, ArrowLeft, ShieldCheck,
+  Eye, EyeOff, Heart, ArrowRight, ShieldCheck,
   Users, Lock, Stethoscope,
   Phone, HelpCircle, Shield
 } from 'lucide-react';
@@ -97,11 +97,8 @@ export function LoginPage() {
         <div className="relative z-10 flex flex-col h-full p-10 xl:p-14 justify-between">
           {/* Top Brand Block */}
           <div>
-            <Link
-              to="/landing"
-              className="inline-flex items-center gap-3.5 group transition-transform active:scale-95"
-            >
-              <div className="w-11 h-11 rounded-[12px] bg-gradient-to-tr from-brand-600 via-brand-500 to-amber-500 flex items-center justify-center shadow-lg shadow-brand-500/25 group-hover:scale-105 transition-all">
+            <div className="inline-flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-[12px] bg-gradient-to-tr from-brand-600 via-brand-500 to-amber-500 flex items-center justify-center shadow-lg shadow-brand-500/25">
                 <Heart className="w-6 h-6 text-white fill-white/20" />
               </div>
               <div>
@@ -115,7 +112,7 @@ export function LoginPage() {
                   Bolalar massaj va reabilitatsiya markazi
                 </p>
               </div>
-            </Link>
+            </div>
           </div>
 
           {/* Center Clinical Telemetry & Hero Highlight */}
@@ -204,14 +201,7 @@ export function LoginPage() {
       ═════════════════════════════════════════════════════════ */}
       <div className="flex-1 flex flex-col justify-between p-4 sm:p-6 md:p-10 lg:p-12 relative overflow-y-auto">
         {/* Top navigation helper row */}
-        <div className="flex items-center justify-between w-full max-w-md mx-auto mb-6">
-          <Link
-            to="/landing"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-charcoal-500 hover:text-brand-600 transition-colors p-1 -ml-1 rounded-[8px]"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Asosiy sahifaga qaytish</span>
-          </Link>
+        <div className="flex items-center justify-end w-full max-w-md mx-auto mb-6">
           <div className="flex items-center gap-1.5 text-xs text-charcoal-400">
             <Phone className="w-3.5 h-3.5 text-brand-500" />
             <span className="hidden sm:inline">Qo‘llab-quvvatlash:</span>
