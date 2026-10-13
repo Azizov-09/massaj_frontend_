@@ -238,10 +238,46 @@ export class ApiClient {
           errData = { message: response.statusText };
         }
 
-        const errorMessage =
-          Array.isArray(errData?.message)
-            ? errData.message.join(', ')
-            : errData?.message || `HTTP xatosi: ${response.status}`;
+        const friendlyErrors: Record<number, string> = {
+          400: "Kiritilgan ma'lumotlar noto'g'ri. Iltimos, tekshirib qaytadan kiriting.",
+          401: "Telefon raqami yoki parol noto'g'ri.",
+          403: "Kirish taqiqlangan. Sizda bu amalni bajarish uchun ruxsat yo'q.",
+          404: "So'ralgan ma'lumot yoki sahifa topilmadi.",
+          405: "Server so'rovni qabul qilmadi. Iltimos, sahifani yangilang.",
+          409: "Bu ma'lumot tizimda allaqachon mavjud.",
+          422: "Kiritilgan ma'lumotlar talabga javob bermaydi.",
+          429: "Juda ko'p urinish qilindi. Iltimos, 1 daqiqa kutib qaytadan urinib ko'ring.",
+          500: "Serverda ichki xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring.",
+          502: "Server vaqtincha javob bermayapti. Iltimos, birozdan so'ng qayta urinib ko'ring.",
+          503: "Xizmat vaqtincha ishlamayapti. Iltimos, birozdan so'ng qayta urinib ko'ring.",
+        };
+
+        let rawMsg = Array.isArray(errData?.message)
+          ? errData.message.join(', ')
+          : errData?.message || '';
+
+        const lower = rawMsg.toLowerCase();
+        let errorMessage = '';
+
+        if (lower.includes('invalid phone or password') || lower.includes('invalid credentials')) {
+          errorMessage = "Telefon raqami yoki parol noto'g'ri.";
+        } else if (lower.includes('inactive account') || lower.includes('account is inactive')) {
+          errorMessage = "Ushbu hisob faol emas yoki bloklangan. Administratorga murojaat qiling.";
+        } else if (lower.includes('user not found')) {
+          errorMessage = "Foydalanuvchi topilmadi.";
+        } else if (lower.includes('phone must be') || lower.includes('valid phone')) {
+          errorMessage = "Telefon raqami noto'g'ri formatda kiritildi.";
+        } else if (lower.includes('password must be')) {
+          errorMessage = "Parol kamida 6 ta belgidan iborat bo'lishi kerak.";
+        } else if (lower.includes('rate limit') || lower.includes('throttl') || lower.includes('too many requests')) {
+          errorMessage = "Juda ko'p urinish qilindi. Iltimos, 1 daqiqa kuting.";
+        } else if (friendlyErrors[response.status]) {
+          errorMessage = friendlyErrors[response.status];
+        } else if (rawMsg) {
+          errorMessage = rawMsg;
+        } else {
+          errorMessage = `Xatolik yuz berdi (${response.status}). Iltimos, qayta urinib ko'ring.`;
+        }
 
         throw new ApiError(errorMessage, response.status, errData);
       }
@@ -256,7 +292,7 @@ export class ApiClient {
       if (err instanceof ApiError) {
         throw err;
       }
-      throw new ApiError(err?.message || 'Tarmoq xatosi yoki backend bilan aloqa uzildi', 0);
+      throw new ApiError(err?.message || "Internet aloqasi yo'q yoki server javob bermayapti. Iltimos, internetni tekshiring.", 0);
     }
   }
 

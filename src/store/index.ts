@@ -263,20 +263,7 @@ export const useStore = create<Store>()(
             console.warn('[Auth] Real backend login attempt response:', err);
           }
 
-          const rawMsg = err?.message || "Email yoki parol noto'g'ri";
-          const isAuthError =
-            err?.status === 401 ||
-            err?.status === 422 ||
-            rawMsg.includes('401') ||
-            rawMsg.includes('422') ||
-            rawMsg.includes('Invalid') ||
-            rawMsg.includes('Failed to parse') ||
-            rawMsg.includes('fetch failed') ||
-            rawMsg.includes('ECONNREFUSED');
-
-          const friendlyMsg = isAuthError
-            ? "Email yoki parol noto'g'ri"
-            : rawMsg;
+          const friendlyMsg = err?.message || "Telefon raqami yoki parol noto'g'ri";
           return { success: false, error: friendlyMsg };
         }
 
