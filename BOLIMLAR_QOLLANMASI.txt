@@ -1,0 +1,500 @@
+================================================================================
+BOLALAR MASSAJ VA REABILITATSIYA MARKAZI (MASSAJ CRM)
+TIZIMNING BARCHA BO'LIMLARI BO'YICHA TO'LIQ VA MUKAMMAL QO'LLANMA
+================================================================================
+
+Ushbu hujjat "Bolalar Massaj va Reabilitatsiya CRM" tizimidagi har bir bo'limning:
+1. Nima maqsadda yaratilgani (Missiyasi)
+2. Nega klinika uchun hayotiy zarurligi (Muammo va Yechim)
+3. Sahifa ichida nimalar borligi (Tugmalar, jadvallar, filtrlash, ko'rsatkichlar)
+4. Hayotiy real misol (Amaliyotda qanday ishlashi)
+haqida batafsil ma'lumot beradi.
+
+================================================================================
+1. TIZIMGA KIRISH (LOGIN PAGE)
+================================================================================
+• URL: /login
+• MAQSADI:
+  Klinikaning maxfiy tibbiy va moliyaviy ma'lumotlarini begona shaxslardan himoyalash
+  hamda har bir foydalanuvchini (Super Admin, Massajchi, Ota-ona) o'z vakolatiga 
+  mos bo'limga xavfsiz yo'naltirish.
+
+• NEGA KERAK:
+  Bolalarning tashxislari, ota-onalarning telefon raqamlari va klinika kassa pullari
+  ochiq bo'lmasligi lozim. Har bir xodim faqat o'ziga ruxsat berilgan bo'limni ko'radi.
+
+• ICHIDA NIMALAR BOR:
+  - Telefon raqami yoki Email kiritish maydoni (avtomatik +998 formatini taniydi).
+  - Parol kiritish maydoni (ko'zcha belgisi bilan ko'rsatish/yashirish).
+  - "Meni eslab qol" (Remember me) belgilash katakchasi.
+  - "Parolni unutdingizmi?" havolasi (admin bilan bog'lanish yo'riqnomasi chiqadi).
+  - Xatoliklar bloki (parol yoki raqam xato kiritilsa, aniq va madaniyatli ogohlantiradi).
+  - Rolga qarab avtomatik yo'naltirish (masalan: massajchi kirsa - uning o'z kabinetiga,
+    ota-ona kirsa - farzandining natijalariga, boshliq kirsa - boshqaruv paneliga).
+
+• HAYOTIY MISOL:
+  Massajchi Dilorom opa ishga keldi, o'z telefon raqami va parolini kiritdi.
+  Tizim uni darhol faqat o'zining bugungi bemorlari ro'yxatiga olib kirdi. U boshqa
+  massajchilarning maoshini yoki kassadagi umumiy pulni ko'ra olmaydi.
+
+
+================================================================================
+2. BOSHQARUV PANELLARI (DASHBOARDS)
+================================================================================
+Tizimda foydalanuvchi roliga qarab 3 xil alohida Dashboard mavjud:
+
+A) SUPER ADMIN DASHBOARD (/dashboard/super-admin)
+• MAQSADI:
+  Klinika rahbari uchun "vertolyot nigohi". Bitta ekranda klinikaning moliyaviy,
+  tibbiy va davomat holatini real vaqtda ko'rsatish.
+• ICHIDA NIMALAR BOR:
+  - 4 ta asosiy KPI kartochka: Jami daromad, Faol bolalar soni, Bugungi qabullar,
+    Kutilayotgan qarzdorlik summasi.
+  - Daromad va qabullar grafigi (oylar va haftalar bo'yicha dinamika).
+  - Bugungi kutilayotgan qabullar ro'yxati (vaqti, bola ismi, xizmat turi, massajchi).
+  - So'nggi amalga oshirilgan to'lovlar bloki.
+  - Tezkor amallar tugmalari ("Yangi bola qo'shish", "Qabul yozish", "To'lov qabul qilish").
+• HAYOTIY MISOL:
+  Klinika direktori ertalab kelib bitta sahifaga qaraydi: bugun 25 ta bola massajga
+  kelishi kerak, hozirgacha 1,800,000 so'm kassa tushgan, 3 nafar ota-ona qarzdor.
+
+B) MUTAXASSIS DASHBOARDI (/dashboard/specialist)
+• MAQSADI:
+  Massajchi/shifokorning diqqatini faqat uning bugungi reabilitatsiya ishiga qaratish.
+• ICHIDA NIMALAR BOR:
+  - Mutaxassisning o'zining bugungi seanslari ro'yxati.
+  - Bemor bolalarning holati (davomat belgilash tugmalari: keldi/kelmadi).
+  - O'zi muolaja qilayotgan bolalar soni va muvaffaqiyat foizi.
+• HAYOTIY MISOL:
+  Massajchi Jasur o'z sahifasiga kiradi. Bugun soat 10:00 da 7 oylik Temur (gipertonus),
+  soat 11:00 da 5 yoshli Madina (skolioz) borligini ko'radi va tayyorgarlik ko'radi.
+
+C) OTA-ONA KABINETI (/dashboard/parent)
+• MAQSADI:
+  Farzandining davolanish natijalarini ko'rsatib, ota-onaning klinikaga bo'lgan
+  ishonchini oshirish.
+• ICHIDA NIMALAR BOR:
+  - Farzandining reabilitatsiya kursi: nechtasi o'tdi, nechtasi qoldi.
+  - Keyingi muolaja vaqti va qaysi xonada bo'lishi.
+  - Balans holati (qancha to'langan, qancha depozit qolgan).
+  - Mutaxassisning tavsiyalari va dinamika grafigi.
+
+
+================================================================================
+3. BOLALAR BO'LIMI (CHILDREN - /dashboard/super-admin/children)
+================================================================================
+• MAQSADI:
+  Reabilitatsiya markaziga murojaat qilgan barcha kichkintoylarning elektron tibbiy
+  kartalarini bir joyda saqlash va monitoring qilish.
+
+• NEGA KERAK:
+  Qog'oz daftarlar yo'qoladi, yirtiladi, bir necha oydan keyin qaysi bola qaysi
+  massaj olganini eslash imkonsiz bo'lib qoladi. Elektron karta barcha tarixni asraydi.
+
+• ICHIDA NIMALAR BOR:
+  - Bolalar to'liq jadvali (Ism-familiya, tug'ilgan sana, yoshi, tashxisi, ota-onasi,
+    biriktirilgan mutaxassis, davolanish holati: Faol/Tugatgan/Kutmoqda).
+  - Qidiruv va saralash: ism bo'yicha tez qidirish, tashxis bo'yicha filtrlash.
+  - "Yangi bola qo'shish" formasi (tug'ilgan sana, jinsi, qon guruhi, tug'ruq tarixi,
+    allergiyalari, ota-onasining tanlovi).
+  - Har bir bolaning batafsil profili (diagnostika tarixi, barcha o'tgan seanslari,
+    fotosuratlar va shifokor xulosalari).
+
+• HAYOTIY MISOL:
+  1 yoshli Umar ismli bolaning onasi keldi. Administrator Umarning ismini qidiradi.
+  Bir zumda Umarning 10 kunlik gipotonus kursi 7-kunida ekanligi, massajchisi
+  Nilufar opa ekanligi va oxirgi marta bola o'tirishni boshlagani haqidagi xulosa chiqadi.
+
+
+================================================================================
+4. OTA-ONALAR BO'LIMI (PARENTS - /dashboard/super-admin/parents)
+================================================================================
+• MAQSADI:
+  Bemor bolalarning vasiylari (ona, ota, buvi) bilan aloqa va shartnomaviy munosabatlarni
+  tartibga solish.
+
+• NEGA KERAK:
+  Kichik bolaning o'zi qaror qabul qilmaydi yoki to'lov qilmaydi. To'lov, eslatma SMS,
+  kelish va ketish vaqtlari ota-ona bilan muvofiqlashtiriladi.
+
+• ICHIDA NIMALAR BOR:
+  - Ota-onalar ro'yxati (F.I.SH, asosiy telefon raqam, qo'shimcha raqam, manzili,
+    biriktirilgan farzandlari, umumiy hisob balansi).
+  - Yangi ota-ona qo'shish va tahrirlash modali.
+  - Bolalar bilan bog'liqlik (bitta ota-onaga 2 yoki 3 ta farzand bog'lanishi mumkin).
+  - Qo'ng'iroq qilish va bildirishnoma yuborish imkoniyati.
+
+• HAYOTIY MISOL:
+  Aziza opa ikkita egizak farzandini (Hasan va Husan) massajga olib keladi.
+  Tizimda Aziza opa nomida bitta umumiy balans ochiladi va ikkala bolaning to'lovi
+  ham shu bitta hisobdan avtomatik hisoblab boriladi.
+
+
+================================================================================
+5. MUTAXASSISLAR VA XODIMLAR (SPECIALISTS - /dashboard/super-admin/specialists)
+================================================================================
+• MAQSADI:
+  Klinikaning massajchilari, defektologlari, instruktorlari va boshqa reabilitologlarining
+  ish unumdorligi va yuklamasini nazorat qilish.
+
+• NEGA KERAK:
+  Qaysi mutaxassis kuniga nechta bola olayotgani, qaysi mutaxassisga talab yuqoriligi
+  va kim qancha natija ko'rsatayotganini bilish uchun.
+
+• ICHIDA NIMALAR BOR:
+  - Mutaxassis kartochkalari/jadvali (Ismi, yo'nalishi: Bolalar massaji, LFK, Bobat terapiya,
+    ish tajribasi, telefon raqami, faol bemorlari soni, oylik qabullar soni).
+  - Ish tartibi va soatlari (ish boshlanishi va tugashi).
+  - "Yangi mutaxassis qo'shish" tugmasi.
+  - Mutaxassis faolligini yoqish/o'chirish (ta'tilda, faol, ishdan bo'shagan).
+
+• HAYOTIY MISOL:
+  Rahbar yangi massajchi qabul qilmoqchi bo'ldi. U bo'limga kirib, Farhod aka kuniga
+  10 ta bola olayotgani va ortiq bola qabul qila olmayotganini ko'radi. Shu asosda yangi
+  massajchi olishga ehtiyoj borligini aniq tushunadi.
+
+
+================================================================================
+6. ADMINISTRATORLAR (ADMINS - /dashboard/super-admin/admins)
+================================================================================
+• MAQSADI:
+  Klinikaning boshqaruv xodimlari (resepshn adminlar, bosh buxgalter, filial mudiri)
+  uchun tizimga kirish huquqlarini boshqarish.
+
+• NEGA KERAK:
+  Har kim hamma narsani o'chira olmasligi, ma'lumotlarni o'g'irlab ketolmasligi uchun
+  kim administrator ekanligi qat'iy nazorat qilinishi shart.
+
+• ICHIDA NIMALAR BOR:
+  - Adminlar ro'yxati (F.I.SH, login/email, telefon, roli: Super Admin / Oddiy Admin).
+  - Parolni yangilash yoki vaqtincha bloklash imkoniyati.
+  - Tizimga oxirgi marta qachon kirgani tarixi.
+
+
+================================================================================
+7. QABULLAR JADVALI VA REJA (SCHEDULE - /dashboard/super-admin/schedule)
+================================================================================
+• MAQSADI:
+  Kunlik, haftalik va oylik massaj seanslarining to'qnashuvlarsiz (overlap bo'lmasdan)
+  aniq rejalashtirilishini ta'minlash.
+
+• NEGA KERAK:
+  Bitta massaj stoliga yoki bitta massajchiga bir vaqtning o'zida ikkita ona bolasini
+  olib kelsa, janjal va norozilik kelib chiqadi. Jadval buni 100% oldini oladi.
+
+• ICHIDA NIMALAR BOR:
+  - Interaktiv kalendar (kunlik, haftalik, oylik ko'rinish).
+  - Mutaxassislar bo'yicha filtrlash (faqat bitta shifokorning grafigini ko'rish).
+  - Rangli qabullar bloklari (Rejalashtirilgan, Yakunlangan, Bekor qilingan, Kech qolgan).
+  - Yangi qabul yozish formasi: Bolani tanlash, Xizmatni tanlash, Sanani va soatni tanlash,
+    Xonani tanlash.
+  - Qabulni boshqa vaqtga ko'chirish (drag & drop yoki tahrirlash).
+
+• HAYOTIY MISOL:
+  Telefon jiringladi: "Ertaga soat 14:00 ga bolamni massajga yozdirmoqchiman".
+  Resepshn jadvalga qaraydi: soat 14:00 da joy band, lekin 15:00 bo'sh. Darhol onaga
+  15:00 ni taklif qiladi va bitta bosish bilan yozib qo'yadi.
+
+
+================================================================================
+8. DAVOMAT VA SEANSLAR QAYDI (ATTENDANCE - /dashboard/super-admin/attendance)
+================================================================================
+• MAQSADI:
+  Rejalashtirilgan qabullarning amalda bajarilgani yoki bajarilmaganini tasdiqlash
+  hamda to'lovdan seanslarni hisobdan chiqarish (spisanie).
+
+• NEGA KERAK:
+  Bola kelmasa ham to'lovdan pul yechib yuborilsa ota-ona norozi bo'ladi. Agar bola kelib,
+  belgilanmasa klinika zarar ko'radi. Davomat - hisob-kitob asosi.
+
+• ICHIDA NIMALAR BOR:
+  - Bugungi sanadagi barcha seanslar ro'yxati.
+  - 4 xil status tugmasi: "Keldi" (Present), "Kelmadi" (Absent), "Kechikdi" (Late),
+    "Sababli qoldirdi" (Excused).
+  - Seans davomiyligi (daqiqalarda) va mutaxassisning qisqa izohi.
+  - Davomat statistikasi foizda (masalan, bugungi davomat 92%).
+
+• HAYOTIY MISOL:
+  Soat 11:00 da Ali massajga keldi. Mutaxassis "Keldi" tugmasini bosadi. Tizim avtomatik
+  ravishda Alining 10 kunlik kursidan 1 ta seansni kamaytiradi va hisobdan yechadi.
+
+
+================================================================================
+9. XIZMATLAR VA KURSLAR KATALOGI (SERVICES - /dashboard/super-admin/services)
+================================================================================
+• MAQSADI:
+  Klinikada ko'rsatiladigan barcha tibbiy, profilaktik va reabilitatsiya xizmatlarining
+  rasmiy narxlari va qoidalarini belgilash.
+
+• NEGA KERAK:
+  Resepshn narxlarni adashtirmasligi, ota-onalarga shaffof narxnomani ko'rsatish
+  va har bir xizmatning davomiyligi tizimda standart bo'lishi uchun.
+
+• ICHIDA NIMALAR BOR:
+  - Xizmatlar kartochkalari (Masalan: "Umumiy mustahkamlovchi bolalar massaji",
+    "Bo'yin qismi massaji (krivosheya)", "LFK gimnastika", "Elektrofarez").
+  - Xizmat narxi (so'mda), seans davomiyligi (masalan: 30 daqiqa, 45 daqiqa).
+  - Tavsiya etilgan seanslar soni (kurs: 10 kun, 15 kun).
+  - Xizmatni qo'shish, narxini o'zgartirish va nofaol qilish tugmalari.
+
+• HAYOTIY MISOL:
+  Klinika rahbari yangi "Gidromassaj" xizmatini yo'lga qo'ydi. Xizmatlar bo'limiga kirib,
+  narxini 120,000 so'm, vaqtini 40 daqiqa qilib kiritadi. Endi barcha xodimlar qabul yozganda
+  shu xizmatni tanlay oladi.
+
+
+================================================================================
+10. DIAGNOSTIKA VA BAHOLASH (ASSESSMENTS - /dashboard/super-admin/assessments)
+================================================================================
+• MAQSADI:
+  Bola birinchi marta kelganda uning boshlang'ich jismoniy holatini tekshirish va
+  standart tibbiy shkalalar bo'yicha baholash.
+
+• NEGA KERAK:
+  Davolanish boshlanishida bolaning holati qanday bo'lganini qog'ozda emas, aniq
+  raqamlarda qayd etmasangiz, 10 kundan keyin natijani ota-onaga isbotlab berolmaysiz.
+
+• ICHIDA NIMALAR BOR:
+  - Birlamchi ko'rik anketasi (mushak tonusi: gipotonus/gipertonus/norma, bo'yin harakati,
+    umurtqa holati, reflekslar).
+  - Baholash shkalalari (xalqaro reabilitatsiya mezonlari: GMFCS, Ashworth va boshqalar).
+  - Shifokor xulosasi va tavsiya etilgan massaj turi.
+  - Keyingi qayta ko'rik sanasi.
+
+• HAYOTIY MISOL:
+  Nevropatolog 4 oylik Sarvarni ko'rdi: "Bo'yin muskullari qattiq, chapga burish qiyin".
+  Buni tizimga 3 ballik shkalada belgilab kiritdi. Kurs oxirida qayta baholab, burilish
+  burchagi 80 darajaga yetganini ko'rsatib beradi.
+
+
+================================================================================
+11. RIVOJLANISH VA DINAMIKA (PROGRESS - /dashboard/super-admin/progress)
+================================================================================
+• MAQSADI:
+  Har bir seansdan keyin mutaxassis tomonidan bolaning ijobiy o'zgarishlarini
+  kuzatib borish (kunlik qaydlar).
+
+• NEGA KERAK:
+  Reabilitatsiya bu uzoq jarayon. Kichik yutuqlarni (masalan, bolakay boshini ushlay
+  boshladi, o'yinchog'iga qo'l cho'zdi) yozib borish davolash taktikasini to'g'ri olib borishga yordam beradi.
+
+• ICHIDA NIMALAR BOR:
+  - Kunlik terapevt qaydlari (Progress notes).
+  - Bolaning kayfiyati (yig'ladi, xotirjam, faol).
+  - Dinamika grafigi (ijobiy o'sish egri chizig'i).
+  - Mutaxassisning ota-onaga uyga bergan topshiriqlari ("Uyda kuniga 2 marta qoringa yotqizing").
+
+• HAYOTIY MISOL:
+  Massajchi 5-seansdan so'ng yozadi: "Bugun massaj paytida bola yig'lamadi, oyoqcha
+  muskullari ancha yumshadi, to'ntarilishga harakat qilyapti". Ota-ona buni o'z kabinetida
+  ko'rib xursand bo'ladi.
+
+
+================================================================================
+12. TERAPEVTIK MAQSADLAR (GOALS - /dashboard/super-admin/goals)
+================================================================================
+• MAQSADI:
+  Har bir bola uchun kurs oxirida erishilishi kerak bo'lgan aniq maqsad (SMART goal)
+  qo'yish va foizini kuzatish.
+
+• NEGA KERAK:
+  Shunchaki "massaj qilyapmiz" emas, "10 kunda bolani mustaqil o'tiradigan qilamiz"
+  degan aniq reja bo'lsa, mutaxassis ham mas'uliyat bilan ishlaydi.
+
+• ICHIDA NIMALAR BOR:
+  - Maqsad nomi (Masalan: "Boshini 1 daqiqa mustaqil ushlab turish", "Qadam tashlash").
+  - Maqsadga erishish muddati (Start va Finish sanalari).
+  - Bajarilish foizi indikatori (ProgressBar: 0% dan 100% gacha).
+  - Holati: "Jarayonda", "Erishildi", "Vaqti cho'zildi".
+
+• HAYOTIY MISOL:
+  9 oylik bolaga maqsad qo'yildi: "Mustaqil emaklash". 3-kuni 30%, 7-kuni 70%, 10-kuni
+  bola emaklab ketganda maqsad 100% ga o'tkazilib, arxivlanadi.
+
+
+================================================================================
+13. TO'LOVLAR BO'LIMI (PAYMENTS - /dashboard/super-admin/payments)
+================================================================================
+• MAQSADI:
+  Ota-onalardan qabul qilingan barcha naqd, plastik karta va bank o'tkazmalarini
+  rasmiylashtirish va cheklar chiqarish.
+
+• NEGA KERAK:
+  Pul hisobi aniq bo'lmasa, kassada kamomad chiqadi yoki ota-onalar "men to'lagandim"
+  deb e'tiroz bildirishadi.
+
+• ICHIDA NIMALAR BOR:
+  - To'lov qabul qilish formasi: Ota-onani tanlash, Summa, To'lov turi (Naqd, Uzcard, Humo, Click, Payme),
+    Kvitansiya raqami, Qayd etuvchi xodim.
+  - Barcha to'lovlar jurnali (Sana, to'lovchi, summa, usul, status).
+  - Filtrlar: Sanalar oralig'i, to'lov turi bo'yicha.
+  - To'lov chekini chop etish yoki PDF yuklab olish.
+
+• HAYOTIY MISOL:
+  Ota-ona 10 kunlik kurs uchun Payme orqali 1,500,000 so'm to'ladi. Administrator buni
+  tizimga kiritadi, onaning telefoniga to'lov qabul qilingani haqida tasdiq chiqadi.
+
+
+================================================================================
+14. TRANZAKSIYALAR JURNALI (TRANSACTIONS - /dashboard/super-admin/transactions)
+================================================================================
+• MAQSADI:
+  Klinikaning barcha kirim va chiqim operatsiyalarining buxgalteriya lentalari (ledger).
+
+• NEGA KERAK:
+  Faqat to'lovlarni emas, balki qilingan xarajatlarni ham (massaj moyi sotib olish,
+  bir martalik tagliklar, qaytarilgan pullar - refund) nazorat qilish zarur.
+
+• ICHIDA NIMALAR BOR:
+  - To'liq tranzaksiya lentalari (Kirim: to'lovlar, depozit to'ldirish; Chiqim: qaytarish, xarajatlar).
+  - Tranzaksiya ID si, turi, summasi, amalga oshirgan foydalanuvchi.
+
+
+================================================================================
+15. BALANS VA HISOB-KITOB (BALANCE - /dashboard/super-admin/balance)
+================================================================================
+• MAQSADI:
+  Har bir oilaning klinikadagi depozit mablag'i va ko'rsatilgan xizmatlar o'rtasidagi
+  aniq saldo (qoldiq) holatini ko'rsatish.
+
+• NEGA KERAK:
+  Ko'pincha ota-onalar kurs uchun oldindan 2,000,000 so'm to'lab qo'yishadi. Har bir
+  seans o'tgan sari balansdan 150,000 so'm kamayib boradi. Ushbu bo'lim kimda qancha
+  depozit qolganini ko'rsatadi.
+
+• ICHIDA NIMALAR BOR:
+  - Ota-onalar balansi jadvali: Jami to'lagan summasi, Ishlatilgan xizmatlar summasi,
+    Qolgan sof balans (Musbat bo'lsa - depozit bor, Manfiy bo'lsa - qarz).
+  - Qayta hisoblash tugmasi (avtomatik sinxronizatsiya).
+
+
+================================================================================
+16. QARZDORLAR NAZORATI (DEBTORS - /dashboard/super-admin/debtors)
+================================================================================
+• MAQSADI:
+  Klinikadan xizmat olgan, lekin to'lovini to'liq qilmagan ota-onalarni alohida nazoratga olish.
+
+• NEGA KERAK:
+  "Keyingi safar olib kelaman" deb ketgan, lekin to'lovni unutgan mijozlar tufayli
+  klinika kassa yo'qotishlariga uchramasligi uchun.
+
+• ICHIDA NIMALAR BOR:
+  - Qarzdorlar qora/qizil ro'yxati (F.I.SH, telefon, qarzdorlik summasi, oxirgi tashrif sanasi).
+  - Qarzdorlik muddati (3 kundan ortiq, 10 kundan ortiq).
+  - Tezkor aloqa tugmalari (qo'ng'iroq qilish, SMS eslatma yuborish).
+  - Umumiy klinika bo'yicha kutilayotgan qarz summasi hisoblagichi.
+
+• HAYOTIY MISOL:
+  Tizim ko'rsatadi: 4 nafar ota-onadan jami 850,000 so'm qarz bor. Administrator bitta
+  bosish bilan ro'yxatni ochadi va xushmuomalalik bilan eslatma xabarini yuboradi.
+
+
+================================================================================
+17. TAHLILLAR VA ANALITIKA (ANALYTICS - /dashboard/super-admin/analytics)
+================================================================================
+• MAQSADI:
+  Biznes va tibbiy ko'rsatkichlarni grafiklar va diagrammalarda vizual tahlil qilish.
+
+• NEGA KERAK:
+  Qaysi oyda mijozlar ko'p keladi, qaysi massaj turi eng ommabop, qaysi mutaxassis
+  eng ko'p daromad keltiryapti — buni raqamlar orqali ko'rib, to'g'ri boshqaruv qarorlari qabul qilish.
+
+• ICHIDA NIMALAR BOR:
+  - Daromadlar dinamikasi (chiziqli grafik).
+  - Xizmatlar ulushi (aylana pie-chart: 60% umumiy massaj, 25% LFK, 15% boshqalar).
+  - Mijozlar oqimi (yangi bolalar vs qayta kelgan bolalar).
+  - Hafta kunlari bo'yicha yuklama (qaysi kuni bo'sh, qaysi kuni tirband).
+
+
+================================================================================
+18. HISOBOTLAR BO'LIMI (REPORTS - /dashboard/super-admin/reports)
+================================================================================
+• MAQSADI:
+  Klinika rahbariyati, soliq yoki ichki audit uchun rasmiy jadvalli hisobotlarni
+  yaratish va Excel/PDF formatda yuklab olish.
+
+• NEGA KERAK:
+  Oy oxirida mutaxassislarga maosh/bonus hisoblash va kassa hisobotini qog'ozda
+  yoki Excelda chiqarib saqlash uchun.
+
+• ICHIDA NIMALAR BOR:
+  - Davr tanlash (Bugun, Shu hafta, Shu oy, Ixtiyoriy sana oralig'i).
+  - Hisobot turlari: "Moliyaviy kassa hisoboti", "Xodimlar bo'yicha ish hajmi",
+    "Davomat va qoldirilgan darslar", "Xizmatlar rentabelligi".
+  - "Excel/CSV yuklab olish" va "Chop etish" tugmalari.
+
+
+================================================================================
+19. BILDIRISHNOMALAR (NOTIFICATIONS - /dashboard/super-admin/notifications)
+================================================================================
+• MAQSADI:
+  Klinikada sodir bo'layotgan muhim voqealardan xodimlarni va ota-onalarni zudlik bilan
+  xabardor qilish.
+
+• NEGA KERAK:
+  Qabul vaqti yaqinlashganda eslatish, yangi to'lov tushganda yoki bola darsni
+  qoldirganda darhol ogohlantirish.
+
+• ICHIDA NIMALAR BOR:
+  - Bildirishnomalar markazi (Qo'ng'iroqcha belgisi).
+  - Yangi, o'qilgan va muhim xabarlar toifalari.
+  - "Hammasini o'qilgan deb belgilash" tugmasi.
+  - Xabarning turi bo'yicha ajratish: Info (ko'k), Success (yashil), Warning (sariq), Alert (qizil).
+
+
+================================================================================
+20. TIZIM JURNALI VA AUDIT (ACTIVITY LOGS - /dashboard/super-admin/activity-logs)
+================================================================================
+• MAQSADI:
+  Tizimda kim, qachon, qaysi kompyuterdan nima amal bajarganini 100% yozib borish
+  (Qora quti - Black box).
+
+• NEGA KERAK:
+  "Bu bolani kim o'chirib tashladi?", "To'lov summasini kim o'zgartirdi?", "Jadvalni
+  kim surib qo'ydi?" kabi savollarga aniq javob topish va kiberxavfsizlikni ta'minlash.
+
+• ICHIDA NIMALAR BOR:
+  - Har bir harakatning vaqti (aniq soniyasigacha).
+  - Xodimning ismi va roli.
+  - Bajarilgan amal: "CREATE_CHILD", "DELETE_PAYMENT", "UPDATE_SCHEDULE".
+  - O'zgargan ma'lumotning eski va yangi qiymatlari.
+
+
+================================================================================
+21. KLINIKA SOZLAMALARI (SETTINGS - /dashboard/super-admin/settings)
+================================================================================
+• MAQSADI:
+  Klinikaning umumiy rekvizitlari, ish vaqti qoidalari va tizim parametrlarini sozlash.
+
+• NEGA KERAK:
+  Cheklarda klinikaning nomi, telefoni va manzili to'g'ri chiqishi, kalendarda esa
+  ish vaqti (masalan, 08:30 dan 18:00 gacha) to'g'ri shakllanishi uchun.
+
+• ICHIDA NIMALAR BOR:
+  - Klinika nomi, logotipi, asosiy aloqa raqami va manzili.
+  - Ish tartibi: Ish boshlanish va tugash soati, dam olish kunlari.
+  - Seans oralig'idagi tanaffus vaqti (masalan: har bir massaj orasida 10 daqiqa xona tozalash).
+  - Xavfsizlik sozlamalari va parollarni boshqarish.
+
+
+================================================================================
+22. SHAXSIY PROFIL (PROFILE - /dashboard/super-admin/profile)
+================================================================================
+• MAQSADI:
+  Tizimga kirgan xodimning o'z ma'lumotlarini ko'rishi va parolini yangilashi.
+
+• NEGA KERAK:
+  Har bir xodim o'z xavfsizligi uchun parolini vaqti-vaqti bilan almashtirib turishi
+  va telefon raqamini yangilab borishi uchun.
+
+• ICHIDA NIMALAR BOR:
+  - Foydalanuvchi ma'lumotlari kartasi (F.I.SH, Roli, Telefoni, Email, Rasmi).
+  - "Parolni o'zgartirish" formasi (Eski parol, Yangi parol, Parolni tasdiqlash).
+  - Tizimdan xavfsiz chiqish (Logout) tugmasi.
+
+================================================================================
+XULOSA:
+Ushbu 22 ta bo'lim bir-biri bilan uzviy bog'langan bo'lib, bolalar reabilitatsiya
+markazini qog'ozbozlikdan, insoniy xatolardan, tushunmovchiliklardan va moliyaviy
+yo'qotishlardan xalos etib, barcha jarayonlarni 100% avtomatlashtiradi.
+================================================================================
