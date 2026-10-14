@@ -96,6 +96,7 @@ interface Actions {
   createChild: (data: Omit<Child, 'id' | 'createdAt'>) => Child;
   updateChild: (id: string, data: Partial<Child>) => void;
   archiveChild: (id: string) => void;
+  deleteChild: (id: string) => void;
 
   // Parents
   createParent: (data: Omit<Parent, 'id' | 'createdAt'>, password?: string) => Parent;
@@ -540,6 +541,19 @@ export const useStore = create<Store>()(
           console.warn('[Store] Background archiveChild sync warning:', err);
         });
         get().addToast({ type: 'info', title: 'Arxivlandi', description: 'Bola arxivga o\'tkazildi' });
+      },
+
+      deleteChild: (id) => {
+        const child = get().children.find(c => c.id === id);
+        set(s => ({ children: s.children.filter(c => c.id !== id) }));
+        api.children.delete(id).catch(err => {
+          console.warn('[Store] Background deleteChild sync warning:', err);
+        });
+        get().addToast({
+          type: 'success',
+          title: "Bola o'chirildi",
+          description: child ? `${child.fullName} tizimdan olib tashlandi` : undefined,
+        });
       },
 
       // ── Parents Actions ──────────────────────────────────

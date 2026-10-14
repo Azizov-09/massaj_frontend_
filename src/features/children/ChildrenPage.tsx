@@ -5,13 +5,13 @@ import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Plus, Search, Baby, X, Calendar, Clock, Eye, Users, Phone,
-  Edit, Archive, RotateCcw
+  Edit, Archive, RotateCcw, ShieldCheck, Trash2
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { calculateChildBalance } from '@/services/finance.service';
 import {
   formatAge, formatDate, formatCurrencyCompact,
-  getEntityStatusColor, getEntityStatusLabel, normalizeUzbekSearch, cn
+  getEntityStatusColor, getEntityStatusLabel, normalizeUzbekSearch, cn, handlePhoneAction
 } from '@/utils';
 import { useDebounce } from '@/hooks/useDebounce';
 import { DataTable, Column, getAvatarGradient } from '@/components/tables/DataTable';
@@ -33,6 +33,8 @@ export function ChildrenPage() {
   const appointments = useStore(s => s.appointments);
   const updateChild = useStore(s => s.updateChild);
   const archiveChild = useStore(s => s.archiveChild);
+  const deleteChild = useStore(s => s.deleteChild);
+  const addToast = useStore(s => s.addToast);
 
   const isParent = currentUser?.role === 'PARENT';
   const baseChildren = useMemo(() => {
@@ -54,6 +56,28 @@ export function ChildrenPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const [editingChild, setEditingChild] = useState<Child | null>(null);
+  const [deletingChild, setDeletingChild] = useState<Child | null>(null);
+
+  const handleToggleStatus = (child: Child) => {
+    const nextStatus = child.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    updateChild(child.id, { status: nextStatus });
+    addToast({
+      type: 'info',
+      title: nextStatus === 'ACTIVE' ? "Bola faollashtirildi" : "Bola nofaol qilindi",
+      description: `${child.fullName} holati o'zgartirildi`,
+    });
+  };
+
+  const handleDeleteChild = (child: Child) => {
+    setDeletingChild(child);
+  };
+
+  const confirmDeleteChild = () => {
+    if (deletingChild) {
+      deleteChild(deletingChild.id);
+      setDeletingChild(null);
+    }
+  };
 
   // Synchronize URL search param adjustments during render
   const urlSearch = searchParams.get('search');
@@ -312,12 +336,24 @@ export function ChildrenPage() {
                 e.stopPropagation();
                 archiveChild(row.id);
               }}
-              className="h-8 w-8 p-0 text-charcoal-400 hover:text-rose-600 hover:bg-rose-50/60"
+              className="h-8 w-8 p-0 text-charcoal-400 hover:text-amber-600 hover:bg-amber-50/60"
               title="Arxivlash"
             >
               <Archive className="w-3.5 h-3.5" />
             </Button>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteChild(row);
+            }}
+            className="h-8 w-8 p-0 text-charcoal-400 hover:text-rose-600 hover:bg-rose-50/60"
+            title="O'chirish"
+          >
+            <X className="w-3.5 h-3.5" />
+          </Button>
         </div>
       ),
     },
@@ -633,33 +669,39 @@ export function ChildrenPage() {
                 }
               ],
               actions: (
-                <div className="flex flex-wrap items-center gap-2 w-full">
+                <div className="grid grid-cols-2 gap-2 w-full pt-1">
                   <button
                     type="button"
                     onClick={() => setSelectedChild(row)}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
+                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs transition-colors cursor-pointer"
                   >
-                    <Eye className="w-3.5 h-3.5 text-charcoal-500" />
-                    Batafsil ko'rish
+                    <Eye className="w-3.5 h-3.5 text-charcoal-500 shrink-0" />
+                    <span className="truncate">Ko'rish</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditingChild(row)}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
+                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-brand-200 bg-brand-50 text-brand-700 text-xs font-medium hover:bg-brand-100 active:bg-brand-200 shadow-2xs transition-colors cursor-pointer"
                   >
-                    <Edit className="w-3.5 h-3.5 text-amber-600" />
-                    Tahrirlash
+                    <Edit className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+                    <span className="truncate">Tahrirlash</span>
                   </button>
-                  {parent?.phone && (
-                    <a
-                      href={`tel:${parent.phone}`}
-                      onClick={e => e.stopPropagation()}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
-                    >
-                      <Phone className="w-3.5 h-3.5 text-brand-600" />
-                      Qo'ng'iroq
-                    </a>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleStatus(row)}
+                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs transition-colors cursor-pointer"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                    <span className="truncate">{row.status === 'ACTIVE' ? 'Nofaol qilish' : 'Faollashtirish'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteChild(row)}
+                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 text-xs font-medium hover:bg-rose-100 active:bg-rose-200 shadow-2xs transition-colors cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">O'chirish</span>
+                  </button>
                 </div>
               )
             };
@@ -870,6 +912,43 @@ export function ChildrenPage() {
             setEditingChild(null);
           }}
         />
+      )}
+
+      {/* In-App Delete Confirmation Modal (no browser native dialog) */}
+      {deletingChild && (
+        <Modal
+          isOpen={!!deletingChild}
+          onClose={() => setDeletingChild(null)}
+          title="Bolani o'chirish"
+          size="sm"
+          footer={
+            <div className="flex items-center justify-end gap-2 w-full">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setDeletingChild(null)}
+              >
+                Bekor qilish
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={confirmDeleteChild}
+              >
+                Ha, o'chirish
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-3 py-2 text-charcoal-700">
+            <p className="text-sm">
+              Haqiqatan ham <strong className="font-semibold text-charcoal-900">{deletingChild.fullName}</strong> bolaning profilini tizimdan o'chirishni tasdiqlaysizmi?
+            </p>
+            <p className="text-xs text-rose-600 bg-rose-50 border border-rose-200/80 rounded-lg p-2.5">
+              ⚠️ Ushbu amal bolaga tegishli ma'lumotlarni tizimdan butunlay olib tashlaydi.
+            </p>
+          </div>
+        </Modal>
       )}
 
       {/* Create child modal */}
