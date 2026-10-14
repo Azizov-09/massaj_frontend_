@@ -78,7 +78,20 @@ export class ClinicalApi {
 
   // ── Attendance ──
   public async recordAttendance(dto: CreateAttendanceDto): Promise<AttendanceRecord> {
-    const res = await this.client.post<any>('/attendance', dto);
+    const payload: Record<string, any> = {
+      childId: dto.childId,
+      status: dto.status,
+    };
+    if (dto.specialistId) {
+      payload.specialistId = dto.specialistId;
+    }
+    if (dto.date) {
+      payload.date = dto.date;
+    }
+    if (dto.note && dto.note.trim().length > 0) {
+      payload.note = dto.note.trim();
+    }
+    const res = await this.client.post<any>('/attendance', payload);
     const item = res?.data || res;
     return normalizeAttendance(item);
   }

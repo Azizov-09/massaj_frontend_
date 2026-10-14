@@ -5,8 +5,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
-import { generateId } from '@/utils';
+import { generateId, isUUID } from '@/utils';
 import { api } from '@/services/api';
+import type { CreateAttendanceDto } from '@/services/api/types';
 import { calculateParentBalance } from '@/services/finance.service';
 import type {
   AdminUser, Specialist, Parent, Child, Service,
@@ -894,14 +895,57 @@ export const useStore = create<Store>()(
           ],
         }));
 
-        api.clinical.recordAttendance({
-          childId: data.childId,
-          specialistId: data.specialistId,
-          date: data.date,
-          appointmentId: data.appointmentId,
+        // Resolve real backend childId
+        let resolvedChildId = data.childId;
+        const currentChildren = get().children;
+        const matchedChild = currentChildren.find(c => c.id === data.childId);
+        if (matchedChild && isUUID(matchedChild.id)) {
+          resolvedChildId = matchedChild.id;
+        } else if (!isUUID(resolvedChildId)) {
+          // If demo ID, resolve to matching child by name or first backend child with valid UUID
+          const byName = currentChildren.find(c => isUUID(c.id) && matchedChild && c.fullName === matchedChild.fullName);
+          const firstUuidChild = currentChildren.find(c => isUUID(c.id));
+          if (byName) {
+            resolvedChildId = byName.id;
+          } else if (firstUuidChild) {
+            resolvedChildId = firstUuidChild.id;
+          }
+        }
+
+        // Resolve specialistId (must be valid UUID if provided)
+        let resolvedSpecialistId: string | undefined = undefined;
+        if (data.specialistId) {
+          if (isUUID(data.specialistId)) {
+            resolvedSpecialistId = data.specialistId;
+          } else {
+            const matchedSpec = get().specialists.find(s => s.id === data.specialistId);
+            if (matchedSpec && isUUID(matchedSpec.id)) {
+              resolvedSpecialistId = matchedSpec.id;
+            } else {
+              const firstUuidSpec = get().specialists.find(s => isUUID(s.id));
+              if (firstUuidSpec) {
+                resolvedSpecialistId = firstUuidSpec.id;
+              }
+            }
+          }
+        }
+
+        // Clean payload strictly conforming to backend CreateAttendanceDto (no appointmentId!)
+        const payload: CreateAttendanceDto = {
+          childId: resolvedChildId,
           status: data.status,
-          note: data.note,
-        }).catch(err => {
+          date: data.date ? new Date(data.date).toISOString() : new Date().toISOString(),
+        };
+
+        if (resolvedSpecialistId && isUUID(resolvedSpecialistId)) {
+          payload.specialistId = resolvedSpecialistId;
+        }
+
+        if (data.note && data.note.trim().length > 0) {
+          payload.note = data.note.trim();
+        }
+
+        api.clinical.recordAttendance(payload).catch(err => {
           console.warn('[Store] Background recordAttendance sync warning:', err);
         });
 

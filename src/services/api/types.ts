@@ -152,7 +152,6 @@ export interface RefundDto {
 export interface CreateAttendanceDto {
   childId: string;
   specialistId?: string;
-  appointmentId?: string;
   date?: string;
   status: 'PRESENT' | 'ABSENT' | 'LATE' | 'NO_SHOW';
   note?: string;
