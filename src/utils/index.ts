@@ -496,3 +496,37 @@ export function normalizeUzbekSearch(text: string | null | undefined): string {
     .replace(/['‘’ʻ`´]/g, "'")
     .trim();
 }
+
+/**
+ * Safely handles phone clicks without triggering browser's native desktop application prompt.
+ * Copies phone to clipboard and triggers in-app toast, opening dialer on real mobile devices.
+ */
+export function handlePhoneAction(
+  e: React.MouseEvent,
+  phone: string,
+  addToast?: (toast: { type: 'success' | 'info'; title: string; description?: string }) => void
+) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (!phone) return;
+
+  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(phone).catch(() => {});
+  }
+
+  const isRealMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  if (isRealMobile) {
+    window.location.href = `tel:${phone}`;
+  }
+
+  if (addToast) {
+    addToast({
+      type: 'info',
+      title: "Telefon raqam nusxalandi",
+      description: `${phone} buferga nusxalandi`,
+    });
+  }
+}
+

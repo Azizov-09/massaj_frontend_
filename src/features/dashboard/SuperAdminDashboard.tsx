@@ -537,25 +537,32 @@ export function SuperAdminDashboard() {
             </div>
 
             {/* Sub-status filters */}
-            <div className="flex items-center gap-1 bg-white p-0.5 rounded-[8px] border border-warm-200/90 shadow-2xs">
-              {[
-                { key: 'ALL', label: 'Barchasi' },
-                { key: 'CONFIRMED', label: 'Tasdiqlangan' },
-                { key: 'PENDING', label: 'Kutilmoqda' },
-                { key: 'COMPLETED', label: 'Yakunlangan' },
-              ].map(f => (
-                <button
-                  key={f.key}
-                  type="button"
-                  onClick={() => setScheduleFilter(f.key as any)}
-                  className={cn(
-                    'px-2 py-0.5 text-[11px] font-semibold rounded-[6px] transition-colors cursor-pointer',
-                    scheduleFilter === f.key ? 'bg-charcoal-900 text-white' : 'text-charcoal-500 hover:text-charcoal-800'
-                  )}
-                >
-                  {f.label}
-                </button>
-              ))}
+            <div className="w-full sm:w-auto max-w-full overflow-x-auto touch-scroll-x scrollbar-none py-0.5">
+              <div className="inline-flex items-center gap-1 bg-white p-0.5 rounded-[8px] border border-warm-200/90 shadow-2xs min-w-max">
+                {[
+                  { key: 'ALL', label: 'Barchasi' },
+                  { key: 'CONFIRMED', label: 'Tasdiqlangan' },
+                  { key: 'PENDING', label: 'Kutilmoqda' },
+                  { key: 'COMPLETED', label: 'Yakunlangan' },
+                ].map(f => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={(e) => {
+                      setScheduleFilter(f.key as any);
+                      e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                    }}
+                    className={cn(
+                      'shrink-0 whitespace-nowrap px-2.5 py-1 text-[11px] font-semibold rounded-[6px] transition-all cursor-pointer select-none',
+                      scheduleFilter === f.key
+                        ? 'bg-charcoal-900 text-white shadow-2xs'
+                        : 'text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-50'
+                    )}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

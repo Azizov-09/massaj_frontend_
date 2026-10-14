@@ -56,6 +56,14 @@ export class ParentsApi {
     return normalizeParent(item);
   }
 
+  public async delete(id: string): Promise<void> {
+    try {
+      await this.client.delete(`/parents/${id}`);
+    } catch {
+      await this.client.post(`/parents/${id}/archive`);
+    }
+  }
+
   public async getBalance(parentId: string): Promise<{ balance: number; debt: number }> {
     const res = await this.client.get<any>(`/parents/${parentId}/balance`);
     return res?.data || res || { balance: 0, debt: 0 };

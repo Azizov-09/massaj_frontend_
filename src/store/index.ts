@@ -100,10 +100,12 @@ interface Actions {
   // Parents
   createParent: (data: Omit<Parent, 'id' | 'createdAt'>, password?: string) => Parent;
   updateParent: (id: string, data: Partial<Parent>) => void;
+  deleteParent: (id: string) => void;
 
   // Specialists
   createSpecialist: (data: Omit<Specialist, 'id' | 'createdAt'>, password?: string) => Specialist;
   updateSpecialist: (id: string, data: Partial<Specialist>) => void;
+  deleteSpecialist: (id: string) => void;
 
   // Services
   createService: (data: Omit<Service, 'id' | 'createdAt'>) => Service;
@@ -573,11 +575,26 @@ export const useStore = create<Store>()(
         set(s => ({ parents: s.parents.map(p => p.id === id ? { ...p, ...data } : p) }));
         api.parents.update(id, {
           fullName: data.fullName,
+          phone: data.phone,
           address: data.address,
+          status: data.status,
         }).catch(err => {
           console.warn('[Store] Background updateParent sync warning:', err);
         });
-        get().addToast({ type: 'success', title: 'Yangilandi' });
+        get().addToast({ type: 'success', title: 'Ota-ona ma\'lumotlari yangilandi' });
+      },
+
+      deleteParent: (id) => {
+        const parent = get().parents.find(p => p.id === id);
+        set(s => ({ parents: s.parents.filter(p => p.id !== id) }));
+        api.parents.delete(id).catch(err => {
+          console.warn('[Store] Background deleteParent sync warning:', err);
+        });
+        get().addToast({
+          type: 'success',
+          title: "Ota-ona o'chirildi",
+          description: parent ? `${parent.fullName} tizimdan olib tashlandi` : undefined,
+        });
       },
 
       // ── Specialist Actions ───────────────────────────────
@@ -614,13 +631,30 @@ export const useStore = create<Store>()(
       updateSpecialist: (id, data) => {
         set(s => ({ specialists: s.specialists.map(sp => sp.id === id ? { ...sp, ...data } : sp) }));
         api.specialists.update(id, {
+          fullName: data.fullName,
+          phone: data.phone,
+          email: data.email,
           specialization: data.specialization,
           experienceYears: data.experience,
           bio: data.bio,
+          status: data.status,
         }).catch(err => {
           console.warn('[Store] Background updateSpecialist sync warning:', err);
         });
-        get().addToast({ type: 'success', title: 'Yangilandi' });
+        get().addToast({ type: 'success', title: 'Mutaxassis ma\'lumotlari yangilandi' });
+      },
+
+      deleteSpecialist: (id) => {
+        const spec = get().specialists.find(s => s.id === id);
+        set(s => ({ specialists: s.specialists.filter(sp => sp.id !== id) }));
+        api.specialists.delete(id).catch(err => {
+          console.warn('[Store] Background deleteSpecialist sync warning:', err);
+        });
+        get().addToast({
+          type: 'success',
+          title: "Mutaxassis o'chirildi",
+          description: spec ? `${spec.fullName} tizimdan olib tashlandi` : undefined,
+        });
       },
 
       // ── Service Actions ──────────────────────────────────

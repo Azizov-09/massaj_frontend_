@@ -60,6 +60,14 @@ export class SpecialistsApi {
     await this.client.post(`/specialists/${id}/archive`);
   }
 
+  public async delete(id: string): Promise<void> {
+    try {
+      await this.client.delete(`/specialists/${id}`);
+    } catch {
+      await this.client.post(`/specialists/${id}/archive`);
+    }
+  }
+
   public async getMe(): Promise<Specialist> {
     const res = await this.client.get<any>('/specialist/me');
     const item = res?.data || res;

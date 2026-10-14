@@ -38,7 +38,9 @@ export interface CreateParentDto {
 
 export interface UpdateParentDto {
   fullName?: string;
+  phone?: string;
   address?: string;
+  status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
 }
 
 export interface CreateSpecialistDto {
@@ -51,9 +53,13 @@ export interface CreateSpecialistDto {
 }
 
 export interface UpdateSpecialistDto {
+  fullName?: string;
+  phone?: string;
+  email?: string;
   specialization?: string;
   experienceYears?: number;
   bio?: string;
+  status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
 }
 
 export interface CreateAdminDto {

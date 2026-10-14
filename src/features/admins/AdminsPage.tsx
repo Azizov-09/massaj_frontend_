@@ -33,6 +33,7 @@ export function AdminsPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<AdminUser | null>(null);
   const [editingAdmin, setEditingAdmin] = useState<AdminUser | null>(null);
+  const [deletingAdmin, setDeletingAdmin] = useState<AdminUser | null>(null);
   const [editForm, setEditForm] = useState<{
     fullName: string;
     email: string;
@@ -207,8 +208,18 @@ export function AdminsPage() {
   };
 
   const handleDeleteAdmin = (admin: AdminUser) => {
-    if (window.confirm(`${admin.fullName} administratorini o'chirishni tasdiqlaysizmi?`)) {
-      deleteAdmin(admin.id);
+    setDeletingAdmin(admin);
+  };
+
+  const confirmDeleteAdmin = () => {
+    if (deletingAdmin) {
+      deleteAdmin(deletingAdmin.id);
+      addToast({
+        type: 'success',
+        title: "Admin o'chirildi",
+        description: `${deletingAdmin.fullName} tizimdan muvaffaqiyatli o'chirildi`,
+      });
+      setDeletingAdmin(null);
     }
   };
 
@@ -561,41 +572,44 @@ export function AdminsPage() {
                 { label: 'Qo‘shilgan', value: formatDate(admin.createdAt), fullWidth: true },
               ],
               actions: (
-                <div className="flex flex-wrap items-center gap-2 w-full">
+                <div className="grid grid-cols-2 gap-2 w-full pt-1">
                   <button
                     type="button"
                     onClick={() => setSelectedAdmin(admin)}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
+                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs transition-colors cursor-pointer"
                   >
-                    <Eye className="w-3.5 h-3.5 text-charcoal-500" />
-                    Ko'rish
+                    <Eye className="w-3.5 h-3.5 text-charcoal-500 shrink-0" />
+                    <span className="truncate">Ko'rish</span>
                   </button>
                   {currentUser?.role === 'SUPER_ADMIN' && (
                     <button
                       type="button"
                       onClick={() => handleOpenEdit(admin)}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-brand-200 bg-brand-50 text-brand-700 text-xs font-medium hover:bg-brand-100 active:bg-brand-200 shadow-2xs cursor-pointer"
+                      className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-brand-200 bg-brand-50 text-brand-700 text-xs font-medium hover:bg-brand-100 active:bg-brand-200 shadow-2xs transition-colors cursor-pointer"
                     >
-                      <Pencil className="w-3.5 h-3.5 text-brand-600" />
-                      Tahrirlash
+                      <Pencil className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+                      <span className="truncate">Tahrirlash</span>
                     </button>
                   )}
                   <button
                     type="button"
                     onClick={() => handleToggleAdminStatus(admin)}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
+                    className={cn(
+                      "w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs transition-colors cursor-pointer",
+                      !(currentUser?.role === 'SUPER_ADMIN' && admin.id !== currentUser.id) && "col-span-2"
+                    )}
                   >
-                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                    {admin.status === 'ACTIVE' ? 'Nofaol qilish' : 'Faollashtirish'}
+                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                    <span className="truncate">{admin.status === 'ACTIVE' ? 'Nofaol qilish' : 'Faollashtirish'}</span>
                   </button>
                   {currentUser?.role === 'SUPER_ADMIN' && admin.id !== currentUser.id && (
                     <button
                       type="button"
                       onClick={() => handleDeleteAdmin(admin)}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 text-xs font-medium hover:bg-rose-100 active:bg-rose-200 shadow-2xs cursor-pointer"
+                      className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 text-xs font-medium hover:bg-rose-100 active:bg-rose-200 shadow-2xs transition-colors cursor-pointer"
                     >
-                      <X className="w-3.5 h-3.5" />
-                      O'chirish
+                      <X className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">O'chirish</span>
                     </button>
                   )}
                 </div>
@@ -901,6 +915,43 @@ export function AdminsPage() {
 
             <div className="pb-8" />
           </form>
+        </Modal>
+      )}
+
+      {/* In-App Delete Confirmation Modal (no native browser dialog) */}
+      {deletingAdmin && (
+        <Modal
+          isOpen={!!deletingAdmin}
+          onClose={() => setDeletingAdmin(null)}
+          title="Adminni o'chirish"
+          size="sm"
+          footer={
+            <div className="flex items-center justify-end gap-2 w-full">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setDeletingAdmin(null)}
+              >
+                Bekor qilish
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={confirmDeleteAdmin}
+              >
+                Ha, o'chirish
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-3 py-2 text-charcoal-700">
+            <p className="text-sm">
+              Haqiqatan ham <strong className="font-semibold text-charcoal-900">{deletingAdmin.fullName}</strong> administratorini tizimdan o'chirishni tasdiqlaysizmi?
+            </p>
+            <p className="text-xs text-rose-600 bg-rose-50 border border-rose-200/80 rounded-lg p-2.5">
+              ⚠️ Ushbu amal qaytarib bo'lmaydi. Admin profilingiz va unga tegishli barcha amallar to'xtatiladi.
+            </p>
+          </div>
         </Modal>
       )}
     </div>

@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import {
   Plus, Search, Stethoscope, Users, Award, Clock, X, Phone,
   Mail, Calendar, Eye, EyeOff, CheckCircle2,
-  KeyRound, ShieldCheck, RefreshCw
+  KeyRound, ShieldCheck, RefreshCw, Pencil
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { getEntityStatusColor, getEntityStatusLabel, cn, generateStrongPassword } from '@/utils';
@@ -41,11 +41,98 @@ export function SpecialistsPage() {
   const sessions = useStore(s => s.sessions);
   const appointments = useStore(s => s.appointments);
   const createSpecialist = useStore(s => s.createSpecialist);
+  const updateSpecialist = useStore(s => s.updateSpecialist);
+  const deleteSpecialist = useStore(s => s.deleteSpecialist);
+  const addToast = useStore(s => s.addToast);
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
   const [showCreate, setShowCreate] = useState(false);
   const [selectedSpecialist, setSelectedSpecialist] = useState<Specialist | null>(null);
+  const [editingSpecialist, setEditingSpecialist] = useState<Specialist | null>(null);
+  const [deletingSpecialist, setDeletingSpecialist] = useState<Specialist | null>(null);
+
+  const [editForm, setEditForm] = useState<{
+    fullName: string;
+    phone: string;
+    email: string;
+    specialization: string;
+    experience: number;
+    bio: string;
+    status: 'ACTIVE' | 'INACTIVE';
+  }>({
+    fullName: '',
+    phone: '',
+    email: '',
+    specialization: '',
+    experience: 0,
+    bio: '',
+    status: 'ACTIVE',
+  });
+  const [editErrors, setEditErrors] = useState<{ fullName?: string; phone?: string; specialization?: string }>({});
+
+  const handleOpenEdit = (specialist: Specialist) => {
+    setEditingSpecialist(specialist);
+    setEditForm({
+      fullName: specialist.fullName || '',
+      phone: specialist.phone || '',
+      email: specialist.email || '',
+      specialization: specialist.specialization || '',
+      experience: specialist.experience || 0,
+      bio: specialist.bio || '',
+      status: specialist.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
+    });
+    setEditErrors({});
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSpecialist) return;
+
+    const errors: { fullName?: string; phone?: string; specialization?: string } = {};
+    if (!editForm.fullName.trim()) errors.fullName = 'Ism familiyani kiriting';
+    if (!editForm.phone.trim()) errors.phone = 'Telefon raqamni kiriting';
+    if (!editForm.specialization.trim()) errors.specialization = 'Mutaxassislikni kiriting';
+
+    if (Object.keys(errors).length > 0) {
+      setEditErrors(errors);
+      return;
+    }
+
+    updateSpecialist(editingSpecialist.id, {
+      fullName: editForm.fullName.trim(),
+      phone: editForm.phone.trim(),
+      email: editForm.email.trim() || undefined,
+      specialization: editForm.specialization.trim(),
+      experience: Number(editForm.experience) || 0,
+      bio: editForm.bio.trim() || undefined,
+      status: editForm.status,
+    });
+
+    setEditingSpecialist(null);
+    setEditErrors({});
+  };
+
+  const handleToggleStatus = (specialist: Specialist) => {
+    const nextStatus = specialist.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    updateSpecialist(specialist.id, { status: nextStatus });
+    addToast({
+      type: 'info',
+      title: nextStatus === 'ACTIVE' ? "Mutaxassis faollashtirildi" : "Mutaxassis nofaol qilindi",
+      description: `${specialist.fullName} holati o'zgartirildi`,
+    });
+  };
+
+  const handleDeleteSpecialist = (specialist: Specialist) => {
+    setDeletingSpecialist(specialist);
+  };
+
+  const confirmDeleteSpecialist = () => {
+    if (deletingSpecialist) {
+      deleteSpecialist(deletingSpecialist.id);
+      setDeletingSpecialist(null);
+    }
+  };
 
   // Sessions count map
   const sessionsCountMap = useMemo(() => {
@@ -218,7 +305,7 @@ export function SpecialistsPage() {
       key: 'actions',
       header: 'Amallar',
       cell: (row) => (
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-1.5">
           <Button
             variant="ghost"
             size="sm"
@@ -230,6 +317,30 @@ export function SpecialistsPage() {
           >
             <Eye className="w-3.5 h-3.5 mr-1" />
             Ko'rish
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenEdit(row);
+            }}
+            className="h-8 px-2.5 text-xs text-brand-600 border-brand-200 hover:bg-brand-50 hover:border-brand-300"
+          >
+            <Pencil className="w-3.5 h-3.5 mr-1" />
+            Tahrirlash
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteSpecialist(row);
+            }}
+            className="h-8 px-2 text-xs text-rose-600 hover:bg-rose-50"
+            title="O'chirish"
+          >
+            <X className="w-3.5 h-3.5" />
           </Button>
         </div>
       ),
@@ -450,23 +561,39 @@ export function SpecialistsPage() {
                 { label: 'Kutilayotgan qabullar', value: `${upcomingAppointmentsMap.get(specialist.id) || 0} ta` },
               ],
               actions: (
-                <div className="flex flex-wrap items-center gap-2 w-full">
+                <div className="grid grid-cols-2 gap-2 w-full pt-1">
                   <button
                     type="button"
                     onClick={() => setSelectedSpecialist(specialist)}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
+                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs transition-colors cursor-pointer"
                   >
-                    <Eye className="w-3.5 h-3.5 text-charcoal-500" />
-                    Profilni ko'rish
+                    <Eye className="w-3.5 h-3.5 text-charcoal-500 shrink-0" />
+                    <span className="truncate">Ko'rish</span>
                   </button>
-                  <a
-                    href={`tel:${specialist.phone}`}
-                    onClick={e => e.stopPropagation()}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs cursor-pointer"
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(specialist)}
+                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-brand-200 bg-brand-50 text-brand-700 text-xs font-medium hover:bg-brand-100 active:bg-brand-200 shadow-2xs transition-colors cursor-pointer"
                   >
-                    <Phone className="w-3.5 h-3.5 text-brand-600" />
-                    Qo'ng'iroq
-                  </a>
+                    <Pencil className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+                    <span className="truncate">Tahrirlash</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleStatus(specialist)}
+                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs transition-colors cursor-pointer"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                    <span className="truncate">{specialist.status === 'ACTIVE' ? 'Nofaol qilish' : 'Faollashtirish'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteSpecialist(specialist)}
+                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 text-xs font-medium hover:bg-rose-100 active:bg-rose-200 shadow-2xs transition-colors cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">O'chirish</span>
+                  </button>
                 </div>
               ),
             };
@@ -606,6 +733,146 @@ export function SpecialistsPage() {
                 Yopish
               </Button>
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Edit Specialist Modal */}
+      {editingSpecialist && (
+        <Modal
+          isOpen={!!editingSpecialist}
+          onClose={() => { setEditingSpecialist(null); setEditErrors({}); }}
+          title="Mutaxassisni tahrirlash"
+          size="md"
+          footer={
+            <div className="flex items-center justify-end gap-2 w-full">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => { setEditingSpecialist(null); setEditErrors({}); }}
+              >
+                Bekor qilish
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSaveEdit}
+              >
+                Saqlash
+              </Button>
+            </div>
+          }
+        >
+          <form onSubmit={handleSaveEdit} className="space-y-4 py-2">
+            <Input
+              label="To‘liq ism"
+              required
+              placeholder="Masalan: Dr. Sardor Rustamov"
+              value={editForm.fullName}
+              error={editErrors.fullName}
+              onChange={e => {
+                setEditForm({ ...editForm, fullName: e.target.value });
+                if (editErrors.fullName) setEditErrors({ ...editErrors, fullName: undefined });
+              }}
+            />
+
+            <Input
+              label="Mutaxassislik"
+              required
+              placeholder="Masalan: Fizioterapiya, Bolalar massaji"
+              value={editForm.specialization}
+              error={editErrors.specialization}
+              onChange={e => {
+                setEditForm({ ...editForm, specialization: e.target.value });
+                if (editErrors.specialization) setEditErrors({ ...editErrors, specialization: undefined });
+              }}
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input
+                label="Telefon raqam"
+                required
+                type="tel"
+                placeholder="+998901234567"
+                value={editForm.phone}
+                error={editErrors.phone}
+                onChange={e => {
+                  setEditForm({ ...editForm, phone: e.target.value });
+                  if (editErrors.phone) setEditErrors({ ...editErrors, phone: undefined });
+                }}
+              />
+
+              <Input
+                label="Tajriba (yil)"
+                type="number"
+                min="0"
+                max="60"
+                placeholder="5"
+                value={editForm.experience || ''}
+                onChange={e => setEditForm({ ...editForm, experience: parseInt(e.target.value, 10) || 0 })}
+              />
+            </div>
+
+            <Input
+              label="Email (ixtiyoriy)"
+              type="email"
+              placeholder="specialist@massaj.uz"
+              value={editForm.email}
+              onChange={e => setEditForm({ ...editForm, email: e.target.value })}
+            />
+
+            <Select
+              label="Hisob holati"
+              value={editForm.status}
+              onChange={e => setEditForm({ ...editForm, status: e.target.value as 'ACTIVE' | 'INACTIVE' })}
+            >
+              <option value="ACTIVE">Faol (Qabullarni qabul qiladi)</option>
+              <option value="INACTIVE">Nofaol (Tizimga kirish cheklangan)</option>
+            </Select>
+
+            <Textarea
+              label="Qisqacha bio"
+              rows={3}
+              placeholder="Mutaxassis haqida qisqacha ma'lumot..."
+              value={editForm.bio}
+              onChange={e => setEditForm({ ...editForm, bio: e.target.value })}
+            />
+          </form>
+        </Modal>
+      )}
+
+      {/* In-App Delete Confirmation Modal (no browser native dialog) */}
+      {deletingSpecialist && (
+        <Modal
+          isOpen={!!deletingSpecialist}
+          onClose={() => setDeletingSpecialist(null)}
+          title="Mutaxassisni o'chirish"
+          size="sm"
+          footer={
+            <div className="flex items-center justify-end gap-2 w-full">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setDeletingSpecialist(null)}
+              >
+                Bekor qilish
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={confirmDeleteSpecialist}
+              >
+                Ha, o'chirish
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-3 py-2 text-charcoal-700">
+            <p className="text-sm">
+              Haqiqatan ham <strong className="font-semibold text-charcoal-900">{deletingSpecialist.fullName}</strong> mutaxassisini tizimdan o'chirishni tasdiqlaysizmi?
+            </p>
+            <p className="text-xs text-rose-600 bg-rose-50 border border-rose-200/80 rounded-lg p-2.5">
+              ⚠️ Ushbu mutaxassisning profili nofaol qilinadi va tizimdan olib tashlanadi.
+            </p>
           </div>
         </Modal>
       )}
