@@ -81,15 +81,6 @@ describe('ParentDashboard Component', () => {
           createdAt: `${today}T10:00:00Z`,
         },
       ],
-      goals: [
-        {
-          id: 'g1',
-          childId: 'c1',
-          title: 'Orqa mushaklarini mustahkamlash',
-          progress: 65,
-          createdAt: '2026-01-01T00:00:00Z',
-        } as any,
-      ],
     });
   });
 

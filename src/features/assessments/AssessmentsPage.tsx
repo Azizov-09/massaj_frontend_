@@ -143,8 +143,10 @@ export function AssessmentsPage() {
         const q = search.trim().toLowerCase();
         const child = children.find(c => c.id === a.childId);
         const spec = specialists.find(s => s.id === a.specialistId);
-        const matchChild = child?.fullName?.toLowerCase().includes(q);
-        const matchSpec = spec?.fullName?.toLowerCase().includes(q);
+        const childName = child?.fullName || a.childName || a.child?.fullName || '';
+        const specName = spec?.fullName || a.specialistName || a.specialist?.fullName || '';
+        const matchChild = childName.toLowerCase().includes(q);
+        const matchSpec = specName.toLowerCase().includes(q);
         const matchObs = (a.professionalObservation || '').toLowerCase().includes(q);
         if (!matchChild && !matchSpec && !matchObs) return false;
       }
@@ -230,15 +232,19 @@ export function AssessmentsPage() {
       className: 'py-3.5',
       cell: (row) => {
         const child = children.find(c => c.id === row.childId);
-        const childAge = child?.dateOfBirth ? differenceInYears(new Date(), parseISO(child.dateOfBirth)) : null;
+        const childName = child?.fullName || row.childName || row.child?.fullName;
+        const childAge = child?.dateOfBirth
+          ? differenceInYears(new Date(), parseISO(child.dateOfBirth))
+          : (row.child?.dateOfBirth ? differenceInYears(new Date(), parseISO(row.child.dateOfBirth)) : null);
+        const diagnosis = child?.diagnosis || (row.child as any)?.diagnosis;
 
-        return child ? (
+        return childName ? (
           <div className="flex items-center gap-3">
-            <Avatar name={child.fullName} size="sm" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
+            <Avatar name={childName} size="sm" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-sm font-semibold text-charcoal-900 truncate">
-                  {child.fullName}
+                  {childName}
                 </span>
                 {childAge !== null && (
                   <span className="text-[10px] font-semibold text-charcoal-600 bg-warm-100/90 border border-warm-200/80 px-1.5 py-0.5 rounded-[4px] shrink-0">
@@ -246,9 +252,9 @@ export function AssessmentsPage() {
                   </span>
                 )}
               </div>
-              {child.diagnosis && (
+              {diagnosis && (
                 <p className="text-[11px] text-charcoal-400 truncate max-w-[170px] mt-0.5">
-                  {child.diagnosis}
+                  {diagnosis}
                 </p>
               )}
             </div>
@@ -265,12 +271,15 @@ export function AssessmentsPage() {
       className: 'py-3.5',
       cell: (row) => {
         const spec = specialists.find(s => s.id === row.specialistId);
-        return spec ? (
+        const specName = spec?.fullName || row.specialistName || row.specialist?.fullName;
+        const specialization = spec?.specialization || (row.specialist as any)?.specialization || 'Mutaxassis';
+
+        return specName ? (
           <div className="flex items-center gap-2.5">
-            <Avatar name={spec.fullName} size="xs" className="ring-1 ring-warm-200 shrink-0" />
+            <Avatar name={specName} size="xs" className="ring-1 ring-warm-200 shrink-0" />
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-charcoal-900 truncate">{spec.fullName}</p>
-              <p className="text-[11px] text-charcoal-500 truncate font-medium">{spec.specialization || 'Mutaxassis'}</p>
+              <p className="text-sm font-semibold text-charcoal-900 truncate">{specName}</p>
+              <p className="text-[11px] text-charcoal-500 truncate font-medium">{specialization}</p>
             </div>
           </div>
         ) : (
@@ -737,11 +746,11 @@ export function AssessmentsPage() {
                     >
                       <div className="flex items-start justify-between gap-3 pb-3 border-b border-warm-100">
                         <div className="flex items-center gap-3">
-                          <Avatar name={child?.fullName || 'Bola'} size="md" className="ring-2 ring-warm-100" />
+                          <Avatar name={child?.fullName || asmnt.childName || 'Bola'} size="md" className="ring-2 ring-warm-100" />
                           <div>
-                            <h4 className="text-sm font-bold text-charcoal-900">{child?.fullName}</h4>
+                            <h4 className="text-sm font-bold text-charcoal-900">{child?.fullName || asmnt.childName || 'Noma\'lum bola'}</h4>
                             <p className="text-xs text-charcoal-500 mt-0.5">
-                              {spec?.fullName} • {formatDate(asmnt.date)}
+                              {spec?.fullName || asmnt.specialistName || 'Mutaxassis'} • {formatDate(asmnt.date)}
                             </p>
                           </div>
                         </div>
@@ -801,6 +810,8 @@ export function AssessmentsPage() {
           {(() => {
             const child = children.find(c => c.id === viewingAssessment.childId);
             const spec = specialists.find(s => s.id === viewingAssessment.specialistId);
+            const childName = child?.fullName || viewingAssessment.childName || viewingAssessment.child?.fullName || 'Noma\'lum bola';
+            const specName = spec?.fullName || viewingAssessment.specialistName || viewingAssessment.specialist?.fullName || 'Belgilanmagan mutaxassis';
             const avg = calcAvg(viewingAssessment.scores);
 
             return (
@@ -808,11 +819,11 @@ export function AssessmentsPage() {
                 {/* Header card with child and overall rating */}
                 <div className="p-3.5 rounded-[12px] bg-warm-50 border border-warm-200/80 flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-3">
-                    <Avatar name={child?.fullName || 'Bola'} size="md" className="ring-2 ring-warm-100" />
+                    <Avatar name={childName} size="md" className="ring-2 ring-warm-100" />
                     <div>
-                      <h4 className="text-sm font-bold text-charcoal-900">{child?.fullName}</h4>
+                      <h4 className="text-sm font-bold text-charcoal-900">{childName}</h4>
                       <p className="text-xs text-charcoal-500">
-                        {spec?.fullName} • {formatDate(viewingAssessment.date)}
+                        {specName} • {formatDate(viewingAssessment.date)}
                       </p>
                     </div>
                   </div>

@@ -245,14 +245,6 @@ export function getEntityStatusLabel(status: string): string {
   return labels[status] ?? status;
 }
 
-export function getGoalStatusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    ACTIVE: 'Faol',
-    COMPLETED: 'Bajarildi',
-    PAUSED: 'Toʻxtatilgan',
-  };
-  return labels[status] ?? status;
-}
 
 export function getPaymentMethodLabel(method: string): string {
   const labels: Record<string, string> = {
@@ -316,14 +308,6 @@ export function getEntityStatusColor(status: string): string {
   return colors[status] ?? 'bg-gray-100 text-gray-700';
 }
 
-export function getGoalStatusColor(status: string): string {
-  const colors: Record<string, string> = {
-    ACTIVE: 'bg-brand-100 text-brand-700 border-brand-200',
-    COMPLETED: 'bg-green-100 text-green-700 border-green-200',
-    PAUSED: 'bg-gold-100 text-gold-700 border-gold-200',
-  };
-  return colors[status] ?? 'bg-gray-100 text-gray-700';
-}
 
 export function getAttendanceStatusColor(status: string): string {
   const colors: Record<string, string> = {

@@ -6,10 +6,8 @@ import type {
   UpdateAssessmentDto,
   CreateProgressDto,
   UpdateProgressDto,
-  CreateGoalDto,
-  UpdateGoalDto,
 } from './types';
-import type { AttendanceRecord, Assessment, ProgressNote, Goal } from '@/types';
+import type { AttendanceRecord, Assessment, ProgressNote } from '@/types';
 
 export function normalizeAttendance(raw: any): AttendanceRecord {
   if (!raw) return raw;
@@ -27,10 +25,25 @@ export function normalizeAttendance(raw: any): AttendanceRecord {
 
 export function normalizeAssessment(raw: any): Assessment {
   if (!raw) return raw;
+  const childFullName = raw.child?.fullName ||
+    (raw.child?.firstName ? `${raw.child.firstName} ${raw.child.lastName || ''}`.trim() : raw.childName);
+  const specFullName = raw.specialist?.fullName ||
+    raw.specialist?.user?.fullName ||
+    (raw.specialist?.firstName ? `${raw.specialist.firstName} ${raw.specialist.lastName || ''}`.trim() : raw.specialistName);
+
+  const rawDate = raw.assessedAt || raw.assessmentDate || raw.date || raw.createdAt;
+  const dateFormatted = rawDate
+    ? (typeof rawDate === 'string' ? rawDate.split('T')[0] : new Date(rawDate).toISOString().split('T')[0])
+    : new Date().toISOString().split('T')[0];
+
   return {
     id: String(raw.id),
-    childId: String(raw.childId || ''),
-    specialistId: String(raw.specialistId || ''),
+    childId: String(raw.childId || raw.child?.id || raw.child_id || ''),
+    childName: childFullName || undefined,
+    child: raw.child || undefined,
+    specialistId: String(raw.specialistId || raw.specialist?.id || raw.specialist_id || ''),
+    specialistName: specFullName || undefined,
+    specialist: raw.specialist || undefined,
     sessionId: raw.sessionId ? String(raw.sessionId) : undefined,
     scores: {
       movement: Number(raw.movement ?? raw.scores?.movement ?? 3),
@@ -40,36 +53,43 @@ export function normalizeAssessment(raw: any): Assessment {
       sessionResponse: Number(raw.sessionResponse ?? raw.scores?.sessionResponse ?? 3),
     },
     professionalObservation: raw.professionalObservation || raw.observation || '',
-    date: raw.date || (raw.createdAt ? raw.createdAt.split('T')[0] : new Date().toISOString().split('T')[0]),
+    assessedAt: raw.assessedAt || undefined,
+    assessmentDate: raw.assessmentDate || raw.assessedAt || undefined,
+    date: dateFormatted,
     createdAt: raw.createdAt || new Date().toISOString(),
   };
 }
 
 export function normalizeProgress(raw: any): ProgressNote {
   if (!raw) return raw;
+  const childFullName = raw.child?.fullName ||
+    (raw.child?.firstName ? `${raw.child.firstName} ${raw.child.lastName || ''}`.trim() : raw.childName);
+  const specFullName = raw.specialist?.fullName ||
+    raw.specialist?.user?.fullName ||
+    (raw.specialist?.firstName ? `${raw.specialist.firstName} ${raw.specialist.lastName || ''}`.trim() : raw.specialistName);
+
+  const rawDate = raw.occurredAt || raw.progressDate || raw.date || raw.createdAt;
+  const dateFormatted = rawDate
+    ? (typeof rawDate === 'string' ? rawDate.split('T')[0] : new Date(rawDate).toISOString().split('T')[0])
+    : new Date().toISOString().split('T')[0];
+
+  const recordedBy = raw.recordedBy || raw.createdBy || null;
+
   return {
     id: String(raw.id),
-    childId: String(raw.childId || ''),
-    specialistId: String(raw.specialistId || ''),
+    childId: String(raw.childId || raw.child?.id || raw.child_id || ''),
+    childName: childFullName || undefined,
+    child: raw.child || undefined,
+    specialistId: String(raw.specialistId || raw.specialist?.id || raw.specialist_id || ''),
+    specialistName: specFullName || undefined,
+    specialist: raw.specialist || undefined,
+    recordedBy,
     sessionId: raw.sessionId ? String(raw.sessionId) : undefined,
     note: raw.description || raw.note || raw.title || '',
-    date: raw.date || (raw.createdAt ? raw.createdAt.split('T')[0] : new Date().toISOString().split('T')[0]),
+    occurredAt: raw.occurredAt || undefined,
+    progressDate: raw.progressDate || raw.occurredAt || undefined,
+    date: dateFormatted,
     createdAt: raw.createdAt || new Date().toISOString(),
-  };
-}
-
-export function normalizeGoal(raw: any): Goal {
-  if (!raw) return raw;
-  return {
-    id: String(raw.id),
-    childId: String(raw.childId || ''),
-    title: raw.title || 'Reabilitatsiya maqsadi',
-    description: raw.description || '',
-    progress: Number(raw.progress ?? 0),
-    targetDate: raw.targetDate || '',
-    status: raw.status || 'ACTIVE',
-    createdAt: raw.createdAt || new Date().toISOString(),
-    specialistNote: raw.specialistNote,
   };
 }
 
@@ -102,6 +122,18 @@ export class ClinicalApi {
     return normalizeAttendance(item);
   }
 
+  public async getAttendance(params?: {
+    childId?: string;
+    specialistId?: string;
+    date?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<AttendanceRecord[]> {
+    const res = await this.client.get<any>('/attendance', params);
+    const list = Array.isArray(res) ? res : res?.data || res?.items || [];
+    return list.map(normalizeAttendance);
+  }
+
   // ── Assessments ──
   public async createAssessment(dto: CreateAssessmentDto): Promise<Assessment> {
     const res = await this.client.post<any>('/assessments', dto);
@@ -115,7 +147,22 @@ export class ClinicalApi {
     return normalizeAssessment(item);
   }
 
-  // ── Progress ──
+  public async getAssessments(params?: { childId?: string; specialistId?: string; page?: number; limit?: number }): Promise<Assessment[]> {
+    try {
+      const res = await this.client.get<any>('/assessments', params);
+      const list = Array.isArray(res) ? res : res?.items || res?.data || [];
+      return list.map(normalizeAssessment);
+    } catch (err: any) {
+      if (err?.status === 404 && params?.childId) {
+        const res = await this.client.get<any>(`/children/${params.childId}/assessments`);
+        const list = Array.isArray(res) ? res : res?.items || res?.data || [];
+        return list.map(normalizeAssessment);
+      }
+      throw err;
+    }
+  }
+
+  // ── Progress Notes ──
   public async createProgress(dto: CreateProgressDto): Promise<ProgressNote> {
     const res = await this.client.post<any>('/progress', dto);
     const item = res?.data || res;
@@ -128,28 +175,18 @@ export class ClinicalApi {
     return normalizeProgress(item);
   }
 
-  // ── Goals ──
-  public async createGoal(dto: CreateGoalDto): Promise<Goal> {
-    const res = await this.client.post<any>('/goals', dto);
-    const item = res?.data || res;
-    return normalizeGoal(item);
-  }
-
-  public async updateGoal(id: string, dto: UpdateGoalDto): Promise<Goal> {
-    const res = await this.client.patch<any>(`/goals/${id}`, dto);
-    const item = res?.data || res;
-    return normalizeGoal(item);
-  }
-
-  public async completeGoal(id: string): Promise<Goal> {
-    const res = await this.client.post<any>(`/goals/${id}/complete`);
-    const item = res?.data || res;
-    return normalizeGoal(item);
-  }
-
-  public async pauseGoal(id: string): Promise<Goal> {
-    const res = await this.client.post<any>(`/goals/${id}/pause`);
-    const item = res?.data || res;
-    return normalizeGoal(item);
+  public async getProgress(params?: { childId?: string; specialistId?: string; page?: number; limit?: number }): Promise<ProgressNote[]> {
+    try {
+      const res = await this.client.get<any>('/progress', params);
+      const list = Array.isArray(res) ? res : res?.items || res?.data || [];
+      return list.map(normalizeProgress);
+    } catch (err: any) {
+      if (err?.status === 404 && params?.childId) {
+        const res = await this.client.get<any>(`/children/${params.childId}/progress`);
+        const list = Array.isArray(res) ? res : res?.items || res?.data || [];
+        return list.map(normalizeProgress);
+      }
+      throw err;
+    }
   }
 }

@@ -27,7 +27,9 @@ interface TimelineEvent {
   id: string;
   date: string;
   childId: string;
+  childName?: string;
   specialistId: string;
+  specialistName?: string;
   type: 'NOTE' | 'SESSION' | 'ASSESSMENT';
   title: string;
   content: string;
@@ -35,7 +37,11 @@ interface TimelineEvent {
   recommendation?: string;
   scores?: AssessmentScores;
   avgScore?: number;
+  isFutureDate?: boolean;
+  recordedBy?: string | null;
 }
+
+const CURRENT_TIMESTAMP = Date.now();
 
 export function ProgressPage() {
   const { currentUser } = useAuth();
@@ -89,14 +95,21 @@ export function ProgressPage() {
     progressNotes.forEach(p => {
       if (isParent && !parentChildIds.includes(p.childId)) return;
       if (isSpecialist && currentUser && p.specialistId !== currentUser.id) return;
+      const ch = children.find(c => c.id === p.childId);
+      const sp = specialists.find(s => s.id === p.specialistId);
+      const isFuture = new Date(p.date).getTime() > CURRENT_TIMESTAMP;
       list.push({
         id: p.id,
         date: p.date,
         childId: p.childId,
+        childName: p.childName || ch?.fullName,
         specialistId: p.specialistId,
+        specialistName: p.specialistName || sp?.fullName,
+        recordedBy: p.recordedBy,
         type: 'NOTE',
         title: 'Mutaxassis kuzatuv qaydi',
         content: p.note,
+        isFutureDate: isFuture,
       });
     });
 
@@ -105,16 +118,23 @@ export function ProgressPage() {
       if (ses.status !== 'COMPLETED' || (!ses.note && !ses.observation && !ses.recommendation)) return;
       if (isParent && !parentChildIds.includes(ses.childId)) return;
       if (isSpecialist && currentUser && ses.specialistId !== currentUser.id) return;
+      const sDate = ses.endTime ? (ses.endTime || '').split('T')[0] : (ses.startTime ? (ses.startTime || '').split('T')[0] : new Date().toISOString().split('T')[0]);
+      const ch = children.find(c => c.id === ses.childId);
+      const sp = specialists.find(s => s.id === ses.specialistId);
+      const isFuture = new Date(sDate).getTime() > CURRENT_TIMESTAMP;
       list.push({
         id: ses.id,
-        date: ses.endTime ? (ses.endTime || '').split('T')[0] : (ses.startTime ? (ses.startTime || '').split('T')[0] : new Date().toISOString().split('T')[0]),
+        date: sDate,
         childId: ses.childId,
+        childName: ch?.fullName,
         specialistId: ses.specialistId,
+        specialistName: sp?.fullName,
         type: 'SESSION',
         title: 'Seans natijasi va tavsiyalar',
         content: ses.observation || ses.note || 'Seans muvaffaqiyatli yakunlandi.',
         details: ses.recommendation ? `Tavsiya: ${ses.recommendation}` : undefined,
         recommendation: ses.recommendation,
+        isFutureDate: isFuture,
       });
     });
 
@@ -122,23 +142,29 @@ export function ProgressPage() {
     assessments.forEach(asmnt => {
       if (isParent && !parentChildIds.includes(asmnt.childId)) return;
       if (isSpecialist && currentUser && asmnt.specialistId !== currentUser.id) return;
+      const ch = children.find(c => c.id === asmnt.childId);
+      const sp = specialists.find(s => s.id === asmnt.specialistId);
       const avg = calcAvg(asmnt.scores);
+      const isFuture = new Date(asmnt.date).getTime() > CURRENT_TIMESTAMP;
       list.push({
         id: asmnt.id,
         date: asmnt.date,
         childId: asmnt.childId,
+        childName: asmnt.childName || ch?.fullName,
         specialistId: asmnt.specialistId,
+        specialistName: asmnt.specialistName || sp?.fullName,
         type: 'ASSESSMENT',
         title: `Klinik baholash (O‘rtacha: ${avg} / 5)`,
         content: asmnt.professionalObservation,
         details: `Harakat: ${asmnt.scores.movement}, Koordinatsiya: ${asmnt.scores.coordination}, Tonus: ${asmnt.scores.flexibility}, Chidamlilik: ${asmnt.scores.activityTolerance}, Reaksiya: ${asmnt.scores.sessionResponse}`,
         scores: asmnt.scores,
         avgScore: avg,
+        isFutureDate: isFuture,
       });
     });
 
     return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [progressNotes, sessions, assessments, isParent, isSpecialist, currentUser, availableChildren]);
+  }, [progressNotes, sessions, assessments, isParent, isSpecialist, currentUser, availableChildren, children, specialists]);
 
   // Overall Statistics
   const stats = useMemo(() => {
@@ -202,8 +228,10 @@ export function ProgressPage() {
         const q = search.trim().toLowerCase();
         const child = children.find(c => c.id === evt.childId);
         const spec = specialists.find(s => s.id === evt.specialistId);
-        const matchChild = child?.fullName?.toLowerCase().includes(q);
-        const matchSpec = spec?.fullName?.toLowerCase().includes(q);
+        const childName = (evt.childName || child?.fullName || '').toLowerCase();
+        const specName = (evt.specialistName || spec?.fullName || '').toLowerCase();
+        const matchChild = childName.includes(q);
+        const matchSpec = specName.includes(q);
         const matchTitle = (evt.title || '').toLowerCase().includes(q);
         const matchContent = (evt.content || '').toLowerCase().includes(q);
         const matchRec = evt.recommendation?.toLowerCase().includes(q) || evt.details?.toLowerCase().includes(q);
@@ -298,15 +326,16 @@ export function ProgressPage() {
       className: 'py-3.5',
       cell: (row) => {
         const child = children.find(c => c.id === row.childId);
+        const childName = row.childName || child?.fullName || (row.childId ? `Bola #${row.childId.slice(0, 8)}` : 'Noma\'lum bola');
         const childAge = child?.dateOfBirth ? differenceInYears(new Date(), parseISO(child.dateOfBirth)) : null;
 
-        return child ? (
+        return (
           <div className="flex items-center gap-3">
-            <Avatar name={child.fullName} size="sm" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
+            <Avatar name={childName} size="sm" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-sm font-semibold text-charcoal-900 truncate">
-                  {child.fullName}
+                  {childName}
                 </span>
                 {childAge !== null && (
                   <span className="text-[10px] font-semibold text-charcoal-600 bg-warm-100/90 border border-warm-200/80 px-1.5 py-0.5 rounded-[4px] shrink-0">
@@ -314,15 +343,13 @@ export function ProgressPage() {
                   </span>
                 )}
               </div>
-              {child.diagnosis && (
+              {child?.diagnosis && (
                 <p className="text-[11px] text-charcoal-400 truncate max-w-[170px] mt-0.5">
                   {child.diagnosis}
                 </p>
               )}
             </div>
           </div>
-        ) : (
-          <span className="text-charcoal-400 text-xs">—</span>
         );
       },
     },
@@ -333,16 +360,15 @@ export function ProgressPage() {
       className: 'py-3.5',
       cell: (row) => {
         const spec = specialists.find(s => s.id === row.specialistId);
-        return spec ? (
+        const specName = row.specialistName || spec?.fullName || (row.specialistId ? `Mutaxassis #${row.specialistId.slice(0, 8)}` : 'Biriktirilgan mutaxassis');
+        return (
           <div className="flex items-center gap-2.5">
-            <Avatar name={spec.fullName} size="xs" className="ring-1 ring-warm-200 shrink-0" />
+            <Avatar name={specName} size="xs" className="ring-1 ring-warm-200 shrink-0" />
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-charcoal-900 truncate">{spec.fullName}</p>
-              <p className="text-[11px] text-charcoal-500 truncate font-medium">{spec.specialization || 'Mutaxassis'}</p>
+              <p className="text-sm font-semibold text-charcoal-900 truncate">{specName}</p>
+              <p className="text-[11px] text-charcoal-500 truncate font-medium">{spec?.specialization || 'Mutaxassis'}</p>
             </div>
           </div>
-        ) : (
-          <span className="text-charcoal-400 text-xs">—</span>
         );
       },
     },
@@ -351,12 +377,24 @@ export function ProgressPage() {
       header: 'Qayd sanasi',
       sortable: true,
       className: 'py-3.5',
-      cell: (row) => (
-        <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-charcoal-800">
-          <Calendar className="w-3.5 h-3.5 text-brand-600 shrink-0" />
-          <span>{formatDate(row.date)}</span>
-        </div>
-      ),
+      cell: (row) => {
+        const isFuture = row.isFutureDate || new Date(row.date).getTime() > CURRENT_TIMESTAMP;
+        return (
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-charcoal-800">
+              <Calendar className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+              <span>{formatDate(row.date)}</span>
+            </div>
+            {isFuture && (
+              <div>
+                <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded-[4px]">
+                  Kelajak sanasi
+                </span>
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'type',
@@ -724,7 +762,10 @@ export function ProgressPage() {
               {filteredEvents.map((evt) => {
                 const child = children.find(c => c.id === evt.childId);
                 const spec = specialists.find(s => s.id === evt.specialistId);
+                const childName = evt.childName || child?.fullName || (evt.childId ? `Bola #${evt.childId.slice(0, 8)}` : 'Noma\'lum bola');
+                const specName = evt.specialistName || spec?.fullName || (evt.specialistId ? `Mutaxassis #${evt.specialistId.slice(0, 8)}` : 'Biriktirilgan mutaxassis');
                 const childAge = child?.dateOfBirth ? differenceInYears(new Date(), parseISO(child.dateOfBirth)) : null;
+                const isFuture = evt.isFutureDate || new Date(evt.date).getTime() > CURRENT_TIMESTAMP;
                 const meta = getEventTypeMeta(evt.type);
 
                 return (
@@ -751,11 +792,11 @@ export function ProgressPage() {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-warm-100">
                         {/* Child & Specialist Info */}
                         <div className="flex items-center gap-3">
-                          <Avatar name={child?.fullName ?? 'Bola'} size="sm" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
+                          <Avatar name={childName} size="sm" className="ring-2 ring-warm-100 shadow-2xs shrink-0" />
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-sm font-bold text-charcoal-900">
-                                {child?.fullName}
+                                {childName}
                               </span>
                               {childAge !== null && (
                                 <span className="text-[10px] font-semibold text-charcoal-600 bg-warm-100 border border-warm-200 px-1.5 py-0.5 rounded-[4px]">
@@ -769,14 +810,14 @@ export function ProgressPage() {
                               )}
                             </div>
                             <p className="text-xs text-charcoal-500 font-medium mt-0.5">
-                              Mutaxassis: <strong className="text-charcoal-800 font-semibold">{spec?.fullName ?? 'Mutaxassis'}</strong>
+                              Mutaxassis: <strong className="text-charcoal-800 font-semibold">{specName}</strong>
                               {spec?.specialization && <span className="text-charcoal-400"> ({spec.specialization})</span>}
                             </p>
                           </div>
                         </div>
 
                         {/* Event Category & Date */}
-                        <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+                        <div className="flex items-center gap-2 self-start sm:self-center shrink-0 flex-wrap">
                           <Badge variant={meta.badgeVariant} className="text-xs font-semibold shadow-2xs">
                             {meta.label}
                           </Badge>
@@ -784,6 +825,11 @@ export function ProgressPage() {
                             <Calendar className="w-3 h-3 text-brand-600" />
                             <span>{formatDate(evt.date)}</span>
                           </div>
+                          {isFuture && (
+                            <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-[6px] shadow-2xs" title="Kelajak sanasi bilan kiritilgan seans/qayd">
+                              Kelajak sanasi
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -894,7 +940,10 @@ export function ProgressPage() {
           const child = children.find(c => c.id === selectedEvent.childId);
           const spec = specialists.find(s => s.id === selectedEvent.specialistId);
           const parent = parents.find(p => p.id === child?.parentId);
+          const childDisplayName = selectedEvent.childName || child?.fullName || (selectedEvent.childId ? `Bola #${selectedEvent.childId.slice(0, 8)}` : 'Noma\'lum bola');
+          const specDisplayName = selectedEvent.specialistName || spec?.fullName || (selectedEvent.specialistId ? `Mutaxassis #${selectedEvent.specialistId.slice(0, 8)}` : 'Biriktirilgan mutaxassis');
           const childAge = child?.dateOfBirth ? differenceInYears(new Date(), parseISO(child.dateOfBirth)) : null;
+          const isFuture = selectedEvent.isFutureDate || new Date(selectedEvent.date).getTime() > CURRENT_TIMESTAMP;
           const meta = getEventTypeMeta(selectedEvent.type);
 
           return (
@@ -910,13 +959,18 @@ export function ProgressPage() {
                     <p className="text-xs text-charcoal-500">Qayd ID: <span className="font-mono">{selectedEvent.id}</span></p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant={meta.badgeVariant} className="text-xs font-semibold">
                     {meta.label}
                   </Badge>
                   <span className="text-xs font-semibold text-charcoal-600 bg-white px-2.5 py-1 rounded-[8px] border border-warm-200">
                     {formatDate(selectedEvent.date)}
                   </span>
+                  {isFuture && (
+                    <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-300 px-2.5 py-1 rounded-[8px]">
+                      Kelajak sanasi
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -925,9 +979,9 @@ export function ProgressPage() {
                 <div className="p-3.5 rounded-xl border border-warm-200 bg-white space-y-2">
                   <span className="text-[11px] font-bold text-charcoal-400 uppercase tracking-wider block">Bemor bola ma'lumotlari</span>
                   <div className="flex items-center gap-3">
-                    <Avatar name={child?.fullName ?? 'Bola'} size="md" className="ring-2 ring-warm-100" />
+                    <Avatar name={childDisplayName} size="md" className="ring-2 ring-warm-100" />
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-charcoal-900 truncate">{child?.fullName}</p>
+                      <p className="text-sm font-bold text-charcoal-900 truncate">{childDisplayName}</p>
                       <p className="text-xs text-charcoal-500">
                         {childAge !== null ? `${childAge} yosh` : ''} {child?.gender === 'MALE' ? '• O‘g‘il' : '• Qiz'}
                       </p>
@@ -948,15 +1002,20 @@ export function ProgressPage() {
                 <div className="p-3.5 rounded-xl border border-warm-200 bg-white space-y-2">
                   <span className="text-[11px] font-bold text-charcoal-400 uppercase tracking-wider block">Mas'ul mutaxassis</span>
                   <div className="flex items-center gap-3">
-                    <Avatar name={spec?.fullName ?? 'Mutaxassis'} size="md" className="ring-2 ring-warm-100" />
+                    <Avatar name={specDisplayName} size="md" className="ring-2 ring-warm-100" />
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-charcoal-900 truncate">{spec?.fullName}</p>
+                      <p className="text-sm font-bold text-charcoal-900 truncate">{specDisplayName}</p>
                       <p className="text-xs text-charcoal-500">{spec?.specialization || 'Bolalar massajchisi'}</p>
                       {spec?.phone && (
                         <p className="text-[11px] text-charcoal-400 mt-0.5">{spec.phone}</p>
                       )}
                     </div>
                   </div>
+                  {selectedEvent.recordedBy && (
+                    <div className="pt-2 border-t border-warm-100 text-[11px] text-charcoal-500">
+                      <span>Kiritgan foydalanuvchi: <strong className="font-mono text-charcoal-700">{selectedEvent.recordedBy}</strong></span>
+                    </div>
+                  )}
                 </div>
               </div>
 

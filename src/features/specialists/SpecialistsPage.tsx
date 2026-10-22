@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import {
   Plus, Search, Stethoscope, Users, Award, Clock, X, Phone,
   Mail, Calendar, Eye, EyeOff, CheckCircle2,
-  KeyRound, ShieldCheck, RefreshCw, Pencil
+  KeyRound, ShieldCheck, RefreshCw, Pencil, AlertCircle
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { getEntityStatusColor, getEntityStatusLabel, cn, generateStrongPassword } from '@/utils';
@@ -892,11 +892,15 @@ export function SpecialistsPage() {
 interface CreateSpecialistFormProps {
   onSuccess: () => void;
   onCancel: () => void;
-  createSpecialist: (data: Omit<Specialist, 'id' | 'createdAt'>, password?: string) => Specialist;
+  createSpecialist: (data: Omit<Specialist, 'id' | 'createdAt'>, password?: string) => Promise<Specialist>;
 }
 
 function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateSpecialistFormProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
+  const [duplicateField, setDuplicateField] = useState<'phone' | 'email' | null>(null);
+
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -916,8 +920,10 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
   };
 
   const onSubmit = async (data: FormValues) => {
+    setSubmitError(null);
+    setDuplicateField(null);
     try {
-      createSpecialist({
+      await createSpecialist({
         fullName: data.fullName,
         phone: data.phone,
         email: data.email || '',
@@ -930,18 +936,67 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
         bio: data.bio || '',
       }, data.password);
       onSuccess();
-    } catch (err: unknown) {
-      console.error('Specialist creation error:', err);
+    } catch (err: any) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      const msg = err?.message || "Serverda xatolik yuz berdi";
+      setSubmitError(msg);
+
+      const lower = msg.toLowerCase();
+      if (err?.status === 409 || lower.includes('telefon') || lower.includes('phone')) {
+        setDuplicateField('phone');
+      } else if (lower.includes('email')) {
+        setDuplicateField('email');
+      }
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      className={cn("space-y-4 transition-transform", isShaking && "animate-shake")}
+    >
+      {submitError && (
+        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-semibold text-sm">{submitError}</p>
+            <p className="text-[11px] text-danger-main/80 mt-0.5">
+              Iltimos, boshqa telefon raqami yoki ma'lumot kiriting.
+            </p>
+          </div>
+        </div>
+      )}
+
       <Input label="To'liq ism" required placeholder="Masalan: Dr. Aziz Nazarov" error={errors.fullName?.message} {...register('fullName')} />
       <Input label="Mutaxassislik" required placeholder="Massaj terapevti, Fizioterapevt..." error={errors.specialization?.message} {...register('specialization')} />
       <div className="grid grid-cols-2 gap-4">
-        <Input label="Telefon" required type="tel" placeholder="+998901234567" error={errors.phone?.message} {...register('phone')} />
-        <Input label="Email" type="email" placeholder="doctor@massaj.uz" {...register('email')} />
+        <Input
+          label="Telefon"
+          required
+          type="tel"
+          placeholder="+998901234567"
+          error={duplicateField === 'phone' ? submitError || errors.phone?.message : errors.phone?.message}
+          className={duplicateField === 'phone' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+          {...register('phone', {
+            onChange: () => {
+              if (duplicateField === 'phone') setDuplicateField(null);
+            }
+          })}
+        />
+        <Input
+          label="Email"
+          type="email"
+          placeholder="doctor@massaj.uz"
+          error={duplicateField === 'email' ? submitError || errors.email?.message : errors.email?.message}
+          className={duplicateField === 'email' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+          {...register('email', {
+            onChange: () => {
+              if (duplicateField === 'email') setDuplicateField(null);
+            }
+          })}
+        />
       </div>
 
       <div className="space-y-1.5">
@@ -986,7 +1041,7 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
       <Input label="Tajriba (yil)" type="number" placeholder="5" min="0" {...register('experienceYears')} />
       <Textarea label="Qisqacha bio" placeholder="Mutaxassis haqida ma'lumot..." rows={2} {...register('bio')} />
       <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-4 border-t border-warm-100">
-        <Button variant="secondary" type="button" onClick={onCancel} className="w-full sm:w-auto">Bekor qilish</Button>
+        <Button variant="secondary" type="button" onClick={onCancel} disabled={isSubmitting} className="w-full sm:w-auto">Bekor qilish</Button>
         <Button type="submit" loading={isSubmitting} className="w-full sm:w-auto">Saqlash</Button>
       </div>
     </form>

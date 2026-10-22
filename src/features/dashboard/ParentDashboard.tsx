@@ -14,7 +14,7 @@ import { useAuth, useStore } from '@/store';
 import { formatCurrency, formatDate, cn } from '@/utils';
 import { differenceInYears, parseISO } from 'date-fns';
 import { calculateParentBalance } from '@/services/finance.service';
-import { Card, Badge, Avatar, EmptyState, ProgressBar } from '@/components/ui/primitives';
+import { Card, Badge, Avatar, EmptyState } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
@@ -34,7 +34,6 @@ export function ParentDashboard() {
   const specialists = useStore(s => s.specialists);
   const services = useStore(s => s.services);
   const transactions = useStore(s => s.transactions);
-  const goals = useStore(s => s.goals);
   const progressNotes = useStore(s => s.progressNotes);
 
   // Parent's children
@@ -59,10 +58,6 @@ export function ParentDashboard() {
       .slice(0, 5);
   }, [appointments, childIds]);
 
-  // Active goals for my children
-  const myGoals = useMemo(() => {
-    return goals.filter(g => childIds.includes(g.childId));
-  }, [goals, childIds]);
 
   // Recent specialist notes & recommendations
   const recentRecommendations = useMemo(() => {
@@ -419,39 +414,8 @@ export function ParentDashboard() {
           </Card>
         </div>
 
-        {/* Goals & Specialist Recommendations (5 cols) */}
+        {/* Specialist Recommendations (5 cols) */}
         <div className="lg:col-span-5 space-y-5">
-          {/* Active Goals Card */}
-          <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
-            <div className="p-4 bg-warm-50/70 border-b border-warm-200/80 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-charcoal-900">Reabilitatsiya maqsadlari</h3>
-                <p className="text-xs text-charcoal-400 mt-0.5">Bolaning erishayotgan jismoniy natijalari</p>
-              </div>
-              <Badge variant="neutral">{myGoals.length} ta</Badge>
-            </div>
-
-            <div className="p-4 space-y-3.5">
-              {myGoals.length === 0 ? (
-                <div className="py-6 text-center text-xs text-charcoal-400">
-                  Hozircha reabilitatsiya maqsadlari belgilanmagan
-                </div>
-              ) : (
-                myGoals.map(g => (
-                  <div key={g.id} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs font-semibold">
-                      <span className="text-charcoal-800 truncate">{g.title}</span>
-                      <span className="text-brand-700 font-extrabold tabular-nums">{g.progress}%</span>
-                    </div>
-                    <ProgressBar
-                      value={g.progress}
-                      fillClassName={g.progress >= 80 ? 'bg-emerald-600' : 'bg-brand-500'}
-                    />
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
 
           {/* Specialist Recommendations Card */}
           <Card className="overflow-hidden border border-warm-200/90 shadow-xs">

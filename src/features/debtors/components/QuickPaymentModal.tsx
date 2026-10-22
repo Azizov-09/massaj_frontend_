@@ -1,10 +1,8 @@
-// ═══════════════════════════════════════════════════════
-//  QuickPaymentModal — Fast Payment Modal for Debtors
-// ═══════════════════════════════════════════════════════
 import { useState } from 'react';
-import { DollarSign, CreditCard, Wallet } from 'lucide-react';
+import { DollarSign, CreditCard, Wallet, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/utils';
+import { useStore } from '@/store';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/primitives';
@@ -20,7 +18,7 @@ interface QuickPaymentModalProps {
     method: 'CASH' | 'CARD' | 'TRANSFER';
     date: string;
     notes: string;
-  }) => void;
+  }) => Promise<void> | void;
   isSubmitting?: boolean;
 }
 
@@ -30,39 +28,76 @@ export function QuickPaymentModal({
   onSubmit,
   isSubmitting = false,
 }: QuickPaymentModalProps) {
+  const parents = useStore(s => s.parents);
+  const children = useStore(s => s.children);
+
+  const matchedChild = debtor ? children.find(c => c.id === debtor.childId) : undefined;
+  const initialParentId = debtor?.parentId || matchedChild?.parentId || '';
+
   const [prevDebtorId, setPrevDebtorId] = useState<string | undefined>(() => debtor?.childId);
+  const [selectedParentId, setSelectedParentId] = useState<string>(initialParentId);
   const [paymentAmount, setPaymentAmount] = useState<string>(() => (debtor ? String(debtor.debt) : ''));
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'CARD' | 'TRANSFER'>('CASH');
   const [paymentDate, setPaymentDate] = useState<string>(() => format(new Date(), 'yyyy-MM-dd'));
   const [paymentNotes, setPaymentNotes] = useState<string>(() =>
     debtor ? `Qarzdorlikni so'ndirish (${debtor.childName})` : ''
   );
+  const [inlineError, setInlineError] = useState<string | null>(null);
 
   // Synchronize state when debtor prop changes during render
   if (debtor && debtor.childId !== prevDebtorId) {
+    const freshChild = children.find(c => c.id === debtor.childId);
+    const freshParentId = debtor.parentId || freshChild?.parentId || '';
     setPrevDebtorId(debtor.childId);
+    setSelectedParentId(freshParentId);
     setPaymentAmount(String(debtor.debt));
     setPaymentMethod('CASH');
     setPaymentDate(format(new Date(), 'yyyy-MM-dd'));
     setPaymentNotes(`Qarzdorlikni so'ndirish (${debtor.childName})`);
+    setInlineError(null);
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!debtor) return;
+    setInlineError(null);
+
+    const targetParentId = selectedParentId || debtor.parentId || matchedChild?.parentId;
+    if (!targetParentId) {
+      setInlineError("Ota-ona aniqlanmagan. Iltimos, quyidagi ro'yxatdan ota-onani tanlang.");
+      return;
+    }
 
     const amt = Number(paymentAmount);
-    if (isNaN(amt) || amt <= 0) return;
+    if (isNaN(amt) || amt <= 0) {
+      setInlineError("To'lov summasi 0 dan katta bo'lishi kerak.");
+      return;
+    }
+    if (amt > 2_000_000_000) {
+      setInlineError("To'lov summasi 2,000,000,000 so'mdan oshmasligi kerak.");
+      return;
+    }
 
-    onSubmit({
-      parentId: debtor.parentId,
-      childId: debtor.childId,
-      amount: amt,
-      method: paymentMethod,
-      date: paymentDate ? `${paymentDate}T12:00:00.000Z` : new Date().toISOString(),
-      notes: paymentNotes || "Qarzdorlikni so'ndirish",
-    });
+    try {
+      await onSubmit({
+        parentId: targetParentId,
+        childId: debtor.childId,
+        amount: amt,
+        method: paymentMethod,
+        date: paymentDate ? `${paymentDate}T12:00:00.000Z` : new Date().toISOString(),
+        notes: paymentNotes || "Qarzdorlikni so'ndirish",
+      });
+    } catch (err: any) {
+      const raw = err?.message || "To'lovni amalga oshirishda xatolik yuz berdi.";
+      let userFriendly = raw;
+      if (raw.toLowerCase().includes('parent must be related to the child')) {
+        userFriendly = "Tanlangan ota-ona ushbu bolaga biriktirilmagan (Parent must be related to the child). Iltimos, to'g'ri ota-onani tanlang.";
+      }
+      setInlineError(userFriendly);
+    }
   };
+
+  const currentParent = parents.find(p => p.id === (selectedParentId || debtor?.parentId));
 
   return (
     <Modal
@@ -73,6 +108,14 @@ export function QuickPaymentModal({
     >
       {debtor && (
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Inline Error Alert */}
+          {inlineError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5 animate-fadeIn">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <div className="leading-relaxed font-semibold">{inlineError}</div>
+            </div>
+          )}
+
           {/* Debtor Profile Bar */}
           <div className="p-3.5 rounded-xl bg-warm-50/90 border border-warm-200 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
@@ -82,11 +125,11 @@ export function QuickPaymentModal({
                   {debtor.childName}
                 </h5>
                 <p className="text-xs text-charcoal-500 truncate mt-0.5">
-                  Ota-ona: <span className="font-semibold text-charcoal-800">{debtor.parentName || '—'}</span>
+                  Ota-ona: <span className="font-semibold text-charcoal-800">{currentParent?.fullName || debtor.parentName || '—'}</span>
                 </p>
-                {debtor.parentPhone && (
+                {(currentParent?.phone || debtor.parentPhone) && (
                   <span className="text-xs text-charcoal-500 font-mono">
-                    {debtor.parentPhone}
+                    {currentParent?.phone || debtor.parentPhone}
                   </span>
                 )}
               </div>
@@ -100,6 +143,30 @@ export function QuickPaymentModal({
               </span>
             </div>
           </div>
+
+          {/* Parent Selection if not resolved or needs correction */}
+          {(!debtor.parentId || inlineError?.includes('Parent must be related')) && (
+            <div>
+              <label className="block text-xs font-semibold text-charcoal-700 mb-1">
+                Bog'langan ota-ona <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={selectedParentId}
+                onChange={e => {
+                  setSelectedParentId(e.target.value);
+                  setInlineError(null);
+                }}
+                className="w-full h-9 px-3 text-xs border border-warm-300 rounded-[10px] bg-white shadow-2xs focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none"
+              >
+                <option value="">Ota-onani tanlang...</option>
+                {parents.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.fullName} ({p.phone})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Payment Amount Input */}
           <div>

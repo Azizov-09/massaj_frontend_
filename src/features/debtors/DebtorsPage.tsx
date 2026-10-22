@@ -245,7 +245,7 @@ export function DebtorsPage() {
   };
 
   // Quick Payment Submission
-  const handleRecordQuickPayment = (data: {
+  const handleRecordQuickPayment = async (data: {
     parentId: string;
     childId: string;
     amount: number;
@@ -255,7 +255,7 @@ export function DebtorsPage() {
   }) => {
     setIsSubmittingPayment(true);
     try {
-      recordPayment({
+      await recordPayment({
         parentId: data.parentId,
         childId: data.childId,
         amount: data.amount,
@@ -270,6 +270,14 @@ export function DebtorsPage() {
         title: "To'lov qabul qilindi",
         description: `${formatMoney(data.amount)} muvaffaqiyatli qayd etildi.`
       });
+    } catch (err: any) {
+      const errMsg = err?.message || "To'lovni saqlashda server xatoligi yuz berdi.";
+      addToast({
+        type: 'error',
+        title: "To'lov qabul qilinmadi",
+        description: errMsg,
+      });
+      throw err;
     } finally {
       setIsSubmittingPayment(false);
     }

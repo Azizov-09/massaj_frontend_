@@ -28,7 +28,7 @@ type FormValues = z.infer<typeof schema>;
 interface CreateServiceFormProps {
   onSuccess: () => void;
   onCancel: () => void;
-  createService: (data: Omit<Service, 'id' | 'createdAt'>) => Service;
+  createService: (data: Omit<Service, 'id' | 'createdAt'>) => Promise<Service>;
 }
 
 function CreateServiceForm({ onSuccess, onCancel, createService }: CreateServiceFormProps) {
@@ -37,7 +37,7 @@ function CreateServiceForm({ onSuccess, onCancel, createService }: CreateService
   });
   const onSubmit = async (data: FormValues) => {
     try {
-      createService({
+      await createService({
         name: data.name,
         description: data.description || '',
         price: Number(data.price),

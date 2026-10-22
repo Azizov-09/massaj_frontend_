@@ -6,8 +6,8 @@ import { z } from 'zod';
 import { useStore } from '@/store';
 import { Input, Textarea } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
-import { generateStrongPassword } from '@/utils';
-import { Eye, EyeOff, RefreshCw, KeyRound, ShieldCheck } from 'lucide-react';
+import { generateStrongPassword, cn } from '@/utils';
+import { Eye, EyeOff, RefreshCw, KeyRound, ShieldCheck, AlertCircle } from 'lucide-react';
 
 const schema = z.object({
   fullName: z.string().min(2, 'Ism kamida 2 ta belgi'),
@@ -28,6 +28,9 @@ interface Props { onSuccess: () => void; onCancel: () => void; }
 export function CreateParentForm({ onSuccess, onCancel }: Props) {
   const createParent = useStore(s => s.createParent);
   const [showPassword, setShowPassword] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
+  const [duplicateField, setDuplicateField] = useState<'phone' | 'email' | null>(null);
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -47,8 +50,10 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
   };
 
   const onSubmit = async (data: FormValues) => {
+    setSubmitError(null);
+    setDuplicateField(null);
     try {
-      createParent({
+      await createParent({
         fullName: data.fullName,
         phone: data.phone,
         email: data.email || `${data.phone.replace(/\D/g, '')}@parent.uz`,
@@ -59,18 +64,67 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
         childrenIds: [],
       }, data.password);
       onSuccess();
-    } catch (err: unknown) {
-      console.error('Parent creation error:', err);
+    } catch (err: any) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      const msg = err?.message || "Serverda xatolik yuz berdi";
+      setSubmitError(msg);
+
+      const lower = msg.toLowerCase();
+      if (err?.status === 409 || lower.includes('telefon') || lower.includes('phone')) {
+        setDuplicateField('phone');
+      } else if (lower.includes('email')) {
+        setDuplicateField('email');
+      }
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      className={cn("space-y-4 transition-transform", isShaking && "animate-shake")}
+    >
+      {submitError && (
+        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-semibold text-sm">{submitError}</p>
+            <p className="text-[11px] text-danger-main/80 mt-0.5">
+              Iltimos, boshqa telefon raqami yoki ma'lumot kiriting.
+            </p>
+          </div>
+        </div>
+      )}
+
       <Input label="To'liq ism" required placeholder="Masalan: Karimova Nilufar" error={errors.fullName?.message} {...register('fullName')} />
       
       <div className="grid grid-cols-2 gap-4">
-        <Input label="Telefon" required type="tel" placeholder="+998901234567" error={errors.phone?.message} {...register('phone')} />
-        <Input label="Email" type="email" placeholder="email@example.com" error={errors.email?.message} {...register('email')} />
+        <Input
+          label="Telefon"
+          required
+          type="tel"
+          placeholder="+998901234567"
+          error={duplicateField === 'phone' ? submitError || errors.phone?.message : errors.phone?.message}
+          className={duplicateField === 'phone' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+          {...register('phone', {
+            onChange: () => {
+              if (duplicateField === 'phone') setDuplicateField(null);
+            }
+          })}
+        />
+        <Input
+          label="Email"
+          type="email"
+          placeholder="email@example.com"
+          error={duplicateField === 'email' ? submitError || errors.email?.message : errors.email?.message}
+          className={duplicateField === 'email' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+          {...register('email', {
+            onChange: () => {
+              if (duplicateField === 'email') setDuplicateField(null);
+            }
+          })}
+        />
       </div>
 
       <div className="space-y-1.5">

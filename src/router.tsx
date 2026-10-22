@@ -41,7 +41,6 @@ const AttendancePage = lazyWithRetry(() => import('@/features/attendance/Attenda
 const ServicesPage = lazyWithRetry(() => import('@/features/services/ServicesPage').then(m => ({ default: m.ServicesPage })));
 const AssessmentsPage = lazyWithRetry(() => import('@/features/assessments/AssessmentsPage').then(m => ({ default: m.AssessmentsPage })));
 const ProgressPage = lazyWithRetry(() => import('@/features/progress/ProgressPage').then(m => ({ default: m.ProgressPage })));
-const GoalsPage = lazyWithRetry(() => import('@/features/goals/GoalsPage').then(m => ({ default: m.GoalsPage })));
 
 // Entities
 const ChildrenPage = lazyWithRetry(() => import('@/features/children/ChildrenPage').then(m => ({ default: m.ChildrenPage })));
@@ -85,7 +84,7 @@ const superAdminRoutes = {
     { path: 'services', element: withSuspense(ServicesPage) },
     { path: 'assessments', element: withSuspense(AssessmentsPage) },
     { path: 'progress', element: withSuspense(ProgressPage) },
-    { path: 'goals', element: withSuspense(GoalsPage) },
+    { path: 'goals', element: <Navigate to="/dashboard/super-admin/progress" replace /> },
     { path: 'payments', element: withSuspense(PaymentsPage) },
     { path: 'transactions', element: withSuspense(TransactionsPage) },
     { path: 'balance', element: withSuspense(BalancePage) },
@@ -116,7 +115,7 @@ const specialistRoutes = {
     { path: 'children', element: withSuspense(ChildrenPage) },
     { path: 'assessments', element: withSuspense(AssessmentsPage) },
     { path: 'progress', element: withSuspense(ProgressPage) },
-    { path: 'goals', element: withSuspense(GoalsPage) },
+    { path: 'goals', element: <Navigate to="/dashboard/specialist/progress" replace /> },
     { path: 'notifications', element: withSuspense(NotificationsPage) },
     { path: 'profile', element: withSuspense(ProfilePage) },
   ],

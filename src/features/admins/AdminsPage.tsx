@@ -5,7 +5,8 @@
 import { useState, useMemo } from 'react';
 import {
   ShieldCheck, Plus, Search, Shield, User,
-  CheckCircle2, Phone, Mail, Calendar, Eye, EyeOff, KeyRound, RefreshCw, X, Pencil
+  CheckCircle2, Phone, Mail, Calendar, Eye, EyeOff, KeyRound, RefreshCw, X, Pencil,
+  AlertCircle
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { formatDate, getEntityStatusColor, getEntityStatusLabel, cn, generateStrongPassword } from '@/utils';
@@ -49,6 +50,16 @@ export function AdminsPage() {
   });
   const [formErrors, setFormErrors] = useState<{ fullName?: string; email?: string; phone?: string; password?: string }>({});
   const [editFormErrors, setEditFormErrors] = useState<{ fullName?: string; email?: string; phone?: string }>({});
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
+  const [duplicateField, setDuplicateField] = useState<'phone' | 'email' | null>(null);
+
+  const [editIsSubmitting, setEditIsSubmitting] = useState(false);
+  const [editSubmitError, setEditSubmitError] = useState<string | null>(null);
+  const [editIsShaking, setEditIsShaking] = useState(false);
+  const [editDuplicateField, setEditDuplicateField] = useState<'phone' | 'email' | null>(null);
 
   // New admin form state
   const [newAdmin, setNewAdmin] = useState({
@@ -102,8 +113,11 @@ export function AdminsPage() {
     setActiveTab('ALL');
   };
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
+    setDuplicateField(null);
+
     const errors: { fullName?: string; email?: string; phone?: string; password?: string } = {};
     if (!newAdmin.fullName.trim()) errors.fullName = "Ism va familiyani kiriting";
     if (!newAdmin.email.trim() || !newAdmin.email.includes('@')) errors.email = "To'g'ri email manzilini kiriting";
@@ -120,30 +134,50 @@ export function AdminsPage() {
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
       return;
     }
 
-    createAdmin({
-      fullName: newAdmin.fullName.trim(),
-      email: newAdmin.email.trim(),
-      phone: newAdmin.phone.trim(),
-      role: newAdmin.role,
-      status: 'ACTIVE',
-    }, newAdmin.password);
+    setIsSubmitting(true);
+    try {
+      await createAdmin({
+        fullName: newAdmin.fullName.trim(),
+        email: newAdmin.email.trim(),
+        phone: newAdmin.phone.trim(),
+        role: newAdmin.role,
+        status: 'ACTIVE',
+      }, newAdmin.password);
 
-    addToast({
-      type: 'success',
-      title: 'Administrator qo‘shildi',
-      description: `${newAdmin.fullName} tizimga muvaffaqiyatli biriktirildi`
-    });
+      setShowCreateModal(false);
+      setNewAdmin({ fullName: '', email: '', phone: '', role: 'ADMIN', password: generateStrongPassword(14) });
+      setFormErrors({});
+      setSubmitError(null);
+      setDuplicateField(null);
+    } catch (err: any) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
 
-    setShowCreateModal(false);
-    setNewAdmin({ fullName: '', email: '', phone: '', role: 'ADMIN', password: generateStrongPassword(14) });
-    setFormErrors({});
+      const msg = err?.message || "Serverda xatolik yuz berdi";
+      setSubmitError(msg);
+
+      const lower = msg.toLowerCase();
+      if (err?.status === 409 || lower.includes('telefon') || lower.includes('phone')) {
+        setDuplicateField('phone');
+        setFormErrors(prev => ({ ...prev, phone: msg }));
+      } else if (lower.includes('email')) {
+        setDuplicateField('email');
+        setFormErrors(prev => ({ ...prev, email: msg }));
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleOpenEdit = (admin: AdminUser) => {
     setEditingAdmin(admin);
+    setEditSubmitError(null);
+    setEditDuplicateField(null);
     setEditForm({
       fullName: admin.fullName,
       email: admin.email || '',
@@ -154,9 +188,11 @@ export function AdminsPage() {
     setEditFormErrors({});
   };
 
-  const handleUpdateSubmit = (e: React.FormEvent) => {
+  const handleUpdateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingAdmin) return;
+    setEditSubmitError(null);
+    setEditDuplicateField(null);
 
     const errors: { fullName?: string; email?: string; phone?: string } = {};
     if (!editForm.fullName.trim()) errors.fullName = 'Ism familiya kiritilishi shart';
@@ -171,30 +207,54 @@ export function AdminsPage() {
 
     if (Object.keys(errors).length > 0) {
       setEditFormErrors(errors);
+      setEditIsShaking(true);
+      setTimeout(() => setEditIsShaking(false), 500);
       return;
     }
 
-    updateAdmin(editingAdmin.id, {
-      fullName: editForm.fullName.trim(),
-      email: editForm.email.trim(),
-      phone: editForm.phone.trim(),
-      role: editForm.role,
-      status: editForm.status,
-    });
-
-    if (selectedAdmin && selectedAdmin.id === editingAdmin.id) {
-      setSelectedAdmin({
-        ...selectedAdmin,
+    setEditIsSubmitting(true);
+    try {
+      await updateAdmin(editingAdmin.id, {
         fullName: editForm.fullName.trim(),
         email: editForm.email.trim(),
         phone: editForm.phone.trim(),
         role: editForm.role,
         status: editForm.status,
       });
-    }
 
-    setEditingAdmin(null);
-    setEditFormErrors({});
+      if (selectedAdmin && selectedAdmin.id === editingAdmin.id) {
+        setSelectedAdmin({
+          ...selectedAdmin,
+          fullName: editForm.fullName.trim(),
+          email: editForm.email.trim(),
+          phone: editForm.phone.trim(),
+          role: editForm.role,
+          status: editForm.status,
+        });
+      }
+
+      setEditingAdmin(null);
+      setEditFormErrors({});
+      setEditSubmitError(null);
+      setEditDuplicateField(null);
+    } catch (err: any) {
+      setEditIsShaking(true);
+      setTimeout(() => setEditIsShaking(false), 600);
+
+      const msg = err?.message || "Serverda xatolik yuz berdi";
+      setEditSubmitError(msg);
+
+      const lower = msg.toLowerCase();
+      if (err?.status === 409 || lower.includes('telefon') || lower.includes('phone')) {
+        setEditDuplicateField('phone');
+        setEditFormErrors(prev => ({ ...prev, phone: msg }));
+      } else if (lower.includes('email')) {
+        setEditDuplicateField('email');
+        setEditFormErrors(prev => ({ ...prev, email: msg }));
+      }
+    } finally {
+      setEditIsSubmitting(false);
+    }
   };
 
   const handleToggleAdminStatus = (admin: AdminUser) => {
@@ -724,22 +784,66 @@ export function AdminsPage() {
       {/* ─── Create Admin Modal ─── */}
       <Modal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={() => {
+          if (!isSubmitting) {
+            setShowCreateModal(false);
+            setSubmitError(null);
+            setDuplicateField(null);
+          }
+        }}
         title="Yangi administrator qo‘shish"
         size="md"
         bodyClassName="pb-6"
         footer={
           <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 w-full">
-            <Button variant="secondary" type="button" onClick={() => setShowCreateModal(false)} className="w-full sm:w-auto">
+            <Button
+              variant="secondary"
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => {
+                setShowCreateModal(false);
+                setSubmitError(null);
+                setDuplicateField(null);
+              }}
+              className="w-full sm:w-auto"
+            >
               Bekor qilish
             </Button>
-            <Button type="submit" form="create-admin-form" className="w-full sm:w-auto">
-              Adminni saqlash
+            <Button
+              type="submit"
+              form="create-admin-form"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              {isSubmitting ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                  Saqlanmoqda...
+                </>
+              ) : (
+                'Adminni saqlash'
+              )}
             </Button>
           </div>
         }
       >
-        <form id="create-admin-form" onSubmit={handleCreateSubmit} className="space-y-4">
+        <form
+          id="create-admin-form"
+          onSubmit={handleCreateSubmit}
+          className={cn("space-y-4 transition-transform", isShaking && "animate-shake")}
+        >
+          {submitError && (
+            <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold text-sm">{submitError}</p>
+                <p className="text-[11px] text-danger-main/80 mt-0.5">
+                  Iltimos, boshqa telefon raqami yoki ma'lumot kiriting.
+                </p>
+              </div>
+            </div>
+          )}
+
           <Input
             label="To‘liq ism"
             required
@@ -759,9 +863,11 @@ export function AdminsPage() {
             placeholder="admin@massaj.uz"
             value={newAdmin.email}
             error={formErrors.email}
+            className={duplicateField === 'email' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
             onChange={e => {
               setNewAdmin({ ...newAdmin, email: e.target.value });
               if (formErrors.email) setFormErrors({ ...formErrors, email: undefined });
+              if (duplicateField === 'email') setDuplicateField(null);
             }}
           />
 
@@ -772,9 +878,11 @@ export function AdminsPage() {
             placeholder="+998901234567"
             value={newAdmin.phone}
             error={formErrors.phone}
+            className={duplicateField === 'phone' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
             onChange={e => {
               setNewAdmin({ ...newAdmin, phone: e.target.value });
               if (formErrors.phone) setFormErrors({ ...formErrors, phone: undefined });
+              if (duplicateField === 'phone') setDuplicateField(null);
             }}
           />
 
@@ -842,22 +950,66 @@ export function AdminsPage() {
       {editingAdmin && (
         <Modal
           isOpen={!!editingAdmin}
-          onClose={() => setEditingAdmin(null)}
+          onClose={() => {
+            if (!editIsSubmitting) {
+              setEditingAdmin(null);
+              setEditSubmitError(null);
+              setEditDuplicateField(null);
+            }
+          }}
           title="Administrator ma’lumotlarini tahrirlash"
           size="md"
           bodyClassName="pb-6"
           footer={
             <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 w-full">
-              <Button variant="secondary" type="button" onClick={() => setEditingAdmin(null)} className="w-full sm:w-auto">
+              <Button
+                variant="secondary"
+                type="button"
+                disabled={editIsSubmitting}
+                onClick={() => {
+                  setEditingAdmin(null);
+                  setEditSubmitError(null);
+                  setEditDuplicateField(null);
+                }}
+                className="w-full sm:w-auto"
+              >
                 Bekor qilish
               </Button>
-              <Button type="submit" form="edit-admin-form" className="w-full sm:w-auto">
-                O‘zgarishlarni saqlash
+              <Button
+                type="submit"
+                form="edit-admin-form"
+                disabled={editIsSubmitting}
+                className="w-full sm:w-auto"
+              >
+                {editIsSubmitting ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                    Saqlanmoqda...
+                  </>
+                ) : (
+                  'O‘zgarishlarni saqlash'
+                )}
               </Button>
             </div>
           }
         >
-          <form id="edit-admin-form" onSubmit={handleUpdateSubmit} className="space-y-4">
+          <form
+            id="edit-admin-form"
+            onSubmit={handleUpdateSubmit}
+            className={cn("space-y-4 transition-transform", editIsShaking && "animate-shake")}
+          >
+            {editSubmitError && (
+              <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-semibold text-sm">{editSubmitError}</p>
+                  <p className="text-[11px] text-danger-main/80 mt-0.5">
+                    Iltimos, boshqa telefon raqami yoki ma'lumot kiriting.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <Input
               label="To‘liq ism"
               required
@@ -876,9 +1028,11 @@ export function AdminsPage() {
               placeholder="admin@massaj.uz"
               value={editForm.email}
               error={editFormErrors.email}
+              className={editDuplicateField === 'email' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
               onChange={e => {
                 setEditForm({ ...editForm, email: e.target.value });
                 if (editFormErrors.email) setEditFormErrors({ ...editFormErrors, email: undefined });
+                if (editDuplicateField === 'email') setEditDuplicateField(null);
               }}
             />
 
@@ -889,9 +1043,11 @@ export function AdminsPage() {
               placeholder="+998901234567"
               value={editForm.phone}
               error={editFormErrors.phone}
+              className={editDuplicateField === 'phone' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
               onChange={e => {
                 setEditForm({ ...editForm, phone: e.target.value });
                 if (editFormErrors.phone) setEditFormErrors({ ...editFormErrors, phone: undefined });
+                if (editDuplicateField === 'phone') setEditDuplicateField(null);
               }}
             />
 

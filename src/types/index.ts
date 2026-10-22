@@ -23,8 +23,6 @@ export type SessionStatus = 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
 export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE' | 'NO_SHOW';
 
-export type GoalStatus = 'ACTIVE' | 'COMPLETED' | 'PAUSED';
-
 export type TransactionType =
   | 'PAYMENT'
   | 'SESSION_CHARGE'
@@ -190,10 +188,16 @@ export interface AssessmentScores {
 export interface Assessment {
   id: string;
   childId: string;
+  childName?: string;
+  child?: Partial<Child>;
   specialistId: string;
+  specialistName?: string;
+  specialist?: Partial<Specialist>;
   sessionId?: string;
   scores: AssessmentScores;
   professionalObservation: string;
+  assessedAt?: string;
+  assessmentDate?: string;
   date: string;
   createdAt: string;
 }
@@ -203,25 +207,18 @@ export interface Assessment {
 export interface ProgressNote {
   id: string;
   childId: string;
+  childName?: string;
+  child?: Partial<Child>;
   specialistId: string;
+  specialistName?: string;
+  specialist?: Partial<Specialist>;
+  recordedBy?: string | null;
   sessionId?: string;
   note: string;
+  occurredAt?: string;
+  progressDate?: string;
   date: string;
   createdAt: string;
-}
-
-// ─── Goals ────────────────────────────────────────────────
-
-export interface Goal {
-  id: string;
-  childId: string;
-  title: string;
-  description: string;
-  createdAt: string;
-  targetDate: string;
-  status: GoalStatus;
-  progress: number; // 0-100
-  specialistNote?: string;
 }
 
 // ─── Finance ──────────────────────────────────────────────
@@ -245,11 +242,20 @@ export interface Transaction {
 export interface Payment {
   id: string;
   parentId: string;
+  parentName?: string;
+  parentPhone?: string;
+  parent?: Partial<Parent>;
   childId?: string;
+  childName?: string;
+  child?: Partial<Child>;
   amount: number; // UZS
   method: PaymentMethod;
+  status?: string;
   date: string;
+  paidAt?: string;
+  note?: string;
   notes?: string;
+  idempotencyKey?: string;
   transactionId: string;
   createdBy: string;
   createdAt: string;
@@ -305,7 +311,6 @@ export type ActivityEntity =
   | 'payment'
   | 'service'
   | 'assessment'
-  | 'goal'
   | 'user';
 
 export interface ActivityLog {

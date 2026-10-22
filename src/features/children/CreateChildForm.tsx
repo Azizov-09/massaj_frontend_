@@ -1,13 +1,15 @@
 // ═══════════════════════════════════════════════════════
 //  Create Child Form — React Hook Form + Zod + Phone Mask
 // ═══════════════════════════════════════════════════════
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useStore, useAuth } from '@/store';
 import { Input, Select, Textarea, DatePicker } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
-import { formatUzbekPhoneInput } from '@/utils';
+import { formatUzbekPhoneInput, cn } from '@/utils';
+import { AlertCircle } from 'lucide-react';
 
 const schema = z.object({
   fullName: z.string().min(2, "Ism kamida 2 ta belgidan iborat bo'lishi kerak"),
@@ -45,6 +47,9 @@ export function CreateChildForm({ onSuccess, onCancel, defaultParentId }: Props)
 
   const effectiveParentId = defaultParentId || (currentUser?.role === 'PARENT' ? currentUser.id : undefined);
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -67,21 +72,40 @@ export function CreateChildForm({ onSuccess, onCancel, defaultParentId }: Props)
   });
 
   const onSubmit = async (data: FormValues) => {
+    setSubmitError(null);
     try {
-      createChild({
+      await createChild({
         ...data,
         parentId: effectiveParentId || data.parentId,
         status: 'ACTIVE',
         gender: data.gender as 'MALE' | 'FEMALE',
       });
       onSuccess();
-    } catch (err: unknown) {
-      console.error('Child creation error:', err);
+    } catch (err: any) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      setSubmitError(err?.message || "Serverda xatolik yuz berdi");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      className={cn("space-y-4 transition-transform", isShaking && "animate-shake")}
+    >
+      {submitError && (
+        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-semibold text-sm">{submitError}</p>
+            <p className="text-[11px] text-danger-main/80 mt-0.5">
+              Iltimos, ma'lumotlarni tekshirib qaytadan urinib ko'ring.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid sm:grid-cols-2 gap-4">
         <div className="sm:col-span-2">
           <Input

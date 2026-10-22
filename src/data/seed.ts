@@ -14,7 +14,6 @@ import {
   AttendanceRecord,
   Assessment,
   ProgressNote,
-  Goal,
   Transaction,
   Payment,
   Notification,
@@ -737,38 +736,6 @@ export const PROGRESS_NOTES: ProgressNote[] = Array.from({ length: 80 }, (_, i):
   };
 });
 
-// ─── Goals ────────────────────────────────────────────────
-
-const GOAL_TITLES = [
-  'Oyoq muskullarini mustahkamlash',
-  'Tana holatini yaxshilash',
-  'Harakat koordinatsiyasini rivojlantirish',
-  "Muvozanat ko'nikmalarini shakllantirish",
-  "Umurtqa pog'onasini to'g'rilash",
-  'Muskul tonusini normallash',
-  "Oyoq bo'g'imini mustahkamlash",
-  'Immunitetni kuchaytirish',
-  'Harakat amplitudasini kengaytirish',
-  'Nutqni rivojlantirish (yuz massaji orqali)',
-];
-
-export const GOALS: Goal[] = Array.from({ length: 80 }, (_, i): Goal => {
-  const child = CHILDREN[i % CHILDREN.length];
-  const statuses: Goal['status'][] = ['ACTIVE', 'ACTIVE', 'COMPLETED', 'ACTIVE', 'PAUSED'];
-  const status = statuses[i % 5];
-  const progress = status === 'COMPLETED' ? 100 : status === 'PAUSED' ? Math.floor(Math.random() * 40) + 20 : Math.floor(Math.random() * 60) + 20;
-  return {
-    id: `goal-${i + 1}`,
-    childId: child.id,
-    title: GOAL_TITLES[i % GOAL_TITLES.length],
-    description: `${child.fullName} uchun belgilangan maqsad: ${GOAL_TITLES[i % GOAL_TITLES.length].toLowerCase()}`,
-    createdAt: `${addDays(baseDate, -(i * 7))}T09:00:00+05:00`,
-    targetDate: addDays(baseDate, 90 - i * 2),
-    status,
-    progress,
-    specialistNote: status === 'COMPLETED' ? 'Maqsad muvaffaqiyatli bajarildi.' : undefined,
-  };
-});
 
 // ─── Transactions & Payments ──────────────────────────────
 

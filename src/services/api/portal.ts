@@ -1,8 +1,8 @@
 import type { ApiClient } from './client';
 import { normalizeChild } from './children';
-import { normalizeAssessment, normalizeProgress, normalizeGoal } from './clinical';
+import { normalizeAssessment, normalizeProgress } from './clinical';
 import { normalizePayment } from './finance';
-import type { Child, Assessment, ProgressNote, Goal, Payment } from '@/types';
+import type { Child, Assessment, ProgressNote, Payment } from '@/types';
 
 export class PortalApi {
   constructor(private client: ApiClient) {}
@@ -24,12 +24,6 @@ export class PortalApi {
     const res = await this.client.get<any>('/parent/my-progress');
     const list = Array.isArray(res) ? res : res?.data || [];
     return list.map(normalizeProgress);
-  }
-
-  public async getMyGoals(): Promise<Goal[]> {
-    const res = await this.client.get<any>('/parent/my-goals');
-    const list = Array.isArray(res) ? res : res?.data || [];
-    return list.map(normalizeGoal);
   }
 
   public async getMyPayments(): Promise<Payment[]> {
@@ -84,11 +78,5 @@ export class PortalApi {
     const res = await this.client.get<any>('/specialist/my-progress');
     const list = Array.isArray(res) ? res : res?.data || [];
     return list.map(normalizeProgress);
-  }
-
-  public async getMyManagedGoals(): Promise<Goal[]> {
-    const res = await this.client.get<any>('/specialist/my-goals');
-    const list = Array.isArray(res) ? res : res?.data || [];
-    return list.map(normalizeGoal);
   }
 }

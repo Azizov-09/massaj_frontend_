@@ -134,22 +134,44 @@ export function BalancePage() {
     setStatusFilter('ALL');
   };
 
-  const handlePaymentSubmit = (e: React.FormEvent) => {
+  const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!paymentModalParent || !payAmount) return;
+    setPaymentError(null);
 
-    recordPayment({
-      parentId: paymentModalParent.parentId,
-      amount: Number(payAmount),
-      method: payMethod,
-      date: new Date().toISOString(),
-      notes: payNotes || 'Balans orqali to‘lov',
-      createdBy: currentUser?.id ?? 'admin-1',
-    });
+    const amt = Number(payAmount);
+    if (isNaN(amt) || amt <= 0) {
+      setPaymentError("To'lov miqdori 0 dan katta bo'lishi kerak.");
+      return;
+    }
+    if (amt > 2_000_000_000) {
+      setPaymentError("To'lov miqdori 2,000,000,000 so'mdan oshmasligi kerak.");
+      return;
+    }
 
-    setPaymentModalParent(null);
-    setPayAmount('');
-    setPayNotes('');
+    setIsSubmittingPayment(true);
+    try {
+      await recordPayment({
+        parentId: paymentModalParent.parentId,
+        amount: amt,
+        method: payMethod,
+        date: new Date().toISOString(),
+        notes: payNotes || 'Balans orqali to‘lov',
+        createdBy: currentUser?.id ?? 'admin-1',
+      });
+
+      setPaymentModalParent(null);
+      setPayAmount('');
+      setPayNotes('');
+    } catch (err: any) {
+      const rawMsg = err?.message || "To'lovni amalga oshirishda xatolik yuz berdi.";
+      setPaymentError(rawMsg);
+    } finally {
+      setIsSubmittingPayment(false);
+    }
   };
 
   const columns: Column<ParentBalanceRow>[] = [
@@ -552,12 +574,22 @@ export function BalancePage() {
       {/* ─── Quick Payment Modal ─── */}
       <Modal
         isOpen={!!paymentModalParent}
-        onClose={() => setPaymentModalParent(null)}
+        onClose={() => {
+          setPaymentModalParent(null);
+          setPaymentError(null);
+        }}
         title="To‘lov qabul qilish"
         size="md"
       >
         {paymentModalParent && (
           <form onSubmit={handlePaymentSubmit} className="space-y-4">
+            {paymentError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div className="leading-relaxed font-semibold">{paymentError}</div>
+              </div>
+            )}
+
             <div className="p-3.5 rounded-[14px] bg-warm-50/80 border border-warm-200/90 shadow-2xs flex items-center justify-between">
               <div>
                 <h4 className="text-sm font-bold text-charcoal-900">{paymentModalParent.parentName}</h4>
@@ -577,7 +609,10 @@ export function BalancePage() {
               type="number"
               placeholder="100000"
               value={payAmount}
-              onChange={e => setPayAmount(e.target.value)}
+              onChange={e => {
+                setPayAmount(e.target.value);
+                setPaymentError(null);
+              }}
             />
 
             <Select
@@ -599,10 +634,21 @@ export function BalancePage() {
             />
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-warm-100">
-              <Button variant="secondary" type="button" onClick={() => setPaymentModalParent(null)}>
+              <Button
+                variant="secondary"
+                type="button"
+                onClick={() => {
+                  setPaymentModalParent(null);
+                  setPaymentError(null);
+                }}
+              >
                 Bekor qilish
               </Button>
-              <Button type="submit">
+              <Button
+                type="submit"
+                loading={isSubmittingPayment}
+                disabled={isSubmittingPayment}
+              >
                 To‘lovni tasdiqlash
               </Button>
             </div>

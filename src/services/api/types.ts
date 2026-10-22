@@ -49,6 +49,7 @@ export interface CreateSpecialistDto {
   password: string;
   specialization: string;
   experienceYears: number;
+  email?: string;
   bio?: string;
 }
 
@@ -138,7 +139,7 @@ export interface RecordPaymentDto {
   parentId: string;
   childId?: string;
   amount: number;
-  method: 'CASH' | 'CARD' | 'TRANSFER';
+  method: 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'TRANSFER' | 'PAYME' | 'CLICK' | 'UZUM';
   note?: string;
   paidAt?: string;
   idempotencyKey?: string;
@@ -147,6 +148,7 @@ export interface RecordPaymentDto {
 export interface RefundDto {
   amount: number;
   note?: string;
+  idempotencyKey?: string;
 }
 
 export interface CreateAttendanceDto {
@@ -171,6 +173,7 @@ export interface CreateAssessmentDto {
   activityTolerance?: number;
   sessionResponse?: number;
   professionalObservation: string;
+  assessedAt?: string;
 }
 
 export interface UpdateAssessmentDto {
@@ -180,6 +183,7 @@ export interface UpdateAssessmentDto {
   activityTolerance?: number;
   sessionResponse?: number;
   professionalObservation?: string;
+  assessedAt?: string;
 }
 
 export interface CreateProgressDto {
@@ -187,28 +191,13 @@ export interface CreateProgressDto {
   specialistId?: string;
   title: string;
   description: string;
+  occurredAt?: string;
 }
 
 export interface UpdateProgressDto {
   title?: string;
   description?: string;
-}
-
-export interface CreateGoalDto {
-  childId: string;
-  specialistId?: string;
-  title: string;
-  description?: string;
-  targetDate?: string;
-  progress?: number;
-}
-
-export interface UpdateGoalDto {
-  title?: string;
-  description?: string;
-  targetDate?: string;
-  progress?: number;
-  status?: 'ACTIVE' | 'COMPLETED' | 'PAUSED';
+  occurredAt?: string;
 }
 
 export interface CreateAnnouncementDto {

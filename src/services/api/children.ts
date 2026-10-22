@@ -115,11 +115,6 @@ export class ChildrenApi {
     return Array.isArray(res) ? res : res?.data || [];
   }
 
-  public async getGoals(childId: string): Promise<any[]> {
-    const res = await this.client.get<any>(`/children/${childId}/goals`);
-    return Array.isArray(res) ? res : res?.data || [];
-  }
-
   public async getConsents(childId: string): Promise<any[]> {
     const res = await this.client.get<any>(`/children/${childId}/consents`);
     return Array.isArray(res) ? res : res?.data || [];

@@ -6,7 +6,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Users, Baby, Clock, ClipboardList,
-  Stethoscope, Target, Wallet, CreditCard, BarChart3,
+  Stethoscope, Wallet, CreditCard, BarChart3,
   FileText, Bell, ScrollText, Settings, ChevronLeft, ChevronRight,
   LogOut, User, Shield, Heart, TrendingDown, TrendingUp, X,
 } from 'lucide-react';
@@ -54,7 +54,6 @@ function getSuperAdminNav(unreadCount: number): NavGroup[] {
       items: [
         { label: 'Baholashlar', path: '/dashboard/super-admin/assessments', icon: <Stethoscope className="w-4 h-4" /> },
         { label: 'Rivojlanish', path: '/dashboard/super-admin/progress', icon: <TrendingUp className="w-4 h-4" /> },
-        { label: 'Maqsadlar', path: '/dashboard/super-admin/goals', icon: <Target className="w-4 h-4" /> },
       ],
     },
     {
@@ -132,7 +131,6 @@ function getSpecialistNav(unreadCount: number): NavGroup[] {
       items: [
         { label: 'Baholashlar', path: '/dashboard/specialist/assessments', icon: <Stethoscope className="w-4 h-4" /> },
         { label: 'Rivojlanish', path: '/dashboard/specialist/progress', icon: <TrendingUp className="w-4 h-4" /> },
-        { label: 'Maqsadlar', path: '/dashboard/specialist/goals', icon: <Target className="w-4 h-4" /> },
       ],
     },
     {

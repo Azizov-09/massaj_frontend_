@@ -2,15 +2,40 @@ import type { ApiClient } from './client';
 import type { RecordPaymentDto, RefundDto } from './types';
 import type { Payment, Transaction, PaymentMethod } from '@/types';
 
+import { isUUID } from '@/utils';
+
 export function normalizePayment(raw: any): Payment {
   if (!raw) return raw;
+  const parentName =
+    raw.parent?.fullName ||
+    raw.parent?.user?.fullName ||
+    raw.payer?.fullName ||
+    (raw.parent?.firstName ? `${raw.parent.firstName} ${raw.parent.lastName || ''}`.trim() : raw.parentName);
+  const parentPhone =
+    raw.parent?.phone ||
+    raw.parent?.user?.phone ||
+    raw.payer?.phone ||
+    raw.parentPhone;
+  const childName =
+    raw.child?.fullName ||
+    (raw.child?.firstName ? `${raw.child.firstName} ${raw.child.lastName || ''}`.trim() : raw.childName);
+
   return {
     id: String(raw.id),
-    parentId: String(raw.parentId || ''),
-    childId: raw.childId ? String(raw.childId) : undefined,
+    parentId: String(raw.parentId || raw.parent?.id || raw.payer?.id || ''),
+    parentName: parentName || undefined,
+    parentPhone: parentPhone || undefined,
+    parent: raw.parent || raw.payer || undefined,
+    childId: raw.childId ? String(raw.childId) : (raw.child?.id ? String(raw.child.id) : undefined),
+    childName: childName || undefined,
+    child: raw.child || undefined,
     amount: Number(raw.amount || 0),
     method: (raw.method as PaymentMethod) || 'CASH',
+    status: raw.status || 'COMPLETED',
+    note: raw.note || raw.notes || '',
     notes: raw.notes || raw.note || '',
+    paidAt: raw.paidAt || undefined,
+    idempotencyKey: raw.idempotencyKey || undefined,
     date: raw.paidAt || raw.date || raw.createdAt || new Date().toISOString(),
     transactionId: String(raw.transactionId || `txn-${raw.id || ''}`),
     createdBy: String(raw.createdBy || raw.userId || 'system'),
@@ -61,7 +86,27 @@ export class FinanceApi {
   }
 
   public async recordPayment(dto: RecordPaymentDto): Promise<Payment> {
-    const res = await this.client.post<any>('/payments', dto);
+    const amountVal = Math.round(Number(dto.amount));
+    const idempotencyKey = dto.idempotencyKey && dto.idempotencyKey.trim().length >= 8
+      ? dto.idempotencyKey.trim()
+      : `pay-${(typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : ('pay-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10)))}`;
+
+    const payload: Record<string, any> = {
+      parentId: dto.parentId,
+      amount: amountVal,
+      method: dto.method,
+      idempotencyKey,
+    };
+    if (dto.childId && isUUID(dto.childId)) {
+      payload.childId = dto.childId;
+    }
+    if (dto.note && dto.note.trim()) {
+      payload.note = dto.note.trim();
+    }
+    if (dto.paidAt) {
+      payload.paidAt = dto.paidAt;
+    }
+    const res = await this.client.post<any>('/payments', payload);
     const item = res?.data || res;
     return normalizePayment(item);
   }

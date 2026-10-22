@@ -4,14 +4,14 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Plus, Search, Baby, X, Calendar, Clock, Eye, Users, Phone,
-  Edit, Archive, RotateCcw, ShieldCheck, Trash2
+  Plus, Search, Baby, X, Calendar, Clock, Eye, Users,
+  Edit, Archive, RotateCcw, ShieldCheck
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { calculateChildBalance } from '@/services/finance.service';
 import {
   formatAge, formatDate, formatCurrencyCompact,
-  getEntityStatusColor, getEntityStatusLabel, normalizeUzbekSearch, cn, handlePhoneAction
+  getEntityStatusColor, getEntityStatusLabel, normalizeUzbekSearch, cn
 } from '@/utils';
 import { useDebounce } from '@/hooks/useDebounce';
 import { DataTable, Column, getAvatarGradient } from '@/components/tables/DataTable';

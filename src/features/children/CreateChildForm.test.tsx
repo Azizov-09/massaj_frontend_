@@ -60,7 +60,7 @@ describe('CreateChildForm Component', () => {
 
   it('submits successfully and calls createChild when valid', async () => {
     const handleSuccess = vi.fn();
-    const createChildSpy = vi.fn();
+    const createChildSpy = vi.fn().mockResolvedValue({ id: 'child-1' } as any);
     useStore.setState({ createChild: createChildSpy });
 
     render(<CreateChildForm onSuccess={handleSuccess} onCancel={vi.fn()} />);

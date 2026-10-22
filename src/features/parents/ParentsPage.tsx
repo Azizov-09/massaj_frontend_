@@ -9,7 +9,7 @@ import { useStore } from '@/store';
 import { calculateParentBalance } from '@/services/finance.service';
 import { formatCurrency, formatCurrencyCompact, formatDate, getEntityStatusColor, getEntityStatusLabel, cn, handlePhoneAction } from '@/utils';
 import { DataTable, Column, getAvatarGradient } from '@/components/tables/DataTable';
-import { Card, Avatar, Badge, Select, Input, Textarea } from '@/components/ui/primitives';
+import { Card, Avatar, Badge, Select, Input } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';

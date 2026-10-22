@@ -14,7 +14,7 @@ export class AuthApi {
       this.client.setToken(token);
     }
     if (refreshToken) {
-      this.client.setRefreshToken(refreshToken);
+      this.client.setInMemoryRefreshToken(refreshToken);
     }
     return {
       accessToken: token,
@@ -28,35 +28,40 @@ export class AuthApi {
   }
 
   public async refresh(dto?: RefreshDto): Promise<{ accessToken: string; refreshToken?: string }> {
-    const tokenToSend = dto?.refreshToken || this.client.getRefreshToken() || '';
-    const res = await this.client.post<any>('/auth/refresh', { refreshToken: tokenToSend });
+    const tokenToSend = dto?.refreshToken || this.client.getInMemoryRefreshToken() || '';
+    const payload = tokenToSend ? { refreshToken: tokenToSend } : {};
+    const res = await this.client.post<any>('/auth/refresh', payload);
     const token = res?.accessToken || res?.data?.accessToken;
     const newRefresh = res?.refreshToken || res?.data?.refreshToken;
     if (token) {
       this.client.setToken(token);
     }
     if (newRefresh) {
-      this.client.setRefreshToken(newRefresh);
+      this.client.setInMemoryRefreshToken(newRefresh);
     }
     return res;
   }
 
   public async logout(refreshToken?: string): Promise<void> {
     try {
-      const token = refreshToken || this.client.getRefreshToken();
+      const token = refreshToken || this.client.getInMemoryRefreshToken();
       await this.client.post('/auth/logout', token ? { refreshToken: token } : {});
+    } catch {
+      // Ignored
     } finally {
       this.client.setToken(null);
-      this.client.setRefreshToken(null);
+      this.client.setInMemoryRefreshToken(null);
     }
   }
 
   public async logoutAll(): Promise<void> {
     try {
       await this.client.post('/auth/logout-all');
+    } catch {
+      // Ignored
     } finally {
       this.client.setToken(null);
-      this.client.setRefreshToken(null);
+      this.client.setInMemoryRefreshToken(null);
     }
   }
 

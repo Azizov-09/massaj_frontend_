@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import {
   Plus, Search, Wallet, TrendingUp, Receipt, Calendar,
   CreditCard, Banknote, ArrowLeftRight, Clock, X,
-  Printer, Baby
+  Printer, Baby, AlertCircle
 } from 'lucide-react';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,7 +26,17 @@ import type { Payment, PaymentMethod } from '@/types';
 const paymentSchema = z.object({
   parentId: z.string().min(1, 'Ota-onani tanlang'),
   childId: z.string().optional(),
-  amount: z.string().min(1, "Summani kiriting").refine(v => !isNaN(Number(v)) && Number(v) > 0, "To'g'ri summa kiriting"),
+  amount: z
+    .string()
+    .min(1, "Summani kiriting")
+    .refine(v => {
+      const num = Number(v.replace(/\s+/g, ''));
+      return !isNaN(num) && num > 0;
+    }, "To'g'ri summa kiriting (0 dan katta bo'lishi kerak)")
+    .refine(v => {
+      const num = Number(v.replace(/\s+/g, ''));
+      return !isNaN(num) && num <= 2_000_000_000;
+    }, "To'lov summasi 2,000,000,000 so'mdan oshmasligi kerak"),
   method: z.enum(['CASH', 'CARD', 'TRANSFER']),
   date: z.string().min(1, 'Sanani kiriting'),
   notes: z.string().optional(),
@@ -138,15 +148,17 @@ export function PaymentsPage() {
       sortable: true,
       cell: (row) => {
         const parent = parents.find(p => p.id === row.parentId);
+        const parentName = row.parentName || parent?.fullName || (row.parentId ? `Ota-ona #${row.parentId.slice(0, 8)}` : 'Noma\'lum ota-ona');
+        const parentPhone = row.parentPhone || parent?.phone;
         return (
           <div className="flex items-center gap-2.5">
-            <Avatar name={parent?.fullName || 'Ota-ona'} size="sm" className="font-semibold" />
+            <Avatar name={parentName} size="sm" className="font-semibold" />
             <div className="min-w-0">
               <p className="font-semibold text-charcoal-900 text-sm tracking-tight truncate hover:text-brand-700 transition-colors">
-                {parent?.fullName ?? 'Noma\'lum ota-ona'}
+                {parentName}
               </p>
-              {parent?.phone && (
-                <p className="text-xs text-charcoal-400">{parent.phone}</p>
+              {parentPhone && (
+                <p className="text-xs text-charcoal-400">{parentPhone}</p>
               )}
             </div>
           </div>
@@ -158,10 +170,11 @@ export function PaymentsPage() {
       header: 'Bola',
       cell: (row) => {
         const child = children.find(c => c.id === row.childId);
-        return child ? (
+        const childName = row.childName || child?.fullName;
+        return childName ? (
           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[6px] bg-brand-50/70 border border-brand-200/50 text-xs font-medium text-brand-800">
             <Baby className="w-3 h-3 text-brand-600 shrink-0" />
-            <span className="truncate max-w-[130px]">{child.fullName}</span>
+            <span className="truncate max-w-[130px]">{childName}</span>
           </div>
         ) : (
           <span className="text-xs text-charcoal-400 font-medium">Umumiy hisobga</span>
@@ -565,14 +578,14 @@ export function PaymentsPage() {
                 <div className="flex justify-between py-1 border-b border-warm-100">
                   <span className="text-charcoal-500">Ota-ona:</span>
                   <span className="font-semibold text-charcoal-900">
-                    {parents.find(p => p.id === selectedPayment.parentId)?.fullName || 'Noma\'lum'}
+                    {selectedPayment.parentName || parents.find(p => p.id === selectedPayment.parentId)?.fullName || (selectedPayment.parentId ? `Ota-ona #${selectedPayment.parentId.slice(0, 8)}` : 'Noma\'lum')}
                   </span>
                 </div>
-                {selectedPayment.childId && (
+                {(selectedPayment.childName || selectedPayment.childId) && (
                   <div className="flex justify-between py-1 border-b border-warm-100">
                     <span className="text-charcoal-500">Bola:</span>
                     <span className="font-semibold text-charcoal-900">
-                      {children.find(c => c.id === selectedPayment.childId)?.fullName || '—'}
+                      {selectedPayment.childName || children.find(c => c.id === selectedPayment.childId)?.fullName || '—'}
                     </span>
                   </div>
                 )}
@@ -659,6 +672,7 @@ function CreatePaymentForm({
   const parents = useStore(s => s.parents);
   const children = useStore(s => s.children);
   const recordPayment = useStore(s => s.recordPayment);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const {
     register,
@@ -674,24 +688,40 @@ function CreatePaymentForm({
   const parentChildren = children.filter(c => c.parentId === selectedParentId);
 
   const onSubmit = async (data: PaymentForm) => {
+    setApiError(null);
+    const cleanedAmount = Number(data.amount.replace(/\s+/g, ''));
     try {
-      recordPayment({
+      await recordPayment({
         parentId: data.parentId,
-        childId: data.childId || undefined,
-        amount: Number(data.amount),
+        childId: data.childId && data.childId.trim() ? data.childId : undefined,
+        amount: cleanedAmount,
         method: data.method,
         date: new Date(`${data.date}T12:00:00+05:00`).toISOString(),
         notes: data.notes,
         createdBy,
       });
       onSuccess();
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error('Payment record error:', err);
+      const rawMsg = err?.message || "To'lovni saqlashda server xatoligi yuz berdi.";
+      let friendly = rawMsg;
+      if (rawMsg.toLowerCase().includes('childid must be a uuid')) {
+        friendly = "Tanlangan bolaning identifikatori noto'g'ri (UUID emas). Iltimos, bolani qayta tanlang yoki faqat ota-ona hisobiga to'lov qiling.";
+      } else if (rawMsg.toLowerCase().includes('parent must be related to the child')) {
+        friendly = "Tanlangan ota-ona ushbu bolaga biriktirilmagan. Iltimos, to'g'ri ota-onani tanlang.";
+      }
+      setApiError(friendly);
     }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+      {apiError && (
+        <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+          <div className="leading-relaxed font-semibold">{apiError}</div>
+        </div>
+      )}
       <Select
         label="Ota-ona"
         required
