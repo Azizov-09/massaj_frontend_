@@ -35,22 +35,31 @@ function resolveDefaultBaseUrl(): string {
     return 'http://localhost:3000/api/v1';
   }
 
+  const isBrowser =
+    typeof window !== 'undefined' &&
+    typeof window.document !== 'undefined' &&
+    Boolean(window.location?.origin);
+
+  // CRITICAL: When the page is loaded over HTTPS (such as Vercel https://massaj-frontend-zfqe.vercel.app),
+  // modern browsers strictly block any direct HTTP calls with (blocked:mixed-content).
+  // If envUrl is unencrypted http:// or relative, we MUST route through the same-origin proxy
+  // (vercel.json rewrites /api/:path* -> http://104.248.29.65/api/:path*) to eliminate mixed content.
+  if (isBrowser && window.location.protocol === 'https:') {
+    if (envUrl && envUrl.startsWith('https://')) {
+      return envUrl;
+    }
+    return `${window.location.origin}/api/v1`;
+  }
+
   if (envUrl) {
     if (envUrl.startsWith('http://') || envUrl.startsWith('https://')) {
       return envUrl;
     }
-    if (typeof window !== 'undefined' && window.location?.origin) {
+    if (isBrowser) {
       return `${window.location.origin}${envUrl.startsWith('/') ? '' : '/'}${envUrl}`;
     }
     return `http://localhost:3000${envUrl.startsWith('/') ? '' : '/'}${envUrl}`;
   }
-
-  const isBrowser =
-    typeof window !== 'undefined' &&
-    typeof window.document !== 'undefined' &&
-    window.location &&
-    window.location.origin &&
-    window.location.protocol.startsWith('http');
 
   if (isBrowser) {
     return `${window.location.origin}/api/v1`;
