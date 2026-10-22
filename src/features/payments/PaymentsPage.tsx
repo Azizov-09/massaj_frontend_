@@ -673,6 +673,7 @@ function CreatePaymentForm({
   const children = useStore(s => s.children);
   const recordPayment = useStore(s => s.recordPayment);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
 
   const {
     register,
@@ -703,6 +704,8 @@ function CreatePaymentForm({
       onSuccess();
     } catch (err: any) {
       console.error('Payment record error:', err);
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
       const rawMsg = err?.message || "To'lovni saqlashda server xatoligi yuz berdi.";
       let friendly = rawMsg;
       if (rawMsg.toLowerCase().includes('childid must be a uuid')) {
@@ -715,10 +718,14 @@ function CreatePaymentForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      className={cn("space-y-4 transition-transform", isShaking && "animate-shake")}
+    >
       {apiError && (
-        <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
-          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+          <AlertCircle className="w-4 h-4 text-danger-main shrink-0 mt-0.5" />
           <div className="leading-relaxed font-semibold">{apiError}</div>
         </div>
       )}

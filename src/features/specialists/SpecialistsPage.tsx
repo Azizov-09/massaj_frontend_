@@ -70,9 +70,14 @@ export function SpecialistsPage() {
     status: 'ACTIVE',
   });
   const [editErrors, setEditErrors] = useState<{ fullName?: string; phone?: string; specialization?: string }>({});
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+  const [editSubmitError, setEditSubmitError] = useState<string | null>(null);
+  const [editIsShaking, setEditIsShaking] = useState(false);
+  const [isDeletingLoading, setIsDeletingLoading] = useState(false);
 
   const handleOpenEdit = (specialist: Specialist) => {
     setEditingSpecialist(specialist);
+    setEditSubmitError(null);
     setEditForm({
       fullName: specialist.fullName || '',
       phone: specialist.phone || '',
@@ -85,9 +90,10 @@ export function SpecialistsPage() {
     setEditErrors({});
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingSpecialist) return;
+    setEditSubmitError(null);
 
     const errors: { fullName?: string; phone?: string; specialization?: string } = {};
     if (!editForm.fullName.trim()) errors.fullName = 'Ism familiyani kiriting';
@@ -96,21 +102,32 @@ export function SpecialistsPage() {
 
     if (Object.keys(errors).length > 0) {
       setEditErrors(errors);
+      setEditIsShaking(true);
+      setTimeout(() => setEditIsShaking(false), 500);
       return;
     }
 
-    updateSpecialist(editingSpecialist.id, {
-      fullName: editForm.fullName.trim(),
-      phone: editForm.phone.trim(),
-      email: editForm.email.trim() || undefined,
-      specialization: editForm.specialization.trim(),
-      experience: Number(editForm.experience) || 0,
-      bio: editForm.bio.trim() || undefined,
-      status: editForm.status,
-    });
-
-    setEditingSpecialist(null);
-    setEditErrors({});
+    setIsEditSubmitting(true);
+    try {
+      await updateSpecialist(editingSpecialist.id, {
+        fullName: editForm.fullName.trim(),
+        phone: editForm.phone.trim(),
+        email: editForm.email.trim() || undefined,
+        specialization: editForm.specialization.trim(),
+        experience: Number(editForm.experience) || 0,
+        bio: editForm.bio.trim() || undefined,
+        status: editForm.status,
+      });
+      setEditingSpecialist(null);
+      setEditErrors({});
+      setEditSubmitError(null);
+    } catch (err: any) {
+      setEditIsShaking(true);
+      setTimeout(() => setEditIsShaking(false), 600);
+      setEditSubmitError(err?.message || 'Serverda xatolik yuz berdi');
+    } finally {
+      setIsEditSubmitting(false);
+    }
   };
 
   const handleToggleStatus = (specialist: Specialist) => {
@@ -127,10 +144,16 @@ export function SpecialistsPage() {
     setDeletingSpecialist(specialist);
   };
 
-  const confirmDeleteSpecialist = () => {
-    if (deletingSpecialist) {
-      deleteSpecialist(deletingSpecialist.id);
+  const confirmDeleteSpecialist = async () => {
+    if (!deletingSpecialist) return;
+    setIsDeletingLoading(true);
+    try {
+      await deleteSpecialist(deletingSpecialist.id);
       setDeletingSpecialist(null);
+    } catch {
+      // toast already shown in store
+    } finally {
+      setIsDeletingLoading(false);
     }
   };
 
@@ -741,7 +764,7 @@ export function SpecialistsPage() {
       {editingSpecialist && (
         <Modal
           isOpen={!!editingSpecialist}
-          onClose={() => { setEditingSpecialist(null); setEditErrors({}); }}
+          onClose={() => { if (!isEditSubmitting) { setEditingSpecialist(null); setEditErrors({}); setEditSubmitError(null); } }}
           title="Mutaxassisni tahrirlash"
           size="md"
           footer={
@@ -749,20 +772,31 @@ export function SpecialistsPage() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => { setEditingSpecialist(null); setEditErrors({}); }}
+                disabled={isEditSubmitting}
+                onClick={() => { setEditingSpecialist(null); setEditErrors({}); setEditSubmitError(null); }}
               >
                 Bekor qilish
               </Button>
               <Button
                 size="sm"
-                onClick={handleSaveEdit}
+                loading={isEditSubmitting}
+                onClick={handleSaveEdit as any}
               >
                 Saqlash
               </Button>
             </div>
           }
         >
-          <form onSubmit={handleSaveEdit} className="space-y-4 py-2">
+          <form onSubmit={handleSaveEdit} className={`space-y-4 py-2 transition-transform ${editIsShaking ? 'animate-shake' : ''}`}>
+            {editSubmitError && (
+              <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-semibold text-sm">{editSubmitError}</p>
+                  <p className="text-[11px] text-danger-main/80 mt-0.5">Iltimos, ma'lumotlarni tekshirib qaytadan urinib ko'ring.</p>
+                </div>
+              </div>
+            )}
             <Input
               label="To‘liq ism"
               required
@@ -844,7 +878,7 @@ export function SpecialistsPage() {
       {deletingSpecialist && (
         <Modal
           isOpen={!!deletingSpecialist}
-          onClose={() => setDeletingSpecialist(null)}
+          onClose={() => { if (!isDeletingLoading) setDeletingSpecialist(null); }}
           title="Mutaxassisni o'chirish"
           size="sm"
           footer={
@@ -852,6 +886,7 @@ export function SpecialistsPage() {
               <Button
                 variant="secondary"
                 size="sm"
+                disabled={isDeletingLoading}
                 onClick={() => setDeletingSpecialist(null)}
               >
                 Bekor qilish
@@ -859,6 +894,7 @@ export function SpecialistsPage() {
               <Button
                 variant="danger"
                 size="sm"
+                loading={isDeletingLoading}
                 onClick={confirmDeleteSpecialist}
               >
                 Ha, o'chirish

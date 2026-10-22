@@ -71,6 +71,9 @@ export function ProgressPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
 
   // New progress note state
   const [formData, setFormData] = useState({
@@ -264,28 +267,50 @@ export function ProgressPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.childId || !formData.note.trim()) return;
+    setSubmitError(null);
+    if (!formData.childId) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      setSubmitError("Iltimos, bolani tanlang.");
+      return;
+    }
+
+    if (!formData.note.trim()) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      setSubmitError("Kuzatuv qaydi yoki muolaja dinamikasini kiritish majburiy.");
+      return;
+    }
 
     const fullNote = formData.recommendation.trim()
       ? `${formData.note.trim()}\n\n[Uy sharoitidagi tavsiya]: ${formData.recommendation.trim()}`
       : formData.note.trim();
 
-    createProgressNote({
-      childId: formData.childId,
-      specialistId: formData.specialistId || currentUser?.id || '',
-      note: fullNote,
-      date: new Date().toISOString().split('T')[0],
-    });
+    setIsSubmitting(true);
+    try {
+      await createProgressNote({
+        childId: formData.childId,
+        specialistId: formData.specialistId || currentUser?.id || '',
+        note: fullNote,
+        date: new Date().toISOString().split('T')[0],
+      });
 
-    setShowCreateModal(false);
-    setFormData({
-      childId: availableChildren[0]?.id ?? '',
-      specialistId: currentUser?.role === 'SPECIALIST' ? currentUser.id : (specialists[0]?.id ?? ''),
-      note: '',
-      recommendation: '',
-    });
+      setShowCreateModal(false);
+      setFormData({
+        childId: availableChildren[0]?.id ?? '',
+        specialistId: currentUser?.role === 'SPECIALIST' ? currentUser.id : (specialists[0]?.id ?? ''),
+        note: '',
+        recommendation: '',
+      });
+    } catch (err: any) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      setSubmitError(err?.message || "Qaydni saqlashda xatolik yuz berdi.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getEventTypeMeta = (type: TimelineEvent['type']) => {
@@ -1110,7 +1135,23 @@ export function ProgressPage() {
         title="Yangi rivojlanish qaydi qo‘shish"
         size="md"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className={cn("space-y-4 transition-transform", isShaking && "animate-shake")}
+        >
+          {submitError && (
+            <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold text-sm">{submitError}</p>
+                <p className="text-[11px] text-danger-main/80 mt-0.5">
+                  Iltimos, qaydni to'liq to'ldirib qaytadan urinib ko'ring.
+                </p>
+              </div>
+            </div>
+          )}
+
           <Select
             label="Bemor bola"
             required
@@ -1147,10 +1188,10 @@ export function ProgressPage() {
           />
 
           <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-warm-100">
-            <Button variant="secondary" type="button" onClick={() => setShowCreateModal(false)} className="w-full sm:w-auto">
+            <Button variant="secondary" type="button" onClick={() => setShowCreateModal(false)} disabled={isSubmitting} className="w-full sm:w-auto">
               Bekor qilish
             </Button>
-            <Button type="submit" className="w-full sm:w-auto">
+            <Button type="submit" loading={isSubmitting} className="w-full sm:w-auto">
               Saqlash
             </Button>
           </div>

@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════
 //  Edit Child Modal — React Hook Form + Zod + Phone Mask
 // ═══════════════════════════════════════════════════════
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,7 +9,8 @@ import { useStore } from '@/store';
 import { Modal } from '@/components/ui/Modal';
 import { Input, Select, Textarea, DatePicker } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
-import { formatUzbekPhoneInput } from '@/utils';
+import { formatUzbekPhoneInput, cn } from '@/utils';
+import { AlertCircle } from 'lucide-react';
 import type { Child } from '@/types';
 
 const editSchema = z.object({
@@ -45,6 +46,10 @@ export function EditChildModal({ isOpen, child, onClose, onSuccess }: Props) {
   const specialists = useStore(s => s.specialists);
   const updateChild = useStore(s => s.updateChild);
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
+  const [duplicateField, setDuplicateField] = useState<'phone' | 'fullName' | null>(null);
+
   const parent = child ? parents.find(p => p.id === child.parentId) : null;
   const initialPhone = child?.phone || parent?.phone || '';
 
@@ -61,6 +66,8 @@ export function EditChildModal({ isOpen, child, onClose, onSuccess }: Props) {
 
   useEffect(() => {
     if (child) {
+      setSubmitError(null);
+      setDuplicateField(null);
       reset({
         fullName: child.fullName || '',
         dateOfBirth: child.dateOfBirth || '',
@@ -79,8 +86,10 @@ export function EditChildModal({ isOpen, child, onClose, onSuccess }: Props) {
   if (!child) return null;
 
   const onSubmit = async (data: EditFormValues) => {
+    setSubmitError(null);
+    setDuplicateField(null);
     try {
-      updateChild(child.id, {
+      await updateChild(child.id, {
         fullName: data.fullName,
         dateOfBirth: data.dateOfBirth,
         gender: data.gender,
@@ -94,8 +103,19 @@ export function EditChildModal({ isOpen, child, onClose, onSuccess }: Props) {
       });
       onSuccess?.();
       onClose();
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error('Child update error:', err);
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      const msg = err?.message || "Serverda xatolik yuz berdi";
+      setSubmitError(msg);
+
+      const lower = msg.toLowerCase();
+      if (err?.status === 409 || lower.includes('telefon') || lower.includes('phone')) {
+        setDuplicateField('phone');
+      } else if (lower.includes('bola') || lower.includes('ism') || lower.includes('name')) {
+        setDuplicateField('fullName');
+      }
     }
   };
 
@@ -107,15 +127,36 @@ export function EditChildModal({ isOpen, child, onClose, onSuccess }: Props) {
       description={`${child.fullName} ma'lumotlarini yangilash`}
       size="lg"
     >
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+        className={cn("space-y-4 transition-transform", isShaking && "animate-shake")}
+      >
+        {submitError && (
+          <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold text-sm">{submitError}</p>
+              <p className="text-[11px] text-danger-main/80 mt-0.5">
+                Iltimos, ma'lumotlarni tekshirib qaytadan urinib ko'ring.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="sm:col-span-2">
             <Input
               label="To'liq ism"
               required
               placeholder="Masalan: Ahmad Karimov"
-              error={errors.fullName?.message}
-              {...register('fullName')}
+              error={duplicateField === 'fullName' ? submitError || errors.fullName?.message : errors.fullName?.message}
+              className={duplicateField === 'fullName' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+              {...register('fullName', {
+                onChange: () => {
+                  if (duplicateField === 'fullName') setDuplicateField(null);
+                }
+              })}
             />
           </div>
 
@@ -164,9 +205,11 @@ export function EditChildModal({ isOpen, child, onClose, onSuccess }: Props) {
                 required
                 type="tel"
                 placeholder="+998 (90) 123-45-67"
-                error={errors.phone?.message}
+                error={duplicateField === 'phone' ? submitError || errors.phone?.message : errors.phone?.message}
+                className={duplicateField === 'phone' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
                 value={field.value || ''}
                 onChange={(e) => {
+                  if (duplicateField === 'phone') setDuplicateField(null);
                   const formatted = formatUzbekPhoneInput(e.target.value);
                   field.onChange(formatted);
                 }}

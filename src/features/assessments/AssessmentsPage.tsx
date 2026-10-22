@@ -63,6 +63,9 @@ export function AssessmentsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('TABLE');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [viewingAssessment, setViewingAssessment] = useState<Assessment | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
 
   // New assessment form state
   const [formData, setFormData] = useState<{
@@ -183,25 +186,47 @@ export function AssessmentsPage() {
     };
   }, [baseAssessments, selectedChildId, children]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     const finalSpecialistId = currentUser?.role === 'SPECIALIST' ? currentUser.id : formData.specialistId;
-    if (!formData.childId || !finalSpecialistId) return;
+    if (!formData.childId || !finalSpecialistId) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      setSubmitError("Iltimos, bola va mutaxassisni tanlang.");
+      return;
+    }
 
-    createAssessment({
-      childId: formData.childId,
-      specialistId: finalSpecialistId,
-      scores: formData.scores,
-      professionalObservation: formData.professionalObservation,
-      date: new Date().toISOString().split('T')[0],
-    });
+    if (!formData.professionalObservation.trim()) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      setSubmitError("Professional kuzatuv va xulosani yozish majburiy.");
+      return;
+    }
 
-    setShowCreateModal(false);
-    setFormData(prev => ({
-      ...prev,
-      scores: { movement: 3, coordination: 3, flexibility: 3, activityTolerance: 3, sessionResponse: 3 },
-      professionalObservation: '',
-    }));
+    setIsSubmitting(true);
+    try {
+      await createAssessment({
+        childId: formData.childId,
+        specialistId: finalSpecialistId,
+        scores: formData.scores,
+        professionalObservation: formData.professionalObservation,
+        date: new Date().toISOString().split('T')[0],
+      });
+
+      setShowCreateModal(false);
+      setFormData(prev => ({
+        ...prev,
+        scores: { movement: 3, coordination: 3, flexibility: 3, activityTolerance: 3, sessionResponse: 3 },
+        professionalObservation: '',
+      }));
+    } catch (err: any) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      setSubmitError(err?.message || "Baholashni saqlashda xatolik yuz berdi.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getScoreBadge = (score: number) => {
@@ -886,7 +911,23 @@ export function AssessmentsPage() {
         title="Yangi professional baholash kiritish"
         size="lg"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className={cn("space-y-4 transition-transform", isShaking && "animate-shake")}
+        >
+          {submitError && (
+            <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold text-sm">{submitError}</p>
+                <p className="text-[11px] text-danger-main/80 mt-0.5">
+                  Iltimos, ma'lumotlarni to'liq to'ldirib qayta urinib ko'ring.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Select
               label="Bola"
@@ -959,10 +1000,10 @@ export function AssessmentsPage() {
           />
 
           <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-4 border-t border-warm-100">
-            <Button variant="secondary" type="button" onClick={() => setShowCreateModal(false)} className="w-full sm:w-auto">
+            <Button variant="secondary" type="button" onClick={() => setShowCreateModal(false)} disabled={isSubmitting} className="w-full sm:w-auto">
               Bekor qilish
             </Button>
-            <Button type="submit" className="w-full sm:w-auto">
+            <Button type="submit" loading={isSubmitting} className="w-full sm:w-auto">
               Baholashni saqlash
             </Button>
           </div>

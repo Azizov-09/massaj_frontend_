@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Plus, Search, Baby, X, Calendar, Clock, Eye, Users,
-  Edit, Archive, RotateCcw, ShieldCheck
+  Edit, Archive, RotateCcw, ShieldCheck, AlertCircle
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
 import { calculateChildBalance } from '@/services/finance.service';
@@ -57,25 +57,43 @@ export function ChildrenPage() {
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const [editingChild, setEditingChild] = useState<Child | null>(null);
   const [deletingChild, setDeletingChild] = useState<Child | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const handleToggleStatus = (child: Child) => {
+  const handleToggleStatus = async (child: Child) => {
     const nextStatus = child.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    updateChild(child.id, { status: nextStatus });
-    addToast({
-      type: 'info',
-      title: nextStatus === 'ACTIVE' ? "Bola faollashtirildi" : "Bola nofaol qilindi",
-      description: `${child.fullName} holati o'zgartirildi`,
-    });
+    try {
+      await updateChild(child.id, { status: nextStatus });
+      addToast({
+        type: 'info',
+        title: nextStatus === 'ACTIVE' ? "Bola faollashtirildi" : "Bola nofaol qilindi",
+        description: `${child.fullName} holati o'zgartirildi`,
+      });
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: "Xatolik yuz berdi",
+        description: err?.message || "Bola holatini o'zgartirib bo'lmadi",
+      });
+    }
   };
 
   const handleDeleteChild = (child: Child) => {
+    setDeleteError(null);
     setDeletingChild(child);
   };
 
-  const confirmDeleteChild = () => {
-    if (deletingChild) {
-      deleteChild(deletingChild.id);
+  const confirmDeleteChild = async () => {
+    if (!deletingChild) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteChild(deletingChild.id);
       setDeletingChild(null);
+    } catch (err: any) {
+      setDeleteError(err?.message || "Bolani o'chirishda xatolik yuz berdi");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -927,6 +945,7 @@ export function ChildrenPage() {
                 variant="secondary"
                 size="sm"
                 onClick={() => setDeletingChild(null)}
+                disabled={isDeleting}
               >
                 Bekor qilish
               </Button>
@@ -934,6 +953,7 @@ export function ChildrenPage() {
                 variant="danger"
                 size="sm"
                 onClick={confirmDeleteChild}
+                loading={isDeleting}
               >
                 Ha, o'chirish
               </Button>
@@ -941,6 +961,12 @@ export function ChildrenPage() {
           }
         >
           <div className="space-y-3 py-2 text-charcoal-700">
+            {deleteError && (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-danger-surface border border-danger-main/30 text-danger-main text-xs font-medium">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <p>{deleteError}</p>
+              </div>
+            )}
             <p className="text-sm">
               Haqiqatan ham <strong className="font-semibold text-charcoal-900">{deletingChild.fullName}</strong> bolaning profilini tizimdan o'chirishni tasdiqlaysizmi?
             </p>

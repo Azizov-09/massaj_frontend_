@@ -49,6 +49,7 @@ export function CreateChildForm({ onSuccess, onCancel, defaultParentId }: Props)
 
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
+  const [duplicateField, setDuplicateField] = useState<'phone' | 'fullName' | null>(null);
 
   const {
     register,
@@ -73,6 +74,7 @@ export function CreateChildForm({ onSuccess, onCancel, defaultParentId }: Props)
 
   const onSubmit = async (data: FormValues) => {
     setSubmitError(null);
+    setDuplicateField(null);
     try {
       await createChild({
         ...data,
@@ -84,7 +86,15 @@ export function CreateChildForm({ onSuccess, onCancel, defaultParentId }: Props)
     } catch (err: any) {
       setIsShaking(true);
       setTimeout(() => setIsShaking(false), 600);
-      setSubmitError(err?.message || "Serverda xatolik yuz berdi");
+      const msg = err?.message || "Serverda xatolik yuz berdi";
+      setSubmitError(msg);
+
+      const lower = msg.toLowerCase();
+      if (err?.status === 409 || lower.includes('telefon') || lower.includes('phone')) {
+        setDuplicateField('phone');
+      } else if (lower.includes('bola') || lower.includes('ism') || lower.includes('name')) {
+        setDuplicateField('fullName');
+      }
     }
   };
 
@@ -112,8 +122,13 @@ export function CreateChildForm({ onSuccess, onCancel, defaultParentId }: Props)
             label="To'liq ism"
             required
             placeholder="Masalan: Ahmad Karimov"
-            error={errors.fullName?.message}
-            {...register('fullName')}
+            error={duplicateField === 'fullName' ? submitError || errors.fullName?.message : errors.fullName?.message}
+            className={duplicateField === 'fullName' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+            {...register('fullName', {
+              onChange: () => {
+                if (duplicateField === 'fullName') setDuplicateField(null);
+              }
+            })}
           />
         </div>
 
@@ -186,9 +201,11 @@ export function CreateChildForm({ onSuccess, onCancel, defaultParentId }: Props)
               required
               type="tel"
               placeholder="+998 (90) 123-45-67"
-              error={errors.phone?.message}
+              error={duplicateField === 'phone' ? submitError || errors.phone?.message : errors.phone?.message}
+              className={duplicateField === 'phone' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
               value={field.value || ''}
               onChange={(e) => {
+                if (duplicateField === 'phone') setDuplicateField(null);
                 const formatted = formatUzbekPhoneInput(e.target.value);
                 field.onChange(formatted);
               }}

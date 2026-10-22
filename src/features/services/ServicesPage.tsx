@@ -32,10 +32,13 @@ interface CreateServiceFormProps {
 }
 
 function CreateServiceForm({ onSuccess, onCancel, createService }: CreateServiceFormProps) {
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema), defaultValues: { durationMinutes: '45' }
   });
   const onSubmit = async (data: FormValues) => {
+    setSubmitError(null);
     try {
       await createService({
         name: data.name,
@@ -48,12 +51,23 @@ function CreateServiceForm({ onSuccess, onCancel, createService }: CreateService
         ageMax: Number(data.ageMax) || undefined,
       });
       onSuccess();
-    } catch (err: unknown) {
-      console.error('Service creation error:', err);
+    } catch (err: any) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      setSubmitError(err?.message || 'Serverda xatolik yuz berdi');
     }
   };
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className={`space-y-4 transition-transform ${isShaking ? 'animate-shake' : ''}`}>
+      {submitError && (
+        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-50 border-2 border-red-300/60 text-red-700 text-xs font-medium">
+          <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div className="flex-1">
+            <p className="font-semibold text-sm">{submitError}</p>
+            <p className="text-[11px] text-red-500 mt-0.5">Iltimos, ma'lumotlarni tekshirib qaytadan urinib ko'ring.</p>
+          </div>
+        </div>
+      )}
       <Input label="Xizmat nomi" required placeholder="Terapevtik massaj" error={errors.name?.message} {...register('name')} />
       <Textarea label="Tavsif" placeholder="Xizmat haqida qisqacha..." rows={2} {...register('description')} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -68,7 +82,7 @@ function CreateServiceForm({ onSuccess, onCancel, createService }: CreateService
         <Input label="Max yosh" type="number" placeholder="18" min="0" max="18" {...register('ageMax')} />
       </div>
       <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-4 border-t border-warm-100">
-        <Button variant="secondary" type="button" onClick={onCancel} className="w-full sm:w-auto">Bekor qilish</Button>
+        <Button variant="secondary" type="button" onClick={onCancel} disabled={isSubmitting} className="w-full sm:w-auto">Bekor qilish</Button>
         <Button type="submit" loading={isSubmitting} className="w-full sm:w-auto">Saqlash</Button>
       </div>
     </form>

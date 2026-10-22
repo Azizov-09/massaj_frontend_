@@ -1,12 +1,10 @@
-// ═══════════════════════════════════════════════════════
-//  Profile Page — User Profile & Security Settings
-// ═══════════════════════════════════════════════════════
-
 import { useState } from 'react';
 import {
-  User, Lock, Save
+  User, Lock, Save, AlertCircle
 } from 'lucide-react';
 import { useAuth, useStore } from '@/store';
+import { api } from '@/services/api';
+import { cn } from '@/utils';
 import { Card, CardHeader, CardBody, Badge, Avatar, Input } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/KpiCard';
@@ -19,43 +17,96 @@ export function ProfilePage() {
   const [email, setEmail] = useState(currentUser?.email || '');
   const [phone, setPhone] = useState(currentUser?.phone || '');
 
+  const [infoError, setInfoError] = useState<string | null>(null);
+  const [isInfoShaking, setIsInfoShaking] = useState(false);
+  const [isInfoSubmitting, setIsInfoSubmitting] = useState(false);
+
   const [currentPass, setCurrentPass] = useState('');
   const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
 
-  const handleUpdateInfo = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fullName) return;
-    updateCurrentUser({
-      fullName,
-      email,
-      phone,
-    });
-    addToast({
-      type: 'success',
-      title: 'Profil yangilandi',
-      description: 'Shaxsiy ma’lumotlaringiz muvaffaqiyatli saqlandi',
-    });
-  };
+  const [passError, setPassError] = useState<string | null>(null);
+  const [isPassShaking, setIsPassShaking] = useState(false);
+  const [isPassSubmitting, setIsPassSubmitting] = useState(false);
 
-  const handleUpdatePassword = (e: React.FormEvent) => {
+  const handleUpdateInfo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPass !== confirmPass) {
-      addToast({
-        type: 'error',
-        title: 'Xatolik',
-        description: 'Yangi parollar bir-biriga mos kelmadi',
-      });
+    setInfoError(null);
+    if (!fullName.trim()) {
+      setIsInfoShaking(true);
+      setTimeout(() => setIsInfoShaking(false), 600);
+      setInfoError("To'liq ismni kiritish majburiy.");
       return;
     }
-    addToast({
-      type: 'success',
-      title: 'Parol o‘zgartirildi',
-      description: 'Yangi parol muvaffaqiyatli o‘rnatildi',
-    });
-    setCurrentPass('');
-    setNewPass('');
-    setConfirmPass('');
+
+    setIsInfoSubmitting(true);
+    try {
+      updateCurrentUser({
+        fullName,
+        email,
+        phone,
+      });
+      addToast({
+        type: 'success',
+        title: 'Profil yangilandi',
+        description: 'Shaxsiy ma’lumotlaringiz muvaffaqiyatli saqlandi',
+      });
+    } catch (err: any) {
+      setIsInfoShaking(true);
+      setTimeout(() => setIsInfoShaking(false), 600);
+      setInfoError(err?.message || "Profilni yangilashda xatolik yuz berdi.");
+    } finally {
+      setIsInfoSubmitting(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPassError(null);
+
+    if (!currentPass) {
+      setIsPassShaking(true);
+      setTimeout(() => setIsPassShaking(false), 600);
+      setPassError("Joriy parolni kiriting.");
+      return;
+    }
+
+    if (!newPass || newPass.length < 6) {
+      setIsPassShaking(true);
+      setTimeout(() => setIsPassShaking(false), 600);
+      setPassError("Yangi parol kamida 6 ta belgidan iborat bo'lishi kerak.");
+      return;
+    }
+
+    if (newPass !== confirmPass) {
+      setIsPassShaking(true);
+      setTimeout(() => setIsPassShaking(false), 600);
+      setPassError("Yangi parollar bir-biriga mos kelmadi.");
+      return;
+    }
+
+    setIsPassSubmitting(true);
+    try {
+      await api.auth.changePassword({
+        currentPassword: currentPass,
+        newPassword: newPass,
+      });
+
+      addToast({
+        type: 'success',
+        title: 'Parol o‘zgartirildi',
+        description: 'Yangi parol muvaffaqiyatli o‘rnatildi',
+      });
+      setCurrentPass('');
+      setNewPass('');
+      setConfirmPass('');
+    } catch (err: any) {
+      setIsPassShaking(true);
+      setTimeout(() => setIsPassShaking(false), 600);
+      setPassError(err?.message || "Parolni o'zgartirishda xatolik yuz berdi.");
+    } finally {
+      setIsPassSubmitting(false);
+    }
   };
 
   return (
@@ -97,7 +148,19 @@ export function ProfilePage() {
           </div>
         </CardHeader>
         <CardBody>
-          <form onSubmit={handleUpdateInfo} className="space-y-4">
+          <form
+            onSubmit={handleUpdateInfo}
+            noValidate
+            className={cn("space-y-4 transition-transform", isInfoShaking && "animate-shake")}
+          >
+            {infoError && (
+              <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-danger-main" />
+                <div className="flex-1">
+                  <p className="font-semibold text-sm">{infoError}</p>
+                </div>
+              </div>
+            )}
             <Input
               label="To‘liq ism"
               value={fullName}
@@ -120,7 +183,7 @@ export function ProfilePage() {
             </div>
 
             <div className="pt-2 flex justify-end">
-              <Button type="submit" leftIcon={<Save className="w-4 h-4" />} className="w-full sm:w-auto justify-center">
+              <Button type="submit" loading={isInfoSubmitting} leftIcon={<Save className="w-4 h-4" />} className="w-full sm:w-auto justify-center">
                 Saqlash
               </Button>
             </div>
@@ -140,7 +203,19 @@ export function ProfilePage() {
           </div>
         </CardHeader>
         <CardBody>
-          <form onSubmit={handleUpdatePassword} className="space-y-4">
+          <form
+            onSubmit={handleUpdatePassword}
+            noValidate
+            className={cn("space-y-4 transition-transform", isPassShaking && "animate-shake")}
+          >
+            {passError && (
+              <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-danger-main" />
+                <div className="flex-1">
+                  <p className="font-semibold text-sm">{passError}</p>
+                </div>
+              </div>
+            )}
             <Input
               label="Joriy parol"
               type="password"
@@ -167,7 +242,7 @@ export function ProfilePage() {
             </div>
 
             <div className="pt-2 flex justify-end">
-              <Button type="submit" variant="secondary" className="w-full sm:w-auto justify-center">
+              <Button type="submit" loading={isPassSubmitting} variant="secondary" className="w-full sm:w-auto justify-center">
                 Parolni o‘zgartirish
               </Button>
             </div>

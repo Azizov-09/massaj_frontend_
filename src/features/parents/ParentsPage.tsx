@@ -46,9 +46,14 @@ export function ParentsPage() {
     status: 'ACTIVE',
   });
   const [editErrors, setEditErrors] = useState<{ fullName?: string; phone?: string }>({});
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+  const [editSubmitError, setEditSubmitError] = useState<string | null>(null);
+  const [editIsShaking, setEditIsShaking] = useState(false);
+  const [isDeletingLoading, setIsDeletingLoading] = useState(false);
 
   const handleOpenEdit = (parent: Parent) => {
     setEditingParent(parent);
+    setEditSubmitError(null);
     setEditForm({
       fullName: parent.fullName || '',
       phone: parent.phone || '',
@@ -58,9 +63,10 @@ export function ParentsPage() {
     setEditErrors({});
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingParent) return;
+    setEditSubmitError(null);
 
     const errors: { fullName?: string; phone?: string } = {};
     if (!editForm.fullName.trim()) errors.fullName = 'Ism familiyani kiriting';
@@ -68,18 +74,29 @@ export function ParentsPage() {
 
     if (Object.keys(errors).length > 0) {
       setEditErrors(errors);
+      setEditIsShaking(true);
+      setTimeout(() => setEditIsShaking(false), 500);
       return;
     }
 
-    updateParent(editingParent.id, {
-      fullName: editForm.fullName.trim(),
-      phone: editForm.phone.trim(),
-      address: editForm.address.trim() || undefined,
-      status: editForm.status,
-    });
-
-    setEditingParent(null);
-    setEditErrors({});
+    setIsEditSubmitting(true);
+    try {
+      await updateParent(editingParent.id, {
+        fullName: editForm.fullName.trim(),
+        phone: editForm.phone.trim(),
+        address: editForm.address.trim() || undefined,
+        status: editForm.status,
+      });
+      setEditingParent(null);
+      setEditErrors({});
+      setEditSubmitError(null);
+    } catch (err: any) {
+      setEditIsShaking(true);
+      setTimeout(() => setEditIsShaking(false), 600);
+      setEditSubmitError(err?.message || 'Serverda xatolik yuz berdi');
+    } finally {
+      setIsEditSubmitting(false);
+    }
   };
 
   const handleToggleStatus = (parent: Parent) => {
@@ -96,10 +113,16 @@ export function ParentsPage() {
     setDeletingParent(parent);
   };
 
-  const confirmDeleteParent = () => {
-    if (deletingParent) {
-      deleteParent(deletingParent.id);
+  const confirmDeleteParent = async () => {
+    if (!deletingParent) return;
+    setIsDeletingLoading(true);
+    try {
+      await deleteParent(deletingParent.id);
       setDeletingParent(null);
+    } catch {
+      // toast already shown in store
+    } finally {
+      setIsDeletingLoading(false);
     }
   };
 
@@ -779,7 +802,7 @@ export function ParentsPage() {
       {editingParent && (
         <Modal
           isOpen={!!editingParent}
-          onClose={() => { setEditingParent(null); setEditErrors({}); }}
+          onClose={() => { if (!isEditSubmitting) { setEditingParent(null); setEditErrors({}); setEditSubmitError(null); } }}
           title="Ota-ona ma'lumotlarini tahrirlash"
           size="md"
           footer={
@@ -787,20 +810,31 @@ export function ParentsPage() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => { setEditingParent(null); setEditErrors({}); }}
+                disabled={isEditSubmitting}
+                onClick={() => { setEditingParent(null); setEditErrors({}); setEditSubmitError(null); }}
               >
                 Bekor qilish
               </Button>
               <Button
                 size="sm"
-                onClick={handleSaveEdit}
+                loading={isEditSubmitting}
+                onClick={handleSaveEdit as any}
               >
                 Saqlash
               </Button>
             </div>
           }
         >
-          <form onSubmit={handleSaveEdit} className="space-y-4 py-2">
+          <form onSubmit={handleSaveEdit} className={`space-y-4 py-2 transition-transform ${editIsShaking ? 'animate-shake' : ''}`}>
+            {editSubmitError && (
+              <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-semibold text-sm">{editSubmitError}</p>
+                  <p className="text-[11px] text-danger-main/80 mt-0.5">Iltimos, ma'lumotlarni tekshirib qaytadan urinib ko'ring.</p>
+                </div>
+              </div>
+            )}
             <Input
               label="To‘liq ism"
               required
@@ -849,7 +883,7 @@ export function ParentsPage() {
       {deletingParent && (
         <Modal
           isOpen={!!deletingParent}
-          onClose={() => setDeletingParent(null)}
+          onClose={() => { if (!isDeletingLoading) setDeletingParent(null); }}
           title="Ota-onani o'chirish"
           size="sm"
           footer={
@@ -857,6 +891,7 @@ export function ParentsPage() {
               <Button
                 variant="secondary"
                 size="sm"
+                disabled={isDeletingLoading}
                 onClick={() => setDeletingParent(null)}
               >
                 Bekor qilish
@@ -864,6 +899,7 @@ export function ParentsPage() {
               <Button
                 variant="danger"
                 size="sm"
+                loading={isDeletingLoading}
                 onClick={confirmDeleteParent}
               >
                 Ha, o'chirish

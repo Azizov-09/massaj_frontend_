@@ -1,14 +1,14 @@
 // ═══════════════════════════════════════════════════════
 //  Create Appointment Form
 // ═══════════════════════════════════════════════════════
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useStore, useAuth } from '@/store';
 import { Select, Textarea, DatePicker, TimePicker, Badge, Avatar } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
-import { Clock } from 'lucide-react';
+import { Clock, AlertCircle } from 'lucide-react';
 import { cn } from '@/utils';
 
 const schema = z.object({
@@ -39,6 +39,10 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
   const createAppointment = useStore(s => s.createAppointment);
   const addToast = useStore(s => s.addToast);
   const clinicSettings = useStore(s => s.clinicSettings);
+
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
+  const [conflictField, setConflictField] = useState<'startTime' | 'date' | 'specialistId' | null>(null);
 
   const isParent = currentUser?.role === 'PARENT';
   const availableChildren = isParent && currentUser
@@ -89,22 +93,27 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
   const parent = parents.find(p => p.id === parentId);
 
   const onSubmit = async (data: FormValues) => {
+    setSubmitError(null);
+    setConflictField(null);
+
     // Working hours validation
     if (data.startTime < workStart || data.startTime > workEnd) {
-      addToast({
-        type: 'error',
-        title: 'Ish vaqtidan tashqari!',
-        description: `Uchrashuv vaqti ish vaqti oralig‘ida (${workStart} — ${workEnd}) bo‘lishi kerak.`,
-      });
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      setConflictField('startTime');
+      const msg = `Uchrashuv vaqti ish vaqti oralig‘ida (${workStart} — ${workEnd}) bo‘lishi kerak.`;
+      setSubmitError(msg);
+      addToast({ type: 'error', title: 'Ish vaqtidan tashqari!', description: msg });
       return;
     }
 
     if (endTime && endTime > workEnd) {
-      addToast({
-        type: 'error',
-        title: 'Ish vaqtidan oshib ketdi!',
-        description: `Uchrashuv tugash vaqti (${endTime}) ish vaqtidan (${workEnd}) oshib ketmasligi kerak. Iltimos, ertaroq vaqt tanlang.`,
-      });
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      setConflictField('startTime');
+      const msg = `Uchrashuv tugash vaqti (${endTime}) ish vaqtidan (${workEnd}) oshib ketmasligi kerak. Iltimos, ertaroq vaqt tanlang.`;
+      setSubmitError(msg);
+      addToast({ type: 'error', title: 'Ish vaqtidan oshib ketdi!', description: msg });
       return;
     }
 
@@ -112,11 +121,12 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
     if (selectedSpecialist && data.date) {
       const dayOfWeek = new Date(data.date).getDay();
       if (!selectedSpecialist.workingDays.includes(dayOfWeek)) {
-        addToast({
-          type: 'error',
-          title: 'Ish kuni emas!',
-          description: `${selectedSpecialist.fullName} tanlangan haftaning ushbu kunida qabul qilmaydi.`,
-        });
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 600);
+        setConflictField('date');
+        const msg = `${selectedSpecialist.fullName} tanlangan haftaning ushbu kunida qabul qilmaydi.`;
+        setSubmitError(msg);
+        addToast({ type: 'error', title: 'Ish kuni emas!', description: msg });
         return;
       }
     }
@@ -130,30 +140,54 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
     );
 
     if (hasConflict) {
-      addToast({
-        type: 'error',
-        title: 'Vaqt band!',
-        description: 'Ushbu mutaxassisning ko‘rsatilgan vaqtda boshqa qabuli mavjud. Iltimos, boshqa vaqt tanlang.',
-      });
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      setConflictField('startTime');
+      const msg = 'Ushbu mutaxassisning ko‘rsatilgan vaqtda boshqa qabuli mavjud. Iltimos, boshqa vaqt tanlang.';
+      setSubmitError(msg);
+      addToast({ type: 'error', title: 'Vaqt band!', description: msg });
       return;
     }
 
-    createAppointment({
-      childId: data.childId,
-      parentId,
-      specialistId: data.specialistId,
-      serviceId: data.serviceId,
-      date: data.date,
-      startTime: data.startTime,
-      endTime,
-      status: 'SCHEDULED',
-      notes: data.notes,
-    });
-    onSuccess();
+    try {
+      await createAppointment({
+        childId: data.childId,
+        parentId,
+        specialistId: data.specialistId,
+        serviceId: data.serviceId,
+        date: data.date,
+        startTime: data.startTime,
+        endTime,
+        status: 'SCHEDULED',
+        notes: data.notes,
+      });
+      onSuccess();
+    } catch (err: any) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      const msg = err?.message || "Uchrashuvni yaratishda xatolik yuz berdi";
+      setSubmitError(msg);
+      addToast({ type: 'error', title: 'Xatolik', description: msg });
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      className={cn("space-y-4 transition-transform", isShaking && "animate-shake")}
+    >
+      {submitError && (
+        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-semibold text-sm">{submitError}</p>
+            <p className="text-[11px] text-danger-main/80 mt-0.5">
+              Iltimos, boshqa vaqt yoki mutaxassisni tanlang.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="grid sm:grid-cols-2 gap-4">
         <Controller
           control={control}
