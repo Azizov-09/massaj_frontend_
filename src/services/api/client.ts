@@ -20,6 +20,38 @@ export class ApiError extends Error {
   }
 }
 
+export type ApiConflictField = 'phone' | 'email';
+
+/**
+ * Resolve the field responsible for a backend conflict without guessing that
+ * every HTTP 409 belongs to the phone input. NestJS errors can arrive as a
+ * field name, an array of validation messages, or a nested details object.
+ */
+export function getApiConflictField(error: unknown): ApiConflictField | null {
+  const err = error as { message?: unknown; data?: any } | null | undefined;
+  const explicitField =
+    err?.data?.field ||
+    err?.data?.property ||
+    err?.data?.details?.field ||
+    err?.data?.error?.field;
+
+  if (typeof explicitField === 'string') {
+    const normalizedField = explicitField.toLowerCase();
+    if (normalizedField.includes('email')) return 'email';
+    if (normalizedField.includes('phone') || normalizedField.includes('telefon')) return 'phone';
+  }
+
+  const messageParts = [err?.message, err?.data?.message, err?.data?.error, err?.data?.details]
+    .flatMap(value => Array.isArray(value) ? value : [value])
+    .filter(value => value !== undefined && value !== null)
+    .map(value => typeof value === 'string' ? value : JSON.stringify(value));
+  const message = messageParts.join(' ').toLowerCase();
+
+  if (message.includes('email')) return 'email';
+  if (message.includes('phone') || message.includes('telefon')) return 'phone';
+  return null;
+}
+
 function resolveDefaultBaseUrl(): string {
   const isTest =
     (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') ||
@@ -188,29 +220,6 @@ export class ApiClient {
           }
         }
 
-        // Auto-recover session for demo administrator when in browser
-        const isTest = typeof process !== 'undefined' && process.env?.NODE_ENV === 'test';
-        if (!isTest && typeof window !== 'undefined') {
-          try {
-            const loginUrl = this.buildUrl('/auth/login');
-            const loginRes = await fetch(loginUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ phone: '+998901000001', password: 'Admin123!' }),
-            });
-            if (loginRes.ok) {
-              const loginData = await loginRes.json();
-              const autoAccess = loginData?.accessToken || loginData?.data?.accessToken;
-              const autoRefresh = loginData?.refreshToken || loginData?.data?.refreshToken;
-              if (autoAccess) {
-                this.setToken(autoAccess);
-                if (autoRefresh) this.setRefreshToken(autoRefresh);
-                return autoAccess;
-              }
-            }
-          } catch {}
-        }
-
         // Token refresh rejected or expired: cleanly terminate session
         this.setToken(null);
         this.setRefreshToken(null);
@@ -221,6 +230,9 @@ export class ApiClient {
       } catch {
         this.setToken(null);
         this.setRefreshToken(null);
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+          window.dispatchEvent(new CustomEvent('auth:session-expired'));
+        }
         return null;
       } finally {
         this.refreshPromise = null;

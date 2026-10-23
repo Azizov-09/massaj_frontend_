@@ -42,7 +42,7 @@ export function CreateAppointmentForm({ onSuccess, onCancel, defaultDate, defaul
 
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
-  const [conflictField, setConflictField] = useState<'startTime' | 'date' | 'specialistId' | null>(null);
+  const [_conflictField, setConflictField] = useState<'startTime' | 'date' | 'specialistId' | null>(null);
 
   const isParent = currentUser?.role === 'PARENT';
   const availableChildren = isParent && currentUser

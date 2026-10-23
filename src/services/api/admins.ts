@@ -1,9 +1,11 @@
-import type { ApiClient } from './client';
+import { ApiError, type ApiClient } from './client';
 import type { CreateAdminDto, UpdateAdminDto } from './types';
 import type { AdminUser } from '@/types';
 
 export function normalizeAdmin(raw: any): AdminUser {
-  if (!raw) return raw;
+  if (!raw || raw.id === undefined || raw.id === null || String(raw.id).trim() === '') {
+    throw new ApiError("Server administrator ma'lumotini noto'g'ri formatda qaytardi.", 502, raw);
+  }
   return {
     id: String(raw.id),
     fullName: raw.fullName || 'Administrator',

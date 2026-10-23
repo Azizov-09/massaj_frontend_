@@ -2,7 +2,7 @@
 //  Admins Page — Senior Medical/Wellness CRM Table standard
 // ═══════════════════════════════════════════════════════
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import {
   ShieldCheck, Plus, Search, Shield, User,
   CheckCircle2, Phone, Mail, Calendar, Eye, EyeOff, KeyRound, RefreshCw, X, Pencil,
@@ -17,6 +17,7 @@ import { DataTable, Column, getAvatarGradient } from '@/components/tables/DataTa
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/primitives';
 import type { AdminUser } from '@/types';
+import { getApiConflictField } from '@/services/api';
 
 type RoleTab = 'ALL' | 'SUPER_ADMIN' | 'ADMIN' | 'ACTIVE';
 
@@ -25,7 +26,6 @@ export function AdminsPage() {
   const createAdmin = useStore(s => s.createAdmin);
   const updateAdmin = useStore(s => s.updateAdmin);
   const deleteAdmin = useStore(s => s.deleteAdmin);
-  const addToast = useStore(s => s.addToast);
   const { currentUser } = useAuth();
 
   const [search, setSearch] = useState('');
@@ -60,6 +60,12 @@ export function AdminsPage() {
   const [editSubmitError, setEditSubmitError] = useState<string | null>(null);
   const [editIsShaking, setEditIsShaking] = useState(false);
   const [editDuplicateField, setEditDuplicateField] = useState<'phone' | 'email' | null>(null);
+  const [changingStatusId, setChangingStatusId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const createEmailRef = useRef<HTMLInputElement>(null);
+  const createPhoneRef = useRef<HTMLInputElement>(null);
+  const editEmailRef = useRef<HTMLInputElement>(null);
+  const editPhoneRef = useRef<HTMLInputElement>(null);
 
   // New admin form state
   const [newAdmin, setNewAdmin] = useState({
@@ -155,19 +161,19 @@ export function AdminsPage() {
       setSubmitError(null);
       setDuplicateField(null);
     } catch (err: any) {
-      setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 600);
-
       const msg = err?.message || "Serverda xatolik yuz berdi";
       setSubmitError(msg);
 
-      const lower = msg.toLowerCase();
-      if (err?.status === 409 || lower.includes('telefon') || lower.includes('phone')) {
-        setDuplicateField('phone');
-        setFormErrors(prev => ({ ...prev, phone: msg }));
-      } else if (lower.includes('email')) {
-        setDuplicateField('email');
-        setFormErrors(prev => ({ ...prev, email: msg }));
+      const conflictField = getApiConflictField(err);
+      if (conflictField) {
+        setDuplicateField(conflictField);
+        setFormErrors(prev => ({ ...prev, [conflictField]: msg }));
+        requestAnimationFrame(() => {
+          (conflictField === 'email' ? createEmailRef : createPhoneRef).current?.focus();
+        });
+      } else {
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 600);
       }
     } finally {
       setIsSubmitting(false);
@@ -238,48 +244,52 @@ export function AdminsPage() {
       setEditSubmitError(null);
       setEditDuplicateField(null);
     } catch (err: any) {
-      setEditIsShaking(true);
-      setTimeout(() => setEditIsShaking(false), 600);
-
       const msg = err?.message || "Serverda xatolik yuz berdi";
       setEditSubmitError(msg);
 
-      const lower = msg.toLowerCase();
-      if (err?.status === 409 || lower.includes('telefon') || lower.includes('phone')) {
-        setEditDuplicateField('phone');
-        setEditFormErrors(prev => ({ ...prev, phone: msg }));
-      } else if (lower.includes('email')) {
-        setEditDuplicateField('email');
-        setEditFormErrors(prev => ({ ...prev, email: msg }));
+      const conflictField = getApiConflictField(err);
+      if (conflictField) {
+        setEditDuplicateField(conflictField);
+        setEditFormErrors(prev => ({ ...prev, [conflictField]: msg }));
+        requestAnimationFrame(() => {
+          (conflictField === 'email' ? editEmailRef : editPhoneRef).current?.focus();
+        });
+      } else {
+        setEditIsShaking(true);
+        setTimeout(() => setEditIsShaking(false), 600);
       }
     } finally {
       setEditIsSubmitting(false);
     }
   };
 
-  const handleToggleAdminStatus = (admin: AdminUser) => {
+  const handleToggleAdminStatus = async (admin: AdminUser) => {
     const nextStatus = admin.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    updateAdmin(admin.id, { status: nextStatus });
-    addToast({
-      type: 'info',
-      title: nextStatus === 'ACTIVE' ? "Admin faollashtirildi" : "Admin nofaol qilindi",
-      description: `${admin.fullName} holati o'zgartirildi`,
-    });
+    setChangingStatusId(admin.id);
+    try {
+      await updateAdmin(admin.id, { status: nextStatus });
+    } catch {
+      // Store displays the server error and deliberately keeps the old state.
+    } finally {
+      setChangingStatusId(null);
+    }
   };
 
   const handleDeleteAdmin = (admin: AdminUser) => {
     setDeletingAdmin(admin);
   };
 
-  const confirmDeleteAdmin = () => {
-    if (deletingAdmin) {
-      deleteAdmin(deletingAdmin.id);
-      addToast({
-        type: 'success',
-        title: "Admin o'chirildi",
-        description: `${deletingAdmin.fullName} tizimdan muvaffaqiyatli o'chirildi`,
-      });
-      setDeletingAdmin(null);
+  const confirmDeleteAdmin = async () => {
+    if (deletingAdmin && !isDeleting) {
+      setIsDeleting(true);
+      try {
+        await deleteAdmin(deletingAdmin.id);
+        setDeletingAdmin(null);
+      } catch {
+        // Keep the confirmation open so the user can retry.
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -542,9 +552,10 @@ export function AdminsPage() {
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
             <input
+              aria-label="Adminni ism, email yoki telefon bo‘yicha qidirish"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Ism yoki username bo'yicha qidirish..."
+              placeholder="Ism, email yoki telefon bo‘yicha qidirish..."
               className="w-full h-10 pl-9.5 pr-8 text-xs sm:text-sm border border-warm-200 rounded-xl bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none transition-all"
             />
             {search && (
@@ -654,8 +665,9 @@ export function AdminsPage() {
                   <button
                     type="button"
                     onClick={() => handleToggleAdminStatus(admin)}
+                    disabled={changingStatusId === admin.id}
                     className={cn(
-                      "w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs transition-colors cursor-pointer",
+                      "w-full min-h-11 inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60",
                       !(currentUser?.role === 'SUPER_ADMIN' && admin.id !== currentUser.id) && "col-span-2"
                     )}
                   >
@@ -751,7 +763,7 @@ export function AdminsPage() {
               <div className="flex justify-between py-1 border-b border-warm-100">
                 <span className="text-charcoal-500">Oxirgi kirish:</span>
                 <span className="font-semibold text-charcoal-800">
-                  {selectedAdmin.lastLogin ? formatDate(selectedAdmin.lastLogin) : 'Yaqinda kirgan'}
+                  {selectedAdmin.lastLogin ? formatDate(selectedAdmin.lastLogin) : 'Hali tizimga kirmagan'}
                 </span>
               </div>
               <div className="flex justify-between py-1">
@@ -769,6 +781,7 @@ export function AdminsPage() {
               {currentUser?.role === 'SUPER_ADMIN' && (
                 <Button
                   onClick={() => {
+                    setSelectedAdmin(null);
                     handleOpenEdit(selectedAdmin);
                   }}
                   leftIcon={<Pencil className="w-4 h-4" />}
@@ -833,7 +846,7 @@ export function AdminsPage() {
           className={cn("space-y-4 transition-transform", isShaking && "animate-shake")}
         >
           {submitError && (
-            <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+            <div role="alert" className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="font-semibold text-sm">{submitError}</p>
@@ -857,13 +870,14 @@ export function AdminsPage() {
           />
 
           <Input
+            ref={createEmailRef}
             label="Email"
             required
             type="email"
             placeholder="admin@massaj.uz"
             value={newAdmin.email}
             error={formErrors.email}
-            className={duplicateField === 'email' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+            className={duplicateField === 'email' ? 'animate-shake border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
             onChange={e => {
               setNewAdmin({ ...newAdmin, email: e.target.value });
               if (formErrors.email) setFormErrors({ ...formErrors, email: undefined });
@@ -872,13 +886,14 @@ export function AdminsPage() {
           />
 
           <Input
+            ref={createPhoneRef}
             label="Telefon raqam"
             required
             type="tel"
             placeholder="+998901234567"
             value={newAdmin.phone}
             error={formErrors.phone}
-            className={duplicateField === 'phone' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+            className={duplicateField === 'phone' ? 'animate-shake border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
             onChange={e => {
               setNewAdmin({ ...newAdmin, phone: e.target.value });
               if (formErrors.phone) setFormErrors({ ...formErrors, phone: undefined });
@@ -888,7 +903,7 @@ export function AdminsPage() {
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-charcoal-700 flex items-center gap-1.5">
+              <label htmlFor="create-admin-password" className="text-sm font-medium text-charcoal-700 flex items-center gap-1.5">
                 <KeyRound className="w-3.5 h-3.5 text-brand-600" />
                 <span>Admin paroli</span>
                 <span className="text-danger-main">*</span>
@@ -907,6 +922,7 @@ export function AdminsPage() {
               </button>
             </div>
             <Input
+              id="create-admin-password"
               type={showPassword ? 'text' : 'password'}
               placeholder="Kamida 12 ta belgi (katta/kichik harf, raqam)"
               value={newAdmin.password}
@@ -920,8 +936,8 @@ export function AdminsPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
-                  className="text-charcoal-400 hover:text-charcoal-700 transition-colors focus:outline-none"
+                  aria-label={showPassword ? "Parolni yashirish" : "Parolni ko‘rsatish"}
+                  className="text-charcoal-500 hover:text-charcoal-800 transition-colors focus-visible:outline-2 focus-visible:outline-brand-600"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -999,7 +1015,7 @@ export function AdminsPage() {
             className={cn("space-y-4 transition-transform", editIsShaking && "animate-shake")}
           >
             {editSubmitError && (
-              <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+              <div role="alert" className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="font-semibold text-sm">{editSubmitError}</p>
@@ -1011,6 +1027,7 @@ export function AdminsPage() {
             )}
 
             <Input
+              ref={editEmailRef}
               label="To‘liq ism"
               required
               placeholder="Masalan: Sardor Rustamov"
@@ -1028,7 +1045,7 @@ export function AdminsPage() {
               placeholder="admin@massaj.uz"
               value={editForm.email}
               error={editFormErrors.email}
-              className={editDuplicateField === 'email' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+              className={editDuplicateField === 'email' ? 'animate-shake border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
               onChange={e => {
                 setEditForm({ ...editForm, email: e.target.value });
                 if (editFormErrors.email) setEditFormErrors({ ...editFormErrors, email: undefined });
@@ -1037,13 +1054,14 @@ export function AdminsPage() {
             />
 
             <Input
+              ref={editPhoneRef}
               label="Telefon raqam"
               required
               type="tel"
               placeholder="+998901234567"
               value={editForm.phone}
               error={editFormErrors.phone}
-              className={editDuplicateField === 'phone' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+              className={editDuplicateField === 'phone' ? 'animate-shake border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
               onChange={e => {
                 setEditForm({ ...editForm, phone: e.target.value });
                 if (editFormErrors.phone) setEditFormErrors({ ...editFormErrors, phone: undefined });
@@ -1078,7 +1096,9 @@ export function AdminsPage() {
       {deletingAdmin && (
         <Modal
           isOpen={!!deletingAdmin}
-          onClose={() => setDeletingAdmin(null)}
+          onClose={() => {
+            if (!isDeleting) setDeletingAdmin(null);
+          }}
           title="Adminni o'chirish"
           size="sm"
           footer={
@@ -1086,6 +1106,7 @@ export function AdminsPage() {
               <Button
                 variant="secondary"
                 size="sm"
+                disabled={isDeleting}
                 onClick={() => setDeletingAdmin(null)}
               >
                 Bekor qilish
@@ -1093,6 +1114,7 @@ export function AdminsPage() {
               <Button
                 variant="danger"
                 size="sm"
+                loading={isDeleting}
                 onClick={confirmDeleteAdmin}
               >
                 Ha, o'chirish

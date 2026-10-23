@@ -8,6 +8,7 @@ import { Input, Textarea } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { generateStrongPassword, cn } from '@/utils';
 import { Eye, EyeOff, RefreshCw, KeyRound, ShieldCheck, AlertCircle } from 'lucide-react';
+import { getApiConflictField } from '@/services/api';
 
 const schema = z.object({
   fullName: z.string().min(2, 'Ism kamida 2 ta belgi'),
@@ -32,7 +33,7 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
   const [isShaking, setIsShaking] = useState(false);
   const [duplicateField, setDuplicateField] = useState<'phone' | 'email' | null>(null);
 
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { register, handleSubmit, setValue, setFocus, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       fullName: '',
@@ -65,16 +66,16 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
       }, data.password);
       onSuccess();
     } catch (err: any) {
-      setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 600);
       const msg = err?.message || "Serverda xatolik yuz berdi";
       setSubmitError(msg);
 
-      const lower = msg.toLowerCase();
-      if (err?.status === 409 || lower.includes('telefon') || lower.includes('phone')) {
-        setDuplicateField('phone');
-      } else if (lower.includes('email')) {
-        setDuplicateField('email');
+      const conflictField = getApiConflictField(err);
+      if (conflictField) {
+        setDuplicateField(conflictField);
+        requestAnimationFrame(() => setFocus(conflictField));
+      } else {
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 600);
       }
     }
   };
@@ -86,7 +87,7 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
       className={cn("space-y-4 transition-transform", isShaking && "animate-shake")}
     >
       {submitError && (
-        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+        <div role="alert" className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="font-semibold text-sm">{submitError}</p>
@@ -99,14 +100,14 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
 
       <Input label="To'liq ism" required placeholder="Masalan: Karimova Nilufar" error={errors.fullName?.message} {...register('fullName')} />
       
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input
           label="Telefon"
           required
           type="tel"
           placeholder="+998901234567"
           error={duplicateField === 'phone' ? submitError || errors.phone?.message : errors.phone?.message}
-          className={duplicateField === 'phone' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+          className={duplicateField === 'phone' ? 'animate-shake border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
           {...register('phone', {
             onChange: () => {
               if (duplicateField === 'phone') setDuplicateField(null);
@@ -118,7 +119,7 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
           type="email"
           placeholder="email@example.com"
           error={duplicateField === 'email' ? submitError || errors.email?.message : errors.email?.message}
-          className={duplicateField === 'email' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+          className={duplicateField === 'email' ? 'animate-shake border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
           {...register('email', {
             onChange: () => {
               if (duplicateField === 'email') setDuplicateField(null);
@@ -129,7 +130,7 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
 
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-charcoal-700 flex items-center gap-1.5">
+          <label htmlFor="create-parent-password" className="text-sm font-medium text-charcoal-700 flex items-center gap-1.5">
             <KeyRound className="w-3.5 h-3.5 text-brand-600" />
             <span>Kirish paroli</span>
             <span className="text-danger-main">*</span>
@@ -144,6 +145,7 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
           </button>
         </div>
         <Input
+          id="create-parent-password"
           type={showPassword ? 'text' : 'password'}
           placeholder="Kamida 12 ta belgi (katta/kichik harf, raqam)"
           error={errors.password?.message}
@@ -153,8 +155,8 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              tabIndex={-1}
-              className="text-charcoal-400 hover:text-charcoal-700 transition-colors focus:outline-none"
+              aria-label={showPassword ? "Parolni yashirish" : "Parolni ko‘rsatish"}
+              className="text-charcoal-500 hover:text-charcoal-800 transition-colors focus-visible:outline-2 focus-visible:outline-brand-600"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>

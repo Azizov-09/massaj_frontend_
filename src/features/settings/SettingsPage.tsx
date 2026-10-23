@@ -16,7 +16,6 @@ export function SettingsPage() {
   const clinicSettings = useStore(s => s.clinicSettings);
   const updateClinicSettings = useStore(s => s.updateClinicSettings);
   const resetToSeedData = useStore(s => s.resetToSeedData);
-  const addToast = useStore(s => s.addToast);
 
   const [clinicName, setClinicName] = useState(clinicSettings?.clinicName || 'Bolalar Massaj & Reabilitatsiya Markazi');
   const [phone, setPhone] = useState(clinicSettings?.phone || '+998 71 200 00 00');
@@ -24,26 +23,29 @@ export function SettingsPage() {
   const [workStart, setWorkStart] = useState(clinicSettings?.workStart || '08:00');
   const [workEnd, setWorkEnd] = useState(clinicSettings?.workEnd || '18:00');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isSavingGeneral, setIsSavingGeneral] = useState(false);
 
   // Notifications
   const [smsEnabled, setSmsEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [reminderHours, setReminderHours] = useState('24');
 
-  const handleSaveGeneral = (e: React.FormEvent) => {
+  const handleSaveGeneral = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateClinicSettings({
-      clinicName,
-      phone,
-      address,
-      workStart,
-      workEnd,
-    });
-    addToast({
-      type: 'success',
-      title: 'Sozlamalar saqlandi',
-      description: "Klinika ma'lumotlari muvaffaqiyatli yangilandi"
-    });
+    setIsSavingGeneral(true);
+    try {
+      await updateClinicSettings({
+        clinicName,
+        phone,
+        address,
+        workStart,
+        workEnd,
+      });
+    } catch {
+      // Store shows the backend error; keep the entered values for retry.
+    } finally {
+      setIsSavingGeneral(false);
+    }
   };
 
   const handleResetConfirm = () => {
@@ -110,7 +112,7 @@ export function SettingsPage() {
             </div>
 
             <div className="pt-2 flex justify-end">
-              <Button type="submit" leftIcon={<Save className="w-4 h-4" />} className="w-full sm:w-auto justify-center">
+              <Button type="submit" loading={isSavingGeneral} leftIcon={<Save className="w-4 h-4" />} className="w-full sm:w-auto justify-center">
                 O‘zgarishlarni saqlash
               </Button>
             </div>

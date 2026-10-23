@@ -99,14 +99,13 @@ export function ParentsPage() {
     }
   };
 
-  const handleToggleStatus = (parent: Parent) => {
+  const handleToggleStatus = async (parent: Parent) => {
     const nextStatus = parent.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    updateParent(parent.id, { status: nextStatus });
-    addToast({
-      type: 'info',
-      title: nextStatus === 'ACTIVE' ? "Ota-ona faollashtirildi" : "Ota-ona nofaol qilindi",
-      description: `${parent.fullName} holati o'zgartirildi`,
-    });
+    try {
+      await updateParent(parent.id, { status: nextStatus });
+    } catch {
+      // Store keeps the previous value and displays the backend error.
+    }
   };
 
   const handleDeleteParent = (parent: Parent) => {

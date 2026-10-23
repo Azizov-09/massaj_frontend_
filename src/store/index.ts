@@ -34,6 +34,12 @@ import {
   EMPLOYEES,
 } from '@/data/seed';
 
+const IS_TEST_ENV =
+  (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') ||
+  (import.meta as any).env?.MODE === 'test' ||
+  Boolean((import.meta as any).env?.VITEST);
+const DEMO_DATA_ENABLED = IS_TEST_ENV || (import.meta as any).env?.VITE_ENABLE_DEMO_DATA === 'true';
+
 // ─── Auth State ───────────────────────────────────────────
 
 interface AuthState {
@@ -41,6 +47,7 @@ interface AuthState {
   isAuthenticated: boolean;
   login: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  expireSession: () => void;
   updateCurrentUser: (data: Partial<AdminUser | Specialist | Parent>) => void;
 }
 
@@ -132,14 +139,14 @@ interface Actions {
   ) => void;
 
   // Attendance
-  recordAttendance: (data: Omit<AttendanceRecord, 'id' | 'createdAt'>) => void;
+  recordAttendance: (data: Omit<AttendanceRecord, 'id' | 'createdAt'>) => Promise<AttendanceRecord>;
   removeAttendance: (appointmentId: string) => void;
 
   // Assessments
-  createAssessment: (data: Omit<Assessment, 'id' | 'createdAt'>) => void;
+  createAssessment: (data: Omit<Assessment, 'id' | 'createdAt'>) => Promise<Assessment>;
 
   // Progress Notes
-  createProgressNote: (data: Omit<ProgressNote, 'id' | 'createdAt'>) => void;
+  createProgressNote: (data: Omit<ProgressNote, 'id' | 'createdAt'>) => Promise<ProgressNote>;
 
   // Payments
   recordPayment: (data: {
@@ -171,7 +178,7 @@ interface Actions {
   addActivityLog: (log: Omit<ActivityLog, 'id' | 'timestamp'>) => void;
 
   // Clinic Settings & Reset
-  updateClinicSettings: (settings: Partial<DataState['clinicSettings']>) => void;
+  updateClinicSettings: (settings: Partial<DataState['clinicSettings']>) => Promise<void>;
   resetStore: () => void;
   resetToSeedData: () => void;
 }
@@ -189,35 +196,16 @@ export const useStore = create<Store>()(
 
       login: async (identifier, password) => {
         const isDemoEmail = identifier.includes('@demo.com') || identifier.includes('@massaj.uz');
-        const isTestEnv =
-          (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') ||
-          (import.meta as any).env?.MODE === 'test' ||
-          Boolean((import.meta as any).env?.VITEST);
 
-        // Support standard demo credentials & unit tests without unnecessary network waterfalls
+        // Demo identities are isolated to tests. Production must always use a
+        // backend-issued identity and JWT; local auth fallbacks create a false
+        // authenticated state and trigger protected API calls without a token.
         if (isDemoEmail && password === 'demo123') {
-          // If in real browser environment, authenticate with real backend Super Admin credentials to obtain real JWT!
-          if (!isTestEnv) {
-            try {
-              const res = await api.auth.login({ phone: '+998901000001', password: 'Admin123!' });
-              if (res && res.accessToken) {
-                const u = res.user;
-                const currentUser: any = {
-                  id: u.id,
-                  fullName: u.fullName || 'Bosh Administrator (Super)',
-                  email: identifier,
-                  phone: u.phone || '+998901000001',
-                  role: u.role || 'SUPER_ADMIN',
-                  status: 'ACTIVE',
-                  createdAt: new Date().toISOString(),
-                };
-                set({ currentUser, isAuthenticated: true });
-                get().fetchInitialData();
-                return { success: true };
-              }
-            } catch (authErr) {
-              console.warn('[Store] Live demo backend authentication failed, using offline fallback:', authErr);
-            }
+          if (!IS_TEST_ENV) {
+            return {
+              success: false,
+              error: "Demo kirish productionda o'chirilgan. Backenddagi telefon raqami va parol bilan kiring.",
+            };
           }
 
           const role: UserRole = identifier.includes('specialist')
@@ -242,9 +230,6 @@ export const useStore = create<Store>()(
           };
 
           set({ currentUser: user, isAuthenticated: true });
-          if (!isTestEnv) {
-            get().fetchInitialData();
-          }
           return { success: true };
         }
 
@@ -281,7 +266,7 @@ export const useStore = create<Store>()(
             return { success: true };
           }
         } catch (err: any) {
-          if (!isTestEnv) {
+          if (!IS_TEST_ENV) {
             console.warn('[Auth] Real backend login attempt response:', err);
           }
 
@@ -293,14 +278,18 @@ export const useStore = create<Store>()(
       },
 
       logout: () => {
-        try {
-          api.auth.logout();
-        } catch (e) {
-          console.warn('[Auth] Logout warning:', e);
-        }
+        void api.auth.logout();
+        get().expireSession();
+      },
+
+      expireSession: () => {
+        api.setToken(null);
+        api.setRefreshToken(null);
         set({
           currentUser: null,
           isAuthenticated: false,
+          admins: [],
+          employees: [],
           children: [],
           parents: [],
           specialists: [],
@@ -309,11 +298,13 @@ export const useStore = create<Store>()(
           sessions: [],
           attendance: [],
           assessments: [],
+          transactions: [],
           payments: [],
           progressNotes: [],
           notifications: [],
           activityLogs: [],
           isInitialized: false,
+          isLoadingData: false,
         });
       },
 
@@ -339,25 +330,24 @@ export const useStore = create<Store>()(
           }
           return { currentUser: updated as AdminUser };
         });
-        get().addToast({ type: 'success', title: 'Profil yangilandi', description: 'Ma\'lumotlaringiz muvaffaqiyatli saqlandi' });
       },
 
       // ── Initial Clinical Dataset (Seeded defaults with live backend sync) ──
-      admins: ADMINS,
-      employees: EMPLOYEES,
-      specialists: SPECIALISTS,
-      parents: PARENTS,
-      children: CHILDREN,
-      services: SERVICES,
-      appointments: APPOINTMENTS,
-      sessions: SESSIONS,
-      attendance: ATTENDANCE_RECORDS,
-      assessments: ASSESSMENTS,
-      progressNotes: PROGRESS_NOTES,
-      transactions: TRANSACTIONS,
-      payments: PAYMENTS,
-      notifications: NOTIFICATIONS,
-      activityLogs: ACTIVITY_LOGS,
+      admins: DEMO_DATA_ENABLED ? ADMINS : [],
+      employees: DEMO_DATA_ENABLED ? EMPLOYEES : [],
+      specialists: DEMO_DATA_ENABLED ? SPECIALISTS : [],
+      parents: DEMO_DATA_ENABLED ? PARENTS : [],
+      children: DEMO_DATA_ENABLED ? CHILDREN : [],
+      services: DEMO_DATA_ENABLED ? SERVICES : [],
+      appointments: DEMO_DATA_ENABLED ? APPOINTMENTS : [],
+      sessions: DEMO_DATA_ENABLED ? SESSIONS : [],
+      attendance: DEMO_DATA_ENABLED ? ATTENDANCE_RECORDS : [],
+      assessments: DEMO_DATA_ENABLED ? ASSESSMENTS : [],
+      progressNotes: DEMO_DATA_ENABLED ? PROGRESS_NOTES : [],
+      transactions: DEMO_DATA_ENABLED ? TRANSACTIONS : [],
+      payments: DEMO_DATA_ENABLED ? PAYMENTS : [],
+      notifications: DEMO_DATA_ENABLED ? NOTIFICATIONS : [],
+      activityLogs: DEMO_DATA_ENABLED ? ACTIVITY_LOGS : [],
       clinicSettings: {
         clinicName: 'Bolalar Massaj & Reabilitatsiya Markazi',
         phone: '+998 71 200 00 00',
@@ -371,30 +361,25 @@ export const useStore = create<Store>()(
 
       // ── Live Backend Synchronization ───────────────────
       fetchInitialData: async () => {
-        const isTestEnv =
-          (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') ||
-          (import.meta as any).env?.MODE === 'test' ||
-          Boolean((import.meta as any).env?.VITEST);
-        if (isTestEnv) {
+        if (IS_TEST_ENV) {
           set({ isLoadingData: false, isInitialized: true });
           return;
         }
 
         let token = api.getToken();
         if (!token && get().isAuthenticated) {
-          // Attempt automatic background refresh or demo auto-auth if authenticated in store
+          // Only a valid refresh token may recover a session. Never manufacture
+          // a production session with hard-coded demo credentials.
           token = await api.refreshAccessToken();
-          if (!token) {
-            try {
-              const res = await api.auth.login({ phone: '+998901000001', password: 'Admin123!' });
-              token = res?.accessToken || null;
-            } catch {}
-          }
         }
 
         // If still no token, do not fire protected API requests without authorization
         if (!token) {
-          set({ isLoadingData: false, isInitialized: true });
+          set({
+            isLoadingData: false,
+            isInitialized: false,
+            dataError: 'Sessiya tugagan. Qayta tizimga kiring.',
+          });
           return;
         }
 
@@ -403,6 +388,57 @@ export const useStore = create<Store>()(
           const user = get().currentUser;
           const isParent = user?.role === 'PARENT';
           const isSpecialist = user?.role === 'SPECIALIST';
+          const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
+          const emptyList = () => Promise.resolve([] as any[]);
+
+          const childrenRequest = isParent
+            ? api.portal.getMyChildren()
+            : isSpecialist
+              ? api.portal.getMyAssignedChildren()
+              : api.children.getAll({ limit: 100 });
+
+          const loadClinicalPerChild = async <T,>(loader: (childId: string) => Promise<T[]>): Promise<T[]> => {
+            const children = await childrenRequest;
+            const combined: T[] = [];
+            const batchSize = 8;
+            for (let index = 0; index < children.length; index += batchSize) {
+              const batch = children.slice(index, index + batchSize);
+              const batchResults = await Promise.allSettled(batch.map(child => loader(child.id)));
+              batchResults.forEach(result => {
+                if (result.status === 'fulfilled' && Array.isArray(result.value)) {
+                  combined.push(...result.value);
+                }
+              });
+            }
+            return combined;
+          };
+
+          const assessmentsRequest = isParent
+            ? api.portal.getMyAssessments()
+            : isSpecialist
+              ? api.portal.getMyAuthoredAssessments()
+              : loadClinicalPerChild(childId => api.children.getAssessments(childId));
+          const progressRequest = isParent
+            ? api.portal.getMyProgress()
+            : isSpecialist
+              ? api.portal.getMyRecordedProgress()
+              : loadClinicalPerChild(childId => api.children.getProgress(childId));
+
+          const results = await Promise.allSettled([
+            childrenRequest,
+            isAdmin ? api.parents.getAll({ limit: 100 }) : emptyList(),
+            isAdmin ? api.specialists.getAll({ limit: 100 }) : emptyList(),
+            api.services.getAll(),
+            isParent ? api.portal.getMyPayments() : isAdmin ? api.finance.getPayments({ limit: 100 }) : emptyList(),
+            isAdmin ? api.finance.getTransactions() : emptyList(),
+            isAdmin ? api.platform.getSettings() : Promise.resolve(null),
+            api.platform.getNotifications(),
+            isAdmin ? api.platform.getActivityLogs() : emptyList(),
+            isAdmin ? api.admins.getAll({ limit: 100 }) : emptyList(),
+            isAdmin ? api.employees.getAll({ limit: 100 }) : emptyList(),
+            assessmentsRequest,
+            progressRequest,
+          ]);
 
           const [
             childrenRes,
@@ -418,21 +454,20 @@ export const useStore = create<Store>()(
             employeesRes,
             assessmentsRes,
             progressRes,
-          ] = await Promise.allSettled([
-            isParent ? api.portal.getMyChildren() : isSpecialist ? api.portal.getMyAssignedChildren() : api.children.getAll({ limit: 100 }),
-            api.parents.getAll({ limit: 100 }),
-            api.specialists.getAll({ limit: 100 }),
-            api.services.getAll(),
-            isParent ? api.portal.getMyPayments() : api.finance.getPayments({ limit: 100 }),
-            api.finance.getTransactions(),
-            api.platform.getSettings(),
-            api.platform.getNotifications(),
-            api.platform.getActivityLogs(),
-            api.admins.getAll({ limit: 100 }),
-            api.employees.getAll({ limit: 100 }),
-            isParent ? api.portal.getMyAssessments() : api.clinical.getAssessments({ limit: 100 }),
-            isParent ? api.portal.getMyProgress() : api.clinical.getProgress({ limit: 100 }),
-          ]);
+          ] = results;
+
+          const failures = results.filter(result => result.status === 'rejected');
+          const unauthorized = failures.some(result =>
+            result.status === 'rejected' && (result.reason as any)?.status === 401
+          );
+          if (unauthorized) {
+            get().expireSession();
+            return;
+          }
+
+          const syncError = failures.length > 0
+            ? `${failures.length} ta bo'lim serverdan yangilanmadi. Ko'rsatilgan ayrim ma'lumotlar eskirgan bo'lishi mumkin.`
+            : null;
 
           set(state => {
             const nextChildren = childrenRes.status === 'fulfilled' && Array.isArray(childrenRes.value) ? childrenRes.value : state.children;
@@ -477,6 +512,7 @@ export const useStore = create<Store>()(
               clinicSettings: nextSettings,
               isLoadingData: false,
               isInitialized: true,
+              dataError: syncError,
             };
           });
         } catch (err: any) {
@@ -943,20 +979,7 @@ export const useStore = create<Store>()(
       },
 
       // ── Attendance ───────────────────────────────────────
-      recordAttendance: (data) => {
-        const record: AttendanceRecord = { ...data, id: generateId(), createdAt: new Date().toISOString() };
-        set(s => ({
-          attendance: [
-            ...s.attendance.filter(a => {
-              if (data.appointmentId && a.appointmentId) {
-                return a.appointmentId !== data.appointmentId;
-              }
-              return !(a.childId === data.childId && a.date === data.date);
-            }),
-            record,
-          ],
-        }));
-
+      recordAttendance: async (data) => {
         // Resolve real backend childId
         let resolvedChildId = data.childId;
         const currentChildren = get().children;
@@ -1007,11 +1030,35 @@ export const useStore = create<Store>()(
           payload.note = data.note.trim();
         }
 
-        api.clinical.recordAttendance(payload).catch(err => {
-          console.warn('[Store] Background recordAttendance sync warning:', err);
-        });
+        try {
+          const created = IS_TEST_ENV
+            ? { ...data, id: generateId(), createdAt: new Date().toISOString() }
+            : await api.clinical.recordAttendance(payload);
+          const record: AttendanceRecord = {
+            ...data,
+            ...created,
+            appointmentId: data.appointmentId,
+            id: created.id,
+            createdAt: created.createdAt,
+          };
 
-        get().addToast({ type: 'success', title: 'Davomat belgilandi' });
+          set(s => ({
+            attendance: [
+              ...s.attendance.filter(a => {
+                if (data.appointmentId && a.appointmentId) {
+                  return a.appointmentId !== data.appointmentId;
+                }
+                return !(a.childId === data.childId && a.date === data.date);
+              }),
+              record,
+            ],
+          }));
+          get().addToast({ type: 'success', title: 'Davomat belgilandi' });
+          return record;
+        } catch (err: any) {
+          get().addToast({ type: 'error', title: 'Davomat saqlanmadi', description: err?.message });
+          throw err;
+        }
       },
 
       removeAttendance: (idOrAppointmentId) => {
@@ -1022,41 +1069,49 @@ export const useStore = create<Store>()(
       },
 
       // ── Assessments ──────────────────────────────────────
-      createAssessment: (data) => {
-        const assessment: Assessment = { ...data, id: generateId(), createdAt: new Date().toISOString() };
-        set(s => ({ assessments: [...s.assessments, assessment] }));
-
-        api.clinical.createAssessment({
-          childId: data.childId,
-          specialistId: data.specialistId,
-          movement: data.scores.movement,
-          coordination: data.scores.coordination,
-          flexibility: data.scores.flexibility,
-          activityTolerance: data.scores.activityTolerance,
-          sessionResponse: data.scores.sessionResponse,
-          professionalObservation: data.professionalObservation,
-        }).catch(err => {
-          console.warn('[Store] Background createAssessment sync warning:', err);
-        });
-
-        get().addToast({ type: 'success', title: 'Baholash saqlandi' });
+      createAssessment: async (data) => {
+        try {
+          const created = IS_TEST_ENV
+            ? { ...data, id: generateId(), createdAt: new Date().toISOString() }
+            : await api.clinical.createAssessment({
+                childId: data.childId,
+                specialistId: data.specialistId,
+                movement: data.scores.movement,
+                coordination: data.scores.coordination,
+                flexibility: data.scores.flexibility,
+                activityTolerance: data.scores.activityTolerance,
+                sessionResponse: data.scores.sessionResponse,
+                professionalObservation: data.professionalObservation,
+              });
+          const assessment: Assessment = { ...data, ...created };
+          set(s => ({ assessments: [assessment, ...s.assessments.filter(item => item.id !== assessment.id)] }));
+          get().addToast({ type: 'success', title: 'Baholash saqlandi' });
+          return assessment;
+        } catch (err: any) {
+          get().addToast({ type: 'error', title: 'Baholash saqlanmadi', description: err?.message });
+          throw err;
+        }
       },
 
       // ── Progress Notes ───────────────────────────────────
-      createProgressNote: (data) => {
-        const note: ProgressNote = { ...data, id: generateId(), createdAt: new Date().toISOString() };
-        set(s => ({ progressNotes: [...s.progressNotes, note] }));
-
-        api.clinical.createProgress({
-          childId: data.childId,
-          specialistId: data.specialistId,
-          title: 'Rivojlanish qaydi',
-          description: data.note,
-        }).catch(err => {
-          console.warn('[Store] Background createProgress sync warning:', err);
-        });
-
-        get().addToast({ type: 'success', title: 'Rivojlanish qaydi saqlandi' });
+      createProgressNote: async (data) => {
+        try {
+          const created = IS_TEST_ENV
+            ? { ...data, id: generateId(), createdAt: new Date().toISOString() }
+            : await api.clinical.createProgress({
+                childId: data.childId,
+                specialistId: data.specialistId,
+                title: 'Rivojlanish qaydi',
+                description: data.note,
+              });
+          const note: ProgressNote = { ...data, ...created };
+          set(s => ({ progressNotes: [note, ...s.progressNotes.filter(item => item.id !== note.id)] }));
+          get().addToast({ type: 'success', title: 'Rivojlanish qaydi saqlandi' });
+          return note;
+        } catch (err: any) {
+          get().addToast({ type: 'error', title: 'Rivojlanish qaydi saqlanmadi', description: err?.message });
+          throw err;
+        }
       },
 
       // ── Payments ─────────────────────────────────────────
@@ -1344,16 +1399,25 @@ export const useStore = create<Store>()(
       },
 
       // ── Clinic Settings & Reset ───────────────────────────
-      updateClinicSettings: (settings) => {
-        set(s => ({ clinicSettings: { ...s.clinicSettings, ...settings } }));
-        api.platform.updateSettings({
-          centerName: settings.clinicName,
-          phone: settings.phone,
-          address: settings.address,
-        }).catch(err => {
-          console.warn('[Store] Background updateSettings sync warning:', err);
-        });
-        get().addToast({ type: 'success', title: 'Sozlamalar saqlandi', description: 'Markaz ma\'lumotlari yangilandi' });
+      updateClinicSettings: async (settings) => {
+        try {
+          await api.platform.updateSettings({
+            centerName: settings.clinicName,
+            phone: settings.phone,
+            address: settings.address,
+            workingHours: settings.workStart || settings.workEnd
+              ? {
+                  start: settings.workStart ?? get().clinicSettings.workStart,
+                  end: settings.workEnd ?? get().clinicSettings.workEnd,
+                }
+              : undefined,
+          });
+          set(s => ({ clinicSettings: { ...s.clinicSettings, ...settings } }));
+          get().addToast({ type: 'success', title: 'Sozlamalar saqlandi', description: 'Markaz ma’lumotlari yangilandi' });
+        } catch (err: any) {
+          get().addToast({ type: 'error', title: 'Sozlamalar saqlanmadi', description: err?.message });
+          throw err;
+        }
       },
 
       resetStore: () => {

@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════
 //  Edit Child Modal — React Hook Form + Zod + Phone Mask
 // ═══════════════════════════════════════════════════════
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -64,10 +64,11 @@ export function EditChildModal({ isOpen, child, onClose, onSuccess }: Props) {
     mode: 'onChange',
   });
 
+  // Reset form fields when the child prop changes (no setState inside effect)
+  const prevChildIdRef = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (child) {
-      setSubmitError(null);
-      setDuplicateField(null);
+    if (child && child.id !== prevChildIdRef.current) {
+      prevChildIdRef.current = child.id;
       reset({
         fullName: child.fullName || '',
         dateOfBirth: child.dateOfBirth || '',

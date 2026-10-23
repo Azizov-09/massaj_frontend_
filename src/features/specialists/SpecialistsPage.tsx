@@ -17,6 +17,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Specialist } from '@/types';
+import { getApiConflictField } from '@/services/api';
 
 const schema = z.object({
   fullName: z.string().min(2, 'Ism kamida 2 ta belgi'),
@@ -43,7 +44,6 @@ export function SpecialistsPage() {
   const createSpecialist = useStore(s => s.createSpecialist);
   const updateSpecialist = useStore(s => s.updateSpecialist);
   const deleteSpecialist = useStore(s => s.deleteSpecialist);
-  const addToast = useStore(s => s.addToast);
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
@@ -130,14 +130,13 @@ export function SpecialistsPage() {
     }
   };
 
-  const handleToggleStatus = (specialist: Specialist) => {
+  const handleToggleStatus = async (specialist: Specialist) => {
     const nextStatus = specialist.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    updateSpecialist(specialist.id, { status: nextStatus });
-    addToast({
-      type: 'info',
-      title: nextStatus === 'ACTIVE' ? "Mutaxassis faollashtirildi" : "Mutaxassis nofaol qilindi",
-      description: `${specialist.fullName} holati o'zgartirildi`,
-    });
+    try {
+      await updateSpecialist(specialist.id, { status: nextStatus });
+    } catch {
+      // Store keeps the previous value and displays the backend error.
+    }
   };
 
   const handleDeleteSpecialist = (specialist: Specialist) => {
@@ -937,7 +936,7 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
   const [isShaking, setIsShaking] = useState(false);
   const [duplicateField, setDuplicateField] = useState<'phone' | 'email' | null>(null);
 
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { register, handleSubmit, setValue, setFocus, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       fullName: '',
@@ -973,16 +972,16 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
       }, data.password);
       onSuccess();
     } catch (err: any) {
-      setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 600);
       const msg = err?.message || "Serverda xatolik yuz berdi";
       setSubmitError(msg);
 
-      const lower = msg.toLowerCase();
-      if (err?.status === 409 || lower.includes('telefon') || lower.includes('phone')) {
-        setDuplicateField('phone');
-      } else if (lower.includes('email')) {
-        setDuplicateField('email');
+      const conflictField = getApiConflictField(err);
+      if (conflictField) {
+        setDuplicateField(conflictField);
+        requestAnimationFrame(() => setFocus(conflictField));
+      } else {
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 600);
       }
     }
   };
@@ -994,7 +993,7 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
       className={cn("space-y-4 transition-transform", isShaking && "animate-shake")}
     >
       {submitError && (
-        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+        <div role="alert" className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="font-semibold text-sm">{submitError}</p>
@@ -1007,14 +1006,14 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
 
       <Input label="To'liq ism" required placeholder="Masalan: Dr. Aziz Nazarov" error={errors.fullName?.message} {...register('fullName')} />
       <Input label="Mutaxassislik" required placeholder="Massaj terapevti, Fizioterapevt..." error={errors.specialization?.message} {...register('specialization')} />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input
           label="Telefon"
           required
           type="tel"
           placeholder="+998901234567"
           error={duplicateField === 'phone' ? submitError || errors.phone?.message : errors.phone?.message}
-          className={duplicateField === 'phone' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+          className={duplicateField === 'phone' ? 'animate-shake border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
           {...register('phone', {
             onChange: () => {
               if (duplicateField === 'phone') setDuplicateField(null);
@@ -1026,7 +1025,7 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
           type="email"
           placeholder="doctor@massaj.uz"
           error={duplicateField === 'email' ? submitError || errors.email?.message : errors.email?.message}
-          className={duplicateField === 'email' ? 'border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+          className={duplicateField === 'email' ? 'animate-shake border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
           {...register('email', {
             onChange: () => {
               if (duplicateField === 'email') setDuplicateField(null);
@@ -1037,7 +1036,7 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
 
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-charcoal-700 flex items-center gap-1.5">
+          <label htmlFor="create-specialist-password" className="text-sm font-medium text-charcoal-700 flex items-center gap-1.5">
             <KeyRound className="w-3.5 h-3.5 text-brand-600" />
             <span>Kirish paroli</span>
             <span className="text-danger-main">*</span>
@@ -1052,6 +1051,7 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
           </button>
         </div>
         <Input
+          id="create-specialist-password"
           type={showPassword ? 'text' : 'password'}
           placeholder="Kamida 12 ta belgi (katta/kichik harf, raqam)"
           error={errors.password?.message}
@@ -1061,8 +1061,8 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              tabIndex={-1}
-              className="text-charcoal-400 hover:text-charcoal-700 transition-colors focus:outline-none"
+              aria-label={showPassword ? "Parolni yashirish" : "Parolni ko‘rsatish"}
+              className="text-charcoal-500 hover:text-charcoal-800 transition-colors focus-visible:outline-2 focus-visible:outline-brand-600"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>

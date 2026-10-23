@@ -1,4 +1,4 @@
-import type { ApiClient } from './client';
+import { ApiError, type ApiClient } from './client';
 import type { CreateParentDto, UpdateParentDto } from './types';
 import type { Parent } from '@/types';
 
@@ -57,11 +57,8 @@ export class ParentsApi {
   }
 
   public async delete(id: string): Promise<void> {
-    try {
-      await this.client.delete(`/parents/${id}`);
-    } catch {
-      await this.client.post(`/parents/${id}/archive`);
-    }
+    void id;
+    throw new ApiError("Ota-onani o'chirish endpointi backendda hali mavjud emas.", 501);
   }
 
   public async getBalance(parentId: string): Promise<{ balance: number; debt: number }> {

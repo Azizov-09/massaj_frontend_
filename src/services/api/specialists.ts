@@ -61,11 +61,7 @@ export class SpecialistsApi {
   }
 
   public async delete(id: string): Promise<void> {
-    try {
-      await this.client.delete(`/specialists/${id}`);
-    } catch {
-      await this.client.post(`/specialists/${id}/archive`);
-    }
+    await this.archive(id);
   }
 
   public async getMe(): Promise<Specialist> {

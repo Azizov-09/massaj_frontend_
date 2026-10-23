@@ -3,7 +3,7 @@ import {
   User, Lock, Save, AlertCircle
 } from 'lucide-react';
 import { useAuth, useStore } from '@/store';
-import { api } from '@/services/api';
+import { api, ApiError } from '@/services/api';
 import { cn } from '@/utils';
 import { Card, CardHeader, CardBody, Badge, Avatar, Input } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
@@ -41,11 +41,26 @@ export function ProfilePage() {
 
     setIsInfoSubmitting(true);
     try {
-      updateCurrentUser({
-        fullName,
-        email,
-        phone,
-      });
+      if (!currentUser) throw new ApiError('Foydalanuvchi sessiyasi topilmadi.', 401);
+
+      if (currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'ADMIN') {
+        const updated = await api.admins.update(currentUser.id, {
+          fullName: fullName.trim(),
+          email: email.trim() || undefined,
+          phone: phone.trim(),
+        });
+        updateCurrentUser(updated);
+      } else if (currentUser.role === 'PARENT') {
+        const phoneChanged = phone.trim() !== (currentUser.phone || '');
+        const emailChanged = email.trim() !== (currentUser.email || '');
+        if (phoneChanged || emailChanged) {
+          throw new ApiError("Ota-ona telefon yoki emailini yangilash endpointi backendda mavjud emas.", 501);
+        }
+        const updated = await api.parents.update(currentUser.id, { fullName: fullName.trim() });
+        updateCurrentUser(updated);
+      } else {
+        throw new ApiError("Mutaxassisning shaxsiy aloqa ma'lumotlarini yangilash endpointi backendda mavjud emas.", 501);
+      }
       addToast({
         type: 'success',
         title: 'Profil yangilandi',
@@ -71,10 +86,17 @@ export function ProfilePage() {
       return;
     }
 
-    if (!newPass || newPass.length < 6) {
+    if (!newPass || newPass.length < 12) {
       setIsPassShaking(true);
       setTimeout(() => setIsPassShaking(false), 600);
-      setPassError("Yangi parol kamida 6 ta belgidan iborat bo'lishi kerak.");
+      setPassError("Yangi parol kamida 12 ta belgidan iborat bo'lishi kerak.");
+      return;
+    }
+
+    if (!/[A-Z]/.test(newPass) || !/[a-z]/.test(newPass) || !/[0-9]/.test(newPass)) {
+      setIsPassShaking(true);
+      setTimeout(() => setIsPassShaking(false), 600);
+      setPassError("Yangi parolda katta harf, kichik harf va raqam bo'lishi kerak.");
       return;
     }
 
@@ -154,7 +176,7 @@ export function ProfilePage() {
             className={cn("space-y-4 transition-transform", isInfoShaking && "animate-shake")}
           >
             {infoError && (
-              <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+              <div role="alert" className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-danger-main" />
                 <div className="flex-1">
                   <p className="font-semibold text-sm">{infoError}</p>
@@ -209,7 +231,7 @@ export function ProfilePage() {
             className={cn("space-y-4 transition-transform", isPassShaking && "animate-shake")}
           >
             {passError && (
-              <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
+              <div role="alert" className="flex items-start gap-2.5 p-3.5 rounded-xl bg-danger-surface border-2 border-danger-main/40 text-danger-main text-xs font-medium shadow-xs">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-danger-main" />
                 <div className="flex-1">
                   <p className="font-semibold text-sm">{passError}</p>

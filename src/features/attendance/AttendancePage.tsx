@@ -69,7 +69,6 @@ export function AttendancePage() {
   const specialists = useStore(s => s.specialists);
   const services = useStore(s => s.services);
   const recordAttendance = useStore(s => s.recordAttendance);
-  const removeAttendance = useStore(s => s.removeAttendance);
 
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [specialistFilter, setSpecialistFilter] = useState('');
@@ -191,7 +190,7 @@ export function AttendancePage() {
     return { total, present, late, absent, noShow, attended, rate, unmarked };
   }, [dayAppointments, attendance]);
 
-  const handleMark = (
+  const handleMark = async (
     appointmentId: string,
     childId: string,
     specialistId: string,
@@ -200,23 +199,28 @@ export function AttendancePage() {
   ) => {
     if (currentUser?.role === 'SPECIALIST' && specialistId !== currentUser.id) return;
     if (currentStatus === status) {
-      removeAttendance(appointmentId);
+      // Backend does not expose an attendance-delete endpoint. Keep the
+      // server-confirmed value instead of removing it only from local state.
       return;
     }
-    recordAttendance({
-      appointmentId,
-      childId,
-      specialistId,
-      date: selectedDate,
-      status,
-      note: `Belgilandi: ${status}`,
-    });
+    try {
+      await recordAttendance({
+        appointmentId,
+        childId,
+        specialistId,
+        date: selectedDate,
+        status,
+        note: `Belgilandi: ${status}`,
+      });
+    } catch {
+      // Store shows the backend error and leaves the previous state intact.
+    }
   };
 
-  const handleMarkAllPresent = () => {
+  const handleMarkAllPresent = async () => {
     const unmarked = attendanceItems.filter(item => !item.status);
     if (unmarked.length === 0) return;
-    unmarked.forEach(item => {
+    await Promise.allSettled(unmarked.map(item =>
       recordAttendance({
         appointmentId: item.appointment.id,
         childId: item.appointment.childId,
@@ -224,25 +228,29 @@ export function AttendancePage() {
         date: selectedDate,
         status: 'PRESENT',
         note: "O‘z vaqtida qatnashdi",
-      });
-    });
+      })
+    ));
   };
 
-  const handleSaveNote = (e: React.FormEvent) => {
+  const handleSaveNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingNoteRecord) return;
     const apt = appointments.find(a => a.id === editingNoteRecord.appointmentId);
     if (!apt) return;
     const targetStatus = editingNoteRecord.status || 'PRESENT';
-    recordAttendance({
-      appointmentId: editingNoteRecord.appointmentId,
-      childId: apt.childId,
-      specialistId: apt.specialistId,
-      date: selectedDate,
-      status: targetStatus,
-      note: editingNoteRecord.note.trim() || undefined,
-    });
-    setEditingNoteRecord(null);
+    try {
+      await recordAttendance({
+        appointmentId: editingNoteRecord.appointmentId,
+        childId: apt.childId,
+        specialistId: apt.specialistId,
+        date: selectedDate,
+        status: targetStatus,
+        note: editingNoteRecord.note.trim() || undefined,
+      });
+      setEditingNoteRecord(null);
+    } catch {
+      // Keep the modal open so the note can be retried.
+    }
   };
 
   const getStatusBadge = (status: AttendanceStatus | null) => {

@@ -72,11 +72,7 @@ export class ChildrenApi {
   }
 
   public async delete(id: string): Promise<void> {
-    try {
-      await this.client.delete(`/children/${id}`);
-    } catch {
-      await this.client.post(`/children/${id}/archive`);
-    }
+    await this.archive(id);
   }
 
   public async restore(id: string): Promise<void> {

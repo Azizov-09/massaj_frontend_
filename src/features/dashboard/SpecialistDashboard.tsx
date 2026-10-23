@@ -91,7 +91,7 @@ export function SpecialistDashboard() {
     navigate('/dashboard/specialist/schedule');
   };
 
-  const handleSaveNote = (e: React.FormEvent) => {
+  const handleSaveNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!noteForm.childId || !noteForm.note.trim()) return;
 
@@ -99,15 +99,18 @@ export function SpecialistDashboard() {
       ? `${noteForm.note.trim()}\n\n[Uy vazifasi]: ${noteForm.recommendation.trim()}`
       : noteForm.note.trim();
 
-    createProgressNote({
-      childId: noteForm.childId,
-      specialistId: currentUser?.id || '',
-      note: fullNote,
-      date: todayStr,
-    });
-
-    setShowNoteModal(false);
-    setNoteForm({ childId: '', note: '', recommendation: '' });
+    try {
+      await createProgressNote({
+        childId: noteForm.childId,
+        specialistId: currentUser?.id || '',
+        note: fullNote,
+        date: todayStr,
+      });
+      setShowNoteModal(false);
+      setNoteForm({ childId: '', note: '', recommendation: '' });
+    } catch {
+      // Store displays the backend error; preserve the draft for retry.
+    }
   };
 
   return (
