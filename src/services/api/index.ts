@@ -15,6 +15,7 @@ import { AnalyticsApi } from './analytics';
 import { PortalApi } from './portal';
 import { AdminsApi } from './admins';
 import { EmployeesApi } from './employees';
+import { AppointmentsApi } from './appointments';
 
 export * from './client';
 export * from './types';
@@ -30,6 +31,7 @@ export * from './analytics';
 export * from './portal';
 export * from './admins';
 export * from './employees';
+export * from './appointments';
 
 export class AppApi extends ApiClient {
   public auth: AuthApi;
@@ -37,6 +39,7 @@ export class AppApi extends ApiClient {
   public parents: ParentsApi;
   public specialists: SpecialistsApi;
   public services: ServicesApi;
+  public appointments: AppointmentsApi;
   public clinical: ClinicalApi;
   public finance: FinanceApi;
   public platform: PlatformApi;
@@ -52,6 +55,7 @@ export class AppApi extends ApiClient {
     this.parents = new ParentsApi(this);
     this.specialists = new SpecialistsApi(this);
     this.services = new ServicesApi(this);
+    this.appointments = new AppointmentsApi(this);
     this.clinical = new ClinicalApi(this);
     this.finance = new FinanceApi(this);
     this.platform = new PlatformApi(this);

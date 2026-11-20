@@ -10,7 +10,6 @@ describe('DebtorsPage Component', () => {
   const mockAdmin: AdminUser = {
     id: 'admin-1',
     fullName: 'Bosh Administrator',
-    email: 'admin@massaj.uz',
     phone: '+998901234567',
     role: 'SUPER_ADMIN',
     status: 'ACTIVE',
@@ -21,7 +20,6 @@ describe('DebtorsPage Component', () => {
     {
       id: 'par-1',
       fullName: 'Feruza Aliyeva',
-      email: 'feruza@example.com',
       phone: '+998901234600',
       role: 'PARENT',
       status: 'ACTIVE',
@@ -31,7 +29,6 @@ describe('DebtorsPage Component', () => {
     {
       id: 'par-2',
       fullName: 'Munira Hasanova',
-      email: 'munira@example.com',
       phone: '+998901234601',
       role: 'PARENT',
       status: 'ACTIVE',

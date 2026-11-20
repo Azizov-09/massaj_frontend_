@@ -2,8 +2,8 @@
 import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Plus, Search, Users, Phone, Mail, MapPin, Eye,
-  X, Baby, ArrowRight, AlertCircle, Wallet, Pencil, ShieldCheck
+  Plus, Search, Users, Phone, MapPin, Eye,
+  X, Baby, ArrowRight, AlertCircle, Wallet, Pencil, ShieldCheck, RefreshCw
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { calculateParentBalance } from '@/services/finance.service';
@@ -38,7 +38,7 @@ export function ParentsPage() {
     fullName: string;
     phone: string;
     address: string;
-    status: 'ACTIVE' | 'INACTIVE';
+    status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
   }>({
     fullName: '',
     phone: '',
@@ -58,7 +58,7 @@ export function ParentsPage() {
       fullName: parent.fullName || '',
       phone: parent.phone || '',
       address: parent.address || '',
-      status: parent.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
+      status: parent.status || 'ACTIVE',
     });
     setEditErrors({});
   };
@@ -328,30 +328,47 @@ export function ParentsPage() {
             <Eye className="w-3.5 h-3.5 mr-1" />
             Ko'rish
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenEdit(row);
-            }}
-            className="h-8 px-2.5 text-xs text-brand-600 border-brand-200 hover:bg-brand-50 hover:border-brand-300"
-          >
-            <Pencil className="w-3.5 h-3.5 mr-1" />
-            Tahrirlash
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteParent(row);
-            }}
-            className="h-8 px-2 text-xs text-rose-600 hover:bg-rose-50"
-            title="O'chirish"
-          >
-            <X className="w-3.5 h-3.5" />
-          </Button>
+          {row.status === 'ARCHIVED' ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async (e) => {
+                e.stopPropagation();
+                await updateParent(row.id, { status: 'ACTIVE' });
+              }}
+              className="h-8 px-2.5 text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50"
+            >
+              <RefreshCw className="w-3.5 h-3.5 mr-1" />
+              Qayta tiklash
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenEdit(row);
+              }}
+              className="h-8 px-2.5 text-xs text-brand-600 border-brand-200 hover:bg-brand-50 hover:border-brand-300"
+            >
+              <Pencil className="w-3.5 h-3.5 mr-1" />
+              Tahrirlash
+            </Button>
+          )}
+          {row.status !== 'ARCHIVED' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteParent(row);
+              }}
+              className="h-8 px-2 text-xs text-rose-600 hover:bg-rose-50"
+              title="Arxivlash"
+            >
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -604,30 +621,45 @@ export function ParentsPage() {
                     <Eye className="w-3.5 h-3.5 text-charcoal-500 shrink-0" />
                     <span className="truncate">Ko'rish</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEdit(row)}
-                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-brand-200 bg-brand-50 text-brand-700 text-xs font-medium hover:bg-brand-100 active:bg-brand-200 shadow-2xs transition-colors cursor-pointer"
-                  >
-                    <Pencil className="w-3.5 h-3.5 text-brand-600 shrink-0" />
-                    <span className="truncate">Tahrirlash</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleToggleStatus(row)}
-                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs transition-colors cursor-pointer"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                    <span className="truncate">{row.status === 'ACTIVE' ? 'Nofaol qilish' : 'Faollashtirish'}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteParent(row)}
-                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 text-xs font-medium hover:bg-rose-100 active:bg-rose-200 shadow-2xs transition-colors cursor-pointer"
-                  >
-                    <X className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">O'chirish</span>
-                  </button>
+                  {row.status === 'ARCHIVED' ? (
+                    <button
+                      type="button"
+                      onClick={() => updateParent(row.id, { status: 'ACTIVE' })}
+                      className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-medium hover:bg-emerald-100 active:bg-emerald-200 shadow-2xs transition-colors cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span className="truncate">Qayta tiklash</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEdit(row)}
+                      className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-brand-200 bg-brand-50 text-brand-700 text-xs font-medium hover:bg-brand-100 active:bg-brand-200 shadow-2xs transition-colors cursor-pointer"
+                    >
+                      <Pencil className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+                      <span className="truncate">Tahrirlash</span>
+                    </button>
+                  )}
+                  {row.status !== 'ARCHIVED' && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleStatus(row)}
+                        className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs transition-colors cursor-pointer"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                        <span className="truncate">{row.status === 'ACTIVE' ? 'Nofaol qilish' : 'Faollashtirish'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteParent(row)}
+                        className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 text-xs font-medium hover:bg-rose-100 active:bg-rose-200 shadow-2xs transition-colors cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">Arxivlash</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               ),
             };
@@ -693,12 +725,6 @@ export function ParentsPage() {
                     <Phone className="w-3.5 h-3.5 text-charcoal-400" />
                     {selectedParent.phone}
                   </button>
-                  {selectedParent.email && (
-                    <span className="inline-flex items-center gap-1 text-charcoal-500">
-                      <Mail className="w-3.5 h-3.5 text-charcoal-400" />
-                      {selectedParent.email}
-                    </span>
-                  )}
                   {selectedParent.address && (
                     <span className="inline-flex items-center gap-1 text-charcoal-500">
                       <MapPin className="w-3.5 h-3.5 text-charcoal-400" />
@@ -848,15 +874,15 @@ export function ParentsPage() {
 
             <Input
               label="Telefon raqam"
-              required
               type="tel"
-              placeholder="+998901234567"
+              required
               value={editForm.phone}
               error={editErrors.phone}
               onChange={e => {
                 setEditForm({ ...editForm, phone: e.target.value });
                 if (editErrors.phone) setEditErrors({ ...editErrors, phone: undefined });
               }}
+              placeholder="+998 90 123 45 67"
             />
 
             <Input
@@ -869,10 +895,11 @@ export function ParentsPage() {
             <Select
               label="Hisob holati"
               value={editForm.status}
-              onChange={e => setEditForm({ ...editForm, status: e.target.value as 'ACTIVE' | 'INACTIVE' })}
+              onChange={e => setEditForm({ ...editForm, status: e.target.value as 'ACTIVE' | 'INACTIVE' | 'ARCHIVED' })}
             >
               <option value="ACTIVE">Faol (Tizimdan foydalanish mumkin)</option>
               <option value="INACTIVE">Nofaol (Tizimga kirish cheklangan)</option>
+              <option value="ARCHIVED">Arxivlangan (Tizimdan olib tashlangan)</option>
             </Select>
           </form>
         </Modal>

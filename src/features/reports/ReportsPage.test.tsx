@@ -11,7 +11,6 @@ describe('ReportsPage Component', () => {
     {
       id: 'par-1',
       fullName: 'Feruza Aliyeva',
-      email: 'feruza@example.com',
       phone: '+998901234600',
       role: 'PARENT',
       status: 'ACTIVE',

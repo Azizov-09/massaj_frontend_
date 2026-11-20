@@ -44,7 +44,7 @@ const ATTENDANCE_OPTIONS: {
   },
   {
     status: 'ABSENT',
-    label: 'Sababli',
+    label: 'Sababli kelmadi',
     title: 'Sababli kelmadi',
     icon: AlertCircle,
     activeClass: 'bg-blue-600 text-white shadow-xs',
@@ -52,7 +52,7 @@ const ATTENDANCE_OPTIONS: {
   },
   {
     status: 'NO_SHOW',
-    label: 'Sababsiz',
+    label: 'Sababsiz kelmadi',
     title: 'Sababsiz kelmadi',
     icon: XCircle,
     activeClass: 'bg-rose-600 text-white shadow-xs',
@@ -74,6 +74,7 @@ export function AttendancePage() {
   const [specialistFilter, setSpecialistFilter] = useState('');
   const [search, setSearch] = useState('');
   const [statusFilterTab, setStatusFilterTab] = useState<'ALL' | AttendanceStatus | 'UNMARKED'>('ALL');
+  const [loadingAptId, setLoadingAptId] = useState<string | null>(null);
 
   // Quick Note modal state
   const [editingNoteRecord, setEditingNoteRecord] = useState<{
@@ -129,18 +130,74 @@ export function AttendancePage() {
   // Combined attendance records for the day's appointments (strictly per appointmentId)
   const attendanceItems = useMemo(() => {
     return dayAppointments.map(apt => {
-      const child = children.find(c => c.id === apt.childId);
-      const spec = specialists.find(s => s.id === apt.specialistId);
-      const svc = services.find(s => s.id === apt.serviceId);
+      const localChild = children.find(c => c.id === apt.childId);
+      const rawChild = apt.child as any;
+      const childFirstLast = [rawChild?.firstName, rawChild?.lastName].filter(Boolean).join(' ');
+      const childFullName =
+        localChild?.fullName ||
+        (localChild?.firstName ? `${localChild.firstName} ${localChild.lastName || ''}`.trim() : null) ||
+        rawChild?.fullName ||
+        childFirstLast ||
+        apt.childName ||
+        (apt.childId ? `Bola #${apt.childId.slice(-4)}` : 'Bola');
+
+      const child = localChild || (apt.child as any) || {
+        id: apt.childId,
+        fullName: childFullName,
+        dateOfBirth: rawChild?.dateOfBirth,
+        gender: rawChild?.gender || 'MALE',
+        parentId: apt.parentId,
+        status: 'ACTIVE',
+        createdAt: apt.createdAt || new Date().toISOString(),
+      };
+
+      const localSpec = specialists.find(s => s.id === apt.specialistId);
+      const rawSpec = apt.specialist as any;
+      const specialistFullName =
+        localSpec?.fullName ||
+        (localSpec?.user as any)?.fullName ||
+        rawSpec?.fullName ||
+        rawSpec?.user?.fullName ||
+        apt.specialistName ||
+        (apt.specialistId ? `Mutaxassis #${apt.specialistId.slice(-4)}` : 'Mutaxassis belgilanmagan');
+
+      const specialist = localSpec || (apt.specialist as any) || {
+        id: apt.specialistId,
+        fullName: specialistFullName,
+        phone: rawSpec?.phone || rawSpec?.user?.phone,
+        role: 'SPECIALIST',
+        status: 'ACTIVE',
+        specialization: rawSpec?.specialization || 'Massaj terapevti',
+      };
+
+      const localSvc = services.find(s => s.id === apt.serviceId);
+      const rawSvc = apt.service as any;
+      const serviceName =
+        localSvc?.name ||
+        rawSvc?.name ||
+        apt.serviceName ||
+        (apt.serviceId ? `Xizmat #${apt.serviceId.slice(-4)}` : "Xizmat");
+
+      const service = localSvc || (apt.service as any) || {
+        id: apt.serviceId,
+        name: serviceName,
+        durationMinutes: rawSvc?.durationMinutes || 45,
+        price: rawSvc?.price || 0,
+        status: 'ACTIVE',
+      };
+
       const attRecord = attendance.find(att => att.appointmentId === apt.id);
-      const parent = parents.find(p => p.id === apt.parentId || (child && p.childrenIds.includes(child.id)));
+      const parent = parents.find(p => p.id === apt.parentId || (child && p.childrenIds?.includes(child.id)));
 
       return {
         appointment: apt,
-        child,
+        child: { ...child, fullName: childFullName },
+        childName: childFullName,
         parent,
-        specialist: spec,
-        service: svc,
+        specialist: { ...specialist, fullName: specialistFullName },
+        specialistName: specialistFullName,
+        service: { ...service, name: serviceName },
+        serviceName,
         attendanceRecord: attRecord,
         status: attRecord?.status ?? null,
       };
@@ -148,9 +205,9 @@ export function AttendancePage() {
       if (!search) return true;
       const q = search.toLowerCase();
       return (
-        item.child?.fullName?.toLowerCase().includes(q) ||
-        item.specialist?.fullName?.toLowerCase().includes(q) ||
-        item.service?.name?.toLowerCase().includes(q) ||
+        item.childName.toLowerCase().includes(q) ||
+        item.specialistName.toLowerCase().includes(q) ||
+        item.serviceName.toLowerCase().includes(q) ||
         item.parent?.fullName?.toLowerCase().includes(q)
       );
     });
@@ -203,6 +260,7 @@ export function AttendancePage() {
       // server-confirmed value instead of removing it only from local state.
       return;
     }
+    setLoadingAptId(appointmentId);
     try {
       await recordAttendance({
         appointmentId,
@@ -214,6 +272,8 @@ export function AttendancePage() {
       });
     } catch {
       // Store shows the backend error and leaves the previous state intact.
+    } finally {
+      setLoadingAptId(null);
     }
   };
 
@@ -527,7 +587,7 @@ export function AttendancePage() {
             </div>
 
             <div className="divide-y divide-warm-100">
-              {filteredAttendanceItems.map(({ appointment, child, parent, specialist, service, status, attendanceRecord }) => {
+              {filteredAttendanceItems.map(({ appointment, child, childName, parent, specialistName, serviceName, status, attendanceRecord }) => {
                 const canEdit = currentUser?.role !== 'SPECIALIST' || appointment.specialistId === currentUser?.id;
 
                 return (
@@ -537,11 +597,11 @@ export function AttendancePage() {
                   >
                     {/* Child & Parent Details (col-span-4) */}
                     <div className="flex items-center gap-3.5 min-w-0 md:col-span-4">
-                      <Avatar name={child?.fullName ?? 'Bola'} size="md" />
+                      <Avatar name={childName} size="md" />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <h4 className="text-sm font-bold text-charcoal-900 truncate">
-                            {child?.fullName ?? 'Noma’lum'}
+                            {childName}
                           </h4>
                           {child?.dateOfBirth && (
                             <span className="text-[10px] font-semibold text-charcoal-500 bg-warm-100/90 px-1.5 py-0.5 rounded-[5px] shrink-0 border border-warm-200/60">
@@ -562,7 +622,7 @@ export function AttendancePage() {
                         <div className="flex md:hidden items-center gap-2 mt-1 text-xs text-charcoal-600">
                           <span className="font-semibold text-brand-600">{appointment.startTime} - {appointment.endTime}</span>
                           <span>•</span>
-                          <span className="truncate font-medium">{service?.name}</span>
+                          <span className="truncate font-medium">{serviceName}</span>
                         </div>
                       </div>
                     </div>
@@ -570,13 +630,13 @@ export function AttendancePage() {
                     {/* Service, Specialist & Time Slot (col-span-3, desktop) */}
                     <div className="hidden md:flex flex-col min-w-0 md:col-span-3 space-y-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-200/70 truncate max-w-[210px]" title={service?.name}>
-                          {service?.name}
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-200/70 truncate max-w-[210px]" title={serviceName}>
+                          {serviceName}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-charcoal-600 truncate" title={`Mutaxassis: ${specialist?.fullName ?? '—'}`}>
+                      <div className="flex items-center gap-1.5 text-xs text-charcoal-600 truncate" title={`Mutaxassis: ${specialistName}`}>
                         <UserCheck className="w-3.5 h-3.5 text-charcoal-400 shrink-0" />
-                        <span className="truncate font-medium">{specialist?.fullName ?? '—'}</span>
+                        <span className="truncate font-medium">{specialistName}</span>
                       </div>
                       <div className="flex items-center gap-1.5 text-[11px] font-bold text-brand-600">
                         <Clock className="w-3 h-3 text-brand-500 shrink-0" />
@@ -587,26 +647,28 @@ export function AttendancePage() {
                     {/* Attendance Status Action / Indicator (col-span-5) */}
                     <div className="w-full md:col-span-5 flex flex-col items-start md:items-end gap-1.5">
                       {canEdit ? (
-                        <div className="w-full md:w-[380px]">
-                          <div className="grid grid-cols-4 p-1 bg-warm-100/90 rounded-[10px] border border-warm-200/90 shadow-2xs gap-1">
+                        <div className="w-full md:w-[420px]">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 p-1.5 bg-warm-100/90 rounded-[12px] border border-warm-200/90 shadow-2xs gap-1.5">
                             {ATTENDANCE_OPTIONS.map(opt => {
                               const isSelected = status === opt.status;
                               const Icon = opt.icon;
+                              const isMarking = loadingAptId === appointment.id;
                               return (
                                 <button
                                   key={opt.status}
                                   type="button"
+                                  disabled={isMarking}
                                   onClick={() => handleMark(appointment.id, appointment.childId, appointment.specialistId, opt.status, status)}
                                   className={cn(
-                                    'h-9 min-h-[36px] sm:h-8 sm:min-h-[32px] px-1 flex items-center justify-center gap-1 rounded-[8px] text-[11px] sm:text-xs font-semibold transition-all duration-150 cursor-pointer active:scale-95',
+                                    'min-h-[44px] px-2 py-1.5 flex items-center justify-center gap-1.5 rounded-[9px] text-xs font-semibold transition-all duration-150 cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-center',
                                     isSelected
-                                      ? cn(opt.activeClass, 'ring-1 ring-black/5')
-                                      : 'text-charcoal-600 hover:text-charcoal-900 hover:bg-white/80'
+                                      ? cn(opt.activeClass, 'ring-2 ring-black/10 shadow-xs')
+                                      : 'text-charcoal-700 hover:text-charcoal-900 bg-white/70 hover:bg-white border border-warm-200/60'
                                   )}
                                   title={opt.title}
                                 >
-                                  <Icon className={cn('w-3.5 h-3.5 flex-shrink-0', isSelected ? 'text-white' : opt.iconColor)} />
-                                  <span className="truncate">{opt.label}</span>
+                                  <Icon className={cn('w-4 h-4 flex-shrink-0', isSelected ? 'text-white' : opt.iconColor)} />
+                                  <span className="leading-tight text-center">{opt.label}</span>
                                 </button>
                               );
                             })}
@@ -619,8 +681,8 @@ export function AttendancePage() {
                                 type="button"
                                 onClick={() => setEditingNoteRecord({
                                   appointmentId: appointment.id,
-                                  childName: child?.fullName ?? 'Bola',
-                                  serviceName: service?.name ?? 'Xizmat',
+                                  childName,
+                                  serviceName,
                                   time: `${appointment.startTime} - ${appointment.endTime}`,
                                   status,
                                   note: attendanceRecord.note ?? '',
@@ -636,8 +698,8 @@ export function AttendancePage() {
                                 type="button"
                                 onClick={() => setEditingNoteRecord({
                                   appointmentId: appointment.id,
-                                  childName: child?.fullName ?? 'Bola',
-                                  serviceName: service?.name ?? 'Xizmat',
+                                  childName,
+                                  serviceName,
                                   time: `${appointment.startTime} - ${appointment.endTime}`,
                                   status,
                                   note: '',

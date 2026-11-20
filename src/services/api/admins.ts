@@ -1,6 +1,7 @@
-import { ApiError, type ApiClient } from './client';
+import { type ApiClient } from './client';
 import type { CreateAdminDto, UpdateAdminDto } from './types';
 import type { AdminUser } from '@/types';
+import { ApiError } from './client';
 
 export function normalizeAdmin(raw: any): AdminUser {
   if (!raw || raw.id === undefined || raw.id === null || String(raw.id).trim() === '') {
@@ -10,9 +11,13 @@ export function normalizeAdmin(raw: any): AdminUser {
     id: String(raw.id),
     fullName: raw.fullName || 'Administrator',
     phone: raw.phone || '',
-    email: raw.email || `${raw.phone?.replace(/[^0-9]/g, '') || raw.id}@massaj.uz`,
     role: raw.role === 'SUPER_ADMIN' ? 'SUPER_ADMIN' : 'ADMIN',
-    status: raw.status === 'ARCHIVED' ? 'ARCHIVED' : raw.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
+    status:
+      raw.status === 'ARCHIVED'
+        ? 'ARCHIVED'
+        : raw.status === 'INACTIVE'
+        ? 'INACTIVE'
+        : 'ACTIVE',
     createdAt: raw.createdAt || new Date().toISOString(),
     avatar: raw.avatar,
     lastLogin: raw.lastLogin || raw.lastLoginAt,
@@ -46,7 +51,28 @@ export class AdminsApi {
     return normalizeAdmin(item);
   }
 
+  /** Activate an admin account */
+  public async activate(id: string): Promise<void> {
+    await this.client.patch(`/admins/${id}/activate`);
+  }
+
+  /** Deactivate an admin account */
+  public async deactivate(id: string): Promise<void> {
+    await this.client.patch(`/admins/${id}/deactivate`);
+  }
+
+  /** Archive (soft-delete) an admin */
   public async archive(id: string): Promise<void> {
     await this.client.post(`/admins/${id}/archive`);
+  }
+
+  /** Restore a previously archived admin */
+  public async restore(id: string): Promise<void> {
+    await this.client.post(`/admins/${id}/restore`);
+  }
+
+  /** Safe delete maps to archive */
+  public async delete(id: string): Promise<void> {
+    await this.archive(id);
   }
 }

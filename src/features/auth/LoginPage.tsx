@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 
 const loginSchema = z.object({
-  email: z.string().min(3, "Telefon raqami yoki email kiritilishi shart"),
+  phone: z.string().min(3, "Telefon raqamini kiriting"),
   password: z.string().min(6, 'Parol kamida 6 ta belgidan iborat bo‘lishi kerak'),
   rememberMe: z.boolean().optional(),
 });
@@ -49,7 +49,7 @@ export function LoginPage() {
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
+      phone: '',
       password: '',
       rememberMe: true,
     },
@@ -57,7 +57,7 @@ export function LoginPage() {
 
   const onSubmit = async (data: LoginForm) => {
     setServerError('');
-    const result = await login(data.email, data.password);
+    const result = await login(data.phone, data.password);
     if (result.success) {
       const userRole = useStore.getState().currentUser?.role;
       if (userRole && ROLE_REDIRECTS[userRole]) {
@@ -253,34 +253,34 @@ export function LoginPage() {
 
             {/* ─── Login Form ─── */}
             <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-              {/* Phone or Email Input */}
+              {/* Phone Input */}
               <div>
-                <label htmlFor="email" className="block text-xs font-bold text-charcoal-700 mb-1.5">
-                  Telefon raqami yoki Email <span className="text-rose-600" aria-hidden>*</span>
+                <label htmlFor="phone" className="block text-xs font-bold text-charcoal-700 mb-1.5">
+                  Telefon raqami <span className="text-rose-600" aria-hidden>*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none">
                     <Phone className="w-4 h-4" />
                   </div>
                   <input
-                    id="email"
-                    type="text"
-                    autoComplete="username"
-                    placeholder="+998 90 123 45 67 yoki email"
-                    {...register('email')}
+                    id="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    placeholder="+998 90 123 45 67"
+                    {...register('phone')}
                     className={cn(
                       'w-full bg-white border rounded-[10px] pl-10 pr-4 py-2.5 text-xs sm:text-sm text-charcoal-900 placeholder:text-charcoal-400 shadow-2xs',
                       'transition-all outline-none',
                       'hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100',
-                      errors.email ? 'border-rose-500' : 'border-warm-300'
+                      errors.phone ? 'border-rose-500' : 'border-warm-300'
                     )}
-                    aria-invalid={!!errors.email}
-                    aria-describedby={errors.email ? 'email-error' : undefined}
+                    aria-invalid={!!errors.phone}
+                    aria-describedby={errors.phone ? 'phone-error' : undefined}
                   />
                 </div>
-                {errors.email && (
-                  <p id="email-error" className="mt-1 text-xs text-rose-600 font-medium">
-                    {errors.email.message}
+                {errors.phone && (
+                  <p id="phone-error" className="mt-1 text-xs text-rose-600 font-medium">
+                    {errors.phone.message}
                   </p>
                 )}
               </div>

@@ -25,7 +25,7 @@ describe('Global Zustand Store Tests', () => {
     const user = useStore.getState().currentUser;
     expect(user).toBeDefined();
     expect(user?.role).toBe('SPECIALIST');
-    expect(user?.email).toBe('specialist@demo.com');
+    expect(user?.phone).toBe('+998901234567');
   });
 
   it('authenticates Parent successfully', async () => {
@@ -36,9 +36,9 @@ describe('Global Zustand Store Tests', () => {
   });
 
   it('rejects invalid credentials with an error', async () => {
-    const result = await useStore.getState().login('wrong@email.com', 'badpass');
+    const result = await useStore.getState().login('+998900000000', 'badpass');
     expect(result.success).toBe(false);
-    expect(result.error).toBe("Email yoki parol noto'g'ri");
+    expect(result.error).toBe("Telefon raqami yoki parol noto'g'ri");
     expect(useStore.getState().isAuthenticated).toBe(false);
   });
 

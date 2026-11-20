@@ -7,7 +7,7 @@ import { persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
 import { generateId, isUUID, formatCurrency } from '@/utils';
 import { api } from '@/services/api';
-import type { CreateAttendanceDto } from '@/services/api/types';
+import type { CreateAttendanceDto, UpdateAdminDto } from '@/services/api/types';
 import { calculateParentBalance } from '@/services/finance.service';
 import type {
   AdminUser, Specialist, Parent, Child, Service,
@@ -216,7 +216,6 @@ export const useStore = create<Store>()(
 
           const user: any = {
             id: `user-${role.toLowerCase()}`,
-            email: identifier,
             fullName:
               role === 'SUPER_ADMIN'
                 ? 'Alisher Nazarov'
@@ -249,7 +248,6 @@ export const useStore = create<Store>()(
             const currentUser: any = {
               id: u.id || 'u-admin-1',
               fullName: u.fullName || 'Administrator',
-              email: u.email || `${phone}@massaj.uz`,
               phone: u.phone || phone,
               role: u.role || 'SUPER_ADMIN',
               status: u.status || 'ACTIVE',
@@ -270,11 +268,11 @@ export const useStore = create<Store>()(
             console.warn('[Auth] Real backend login attempt response:', err);
           }
 
-          const friendlyMsg = (err?.message && err.message !== 'fetch failed') ? err.message : "Email yoki parol noto'g'ri";
+          const friendlyMsg = (err?.message && err.message !== 'fetch failed') ? err.message : "Telefon raqami yoki parol noto'g'ri";
           return { success: false, error: friendlyMsg };
         }
 
-        return { success: false, error: "Email yoki parol noto'g'ri" };
+        return { success: false, error: "Telefon raqami yoki parol noto'g'ri" };
       },
 
       logout: () => {
@@ -424,6 +422,8 @@ export const useStore = create<Store>()(
               ? api.portal.getMyRecordedProgress()
               : loadClinicalPerChild(childId => api.children.getProgress(childId));
 
+          const appointmentsRequest = api.appointments.getAll({ limit: 100 });
+
           const results = await Promise.allSettled([
             childrenRequest,
             isAdmin ? api.parents.getAll({ limit: 100 }) : emptyList(),
@@ -438,6 +438,7 @@ export const useStore = create<Store>()(
             isAdmin ? api.employees.getAll({ limit: 100 }) : emptyList(),
             assessmentsRequest,
             progressRequest,
+            appointmentsRequest,
           ]);
 
           const [
@@ -454,6 +455,7 @@ export const useStore = create<Store>()(
             employeesRes,
             assessmentsRes,
             progressRes,
+            appointmentsRes,
           ] = results;
 
           const failures = results.filter(result => result.status === 'rejected');
@@ -470,9 +472,9 @@ export const useStore = create<Store>()(
             : null;
 
           set(state => {
-            const nextChildren = childrenRes.status === 'fulfilled' && Array.isArray(childrenRes.value) ? childrenRes.value : state.children;
-            const nextParents = parentsRes.status === 'fulfilled' && Array.isArray(parentsRes.value) ? parentsRes.value : state.parents;
-            const nextSpecialists = specialistsRes.status === 'fulfilled' && Array.isArray(specialistsRes.value) ? specialistsRes.value : state.specialists;
+            let nextChildren = childrenRes.status === 'fulfilled' && Array.isArray(childrenRes.value) ? childrenRes.value : state.children;
+            let nextParents = parentsRes.status === 'fulfilled' && Array.isArray(parentsRes.value) ? parentsRes.value : state.parents;
+            let nextSpecialists = specialistsRes.status === 'fulfilled' && Array.isArray(specialistsRes.value) ? specialistsRes.value : state.specialists;
             const nextServices = servicesRes.status === 'fulfilled' && Array.isArray(servicesRes.value) ? servicesRes.value : state.services;
             const nextPayments = paymentsRes.status === 'fulfilled' && Array.isArray(paymentsRes.value) ? paymentsRes.value : state.payments;
             const nextTransactions = transactionsRes.status === 'fulfilled' && Array.isArray(transactionsRes.value) ? transactionsRes.value : state.transactions;
@@ -482,6 +484,50 @@ export const useStore = create<Store>()(
             const nextEmployees = employeesRes.status === 'fulfilled' && Array.isArray(employeesRes.value) ? employeesRes.value : state.employees;
             const nextAssessments = assessmentsRes.status === 'fulfilled' && Array.isArray(assessmentsRes.value) ? assessmentsRes.value : state.assessments;
             const nextProgress = progressRes.status === 'fulfilled' && Array.isArray(progressRes.value) ? progressRes.value : state.progressNotes;
+
+            const nextAppointments = appointmentsRes.status === 'fulfilled' && Array.isArray(appointmentsRes.value) && appointmentsRes.value.length > 0
+              ? appointmentsRes.value
+              : state.appointments;
+
+            // Ensure any child or specialist embedded in appointments is registered in local lookup maps
+            const existingChildIds = new Set(nextChildren.map(c => c.id));
+            const extraChildren: Child[] = [];
+            const existingSpecIds = new Set(nextSpecialists.map(s => s.id));
+            const extraSpecialists: Specialist[] = [];
+
+            nextAppointments.forEach(apt => {
+              if (apt.childId && !existingChildIds.has(apt.childId) && apt.child) {
+                extraChildren.push({
+                  id: apt.childId,
+                  fullName: apt.child.fullName || apt.childName || 'Bola',
+                  firstName: apt.child.firstName,
+                  lastName: apt.child.lastName,
+                  dateOfBirth: apt.child.dateOfBirth || '2020-01-01',
+                  gender: apt.child.gender || 'MALE',
+                  parentId: apt.parentId || apt.child.parentId || '',
+                  status: 'ACTIVE',
+                  createdAt: apt.createdAt || new Date().toISOString(),
+                } as Child);
+                existingChildIds.add(apt.childId);
+              }
+              if (apt.specialistId && !existingSpecIds.has(apt.specialistId) && apt.specialist) {
+                extraSpecialists.push({
+                  id: apt.specialistId,
+                  fullName: apt.specialist.fullName || apt.specialistName || 'Mutaxassis',
+                  specialization: apt.specialist.specialization || 'Mutaxassis',
+                  phone: apt.specialist.phone || '+998901234567',
+                  role: 'SPECIALIST',
+                  status: 'ACTIVE',
+                  workingDays: [1, 2, 3, 4, 5, 6, 7],
+                  workingHours: { start: '09:00', end: '18:00' },
+                  createdAt: apt.createdAt || new Date().toISOString(),
+                } as Specialist);
+                existingSpecIds.add(apt.specialistId);
+              }
+            });
+
+            if (extraChildren.length > 0) nextChildren = [...nextChildren, ...extraChildren];
+            if (extraSpecialists.length > 0) nextSpecialists = [...nextSpecialists, ...extraSpecialists];
 
             const nextSettings = settingsRes.status === 'fulfilled' && settingsRes.value
               ? {
@@ -498,7 +544,7 @@ export const useStore = create<Store>()(
               parents: nextParents,
               specialists: nextSpecialists,
               services: nextServices,
-              appointments: state.appointments,
+              appointments: nextAppointments,
               sessions: state.sessions,
               attendance: state.attendance,
               assessments: nextAssessments,
@@ -664,18 +710,52 @@ export const useStore = create<Store>()(
       },
 
       updateParent: async (id, data) => {
+        const prev = get().parents.find(p => p.id === id);
         try {
-          await api.parents.update(id, {
-            fullName: data.fullName,
-            phone: data.phone,
-            address: data.address,
-            status: data.status,
-          });
-          set(s => ({ parents: s.parents.map(p => p.id === id ? { ...p, ...data } : p) }));
-          get().addToast({ type: 'success', title: 'Ota-ona ma\'lumotlari yangilandi' });
+          // If status is being updated
+          if (data.status !== undefined) {
+            if (data.status === 'ACTIVE') {
+              if (prev?.status === 'ARCHIVED') {
+                try {
+                  await api.parents.restore(id);
+                } catch {
+                  await api.parents.activate(id);
+                }
+              } else {
+                await api.parents.activate(id);
+              }
+            } else if (data.status === 'INACTIVE') {
+              await api.parents.deactivate(id);
+            } else if (data.status === 'ARCHIVED') {
+              await api.parents.archive(id);
+            }
+          }
+
+          // Profile update — supports fullName, phone, address (NOT status in body)
+          const patchPayload: { fullName?: string; phone?: string; address?: string } = {};
+          if (data.fullName !== undefined) patchPayload.fullName = data.fullName;
+          if (data.phone !== undefined) patchPayload.phone = data.phone;
+          if (data.address !== undefined) patchPayload.address = data.address;
+
+          let updatedParent: Parent | undefined;
+          if (Object.keys(patchPayload).length > 0) {
+            updatedParent = await api.parents.update(id, patchPayload);
+          }
+
+          set(s => ({
+            parents: s.parents.map(p => p.id === id ? { ...p, ...(updatedParent || {}), ...data } : p)
+          }));
+          get().addToast({ type: 'success', title: data.status && Object.keys(data).length === 1 ? (data.status === 'ACTIVE' ? (prev?.status === 'ARCHIVED' ? 'Arxivdan qaytarildi' : 'Faollashtirildi') : 'Nofaol qilindi') : 'Ota-ona ma\'lumotlari yangilandi' });
+          return;
         } catch (err: any) {
           console.error('[Store] updateParent error:', err);
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Yangilab bo\'lmadi' });
+          if (prev) {
+            set(s => ({ parents: s.parents.map(p => p.id === id ? prev : p) }));
+          }
+          const friendlyMsg = err?.message?.includes('property') || err?.message?.includes('should not exist')
+            ? 'Ota-ona ma\'lumotlarini yangilab bo\'lmadi. Qayta urinib ko\'ring.'
+            : err?.message || 'Yangilab bo\'lmadi';
+          get().addToast({ type: 'error', title: 'Xatolik', description: friendlyMsg });
           throw err;
         }
       },
@@ -683,16 +763,17 @@ export const useStore = create<Store>()(
       deleteParent: async (id) => {
         try {
           const parent = get().parents.find(p => p.id === id);
-          await api.parents.delete(id);
-          set(s => ({ parents: s.parents.filter(p => p.id !== id) }));
+          // Archive is the safe semantic — preserves children, balances, history
+          await api.parents.archive(id);
+          set(s => ({ parents: s.parents.map(p => p.id === id ? { ...p, status: 'ARCHIVED' } : p) }));
           get().addToast({
-            type: 'success',
-            title: "Ota-ona o'chirildi",
-            description: parent ? `${parent.fullName} tizimdan olib tashlandi` : undefined,
+            type: 'info',
+            title: 'Ota-ona arxivlandi',
+            description: parent ? `${parent.fullName} arxivga o'tkazildi` : undefined,
           });
         } catch (err: any) {
           console.error('[Store] deleteParent error:', err);
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'O\'chirib bo\'lmadi' });
+          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Arxivlab bo\'lmadi' });
           throw err;
         }
       },
@@ -703,11 +784,10 @@ export const useStore = create<Store>()(
           const created = await api.specialists.create({
             fullName: data.fullName,
             phone: data.phone,
-            email: data.email,
             password: password || 'Password123!',
             specialization: data.specialization,
             experienceYears: data.experience || 3,
-            bio: data.bio,
+            bio: data.bio || undefined,
           });
 
           const spec: Specialist = created && created.id ? created : {
@@ -726,21 +806,54 @@ export const useStore = create<Store>()(
       },
 
       updateSpecialist: async (id, data) => {
+        // Preserve previous state for rollback on failure
+        const prev = get().specialists.find(s => s.id === id);
         try {
-          await api.specialists.update(id, {
-            fullName: data.fullName,
-            phone: data.phone,
-            email: data.email,
-            specialization: data.specialization,
-            experienceYears: data.experience,
-            bio: data.bio,
-            status: data.status,
-          });
+          // Status changes use dedicated endpoints, NOT the update payload
+          if (data.status !== undefined && Object.keys(data).length === 1) {
+            if (data.status === 'ACTIVE') {
+              if (prev?.status === 'ARCHIVED') {
+                try {
+                  await api.specialists.restore(id);
+                } catch {
+                  await api.specialists.activate(id);
+                }
+              } else {
+                await api.specialists.activate(id);
+              }
+            } else if (data.status === 'INACTIVE') {
+              await api.specialists.deactivate(id);
+            } else if (data.status === 'ARCHIVED') {
+              await api.specialists.archive(id);
+            }
+            set(s => ({ specialists: s.specialists.map(sp => sp.id === id ? { ...sp, status: data.status! } : sp) }));
+            get().addToast({ type: 'success', title: data.status === 'ACTIVE' ? (prev?.status === 'ARCHIVED' ? 'Arxivdan qaytarildi' : 'Faollashtirildi') : 'Nofaol qilindi' });
+            return;
+          }
+
+          // Profile field updates (no status in payload)
+          const dto: any = {};
+          if (data.fullName !== undefined) dto.fullName = data.fullName;
+          if (data.phone !== undefined) dto.phone = data.phone;
+          if (data.specialization !== undefined) dto.specialization = data.specialization;
+          if (data.experience !== undefined) dto.experienceYears = data.experience;
+          if (data.bio !== undefined) dto.bio = data.bio;
+          if (data.workingDays !== undefined) dto.workingDays = data.workingDays;
+          if (data.workingHours !== undefined) dto.workingHours = data.workingHours;
+
+          await api.specialists.update(id, dto);
           set(s => ({ specialists: s.specialists.map(sp => sp.id === id ? { ...sp, ...data } : sp) }));
           get().addToast({ type: 'success', title: 'Mutaxassis ma\'lumotlari yangilandi' });
         } catch (err: any) {
           console.error('[Store] updateSpecialist error:', err);
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Yangilab bo\'lmadi' });
+          // Rollback optimistic UI
+          if (prev) {
+            set(s => ({ specialists: s.specialists.map(sp => sp.id === id ? prev : sp) }));
+          }
+          const friendlyMsg = err?.message?.includes('property') || err?.message?.includes('should not exist')
+            ? 'Mutaxassis ma\'lumotlarini yangilab bo\'lmadi. Qayta urinib ko\'ring.'
+            : err?.message || 'Yangilab bo\'lmadi';
+          get().addToast({ type: 'error', title: 'Xatolik', description: friendlyMsg });
           throw err;
         }
       },
@@ -748,16 +861,16 @@ export const useStore = create<Store>()(
       deleteSpecialist: async (id) => {
         try {
           const spec = get().specialists.find(s => s.id === id);
-          await api.specialists.delete(id);
-          set(s => ({ specialists: s.specialists.filter(sp => sp.id !== id) }));
+          await api.specialists.archive(id);
+          set(s => ({ specialists: s.specialists.map(sp => sp.id === id ? { ...sp, status: 'ARCHIVED' } : sp) }));
           get().addToast({
-            type: 'success',
-            title: "Mutaxassis o'chirildi",
-            description: spec ? `${spec.fullName} tizimdan olib tashlandi` : undefined,
+            type: 'info',
+            title: 'Mutaxassis arxivlandi',
+            description: spec ? `${spec.fullName} arxivga o'tkazildi` : undefined,
           });
         } catch (err: any) {
           console.error('[Store] deleteSpecialist error:', err);
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'O\'chirib bo\'lmadi' });
+          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Arxivlab bo\'lmadi' });
           throw err;
         }
       },
@@ -1293,7 +1406,6 @@ export const useStore = create<Store>()(
           const created = await api.admins.create({
             fullName: data.fullName,
             phone: data.phone,
-            email: data.email,
             role: data.role,
             password: password || 'Admin123!',
           });
@@ -1314,20 +1426,49 @@ export const useStore = create<Store>()(
       },
 
       updateAdmin: async (id, data) => {
+        const prev = get().admins.find(a => a.id === id);
         try {
-          const updated = await api.admins.update(id, {
-            fullName: data.fullName,
-            email: data.email,
-            phone: data.phone,
-            role: data.role,
-            status: data.status,
-          });
+          // Status changes use dedicated endpoints
+          if (data.status !== undefined && Object.keys(data).length === 1) {
+            if (data.status === 'ACTIVE') {
+              if (prev?.status === 'ARCHIVED') {
+                try {
+                  await api.admins.restore(id);
+                } catch {
+                  await api.admins.activate(id);
+                }
+              } else {
+                await api.admins.activate(id);
+              }
+            } else if (data.status === 'INACTIVE') {
+              await api.admins.deactivate(id);
+            } else if (data.status === 'ARCHIVED') {
+              await api.admins.archive(id);
+            }
+            set(s => ({ admins: s.admins.map(a => a.id === id ? { ...a, status: data.status! } : a) }));
+            get().addToast({ type: 'success', title: data.status === 'ACTIVE' ? (prev?.status === 'ARCHIVED' ? 'Arxivdan qaytarildi' : 'Faollashtirildi') : 'Nofaol qilindi' });
+            return;
+          }
+
+          const patchPayload: UpdateAdminDto = {};
+          if (data.fullName !== undefined) patchPayload.fullName = data.fullName;
+          if (data.phone !== undefined) patchPayload.phone = data.phone;
+          if (data.role !== undefined) patchPayload.role = data.role;
+
+          let updated: AdminUser | undefined;
+          if (Object.keys(patchPayload).length > 0) {
+            updated = await api.admins.update(id, patchPayload);
+          }
+
           set(s => ({
             admins: s.admins.map(a => a.id === id ? { ...a, ...(updated && updated.id ? updated : data) } : a)
           }));
           get().addToast({ type: 'success', title: 'Admin yangilandi' });
         } catch (err: any) {
           console.error('[Store] updateAdmin error:', err);
+          if (prev) {
+            set(s => ({ admins: s.admins.map(a => a.id === id ? prev : a) }));
+          }
           get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Admin ma\'lumotlarini yangilab bo\'lmadi' });
           throw err;
         }
@@ -1352,7 +1493,6 @@ export const useStore = create<Store>()(
             fullName: data.fullName,
             position: data.position,
             phone: data.phone,
-            email: data.email,
             salary: data.salary,
             notes: data.notes,
           });
@@ -1378,7 +1518,6 @@ export const useStore = create<Store>()(
             fullName: data.fullName,
             position: data.position,
             phone: data.phone,
-            email: data.email,
             salary: data.salary,
             notes: data.notes,
             status: data.status,

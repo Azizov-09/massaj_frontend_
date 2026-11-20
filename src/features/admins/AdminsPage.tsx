@@ -5,7 +5,7 @@
 import { useState, useMemo, useRef } from 'react';
 import {
   ShieldCheck, Plus, Search, Shield, User,
-  CheckCircle2, Phone, Mail, Calendar, Eye, EyeOff, KeyRound, RefreshCw, X, Pencil,
+  CheckCircle2, Phone, Calendar, Eye, EyeOff, KeyRound, RefreshCw, X, Pencil,
   AlertCircle
 } from 'lucide-react';
 import { useStore, useAuth } from '@/store';
@@ -37,40 +37,35 @@ export function AdminsPage() {
   const [deletingAdmin, setDeletingAdmin] = useState<AdminUser | null>(null);
   const [editForm, setEditForm] = useState<{
     fullName: string;
-    email: string;
     phone: string;
     role: 'SUPER_ADMIN' | 'ADMIN';
     status: 'ACTIVE' | 'INACTIVE';
   }>({
     fullName: '',
-    email: '',
     phone: '',
     role: 'ADMIN',
     status: 'ACTIVE',
   });
-  const [formErrors, setFormErrors] = useState<{ fullName?: string; email?: string; phone?: string; password?: string }>({});
-  const [editFormErrors, setEditFormErrors] = useState<{ fullName?: string; email?: string; phone?: string }>({});
+  const [formErrors, setFormErrors] = useState<{ fullName?: string; phone?: string; password?: string }>({});
+  const [editFormErrors, setEditFormErrors] = useState<{ fullName?: string; phone?: string }>({});
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
-  const [duplicateField, setDuplicateField] = useState<'phone' | 'email' | null>(null);
+  const [duplicateField, setDuplicateField] = useState<'phone' | null>(null);
 
   const [editIsSubmitting, setEditIsSubmitting] = useState(false);
   const [editSubmitError, setEditSubmitError] = useState<string | null>(null);
   const [editIsShaking, setEditIsShaking] = useState(false);
-  const [editDuplicateField, setEditDuplicateField] = useState<'phone' | 'email' | null>(null);
+  const [editDuplicateField, setEditDuplicateField] = useState<'phone' | null>(null);
   const [changingStatusId, setChangingStatusId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const createEmailRef = useRef<HTMLInputElement>(null);
   const createPhoneRef = useRef<HTMLInputElement>(null);
-  const editEmailRef = useRef<HTMLInputElement>(null);
   const editPhoneRef = useRef<HTMLInputElement>(null);
 
   // New admin form state
   const [newAdmin, setNewAdmin] = useState({
     fullName: '',
-    email: '',
     phone: '',
     role: 'ADMIN' as 'SUPER_ADMIN' | 'ADMIN',
     password: generateStrongPassword(14),
@@ -104,7 +99,6 @@ export function AdminsPage() {
         const q = search.toLowerCase();
         return (
           a.fullName?.toLowerCase().includes(q) ||
-          a.email?.toLowerCase().includes(q) ||
           (a.phone || '').includes(q)
         );
       }
@@ -124,9 +118,8 @@ export function AdminsPage() {
     setSubmitError(null);
     setDuplicateField(null);
 
-    const errors: { fullName?: string; email?: string; phone?: string; password?: string } = {};
+    const errors: { fullName?: string; phone?: string; password?: string } = {};
     if (!newAdmin.fullName.trim()) errors.fullName = "Ism va familiyani kiriting";
-    if (!newAdmin.email.trim() || !newAdmin.email.includes('@')) errors.email = "To'g'ri email manzilini kiriting";
     if (!newAdmin.phone.trim()) errors.phone = "Telefon raqamini kiriting";
     if (!newAdmin.password || newAdmin.password.length < 12) {
       errors.password = "Parol kamida 12 ta belgidan iborat bo'lishi shart";
@@ -149,14 +142,13 @@ export function AdminsPage() {
     try {
       await createAdmin({
         fullName: newAdmin.fullName.trim(),
-        email: newAdmin.email.trim(),
         phone: newAdmin.phone.trim(),
         role: newAdmin.role,
         status: 'ACTIVE',
       }, newAdmin.password);
 
       setShowCreateModal(false);
-      setNewAdmin({ fullName: '', email: '', phone: '', role: 'ADMIN', password: generateStrongPassword(14) });
+      setNewAdmin({ fullName: '', phone: '', role: 'ADMIN', password: generateStrongPassword(14) });
       setFormErrors({});
       setSubmitError(null);
       setDuplicateField(null);
@@ -165,11 +157,11 @@ export function AdminsPage() {
       setSubmitError(msg);
 
       const conflictField = getApiConflictField(err);
-      if (conflictField) {
-        setDuplicateField(conflictField);
-        setFormErrors(prev => ({ ...prev, [conflictField]: msg }));
+      if (conflictField === 'phone') {
+        setDuplicateField('phone');
+        setFormErrors(prev => ({ ...prev, phone: msg }));
         requestAnimationFrame(() => {
-          (conflictField === 'email' ? createEmailRef : createPhoneRef).current?.focus();
+          createPhoneRef.current?.focus();
         });
       } else {
         setIsShaking(true);
@@ -186,7 +178,6 @@ export function AdminsPage() {
     setEditDuplicateField(null);
     setEditForm({
       fullName: admin.fullName,
-      email: admin.email || '',
       phone: admin.phone || '',
       role: admin.role,
       status: admin.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
@@ -200,15 +191,12 @@ export function AdminsPage() {
     setEditSubmitError(null);
     setEditDuplicateField(null);
 
-    const errors: { fullName?: string; email?: string; phone?: string } = {};
+    const errors: { fullName?: string; phone?: string } = {};
     if (!editForm.fullName.trim()) errors.fullName = 'Ism familiya kiritilishi shart';
     if (!editForm.phone.trim()) {
       errors.phone = 'Telefon raqam kiritilishi shart';
     } else if (!/^\+?[0-9]{9,15}$/.test(editForm.phone.replace(/[\s-]/g, ''))) {
       errors.phone = "Noto'g'ri telefon raqami formati";
-    }
-    if (editForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email)) {
-      errors.email = "Noto'g'ri email formati";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -222,7 +210,6 @@ export function AdminsPage() {
     try {
       await updateAdmin(editingAdmin.id, {
         fullName: editForm.fullName.trim(),
-        email: editForm.email.trim(),
         phone: editForm.phone.trim(),
         role: editForm.role,
         status: editForm.status,
@@ -232,7 +219,6 @@ export function AdminsPage() {
         setSelectedAdmin({
           ...selectedAdmin,
           fullName: editForm.fullName.trim(),
-          email: editForm.email.trim(),
           phone: editForm.phone.trim(),
           role: editForm.role,
           status: editForm.status,
@@ -248,11 +234,11 @@ export function AdminsPage() {
       setEditSubmitError(msg);
 
       const conflictField = getApiConflictField(err);
-      if (conflictField) {
-        setEditDuplicateField(conflictField);
-        setEditFormErrors(prev => ({ ...prev, [conflictField]: msg }));
+      if (conflictField === 'phone') {
+        setEditDuplicateField('phone');
+        setEditFormErrors(prev => ({ ...prev, phone: msg }));
         requestAnimationFrame(() => {
-          (conflictField === 'email' ? editEmailRef : editPhoneRef).current?.focus();
+          editPhoneRef.current?.focus();
         });
       } else {
         setEditIsShaking(true);
@@ -306,8 +292,8 @@ export function AdminsPage() {
               {a.fullName}
             </h5>
             <p className="text-xs text-charcoal-400 mt-0.5 flex items-center gap-1">
-              <Mail className="w-3 h-3" />
-              <span>{a.email}</span>
+              <Phone className="w-3 h-3 text-charcoal-400" />
+              <span>{a.phone}</span>
             </p>
           </div>
         </div>
@@ -552,10 +538,10 @@ export function AdminsPage() {
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
             <input
-              aria-label="Adminni ism, email yoki telefon bo‘yicha qidirish"
+              aria-label="Adminni ism yoki telefon bo‘yicha qidirish"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Ism, email yoki telefon bo‘yicha qidirish..."
+              placeholder="Ism yoki telefon bo‘yicha qidirish..."
               className="w-full h-10 pl-9.5 pr-8 text-xs sm:text-sm border border-warm-200 rounded-xl bg-white shadow-2xs placeholder:text-charcoal-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none transition-all"
             />
             {search && (
@@ -612,13 +598,12 @@ export function AdminsPage() {
             const initials = admin.fullName
               ? admin.fullName.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
               : 'A';
-            const username = admin.email.split('@')[0] || `admin_${index + 1}`;
 
             return {
               avatarText: initials,
               avatarGradient: getAvatarGradient(index, admin.fullName),
               title: admin.fullName,
-              subtitle: username,
+              subtitle: admin.role === 'SUPER_ADMIN' ? 'Super Administrator' : 'Administrator',
               status: (
                 <span className={cn(
                   "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold border",
@@ -631,7 +616,6 @@ export function AdminsPage() {
                 </span>
               ),
               details: [
-                { label: 'Email', value: admin.email },
                 {
                   label: 'Telefon',
                   value: (
@@ -745,12 +729,6 @@ export function AdminsPage() {
                     <Phone className="w-3.5 h-3.5 text-charcoal-400" />
                     {selectedAdmin.phone}
                   </a>
-                  {selectedAdmin.email && (
-                    <span className="inline-flex items-center gap-1 text-charcoal-500">
-                      <Mail className="w-3.5 h-3.5 text-charcoal-400" />
-                      {selectedAdmin.email}
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
@@ -869,21 +847,6 @@ export function AdminsPage() {
             }}
           />
 
-          <Input
-            ref={createEmailRef}
-            label="Email"
-            required
-            type="email"
-            placeholder="admin@massaj.uz"
-            value={newAdmin.email}
-            error={formErrors.email}
-            className={duplicateField === 'email' ? 'animate-shake border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
-            onChange={e => {
-              setNewAdmin({ ...newAdmin, email: e.target.value });
-              if (formErrors.email) setFormErrors({ ...formErrors, email: undefined });
-              if (duplicateField === 'email') setDuplicateField(null);
-            }}
-          />
 
           <Input
             ref={createPhoneRef}
@@ -1027,7 +990,6 @@ export function AdminsPage() {
             )}
 
             <Input
-              ref={editEmailRef}
               label="To‘liq ism"
               required
               placeholder="Masalan: Sardor Rustamov"
@@ -1039,19 +1001,6 @@ export function AdminsPage() {
               }}
             />
 
-            <Input
-              label="Email"
-              type="email"
-              placeholder="admin@massaj.uz"
-              value={editForm.email}
-              error={editFormErrors.email}
-              className={editDuplicateField === 'email' ? 'animate-shake border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
-              onChange={e => {
-                setEditForm({ ...editForm, email: e.target.value });
-                if (editFormErrors.email) setEditFormErrors({ ...editFormErrors, email: undefined });
-                if (editDuplicateField === 'email') setEditDuplicateField(null);
-              }}
-            />
 
             <Input
               ref={editPhoneRef}

@@ -11,7 +11,9 @@ import React, {
   useMemo,
   useImperativeHandle,
   useId,
+  useCallback,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Check, Search } from 'lucide-react';
 import { cn } from '@/utils';
@@ -41,6 +43,7 @@ export interface SelectProps
   size?: 'sm' | 'md' | 'lg';
   searchable?: boolean;
   align?: 'left' | 'right' | 'auto';
+  placement?: 'bottom' | 'top' | 'auto';
 }
 
 const sizeStyles = {
@@ -87,10 +90,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       size = 'md',
       searchable,
       align = 'auto',
+      placement = 'bottom',
       ...props
     },
     ref
-  ) => {
+) => {
     const generatedId = useId();
     const selectId = id ?? label?.toLowerCase().replace(/\s+/g, '-') ?? generatedId;
     const containerRef = useRef<HTMLDivElement>(null);
@@ -102,10 +106,62 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     useImperativeHandle(ref, () => hiddenSelectRef.current!);
 
     const [isOpen, setIsOpen] = useState(false);
+    // Portal-based positioning state (fixed coordinates for mobile escape)
+    const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
     const [openUpward, setOpenUpward] = useState(false);
-    const [alignRight, setAlignRight] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
+
+    // Calculate dropdown position relative to viewport (portal-based fixed positioning)
+    const computeDropdownPosition = useCallback(() => {
+      if (!triggerRef.current) return;
+      const rect = triggerRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      const DROPDOWN_MAX_H = 260;
+      const MARGIN = 8;
+
+      const spaceBelow = viewportHeight - rect.bottom - MARGIN;
+      const spaceAbove = rect.top - MARGIN;
+
+      let shouldOpenUpward = false;
+      if (placement === 'top') {
+        shouldOpenUpward = true;
+      } else if (placement === 'bottom') {
+        shouldOpenUpward = false;
+      } else {
+        shouldOpenUpward = spaceBelow < Math.min(DROPDOWN_MAX_H, 200) && spaceAbove > spaceBelow;
+      }
+      setOpenUpward(shouldOpenUpward);
+
+      const minWidth = rect.width;
+      // Determine horizontal alignment
+      let leftPos = rect.left;
+      if (align === 'right') {
+        leftPos = rect.right - Math.max(minWidth, 200);
+      }
+      // Prevent going off right edge
+      if (leftPos + Math.max(minWidth, 200) > viewportWidth - 8) {
+        leftPos = viewportWidth - Math.max(minWidth, 200) - 8;
+      }
+      if (leftPos < 8) leftPos = 8;
+
+      const style: React.CSSProperties = {
+        position: 'fixed',
+        minWidth: minWidth,
+        maxWidth: Math.min(Math.max(minWidth, 280), viewportWidth - 16),
+        zIndex: 99999,
+        left: leftPos,
+      };
+
+      if (shouldOpenUpward) {
+        style.bottom = viewportHeight - rect.top + 4;
+      } else {
+        style.top = rect.bottom + 4;
+      }
+
+      setDropdownStyle(style);
+    }, [placement, align]);
 
     const isControlled = value !== undefined;
     const [internalVal, setInternalVal] = useState<string>(
@@ -187,43 +243,29 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       displayLabel = currentVal || '';
     }
 
-    // Toggle dropdown open/close with viewport boundary calculation
+    // Toggle dropdown open/close
     const handleToggle = () => {
       if (disabled) return;
-      if (!isOpen && containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        // Check available space within nearest scroll container or modal/viewport
-        const scrollContainer = containerRef.current.closest('.overflow-y-auto, [role="dialog"]') as HTMLElement | null;
-        const containerBounds = scrollContainer?.getBoundingClientRect();
-
-        const bottomLimit = containerBounds ? containerBounds.bottom : window.innerHeight;
-        const topLimit = containerBounds ? containerBounds.top : 0;
-        const spaceBelow = bottomLimit - rect.bottom;
-        const spaceAbove = rect.top - topLimit;
-        const estimatedHeight = Math.min(allOptions.length * 40 + (shouldShowSearch ? 48 : 16), 260);
-
-        // Open upward if space below is less than required height and space above is sufficient or larger
-        setOpenUpward(spaceBelow < estimatedHeight && (spaceAbove >= estimatedHeight || spaceAbove > spaceBelow));
-
-        if (align === 'right') {
-          setAlignRight(true);
-        } else if (align === 'left') {
-          setAlignRight(false);
-        } else {
-          const spaceRight = window.innerWidth - rect.left;
-          setAlignRight(spaceRight < 240 && rect.right > 240);
-        }
+      if (!isOpen) {
+        computeDropdownPosition();
+        setSearchQuery('');
+        const idx = filteredOptions.findIndex(o => o.value === currentVal);
+        setHighlightedIndex(idx >= 0 ? idx : 0);
       }
-      setIsOpen(prev => {
-        const next = !prev;
-        if (next) {
-          setSearchQuery('');
-          const idx = filteredOptions.findIndex(o => o.value === currentVal);
-          setHighlightedIndex(idx >= 0 ? idx : 0);
-        }
-        return next;
-      });
+      setIsOpen(prev => !prev);
     };
+
+    // Recompute on scroll/resize while open
+    useEffect(() => {
+      if (!isOpen) return;
+      const update = () => computeDropdownPosition();
+      window.addEventListener('scroll', update, true);
+      window.addEventListener('resize', update);
+      return () => {
+        window.removeEventListener('scroll', update, true);
+        window.removeEventListener('resize', update);
+      };
+    }, [isOpen, computeDropdownPosition]);
 
     // Auto-focus search input when opened
     useEffect(() => {
@@ -331,8 +373,98 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 
     const currentSize = sizeStyles[size];
 
+    // Render dropdown menu via portal to escape overflow:hidden parents
+    const dropdownMenu = isOpen ? createPortal(
+      <AnimatePresence>
+        <motion.div
+          id={`${selectId}-listbox`}
+          role="listbox"
+          initial={{ opacity: 0, y: openUpward ? 4 : -4, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: openUpward ? 4 : -4, scale: 0.98 }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
+          style={dropdownStyle}
+          className={cn(
+            'bg-white/98 backdrop-blur-md rounded-2xl',
+            'shadow-[0_16px_40px_-6px_rgba(24,24,27,0.14),0_6px_16px_-4px_rgba(24,24,27,0.06)]',
+            'border border-warm-200/90 p-1.5 overflow-hidden',
+            menuClassName
+          )}
+        >
+          {/* Optional search input */}
+          {shouldShowSearch && (
+            <div className="p-1 pb-1.5 mb-1 border-b border-warm-100">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => {
+                    setSearchQuery(e.target.value);
+                    setHighlightedIndex(0);
+                  }}
+                  placeholder="Qidirish..."
+                  className="w-full pl-8 pr-2.5 py-1.5 text-xs bg-warm-50/70 border border-warm-200/80 rounded-lg outline-none focus:border-brand-500 focus:bg-white focus:ring-1 focus:ring-brand-200 text-charcoal-900 placeholder:text-charcoal-400 transition-all"
+                  onClick={e => e.stopPropagation()}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Options list */}
+          <div className="max-h-60 overflow-y-auto overscroll-contain space-y-0.5 scrollbar-thin">
+            {filteredOptions.length === 0 ? (
+              <div className="px-3 py-4 text-center text-xs text-charcoal-400 select-none">
+                Hech narsa topilmadi
+              </div>
+            ) : (
+              filteredOptions.map((opt, idx) => {
+                const isSelected = opt.value === currentVal;
+                const isHighlighted = idx === highlightedIndex;
+
+                return (
+                  <div
+                    key={opt.value + idx}
+                    role="option"
+                    aria-selected={isSelected}
+                    aria-disabled={opt.disabled}
+                    onClick={() => {
+                      if (!opt.disabled) handleSelect(opt.value);
+                    }}
+                    onMouseEnter={() => setHighlightedIndex(idx)}
+                    className={cn(
+                      'w-full flex items-center justify-between text-left transition-all duration-100 cursor-pointer select-none',
+                      currentSize.option,
+                      isSelected
+                        ? 'bg-brand-50 text-brand-700 font-semibold shadow-2xs'
+                        : isHighlighted
+                          ? 'bg-warm-100/70 text-charcoal-900'
+                          : 'text-charcoal-700 hover:bg-warm-50/80 hover:text-charcoal-900',
+                      opt.disabled && 'opacity-40 cursor-not-allowed pointer-events-none'
+                    )}
+                  >
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      {(opt as any).icon && <span className="shrink-0 text-charcoal-500">{(opt as any).icon}</span>}
+                      <span className="truncate">{opt.label}</span>
+                    </div>
+                    {isSelected && (
+                      <span className="flex items-center justify-center w-4 h-4 rounded-full bg-brand-100 text-brand-600 shrink-0 ml-2">
+                        <Check className="w-3 h-3 stroke-[2.5]" aria-hidden />
+                      </span>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </motion.div>
+      </AnimatePresence>,
+      document.body
+    ) : null;
+
     return (
-      <div className={cn('relative w-full', isOpen && 'z-50', className)} ref={containerRef}>
+      <div className={cn('relative w-full', className)} ref={containerRef}>
         {label && (
           <label htmlFor={selectId} className="block text-sm font-medium text-charcoal-700 mb-1.5">
             {label}
@@ -384,95 +516,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           />
         </button>
 
-        {/* Dropdown Menu */}
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              id={`${selectId}-listbox`}
-              role="listbox"
-              initial={{ opacity: 0, y: openUpward ? 4 : -4, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: openUpward ? 4 : -4, scale: 0.98 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              className={cn(
-                'absolute z-50 min-w-full w-full sm:w-max max-w-[calc(100vw-2rem)] bg-white/98 backdrop-blur-md rounded-2xl',
-                'shadow-[0_16px_40px_-6px_rgba(24,24,27,0.14),0_6px_16px_-4px_rgba(24,24,27,0.06)]',
-                'border border-warm-200/90 p-1.5 overflow-hidden',
-                alignRight ? 'right-0' : 'left-0',
-                openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
-                menuClassName
-              )}
-            >
-              {/* Optional search input */}
-              {shouldShowSearch && (
-                <div className="p-1 pb-1.5 mb-1 border-b border-warm-100">
-                  <div className="relative">
-                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none" />
-                    <input
-                      ref={searchInputRef}
-                      type="text"
-                      value={searchQuery}
-                      onChange={e => {
-                        setSearchQuery(e.target.value);
-                        setHighlightedIndex(0);
-                      }}
-                      placeholder="Qidirish..."
-                      className="w-full pl-8 pr-2.5 py-1.5 text-xs bg-warm-50/70 border border-warm-200/80 rounded-lg outline-none focus:border-brand-500 focus:bg-white focus:ring-1 focus:ring-brand-200 text-charcoal-900 placeholder:text-charcoal-400 transition-all"
-                      onClick={e => e.stopPropagation()}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Options list */}
-              <div className="max-h-60 overflow-y-auto overscroll-contain space-y-0.5 scrollbar-thin">
-                {filteredOptions.length === 0 ? (
-                  <div className="px-3 py-4 text-center text-xs text-charcoal-400 select-none">
-                    Hech narsa topilmadi
-                  </div>
-                ) : (
-                  filteredOptions.map((opt, idx) => {
-                    const isSelected = opt.value === currentVal;
-                    const isHighlighted = idx === highlightedIndex;
-
-                    return (
-                      <div
-                        key={opt.value + idx}
-                        role="option"
-                        aria-selected={isSelected}
-                        aria-disabled={opt.disabled}
-                        onClick={() => {
-                          if (!opt.disabled) handleSelect(opt.value);
-                        }}
-                        onMouseEnter={() => setHighlightedIndex(idx)}
-                        className={cn(
-                          'w-full flex items-center justify-between text-left transition-all duration-100 cursor-pointer select-none',
-                          currentSize.option,
-                          isSelected
-                            ? 'bg-brand-50 text-brand-700 font-semibold shadow-2xs'
-                            : isHighlighted
-                              ? 'bg-warm-100/70 text-charcoal-900'
-                              : 'text-charcoal-700 hover:bg-warm-50/80 hover:text-charcoal-900',
-                          opt.disabled && 'opacity-40 cursor-not-allowed pointer-events-none'
-                        )}
-                      >
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          {opt.icon && <span className="shrink-0 text-charcoal-500">{opt.icon}</span>}
-                          <span className="truncate">{opt.label}</span>
-                        </div>
-                        {isSelected && (
-                          <span className="flex items-center justify-center w-4 h-4 rounded-full bg-brand-100 text-brand-600 shrink-0 ml-2">
-                            <Check className="w-3 h-3 stroke-[2.5]" aria-hidden />
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Portal-rendered dropdown (escapes overflow:hidden on mobile) */}
+        {dropdownMenu}
 
         {/* Hidden native select for form submit and React Hook Form registration */}
         <select

@@ -13,7 +13,6 @@ describe('ParentDashboard Component', () => {
       currentUser: {
         id: 'p1',
         fullName: 'Dilnoza Abdullayeva',
-        email: 'dilnoza@test.uz',
         phone: '+998901112233',
         role: 'PARENT',
         status: 'ACTIVE',

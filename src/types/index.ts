@@ -38,7 +38,6 @@ export type PaymentMethod = 'CASH' | 'CARD' | 'TRANSFER';
 
 export interface BaseUser {
   id: string;
-  email: string;
   fullName: string;
   phone: string;
   role: UserRole;
@@ -57,7 +56,6 @@ export interface Employee {
   fullName: string;
   position: string;
   phone: string;
-  email?: string;
   status: EntityStatus;
   joinedAt: string;
   avatar?: string;
@@ -76,10 +74,16 @@ export interface Specialist extends BaseUser {
   role: 'SPECIALIST';
   specialization: string;
   experience: number; // years
-  workingDays: number[]; // 0=Sunday, 1=Monday, ...
+  workingDays: number[]; // 0=Sunday, 1=Monday, ..., 6=Saturday
   workingHours: WorkingHours;
-  bio: string;
+  bio?: string;
   rating?: number;
+  user?: {
+    id?: string;
+    fullName?: string;
+    phone?: string;
+    avatar?: string;
+  };
 }
 
 // ─── Parent ───────────────────────────────────────────────
@@ -88,7 +92,6 @@ export interface Parent extends BaseUser {
   role: 'PARENT';
   childrenIds: string[];
   address?: string;
-  email: string;
   notes?: string;
 }
 
@@ -97,6 +100,8 @@ export interface Parent extends BaseUser {
 export interface Child {
   id: string;
   fullName: string;
+  firstName?: string;
+  lastName?: string;
   dateOfBirth: string; // ISO date
   gender: Gender;
   parentId: string;
@@ -143,6 +148,12 @@ export interface Appointment {
   notes?: string;
   createdAt: string;
   updatedAt?: string;
+  child?: Partial<Child>;
+  childName?: string;
+  specialist?: Partial<Specialist>;
+  specialistName?: string;
+  service?: Partial<Service>;
+  serviceName?: string;
 }
 
 // ─── Session ──────────────────────────────────────────────
@@ -399,7 +410,6 @@ export interface CreateChildInput {
 export interface CreateParentInput {
   fullName: string;
   phone: string;
-  email: string;
   address?: string;
   password: string;
 }
@@ -458,7 +468,6 @@ export interface CenterSettings {
   centerName: string;
   address: string;
   phone: string;
-  email: string;
   workingDays: number[];
   workingHours: WorkingHours;
   currency: string;

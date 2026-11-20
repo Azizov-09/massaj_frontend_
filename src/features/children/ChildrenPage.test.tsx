@@ -10,7 +10,6 @@ describe('ChildrenPage Component', () => {
   const mockAdmin: AdminUser = {
     id: 'admin-1',
     fullName: 'Bosh Admin',
-    email: 'admin@massaj.uz',
     phone: '+998901234567',
     role: 'SUPER_ADMIN',
     status: 'ACTIVE',
@@ -21,7 +20,6 @@ describe('ChildrenPage Component', () => {
     {
       id: 'par-1',
       fullName: 'Feruza Aliyeva',
-      email: 'feruza@example.com',
       phone: '+998901234600',
       role: 'PARENT',
       status: 'ACTIVE',
@@ -31,7 +29,6 @@ describe('ChildrenPage Component', () => {
     {
       id: 'par-2',
       fullName: 'Munira Hasanova',
-      email: 'munira@example.com',
       phone: '+998901234601',
       role: 'PARENT',
       status: 'ACTIVE',
@@ -44,7 +41,6 @@ describe('ChildrenPage Component', () => {
     {
       id: 'spec-1',
       fullName: 'Dilnoza Karimova',
-      email: 'dilnoza@massaj.uz',
       phone: '+998901234568',
       role: 'SPECIALIST',
       status: 'ACTIVE',

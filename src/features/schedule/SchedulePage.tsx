@@ -14,7 +14,7 @@ import { Card, Badge, Select, DatePicker, Avatar } from '@/components/ui/primiti
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
-import type { Appointment } from '@/types';
+import type { Appointment, Child, Specialist, Service } from '@/types';
 
 const DEFAULT_TIME_SLOTS = [
   '08:00', '09:00', '10:00', '11:00', '12:00',
@@ -28,10 +28,59 @@ function getPeriodInfo(time: string) {
   } else if (hour <= 13) {
     return { label: 'Tushlik', badgeClass: 'bg-warm-100 text-charcoal-700 border-warm-200' };
   } else if (hour < 18) {
-    return { label: 'Tushdan so‘ng', badgeClass: 'bg-blue-50 text-blue-700 border-blue-200/80' };
+    return { label: 'Tushdan so\'ng', badgeClass: 'bg-blue-50 text-blue-700 border-blue-200/80' };
   } else {
     return { label: 'Kechki', badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200/80' };
   }
+}
+
+function getResolvedAppointmentInfo(
+  apt: Appointment,
+  children: Child[],
+  specialists: Specialist[],
+  services: Service[]
+) {
+  // Child name: embedded relation first, then store lookup
+  const embeddedChild = apt.child as any;
+  const childFromStore = children.find(c => c.id === apt.childId);
+
+  const childFullName =
+    childFromStore?.fullName ||
+    (childFromStore?.firstName ? `${childFromStore.firstName} ${childFromStore.lastName || ''}`.trim() : null) ||
+    embeddedChild?.fullName ||
+    (embeddedChild?.firstName ? `${embeddedChild.firstName} ${embeddedChild.lastName || ''}`.trim() : null) ||
+    apt.childName ||
+    (apt.childId ? `Bola #${apt.childId.slice(-4)}` : 'Bola');
+
+  const specFromStore = specialists.find(s => s.id === apt.specialistId);
+  const embeddedSpec = apt.specialist as any;
+  const specFullName =
+    specFromStore?.fullName ||
+    (specFromStore?.user as any)?.fullName ||
+    embeddedSpec?.fullName ||
+    embeddedSpec?.user?.fullName ||
+    apt.specialistName ||
+    (apt.specialistId ? `Mutaxassis #${apt.specialistId.slice(-4)}` : 'Mutaxassis belgilanmagan');
+
+  const svcFromStore = services.find(s => s.id === apt.serviceId);
+  const embeddedSvc = apt.service as any;
+  const serviceName =
+    svcFromStore?.name ||
+    embeddedSvc?.name ||
+    apt.serviceName ||
+    (apt.serviceId ? `Xizmat #${apt.serviceId.slice(-4)}` : '—');
+
+  const duration = svcFromStore?.durationMinutes || embeddedSvc?.durationMinutes;
+
+  return {
+    child: childFromStore || embeddedChild,
+    childName: childFullName,
+    specialist: specFromStore || embeddedSpec,
+    specialistName: specFullName,
+    service: svcFromStore || embeddedSvc,
+    serviceName,
+    duration,
+  };
 }
 
 export function SchedulePage() {
@@ -403,9 +452,7 @@ export function SchedulePage() {
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 w-full items-stretch">
                         {slotApts.map(apt => {
-                          const child = children.find(c => c.id === apt.childId);
-                          const spec = specialists.find(s => s.id === apt.specialistId);
-                          const svc = services.find(s => s.id === apt.serviceId);
+                          const info = getResolvedAppointmentInfo(apt, children, specialists, services);
                           return (
                             <div
                               key={apt.id}
@@ -415,13 +462,13 @@ export function SchedulePage() {
                               <div>
                                 <div className="flex items-start justify-between gap-2 mb-2">
                                   <div className="flex items-center gap-2.5 min-w-0">
-                                    <Avatar name={child?.fullName ?? 'Bola'} size="xs" />
+                                    <Avatar name={info.childName} size="xs" />
                                     <div className="min-w-0">
                                       <span className="text-xs font-bold text-charcoal-900 truncate block group-hover/card:text-brand-700 transition-colors">
-                                        {child?.fullName ?? 'Noma’lum bola'}
+                                        {info.childName}
                                       </span>
                                       <span className="text-[10px] text-charcoal-400 truncate block">
-                                        {spec?.fullName ? `Mutaxassis: ${spec.fullName}` : 'Mutaxassis belgilanmagan'}
+                                        {info.specialistName ? `Mutaxassis: ${info.specialistName}` : 'Mutaxassis belgilanmagan'}
                                       </span>
                                     </div>
                                   </div>
@@ -432,7 +479,7 @@ export function SchedulePage() {
                               </div>
 
                               <div className="flex items-center justify-between text-[11px] pt-2.5 mt-1 border-t border-warm-100 text-charcoal-600">
-                                <span className="truncate font-medium text-charcoal-700">{svc?.name ?? 'Xizmat'}</span>
+                                <span className="truncate font-medium text-charcoal-700">{info.serviceName}</span>
                                 <span className="font-semibold text-charcoal-800 bg-warm-100/70 px-2 py-0.5 rounded-[6px] text-[10px] whitespace-nowrap">
                                   {apt.startTime} - {apt.endTime}
                                 </span>
@@ -516,7 +563,7 @@ export function SchedulePage() {
                           </div>
                         ) : (
                           apts.map(apt => {
-                            const child = children.find(c => c.id === apt.childId);
+                            const info = getResolvedAppointmentInfo(apt, children, specialists, services);
                             return (
                               <div
                                 key={apt.id}
@@ -524,9 +571,9 @@ export function SchedulePage() {
                                 className="p-2 rounded-[10px] border border-warm-200 bg-white hover:border-brand-400 hover:shadow-xs shadow-2xs cursor-pointer transition-all text-[11px] min-h-[58px] flex flex-col justify-between"
                               >
                                 <div className="flex items-center gap-1.5 mb-1">
-                                  <Avatar name={child?.fullName ?? 'Bola'} size="xs" />
+                                  <Avatar name={info.childName} size="xs" />
                                   <p className="font-bold text-charcoal-900 truncate leading-tight">
-                                    {child?.fullName}
+                                    {info.childName}
                                   </p>
                                 </div>
                                 <div className="flex items-center justify-between text-[10px] text-charcoal-500">
@@ -557,39 +604,40 @@ export function SchedulePage() {
         size="md"
       >
         {activeAppointment && (() => {
-          const child = children.find(c => c.id === activeAppointment.childId);
-          const spec = specialists.find(s => s.id === activeAppointment.specialistId);
-          const svc = services.find(s => s.id === activeAppointment.serviceId);
+          const info = getResolvedAppointmentInfo(activeAppointment, children, specialists, services);
 
           return (
-            <div className="space-y-4">
-              <div className="p-4 rounded-[14px] bg-warm-50/80 border border-warm-200/90 shadow-2xs flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar name={child?.fullName ?? 'Bola'} size="md" />
-                  <div>
-                    <h4 className="text-base font-bold text-charcoal-900">{child?.fullName}</h4>
-                    <p className="text-xs text-charcoal-500">Mutaxassis: {spec?.fullName ?? 'Biriktirilmagan'}</p>
+            <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1 overscroll-contain">
+              <div className="p-4 rounded-[14px] bg-warm-50/90 border border-warm-200/90 shadow-2xs flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Avatar name={info.childName} size="md" />
+                  <div className="min-w-0">
+                    <h4 className="text-base font-bold text-charcoal-900 truncate">{info.childName}</h4>
+                    <p className="text-xs text-charcoal-600 truncate mt-0.5">
+                      <span className="text-charcoal-400">Mutaxassis:</span>{' '}
+                      <span className="font-medium text-charcoal-800">{info.specialistName}</span>
+                    </p>
                   </div>
                 </div>
-                <Badge className={getAppointmentStatusColor(activeAppointment.status)} dot>
+                <Badge className={cn('shrink-0', getAppointmentStatusColor(activeAppointment.status))} dot>
                   {getAppointmentStatusLabel(activeAppointment.status)}
                 </Badge>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="p-3.5 rounded-[12px] bg-white border border-warm-200 shadow-2xs">
-                  <span className="text-charcoal-400 block mb-1">Xizmat turi</span>
-                  <span className="font-semibold text-charcoal-800">{svc?.name ?? '—'}</span>
-                  {svc?.durationMinutes && (
-                    <span className="text-[11px] text-charcoal-400 block mt-0.5">Davomiyligi: {svc.durationMinutes} daqiqa</span>
+                  <span className="text-charcoal-400 block mb-1 font-medium">Xizmat turi</span>
+                  <span className="font-semibold text-charcoal-900 text-sm block">{info.serviceName}</span>
+                  {info.duration && (
+                    <span className="text-[11px] text-charcoal-500 block mt-0.5 font-medium">Davomiyligi: {info.duration} daqiqa</span>
                   )}
                 </div>
                 <div className="p-3.5 rounded-[12px] bg-white border border-warm-200 shadow-2xs">
-                  <span className="text-charcoal-400 block mb-1">Vaqti va sanasi</span>
-                  <span className="font-semibold text-charcoal-800">
+                  <span className="text-charcoal-400 block mb-1 font-medium">Sana va vaqt</span>
+                  <span className="font-semibold text-charcoal-900 text-sm block">
                     {formatDate(activeAppointment.date)}
                   </span>
-                  <span className="text-[11px] text-charcoal-500 block mt-0.5 font-medium">
+                  <span className="text-xs text-brand-600 block mt-0.5 font-bold">
                     {activeAppointment.startTime} - {activeAppointment.endTime}
                   </span>
                 </div>
@@ -597,17 +645,17 @@ export function SchedulePage() {
 
               {activeAppointment.notes && (
                 <div className="p-3.5 rounded-[12px] bg-white border border-warm-200 text-xs shadow-2xs">
-                  <span className="text-charcoal-400 block mb-1 font-medium">Izoh / Qo‘shimcha ma’lumot</span>
-                  <p className="text-charcoal-700 whitespace-pre-wrap">{activeAppointment.notes}</p>
+                  <span className="text-charcoal-400 block mb-1 font-semibold uppercase tracking-wider text-[10px]">Zarur izohlar / Ma’lumot</span>
+                  <p className="text-charcoal-700 whitespace-pre-wrap leading-relaxed">{activeAppointment.notes}</p>
                 </div>
               )}
 
               {/* Actions */}
-              <div className="flex flex-wrap items-center justify-between gap-2.5 pt-4 border-t border-warm-100">
-                <div className="text-xs text-charcoal-500 font-medium">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3.5 border-t border-warm-100">
+                <div className="text-xs text-charcoal-500 font-medium text-center sm:text-left">
                   Holat: <span className="font-semibold text-charcoal-800">{getAppointmentStatusLabel(activeAppointment.status)}</span>
                 </div>
-                <Button size="sm" variant="secondary" onClick={() => setActiveAppointment(null)}>
+                <Button size="sm" variant="secondary" onClick={() => setActiveAppointment(null)} className="w-full sm:w-auto">
                   Yopish
                 </Button>
               </div>

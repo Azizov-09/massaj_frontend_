@@ -24,9 +24,9 @@ import {
 // ─── Demo Users (Auth) ────────────────────────────────────
 
 export const DEMO_CREDENTIALS = [
-  { email: 'superadmin@demo.com', password: 'demo123', role: 'SUPER_ADMIN' as const },
-  { email: 'specialist@demo.com', password: 'demo123', role: 'SPECIALIST' as const },
-  { email: 'parent@demo.com', password: 'demo123', role: 'PARENT' as const },
+  { phone: '+998901234567', password: 'demo123', role: 'SUPER_ADMIN' as const },
+  { phone: '+998901234568', password: 'demo123', role: 'SPECIALIST' as const },
+  { phone: '+998901234600', password: 'demo123', role: 'PARENT' as const },
 ];
 
 // ─── Admins ──────────────────────────────────────────────
@@ -34,7 +34,6 @@ export const DEMO_CREDENTIALS = [
 export const ADMINS: AdminUser[] = [
   {
     id: 'admin-1',
-    email: 'superadmin@demo.com',
     fullName: 'Alisher Nazarov',
     phone: '+998901234567',
     role: 'SUPER_ADMIN',
@@ -44,7 +43,6 @@ export const ADMINS: AdminUser[] = [
   },
   {
     id: 'admin-2',
-    email: 'admin@demo.com',
     fullName: 'Nilufar Rashidova',
     phone: '+998901234568',
     role: 'ADMIN',
@@ -54,7 +52,6 @@ export const ADMINS: AdminUser[] = [
   },
   {
     id: 'admin-3',
-    email: 'admin2@massaj.uz',
     fullName: 'Sardor Mirzayev',
     phone: '+998901234569',
     role: 'ADMIN',
@@ -64,7 +61,6 @@ export const ADMINS: AdminUser[] = [
   },
   {
     id: 'admin-4',
-    email: 'admin3@massaj.uz',
     fullName: 'Dildora Yusupova',
     phone: '+998901234570',
     role: 'ADMIN',
@@ -74,7 +70,6 @@ export const ADMINS: AdminUser[] = [
   },
   {
     id: 'admin-5',
-    email: 'admin4@massaj.uz',
     fullName: 'Jasur Toshmatov',
     phone: '+998901234571',
     role: 'ADMIN',
@@ -102,7 +97,6 @@ export const EMPLOYEES: Employee[] = [
 export const SPECIALISTS: Specialist[] = [
   {
     id: 'spec-1',
-    email: 'specialist@demo.com',
     fullName: 'Kamola Azimova',
     phone: '+998901234580',
     role: 'SPECIALIST',
@@ -117,7 +111,6 @@ export const SPECIALISTS: Specialist[] = [
   },
   {
     id: 'spec-2',
-    email: 'aziz@massaj.uz',
     fullName: 'Aziz Karimov',
     phone: '+998901234581',
     role: 'SPECIALIST',
@@ -132,7 +125,6 @@ export const SPECIALISTS: Specialist[] = [
   },
   {
     id: 'spec-3',
-    email: 'zebo@massaj.uz',
     fullName: 'Zebo Tursunova',
     phone: '+998901234582',
     role: 'SPECIALIST',
@@ -147,7 +139,6 @@ export const SPECIALISTS: Specialist[] = [
   },
   {
     id: 'spec-4',
-    email: 'murod@massaj.uz',
     fullName: 'Murod Xasanov',
     phone: '+998901234583',
     role: 'SPECIALIST',
@@ -162,7 +153,6 @@ export const SPECIALISTS: Specialist[] = [
   },
   {
     id: 'spec-5',
-    email: 'gulnora@massaj.uz',
     fullName: 'Gulnora Yodgorova',
     phone: '+998901234584',
     role: 'SPECIALIST',
@@ -177,7 +167,6 @@ export const SPECIALISTS: Specialist[] = [
   },
   {
     id: 'spec-6',
-    email: 'behruz@massaj.uz',
     fullName: 'Behruz Mamadaliyev',
     phone: '+998901234585',
     role: 'SPECIALIST',
@@ -192,7 +181,6 @@ export const SPECIALISTS: Specialist[] = [
   },
   {
     id: 'spec-7',
-    email: 'sarvinoz@massaj.uz',
     fullName: 'Sarvinoz Holmatova',
     phone: '+998901234586',
     role: 'SPECIALIST',
@@ -207,7 +195,6 @@ export const SPECIALISTS: Specialist[] = [
   },
   {
     id: 'spec-8',
-    email: 'shamsiddin@massaj.uz',
     fullName: 'Shamsiddin Nazarov',
     phone: '+998901234587',
     role: 'SPECIALIST',
@@ -222,7 +209,6 @@ export const SPECIALISTS: Specialist[] = [
   },
   {
     id: 'spec-9',
-    email: 'manzura@massaj.uz',
     fullName: 'Manzura Sultonova',
     phone: '+998901234588',
     role: 'SPECIALIST',
@@ -237,7 +223,6 @@ export const SPECIALISTS: Specialist[] = [
   },
   {
     id: 'spec-10',
-    email: 'davron@massaj.uz',
     fullName: 'Davron Xoliqov',
     phone: '+998901234589',
     role: 'SPECIALIST',
@@ -252,7 +237,6 @@ export const SPECIALISTS: Specialist[] = [
   },
   {
     id: 'spec-11',
-    email: 'nargiza@massaj.uz',
     fullName: 'Nargiza Umarova',
     phone: '+998901234590',
     role: 'SPECIALIST',
@@ -267,7 +251,6 @@ export const SPECIALISTS: Specialist[] = [
   },
   {
     id: 'spec-12',
-    email: 'hamid@massaj.uz',
     fullName: 'Hamidjon Tojiboyev',
     phone: '+998901234591',
     role: 'SPECIALIST',
@@ -282,7 +265,6 @@ export const SPECIALISTS: Specialist[] = [
   },
   {
     id: 'spec-13',
-    email: 'dilnoza@massaj.uz',
     fullName: 'Dilnoza Hasanova',
     phone: '+998901234592',
     role: 'SPECIALIST',
@@ -297,7 +279,6 @@ export const SPECIALISTS: Specialist[] = [
   },
   {
     id: 'spec-14',
-    email: 'otabek@massaj.uz',
     fullName: 'Otabek Yunusov',
     phone: '+998901234593',
     role: 'SPECIALIST',
@@ -312,7 +293,6 @@ export const SPECIALISTS: Specialist[] = [
   },
   {
     id: 'spec-15',
-    email: 'shahnoza@massaj.uz',
     fullName: 'Shahnoza Rajabova',
     phone: '+998901234594',
     role: 'SPECIALIST',
@@ -415,41 +395,41 @@ export const SERVICES: Service[] = [
 // ─── Parents ──────────────────────────────────────────────
 
 export const PARENTS: Parent[] = [
-  { id: 'par-1', email: 'parent@demo.com', fullName: 'Feruza Aliyeva', phone: '+998901234600', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-1', 'child-2'], address: 'Toshkent, Yunusobod t., 15-uy', createdAt: '2024-06-01T00:00:00+05:00' },
-  { id: 'par-2', email: 'par2@test.com', fullName: 'Ibrohim Karimov', phone: '+998901234601', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-3'], address: 'Toshkent, Chilonzor t., 23-uy', createdAt: '2024-06-05T00:00:00+05:00' },
-  { id: 'par-3', email: 'par3@test.com', fullName: "Zulfiya Xo'jayeva", phone: '+998901234602', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-4', 'child-5'], address: 'Toshkent, Mirzo Ulug\'bek t., 8-uy', createdAt: '2024-06-10T00:00:00+05:00' },
-  { id: 'par-4', email: 'par4@test.com', fullName: 'Bobur Toshmatov', phone: '+998901234603', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-6'], address: 'Toshkent, Shayxontohur t., 5-uy', createdAt: '2024-06-15T00:00:00+05:00' },
-  { id: 'par-5', email: 'par5@test.com', fullName: 'Munira Hasanova', phone: '+998901234604', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-7', 'child-8', 'child-9'], address: 'Samarqand, Registon ko\'chasi, 42-uy', createdAt: '2024-06-20T00:00:00+05:00' },
-  { id: 'par-6', email: 'par6@test.com', fullName: "Doniyor Yusupov", phone: '+998901234605', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-10'], address: 'Toshkent, Yashnobod t., 19-uy', createdAt: '2024-07-01T00:00:00+05:00' },
-  { id: 'par-7', email: 'par7@test.com', fullName: 'Shahlo Nazarova', phone: '+998901234606', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-11', 'child-12'], address: 'Toshkent, Uchtepa t., 3-uy', createdAt: '2024-07-05T00:00:00+05:00' },
-  { id: 'par-8', email: 'par8@test.com', fullName: "Aziza Ergasheva", phone: '+998901234607', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-13'], address: 'Namangan, Markaziy ko\'cha, 7-uy', createdAt: '2024-07-10T00:00:00+05:00' },
-  { id: 'par-9', email: 'par9@test.com', fullName: 'Javlon Mirzayev', phone: '+998901234608', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-14', 'child-15'], address: "Toshkent, O'rta Chirchiq t., 11-uy", createdAt: '2024-07-15T00:00:00+05:00' },
-  { id: 'par-10', email: 'par10@test.com', fullName: 'Nodira Qosimova', phone: '+998901234609', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-16'], address: 'Toshkent, Bektimir t., 22-uy', createdAt: '2024-07-20T00:00:00+05:00' },
-  { id: 'par-11', email: 'par11@test.com', fullName: 'Rustam Holmatov', phone: '+998901234610', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-17'], address: 'Andijon, Asaka ko\'chasi, 14-uy', createdAt: '2024-08-01T00:00:00+05:00' },
-  { id: 'par-12', email: 'par12@test.com', fullName: 'Malika Rahimova', phone: '+998901234611', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-18', 'child-19'], address: 'Toshkent, Olmazor t., 6-uy', createdAt: '2024-08-05T00:00:00+05:00' },
-  { id: 'par-13', email: 'par13@test.com', fullName: 'Sherzod Abdullayev', phone: '+998901234612', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-20'], address: 'Buxoro, Navoiy ko\'chasi, 35-uy', createdAt: '2024-08-10T00:00:00+05:00' },
-  { id: 'par-14', email: 'par14@test.com', fullName: 'Nozima Umarova', phone: '+998901234613', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-21'], address: 'Toshkent, Sergeli t., 9-uy', createdAt: '2024-08-15T00:00:00+05:00' },
-  { id: 'par-15', email: 'par15@test.com', fullName: 'Firdavs Jurayev', phone: '+998901234614', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-22', 'child-23'], address: 'Toshkent, Yakkasaroy t., 17-uy', createdAt: '2024-09-01T00:00:00+05:00' },
-  { id: 'par-16', email: 'par16@test.com', fullName: 'Ozoda Xoliqova', phone: '+998901234615', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-24'], address: 'Toshkent, Bektemir t., 4-uy', createdAt: '2024-09-10T00:00:00+05:00' },
-  { id: 'par-17', email: 'par17@test.com', fullName: 'Mansur Tojiboyev', phone: '+998901234616', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-25'], address: 'Toshkent, Uchtepa t., 28-uy', createdAt: '2024-09-15T00:00:00+05:00' },
-  { id: 'par-18', email: 'par18@test.com', fullName: 'Sabohat Ergasheva', phone: '+998901234617', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-26', 'child-27'], address: 'Qo\'qon, Mustaqillik ko\'chasi, 12-uy', createdAt: '2024-10-01T00:00:00+05:00' },
-  { id: 'par-19', email: 'par19@test.com', fullName: "Ikrom Yo'ldoshev", phone: '+998901234618', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-28'], address: 'Toshkent, Akmal-Ikrom t., 31-uy', createdAt: '2024-10-10T00:00:00+05:00' },
-  { id: 'par-20', email: 'par20@test.com', fullName: 'Mohira Tillayeva', phone: '+998901234619', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-29'], address: 'Toshkent, Mirzo Ulug\'bek t., 20-uy', createdAt: '2024-10-15T00:00:00+05:00' },
-  { id: 'par-21', email: 'par21@test.com', fullName: 'Odil Xasanov', phone: '+998901234620', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-30'], address: 'Toshkent, Chilonzor t., 44-uy', createdAt: '2024-11-01T00:00:00+05:00' },
-  { id: 'par-22', email: 'par22@test.com', fullName: 'Lola Mirzaeva', phone: '+998901234621', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-31', 'child-32'], address: 'Toshkent, Yunusobod t., 8-uy', createdAt: '2024-11-05T00:00:00+05:00' },
-  { id: 'par-23', email: 'par23@test.com', fullName: 'Hamza Sultanov', phone: '+998901234622', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-33'], address: 'Toshkent, Shayxontohur t., 16-uy', createdAt: '2024-11-10T00:00:00+05:00' },
-  { id: 'par-24', email: 'par24@test.com', fullName: 'Dilrabo Rajabova', phone: '+998901234623', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-34'], address: 'Toshkent, Yashnobod t., 3-uy', createdAt: '2024-11-15T00:00:00+05:00' },
-  { id: 'par-25', email: 'par25@test.com', fullName: 'Abdulaziz Normatov', phone: '+998901234624', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-35'], address: 'Toshkent, Olmazor t., 10-uy', createdAt: '2024-12-01T00:00:00+05:00' },
-  { id: 'par-26', email: 'par26@test.com', fullName: 'Nafisa Tursunova', phone: '+998901234625', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-36'], address: 'Toshkent, Bektimir t., 7-uy', createdAt: '2025-01-05T00:00:00+05:00' },
-  { id: 'par-27', email: 'par27@test.com', fullName: 'Eldor Razzaqov', phone: '+998901234626', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-37', 'child-38'], address: 'Toshkent, Sergeli t., 25-uy', createdAt: '2025-01-10T00:00:00+05:00' },
-  { id: 'par-28', email: 'par28@test.com', fullName: 'Umida Qodirov', phone: '+998901234627', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-39'], address: "Toshkent, O'rta Chirchiq t., 6-uy", createdAt: '2025-02-01T00:00:00+05:00' },
-  { id: 'par-29', email: 'par29@test.com', fullName: 'Nuriddin Qosimov', phone: '+998901234628', role: 'PARENT', status: 'INACTIVE', childrenIds: ['child-40'], address: 'Toshkent, Yunusobod t., 33-uy', createdAt: '2025-02-15T00:00:00+05:00' },
-  { id: 'par-30', email: 'par30@test.com', fullName: 'Kamola Umarova', phone: '+998901234629', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-41', 'child-42'], address: 'Toshkent, Mirzo Ulug\'bek t., 15-uy', createdAt: '2025-03-01T00:00:00+05:00' },
-  { id: 'par-31', email: 'par31@test.com', fullName: 'Shukur Salimov', phone: '+998901234630', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-43'], address: 'Toshkent, Uchtepa t., 39-uy', createdAt: '2025-03-10T00:00:00+05:00' },
-  { id: 'par-32', email: 'par32@test.com', fullName: 'Barno Xolmatova', phone: '+998901234631', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-44'], address: 'Toshkent, Chilonzor t., 51-uy', createdAt: '2025-04-01T00:00:00+05:00' },
-  { id: 'par-33', email: 'par33@test.com', fullName: 'Alimjon Turayev', phone: '+998901234632', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-45', 'child-46'], address: 'Toshkent, Yakkasaroy t., 22-uy', createdAt: '2025-04-15T00:00:00+05:00' },
-  { id: 'par-34', email: 'par34@test.com', fullName: 'Sitora Nazarova', phone: '+998901234633', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-47'], address: 'Toshkent, Akmal-Ikrom t., 4-uy', createdAt: '2025-05-01T00:00:00+05:00' },
-  { id: 'par-35', email: 'par35@test.com', fullName: "Oybek Jo'rayev", phone: '+998901234634', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-48', 'child-49', 'child-50'], address: 'Toshkent, Bektemir t., 13-uy', createdAt: '2025-05-15T00:00:00+05:00' },
+  { id: 'par-1',fullName: 'Feruza Aliyeva', phone: '+998901234600', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-1', 'child-2'], address: 'Toshkent, Yunusobod t., 15-uy', createdAt: '2024-06-01T00:00:00+05:00' },
+  { id: 'par-2',fullName: 'Ibrohim Karimov', phone: '+998901234601', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-3'], address: 'Toshkent, Chilonzor t., 23-uy', createdAt: '2024-06-05T00:00:00+05:00' },
+  { id: 'par-3',fullName: "Zulfiya Xo'jayeva", phone: '+998901234602', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-4', 'child-5'], address: 'Toshkent, Mirzo Ulug\'bek t., 8-uy', createdAt: '2024-06-10T00:00:00+05:00' },
+  { id: 'par-4',fullName: 'Bobur Toshmatov', phone: '+998901234603', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-6'], address: 'Toshkent, Shayxontohur t., 5-uy', createdAt: '2024-06-15T00:00:00+05:00' },
+  { id: 'par-5',fullName: 'Munira Hasanova', phone: '+998901234604', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-7', 'child-8', 'child-9'], address: 'Samarqand, Registon ko\'chasi, 42-uy', createdAt: '2024-06-20T00:00:00+05:00' },
+  { id: 'par-6',fullName: "Doniyor Yusupov", phone: '+998901234605', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-10'], address: 'Toshkent, Yashnobod t., 19-uy', createdAt: '2024-07-01T00:00:00+05:00' },
+  { id: 'par-7',fullName: 'Shahlo Nazarova', phone: '+998901234606', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-11', 'child-12'], address: 'Toshkent, Uchtepa t., 3-uy', createdAt: '2024-07-05T00:00:00+05:00' },
+  { id: 'par-8',fullName: "Aziza Ergasheva", phone: '+998901234607', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-13'], address: 'Namangan, Markaziy ko\'cha, 7-uy', createdAt: '2024-07-10T00:00:00+05:00' },
+  { id: 'par-9',fullName: 'Javlon Mirzayev', phone: '+998901234608', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-14', 'child-15'], address: "Toshkent, O'rta Chirchiq t., 11-uy", createdAt: '2024-07-15T00:00:00+05:00' },
+  { id: 'par-10',fullName: 'Nodira Qosimova', phone: '+998901234609', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-16'], address: 'Toshkent, Bektimir t., 22-uy', createdAt: '2024-07-20T00:00:00+05:00' },
+  { id: 'par-11',fullName: 'Rustam Holmatov', phone: '+998901234610', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-17'], address: 'Andijon, Asaka ko\'chasi, 14-uy', createdAt: '2024-08-01T00:00:00+05:00' },
+  { id: 'par-12',fullName: 'Malika Rahimova', phone: '+998901234611', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-18', 'child-19'], address: 'Toshkent, Olmazor t., 6-uy', createdAt: '2024-08-05T00:00:00+05:00' },
+  { id: 'par-13',fullName: 'Sherzod Abdullayev', phone: '+998901234612', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-20'], address: 'Buxoro, Navoiy ko\'chasi, 35-uy', createdAt: '2024-08-10T00:00:00+05:00' },
+  { id: 'par-14',fullName: 'Nozima Umarova', phone: '+998901234613', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-21'], address: 'Toshkent, Sergeli t., 9-uy', createdAt: '2024-08-15T00:00:00+05:00' },
+  { id: 'par-15',fullName: 'Firdavs Jurayev', phone: '+998901234614', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-22', 'child-23'], address: 'Toshkent, Yakkasaroy t., 17-uy', createdAt: '2024-09-01T00:00:00+05:00' },
+  { id: 'par-16',fullName: 'Ozoda Xoliqova', phone: '+998901234615', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-24'], address: 'Toshkent, Bektemir t., 4-uy', createdAt: '2024-09-10T00:00:00+05:00' },
+  { id: 'par-17',fullName: 'Mansur Tojiboyev', phone: '+998901234616', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-25'], address: 'Toshkent, Uchtepa t., 28-uy', createdAt: '2024-09-15T00:00:00+05:00' },
+  { id: 'par-18',fullName: 'Sabohat Ergasheva', phone: '+998901234617', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-26', 'child-27'], address: 'Qo\'qon, Mustaqillik ko\'chasi, 12-uy', createdAt: '2024-10-01T00:00:00+05:00' },
+  { id: 'par-19',fullName: "Ikrom Yo'ldoshev", phone: '+998901234618', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-28'], address: 'Toshkent, Akmal-Ikrom t., 31-uy', createdAt: '2024-10-10T00:00:00+05:00' },
+  { id: 'par-20',fullName: 'Mohira Tillayeva', phone: '+998901234619', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-29'], address: 'Toshkent, Mirzo Ulug\'bek t., 20-uy', createdAt: '2024-10-15T00:00:00+05:00' },
+  { id: 'par-21',fullName: 'Odil Xasanov', phone: '+998901234620', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-30'], address: 'Toshkent, Chilonzor t., 44-uy', createdAt: '2024-11-01T00:00:00+05:00' },
+  { id: 'par-22',fullName: 'Lola Mirzaeva', phone: '+998901234621', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-31', 'child-32'], address: 'Toshkent, Yunusobod t., 8-uy', createdAt: '2024-11-05T00:00:00+05:00' },
+  { id: 'par-23',fullName: 'Hamza Sultanov', phone: '+998901234622', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-33'], address: 'Toshkent, Shayxontohur t., 16-uy', createdAt: '2024-11-10T00:00:00+05:00' },
+  { id: 'par-24',fullName: 'Dilrabo Rajabova', phone: '+998901234623', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-34'], address: 'Toshkent, Yashnobod t., 3-uy', createdAt: '2024-11-15T00:00:00+05:00' },
+  { id: 'par-25',fullName: 'Abdulaziz Normatov', phone: '+998901234624', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-35'], address: 'Toshkent, Olmazor t., 10-uy', createdAt: '2024-12-01T00:00:00+05:00' },
+  { id: 'par-26',fullName: 'Nafisa Tursunova', phone: '+998901234625', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-36'], address: 'Toshkent, Bektimir t., 7-uy', createdAt: '2025-01-05T00:00:00+05:00' },
+  { id: 'par-27',fullName: 'Eldor Razzaqov', phone: '+998901234626', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-37', 'child-38'], address: 'Toshkent, Sergeli t., 25-uy', createdAt: '2025-01-10T00:00:00+05:00' },
+  { id: 'par-28',fullName: 'Umida Qodirov', phone: '+998901234627', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-39'], address: "Toshkent, O'rta Chirchiq t., 6-uy", createdAt: '2025-02-01T00:00:00+05:00' },
+  { id: 'par-29',fullName: 'Nuriddin Qosimov', phone: '+998901234628', role: 'PARENT', status: 'INACTIVE', childrenIds: ['child-40'], address: 'Toshkent, Yunusobod t., 33-uy', createdAt: '2025-02-15T00:00:00+05:00' },
+  { id: 'par-30',fullName: 'Kamola Umarova', phone: '+998901234629', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-41', 'child-42'], address: 'Toshkent, Mirzo Ulug\'bek t., 15-uy', createdAt: '2025-03-01T00:00:00+05:00' },
+  { id: 'par-31',fullName: 'Shukur Salimov', phone: '+998901234630', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-43'], address: 'Toshkent, Uchtepa t., 39-uy', createdAt: '2025-03-10T00:00:00+05:00' },
+  { id: 'par-32',fullName: 'Barno Xolmatova', phone: '+998901234631', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-44'], address: 'Toshkent, Chilonzor t., 51-uy', createdAt: '2025-04-01T00:00:00+05:00' },
+  { id: 'par-33',fullName: 'Alimjon Turayev', phone: '+998901234632', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-45', 'child-46'], address: 'Toshkent, Yakkasaroy t., 22-uy', createdAt: '2025-04-15T00:00:00+05:00' },
+  { id: 'par-34',fullName: 'Sitora Nazarova', phone: '+998901234633', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-47'], address: 'Toshkent, Akmal-Ikrom t., 4-uy', createdAt: '2025-05-01T00:00:00+05:00' },
+  { id: 'par-35',fullName: "Oybek Jo'rayev", phone: '+998901234634', role: 'PARENT', status: 'ACTIVE', childrenIds: ['child-48', 'child-49', 'child-50'], address: 'Toshkent, Bektemir t., 13-uy', createdAt: '2025-05-15T00:00:00+05:00' },
 ];
 
 // ─── Children ─────────────────────────────────────────────

@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react';
 import {
   Plus, Search, Stethoscope, Users, Award, Clock, X, Phone,
-  Mail, Calendar, Eye, EyeOff, CheckCircle2,
+  Calendar, Eye, EyeOff, CheckCircle2,
   KeyRound, ShieldCheck, RefreshCw, Pencil, AlertCircle
 } from 'lucide-react';
 import { useStore } from '@/store';
@@ -28,14 +28,21 @@ const schema = z.object({
     .regex(/[A-Z]/, 'Kamida 1 ta katta harf (A-Z) bo\'lishi shart')
     .regex(/[a-z]/, 'Kamida 1 ta kichik harf (a-z) bo\'lishi shart')
     .regex(/[0-9]/, 'Kamida 1 ta raqam (0-9) bo\'lishi shart'),
-  email: z.string().email('Email noto\'g\'ri').optional().or(z.literal('')),
   specialization: z.string().min(2, 'Mutaxassislikni kiriting'),
   experienceYears: z.string().optional(),
   bio: z.string().optional(),
 });
 type FormValues = z.infer<typeof schema>;
 
-const DAY_NAMES = ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'];
+const DAYS_OF_WEEK = [
+  { id: 1, label: 'Dushanba', short: 'Dush' },
+  { id: 2, label: 'Seshanba', short: 'Sesh' },
+  { id: 3, label: 'Chorshanba', short: 'Chor' },
+  { id: 4, label: 'Payshanba', short: 'Pay' },
+  { id: 5, label: 'Juma', short: 'Jum' },
+  { id: 6, label: 'Shanba', short: 'Shan' },
+  { id: 7, label: 'Yakshanba', short: 'Yak' },
+];
 
 export function SpecialistsPage() {
   const specialists = useStore(s => s.specialists);
@@ -46,7 +53,7 @@ export function SpecialistsPage() {
   const deleteSpecialist = useStore(s => s.deleteSpecialist);
 
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'>('ALL');
   const [showCreate, setShowCreate] = useState(false);
   const [selectedSpecialist, setSelectedSpecialist] = useState<Specialist | null>(null);
   const [editingSpecialist, setEditingSpecialist] = useState<Specialist | null>(null);
@@ -55,18 +62,20 @@ export function SpecialistsPage() {
   const [editForm, setEditForm] = useState<{
     fullName: string;
     phone: string;
-    email: string;
     specialization: string;
     experience: number;
     bio: string;
-    status: 'ACTIVE' | 'INACTIVE';
+    workingDays: number[];
+    workingHours: { start: string; end: string };
+    status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
   }>({
     fullName: '',
     phone: '',
-    email: '',
     specialization: '',
     experience: 0,
     bio: '',
+    workingDays: [1, 2, 3, 4, 5, 6],
+    workingHours: { start: '09:00', end: '18:00' },
     status: 'ACTIVE',
   });
   const [editErrors, setEditErrors] = useState<{ fullName?: string; phone?: string; specialization?: string }>({});
@@ -81,11 +90,12 @@ export function SpecialistsPage() {
     setEditForm({
       fullName: specialist.fullName || '',
       phone: specialist.phone || '',
-      email: specialist.email || '',
       specialization: specialist.specialization || '',
       experience: specialist.experience || 0,
       bio: specialist.bio || '',
-      status: specialist.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
+      workingDays: Array.isArray(specialist.workingDays) && specialist.workingDays.length > 0 ? specialist.workingDays : [1, 2, 3, 4, 5, 6],
+      workingHours: specialist.workingHours || { start: '09:00', end: '18:00' },
+      status: specialist.status || 'ACTIVE',
     });
     setEditErrors({});
   };
@@ -112,10 +122,11 @@ export function SpecialistsPage() {
       await updateSpecialist(editingSpecialist.id, {
         fullName: editForm.fullName.trim(),
         phone: editForm.phone.trim(),
-        email: editForm.email.trim() || undefined,
         specialization: editForm.specialization.trim(),
         experience: Number(editForm.experience) || 0,
         bio: editForm.bio.trim() || undefined,
+        workingDays: editForm.workingDays,
+        workingHours: editForm.workingHours,
         status: editForm.status,
       });
       setEditingSpecialist(null);
@@ -180,7 +191,8 @@ export function SpecialistsPage() {
 
   // Counts
   const activeCount = useMemo(() => specialists.filter(s => s.status === 'ACTIVE').length, [specialists]);
-  const inactiveCount = specialists.length - activeCount;
+  const inactiveCount = useMemo(() => specialists.filter(s => s.status === 'INACTIVE').length, [specialists]);
+  const archivedCount = useMemo(() => specialists.filter(s => s.status === 'ARCHIVED').length, [specialists]);
   const completedSessions = sessions.filter(s => s.status === 'COMPLETED').length;
   const avgExp = specialists.length > 0
     ? Math.round(specialists.reduce((sum, s) => sum + (s.experience || 0), 0) / specialists.length)
@@ -196,8 +208,9 @@ export function SpecialistsPage() {
         const matchPhone = s.phone?.toLowerCase().includes(q);
         if (!matchName && !matchSpec && !matchPhone) return false;
       }
-      if (statusFilter === 'ACTIVE' && s.status !== 'ACTIVE') return false;
-      if (statusFilter === 'INACTIVE' && s.status !== 'INACTIVE') return false;
+      if (statusFilter === 'ACTIVE') return s.status === 'ACTIVE';
+      if (statusFilter === 'INACTIVE') return s.status === 'INACTIVE';
+      if (statusFilter === 'ARCHIVED') return s.status === 'ARCHIVED';
       return true;
     });
   }, [specialists, search, statusFilter]);
@@ -230,12 +243,6 @@ export function SpecialistsPage() {
                 <Phone className="w-3 h-3 text-charcoal-400" />
                 <span>{row.phone}</span>
               </a>
-              {row.email && (
-                <span className="hidden xl:inline-flex items-center gap-1 text-[11px] text-charcoal-400 max-w-[130px] truncate">
-                  <Mail className="w-2.5 h-2.5" />
-                  {row.email}
-                </span>
-              )}
             </div>
           </div>
         </div>
@@ -262,7 +269,7 @@ export function SpecialistsPage() {
     },
     {
       key: 'workingHours',
-      header: 'Ish jadvali',
+      header: 'Ish jadvali (7 kun)',
       cell: (row) => (
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 text-xs text-charcoal-700 font-medium">
@@ -270,20 +277,20 @@ export function SpecialistsPage() {
             <span>{row.workingHours?.start || '09:00'} – {row.workingHours?.end || '18:00'}</span>
           </div>
           <div className="flex items-center gap-1">
-            {[1, 2, 3, 4, 5, 6].map(dayIndex => {
-              const isWorking = row.workingDays?.includes(dayIndex);
+            {DAYS_OF_WEEK.map(day => {
+              const isWorking = row.workingDays?.includes(day.id) || (day.id === 7 && row.workingDays?.includes(0));
               return (
                 <span
-                  key={dayIndex}
+                  key={day.id}
                   className={cn(
                     "text-[10px] px-1 py-0.5 rounded font-medium",
                     isWorking
                       ? "bg-brand-50 text-brand-700 font-semibold"
                       : "bg-warm-100 text-charcoal-400 opacity-60"
                   )}
-                  title={DAY_NAMES[dayIndex]}
+                  title={day.label}
                 >
-                  {DAY_NAMES[dayIndex]}
+                  {day.short}
                 </span>
               );
             })}
@@ -340,30 +347,47 @@ export function SpecialistsPage() {
             <Eye className="w-3.5 h-3.5 mr-1" />
             Ko'rish
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenEdit(row);
-            }}
-            className="h-8 px-2.5 text-xs text-brand-600 border-brand-200 hover:bg-brand-50 hover:border-brand-300"
-          >
-            <Pencil className="w-3.5 h-3.5 mr-1" />
-            Tahrirlash
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteSpecialist(row);
-            }}
-            className="h-8 px-2 text-xs text-rose-600 hover:bg-rose-50"
-            title="O'chirish"
-          >
-            <X className="w-3.5 h-3.5" />
-          </Button>
+          {row.status === 'ARCHIVED' ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async (e) => {
+                e.stopPropagation();
+                await updateSpecialist(row.id, { status: 'ACTIVE' });
+              }}
+              className="h-8 px-2.5 text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50"
+            >
+              <RefreshCw className="w-3.5 h-3.5 mr-1" />
+              Qayta tiklash
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenEdit(row);
+              }}
+              className="h-8 px-2.5 text-xs text-brand-600 border-brand-200 hover:bg-brand-50 hover:border-brand-300"
+            >
+              <Pencil className="w-3.5 h-3.5 mr-1" />
+              Tahrirlash
+            </Button>
+          )}
+          {row.status !== 'ARCHIVED' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteSpecialist(row);
+              }}
+              className="h-8 px-2 text-xs text-rose-600 hover:bg-rose-50"
+              title="Arxivlash"
+            >
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -483,6 +507,27 @@ export function SpecialistsPage() {
               {inactiveCount}
             </span>
           </button>
+
+          <button
+            onClick={(e) => {
+              setStatusFilter('ARCHIVED');
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
+            className={cn(
+              "shrink-0 px-3 py-1.5 rounded-[8px] text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer select-none",
+              statusFilter === 'ARCHIVED'
+                ? "bg-amber-600 text-white shadow-xs"
+                : "text-charcoal-600 hover:bg-amber-50 hover:text-amber-800"
+            )}
+          >
+            Arxivlangan
+            <span className={cn(
+              "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+              statusFilter === 'ARCHIVED' ? "bg-white/20 text-white" : "bg-amber-100 text-amber-800"
+            )}>
+              {archivedCount}
+            </span>
+          </button>
         </div>
 
         {/* Filter bar: Search and status dropdown */}
@@ -517,6 +562,7 @@ export function SpecialistsPage() {
                 { value: 'ALL', label: `Barcha holatlar (${specialists.length})` },
                 { value: 'ACTIVE', label: `Faol mutaxassislar (${activeCount})` },
                 { value: 'INACTIVE', label: `Nofaol mutaxassislar (${inactiveCount})` },
+                { value: 'ARCHIVED', label: `Arxivlangan mutaxassislar (${archivedCount})` },
               ]}
               aria-label="Holat bo'yicha filter"
             />
@@ -563,10 +609,15 @@ export function SpecialistsPage() {
                   "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold border",
                   specialist.status === 'ACTIVE'
                     ? "bg-emerald-50 text-emerald-700 border-emerald-200/60"
+                    : specialist.status === 'ARCHIVED'
+                    ? "bg-amber-50 text-amber-700 border-amber-200/60"
                     : "bg-warm-100 text-charcoal-600 border-warm-200"
                 )}>
-                  <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", specialist.status === 'ACTIVE' ? "bg-emerald-500" : "bg-charcoal-400")} />
-                  {specialist.status === 'ACTIVE' ? 'Faol' : 'Nofaol'}
+                  <span className={cn(
+                    "w-1.5 h-1.5 rounded-full shrink-0",
+                    specialist.status === 'ACTIVE' ? "bg-emerald-500" : specialist.status === 'ARCHIVED' ? "bg-amber-500" : "bg-charcoal-400"
+                  )} />
+                  {specialist.status === 'ACTIVE' ? 'Faol' : specialist.status === 'ARCHIVED' ? 'Arxivlangan' : 'Nofaol'}
                 </span>
               ),
               details: [
@@ -592,30 +643,45 @@ export function SpecialistsPage() {
                     <Eye className="w-3.5 h-3.5 text-charcoal-500 shrink-0" />
                     <span className="truncate">Ko'rish</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEdit(specialist)}
-                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-brand-200 bg-brand-50 text-brand-700 text-xs font-medium hover:bg-brand-100 active:bg-brand-200 shadow-2xs transition-colors cursor-pointer"
-                  >
-                    <Pencil className="w-3.5 h-3.5 text-brand-600 shrink-0" />
-                    <span className="truncate">Tahrirlash</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleToggleStatus(specialist)}
-                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs transition-colors cursor-pointer"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                    <span className="truncate">{specialist.status === 'ACTIVE' ? 'Nofaol qilish' : 'Faollashtirish'}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteSpecialist(specialist)}
-                    className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 text-xs font-medium hover:bg-rose-100 active:bg-rose-200 shadow-2xs transition-colors cursor-pointer"
-                  >
-                    <X className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">O'chirish</span>
-                  </button>
+                  {specialist.status === 'ARCHIVED' ? (
+                    <button
+                      type="button"
+                      onClick={() => updateSpecialist(specialist.id, { status: 'ACTIVE' })}
+                      className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-medium hover:bg-emerald-100 active:bg-emerald-200 shadow-2xs transition-colors cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span className="truncate">Qayta tiklash</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEdit(specialist)}
+                      className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-brand-200 bg-brand-50 text-brand-700 text-xs font-medium hover:bg-brand-100 active:bg-brand-200 shadow-2xs transition-colors cursor-pointer"
+                    >
+                      <Pencil className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+                      <span className="truncate">Tahrirlash</span>
+                    </button>
+                  )}
+                  {specialist.status !== 'ARCHIVED' && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleStatus(specialist)}
+                        className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-warm-200 bg-white text-charcoal-700 text-xs font-medium hover:bg-warm-50 active:bg-warm-100 shadow-2xs transition-colors cursor-pointer"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                        <span className="truncate">{specialist.status === 'ACTIVE' ? 'Nofaol qilish' : 'Faollashtirish'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteSpecialist(specialist)}
+                        className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 text-xs font-medium hover:bg-rose-100 active:bg-rose-200 shadow-2xs transition-colors cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">Arxivlash</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               ),
             };
@@ -676,12 +742,6 @@ export function SpecialistsPage() {
                     <Phone className="w-3.5 h-3.5 text-charcoal-400" />
                     {selectedSpecialist.phone}
                   </a>
-                  {selectedSpecialist.email && (
-                    <span className="inline-flex items-center gap-1 text-charcoal-500">
-                      <Mail className="w-3.5 h-3.5 text-charcoal-400" />
-                      {selectedSpecialist.email}
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
@@ -705,7 +765,7 @@ export function SpecialistsPage() {
             {/* Working Schedule */}
             <div className="p-3.5 rounded-xl border border-warm-200/80 bg-white space-y-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal-400">
-                Ish tartibi va soatlari
+                Ish tartibi va soatlari (Haftaning 7 kuni)
               </h4>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-charcoal-500 flex items-center gap-1.5">
@@ -722,19 +782,20 @@ export function SpecialistsPage() {
                   Ish kunlari:
                 </span>
                 <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5, 6].map(dayIndex => {
-                    const isWorking = selectedSpecialist.workingDays?.includes(dayIndex);
+                  {DAYS_OF_WEEK.map(day => {
+                    const isWorking = selectedSpecialist.workingDays?.includes(day.id) || (day.id === 7 && selectedSpecialist.workingDays?.includes(0));
                     return (
                       <span
-                        key={dayIndex}
+                        key={day.id}
                         className={cn(
                           "text-[10px] px-1.5 py-0.5 rounded font-medium",
                           isWorking
                             ? "bg-brand-50 text-brand-800 font-bold border border-brand-200/50"
                             : "bg-warm-100 text-charcoal-400 opacity-60"
                         )}
+                        title={day.label}
                       >
-                        {DAY_NAMES[dayIndex]}
+                        {day.short}
                       </span>
                     );
                   })}
@@ -845,21 +906,71 @@ export function SpecialistsPage() {
               />
             </div>
 
-            <Input
-              label="Email (ixtiyoriy)"
-              type="email"
-              placeholder="specialist@massaj.uz"
-              value={editForm.email}
-              onChange={e => setEditForm({ ...editForm, email: e.target.value })}
-            />
+            <div>
+              <label className="block text-xs font-semibold text-charcoal-700 mb-1.5">
+                Ish kunlari (Haftaning 7 kuni)
+              </label>
+              <div className="grid grid-cols-7 gap-1.5">
+                {DAYS_OF_WEEK.map(day => {
+                  const isSelected = editForm.workingDays.includes(day.id) || (day.id === 7 && editForm.workingDays.includes(0));
+                  return (
+                    <button
+                      key={day.id}
+                      type="button"
+                      onClick={() => {
+                        const current = [...editForm.workingDays];
+                        const hasDay = current.includes(day.id) || (day.id === 7 && current.includes(0));
+                        let updated: number[];
+                        if (hasDay) {
+                          updated = current.filter(d => d !== day.id && (day.id !== 7 || d !== 0));
+                        } else {
+                          updated = [...current, day.id];
+                        }
+                        setEditForm({ ...editForm, workingDays: updated });
+                      }}
+                      className={cn(
+                        "py-1.5 text-xs font-semibold rounded-lg border transition-all text-center cursor-pointer",
+                        isSelected
+                          ? "bg-brand-600 text-white border-brand-600 shadow-2xs"
+                          : "bg-white text-charcoal-600 border-warm-200 hover:bg-warm-50"
+                      )}
+                    >
+                      {day.short}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Ish boshlanishi"
+                type="time"
+                value={editForm.workingHours.start}
+                onChange={e => setEditForm({
+                  ...editForm,
+                  workingHours: { ...editForm.workingHours, start: e.target.value }
+                })}
+              />
+              <Input
+                label="Ish tugashi"
+                type="time"
+                value={editForm.workingHours.end}
+                onChange={e => setEditForm({
+                  ...editForm,
+                  workingHours: { ...editForm.workingHours, end: e.target.value }
+                })}
+              />
+            </div>
 
             <Select
               label="Hisob holati"
               value={editForm.status}
-              onChange={e => setEditForm({ ...editForm, status: e.target.value as 'ACTIVE' | 'INACTIVE' })}
+              onChange={e => setEditForm({ ...editForm, status: e.target.value as 'ACTIVE' | 'INACTIVE' | 'ARCHIVED' })}
             >
               <option value="ACTIVE">Faol (Qabullarni qabul qiladi)</option>
               <option value="INACTIVE">Nofaol (Tizimga kirish cheklangan)</option>
+              <option value="ARCHIVED">Arxivlangan (Tizimdan olib tashlangan)</option>
             </Select>
 
             <Textarea
@@ -934,7 +1045,7 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
   const [showPassword, setShowPassword] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
-  const [duplicateField, setDuplicateField] = useState<'phone' | 'email' | null>(null);
+  const [duplicateField, setDuplicateField] = useState<'phone' | null>(null);
 
   const { register, handleSubmit, setValue, setFocus, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -942,7 +1053,6 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
       fullName: '',
       phone: '',
       password: generateStrongPassword(14),
-      email: '',
       specialization: '',
       experienceYears: '3',
       bio: '',
@@ -961,12 +1071,11 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
       await createSpecialist({
         fullName: data.fullName,
         phone: data.phone,
-        email: data.email || '',
         specialization: data.specialization,
         experience: Number(data.experienceYears) || 0,
         status: 'ACTIVE',
         role: 'SPECIALIST',
-        workingDays: [1, 2, 3, 4, 5],
+        workingDays: [1, 2, 3, 4, 5, 6],
         workingHours: { start: '09:00', end: '18:00' },
         bio: data.bio || '',
       }, data.password);
@@ -976,9 +1085,9 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
       setSubmitError(msg);
 
       const conflictField = getApiConflictField(err);
-      if (conflictField) {
-        setDuplicateField(conflictField);
-        requestAnimationFrame(() => setFocus(conflictField));
+      if (conflictField === 'phone') {
+        setDuplicateField('phone');
+        requestAnimationFrame(() => setFocus('phone'));
       } else {
         setIsShaking(true);
         setTimeout(() => setIsShaking(false), 600);
@@ -1008,7 +1117,7 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
       <Input label="Mutaxassislik" required placeholder="Massaj terapevti, Fizioterapevt..." error={errors.specialization?.message} {...register('specialization')} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input
-          label="Telefon"
+          label="Telefon raqam"
           required
           type="tel"
           placeholder="+998901234567"
@@ -1020,18 +1129,7 @@ function CreateSpecialistForm({ onSuccess, onCancel, createSpecialist }: CreateS
             }
           })}
         />
-        <Input
-          label="Email"
-          type="email"
-          placeholder="doctor@massaj.uz"
-          error={duplicateField === 'email' ? submitError || errors.email?.message : errors.email?.message}
-          className={duplicateField === 'email' ? 'animate-shake border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
-          {...register('email', {
-            onChange: () => {
-              if (duplicateField === 'email') setDuplicateField(null);
-            }
-          })}
-        />
+        <Input label="Tajriba (yil)" type="number" placeholder="5" min="0" {...register('experienceYears')} />
       </div>
 
       <div className="space-y-1.5">

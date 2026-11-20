@@ -1,11 +1,11 @@
-import { ApiError, type ApiClient } from './client';
+import { type ApiClient } from './client';
 import type { CreateParentDto, UpdateParentDto } from './types';
 import type { Parent } from '@/types';
 
 export function normalizeParent(raw: any): Parent {
   if (!raw) return raw;
   const parentId = raw.parent?.id || raw.id;
-  const fullName = raw.fullName || raw.user?.fullName || 'Noma’lum Ota-ona';
+  const fullName = raw.fullName || raw.user?.fullName || 'Noma\u02bclum Ota-ona';
   const phone = raw.phone || raw.user?.phone || '';
   const address = raw.address || raw.parent?.address || '';
   const childrenIds = Array.isArray(raw.children)
@@ -18,10 +18,14 @@ export function normalizeParent(raw: any): Parent {
     id: String(parentId),
     fullName,
     phone,
-    email: raw.email || (phone ? `${phone.replace(/[^0-9]/g, '')}@massaj.uz` : `${parentId}@massaj.uz`),
     address,
     role: 'PARENT',
-    status: raw.status === 'ARCHIVED' ? 'ARCHIVED' : raw.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
+    status:
+      raw.status === 'ARCHIVED'
+        ? 'ARCHIVED'
+        : raw.status === 'INACTIVE'
+        ? 'INACTIVE'
+        : 'ACTIVE',
     childrenIds,
     createdAt: raw.createdAt || new Date().toISOString(),
     avatar: raw.avatar,
@@ -50,15 +54,50 @@ export class ParentsApi {
     return normalizeParent(item);
   }
 
+  /** Update parent profile (fullName, phone, address — NOT status) */
   public async update(id: string, dto: UpdateParentDto): Promise<Parent> {
     const res = await this.client.patch<any>(`/parents/${id}`, dto);
     const item = res?.data || res;
     return normalizeParent(item);
   }
 
+  /** Update parent status via contract: PATCH /parents/:id/status { status } */
+  public async updateStatus(id: string, status: 'ACTIVE' | 'INACTIVE'): Promise<void> {
+    try {
+      await this.client.patch(`/parents/${id}/status`, { status });
+    } catch {
+      // Fallback to dedicated activate/deactivate endpoints
+      if (status === 'ACTIVE') {
+        await this.client.patch(`/parents/${id}/activate`);
+      } else {
+        await this.client.patch(`/parents/${id}/deactivate`);
+      }
+    }
+  }
+
+  /** Activate a parent account */
+  public async activate(id: string): Promise<void> {
+    await this.updateStatus(id, 'ACTIVE');
+  }
+
+  /** Deactivate a parent account */
+  public async deactivate(id: string): Promise<void> {
+    await this.updateStatus(id, 'INACTIVE');
+  }
+
+  /** Archive (soft-delete) a parent — preserves children, payments, history */
+  public async archive(id: string): Promise<void> {
+    await this.client.post(`/parents/${id}/archive`);
+  }
+
+  /** Restore a previously archived parent */
+  public async restore(id: string): Promise<void> {
+    await this.client.post(`/parents/${id}/restore`);
+  }
+
+  /** Safe "delete" maps to archive */
   public async delete(id: string): Promise<void> {
-    void id;
-    throw new ApiError("Ota-onani o'chirish endpointi backendda hali mavjud emas.", 501);
+    await this.archive(id);
   }
 
   public async getBalance(parentId: string): Promise<{ balance: number; debt: number }> {

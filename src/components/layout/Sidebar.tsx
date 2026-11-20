@@ -298,7 +298,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
             {(isMobile || !collapsed) && (
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-charcoal-900 truncate">{currentUser.fullName}</p>
-                <p className="text-[10px] text-charcoal-400 truncate">{currentUser.email}</p>
+                <p className="text-[10px] text-charcoal-400 truncate">{currentUser.phone}</p>
               </div>
             )}
           </div>

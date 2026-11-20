@@ -14,7 +14,6 @@ export function ProfilePage() {
   const addToast = useStore(s => s.addToast);
 
   const [fullName, setFullName] = useState(currentUser?.fullName || '');
-  const [email, setEmail] = useState(currentUser?.email || '');
   const [phone, setPhone] = useState(currentUser?.phone || '');
 
   const [infoError, setInfoError] = useState<string | null>(null);
@@ -46,15 +45,13 @@ export function ProfilePage() {
       if (currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'ADMIN') {
         const updated = await api.admins.update(currentUser.id, {
           fullName: fullName.trim(),
-          email: email.trim() || undefined,
           phone: phone.trim(),
         });
         updateCurrentUser(updated);
       } else if (currentUser.role === 'PARENT') {
         const phoneChanged = phone.trim() !== (currentUser.phone || '');
-        const emailChanged = email.trim() !== (currentUser.email || '');
-        if (phoneChanged || emailChanged) {
-          throw new ApiError("Ota-ona telefon yoki emailini yangilash endpointi backendda mavjud emas.", 501);
+        if (phoneChanged) {
+          throw new ApiError("Ota-ona telefon raqamini yangilash endpointi backendda mavjud emas.", 501);
         }
         const updated = await api.parents.update(currentUser.id, { fullName: fullName.trim() });
         updateCurrentUser(updated);
@@ -144,7 +141,7 @@ export function ProfilePage() {
           <Avatar name={currentUser?.fullName || 'Foydalanuvchi'} size="xl" />
           <div className="space-y-1">
             <h3 className="text-xl font-extrabold text-charcoal-900">{currentUser?.fullName}</h3>
-            <p className="text-xs text-charcoal-500">{currentUser?.email} • {currentUser?.phone}</p>
+            <p className="text-xs text-charcoal-500">{currentUser?.phone}</p>
             <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2">
               <Badge variant="info">
                 {currentUser?.role === 'SUPER_ADMIN' ? 'Super Administrator'
@@ -189,20 +186,12 @@ export function ProfilePage() {
               onChange={e => setFullName(e.target.value)}
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="Email"
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-              />
-              <Input
-                label="Telefon"
-                type="tel"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-              />
-            </div>
+            <Input
+              label="Telefon raqam"
+              type="tel"
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+            />
 
             <div className="pt-2 flex justify-end">
               <Button type="submit" loading={isInfoSubmitting} leftIcon={<Save className="w-4 h-4" />} className="w-full sm:w-auto justify-center">

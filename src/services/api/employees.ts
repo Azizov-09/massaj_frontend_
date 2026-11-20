@@ -9,7 +9,6 @@ export function normalizeEmployee(raw: any): Employee {
     fullName: raw.fullName || 'Xodim',
     position: raw.position || 'Mutaxassis',
     phone: raw.phone || '',
-    email: raw.email || `${raw.phone?.replace(/[^0-9]/g, '') || raw.id}@massaj.uz`,
     status: raw.status === 'ARCHIVED' ? 'ARCHIVED' : raw.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
     salary: raw.salary ? Number(raw.salary) : undefined,
     joinedAt: raw.joinedAt || new Date().toISOString(),

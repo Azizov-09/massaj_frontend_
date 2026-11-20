@@ -19,7 +19,6 @@ const schema = z.object({
     .regex(/[A-Z]/, 'Kamida 1 ta katta harf (A-Z) bo\'lishi shart')
     .regex(/[a-z]/, 'Kamida 1 ta kichik harf (a-z) bo\'lishi shart')
     .regex(/[0-9]/, 'Kamida 1 ta raqam (0-9) bo\'lishi shart'),
-  email: z.string().email('Noto\'g\'ri email').optional().or(z.literal('')),
   address: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -31,7 +30,7 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
-  const [duplicateField, setDuplicateField] = useState<'phone' | 'email' | null>(null);
+  const [duplicateField, setDuplicateField] = useState<'phone' | null>(null);
 
   const { register, handleSubmit, setValue, setFocus, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -39,7 +38,6 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
       fullName: '',
       phone: '',
       password: generateStrongPassword(14),
-      email: '',
       address: '',
       notes: '',
     },
@@ -57,7 +55,6 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
       await createParent({
         fullName: data.fullName,
         phone: data.phone,
-        email: data.email || `${data.phone.replace(/\D/g, '')}@parent.uz`,
         address: data.address,
         notes: data.notes,
         status: 'ACTIVE',
@@ -70,9 +67,9 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
       setSubmitError(msg);
 
       const conflictField = getApiConflictField(err);
-      if (conflictField) {
-        setDuplicateField(conflictField);
-        requestAnimationFrame(() => setFocus(conflictField));
+      if (conflictField === 'phone') {
+        setDuplicateField('phone');
+        requestAnimationFrame(() => setFocus('phone'));
       } else {
         setIsShaking(true);
         setTimeout(() => setIsShaking(false), 600);
@@ -100,33 +97,19 @@ export function CreateParentForm({ onSuccess, onCancel }: Props) {
 
       <Input label="To'liq ism" required placeholder="Masalan: Karimova Nilufar" error={errors.fullName?.message} {...register('fullName')} />
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input
-          label="Telefon"
-          required
-          type="tel"
-          placeholder="+998901234567"
-          error={duplicateField === 'phone' ? submitError || errors.phone?.message : errors.phone?.message}
-          className={duplicateField === 'phone' ? 'animate-shake border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
-          {...register('phone', {
-            onChange: () => {
-              if (duplicateField === 'phone') setDuplicateField(null);
-            }
-          })}
-        />
-        <Input
-          label="Email"
-          type="email"
-          placeholder="email@example.com"
-          error={duplicateField === 'email' ? submitError || errors.email?.message : errors.email?.message}
-          className={duplicateField === 'email' ? 'animate-shake border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
-          {...register('email', {
-            onChange: () => {
-              if (duplicateField === 'email') setDuplicateField(null);
-            }
-          })}
-        />
-      </div>
+      <Input
+        label="Telefon raqam"
+        required
+        type="tel"
+        placeholder="+998901234567"
+        error={duplicateField === 'phone' ? submitError || errors.phone?.message : errors.phone?.message}
+        className={duplicateField === 'phone' ? 'animate-shake border-danger-main ring-2 ring-danger-main/20 bg-danger-surface/20' : undefined}
+        {...register('phone', {
+          onChange: () => {
+            if (duplicateField === 'phone') setDuplicateField(null);
+          }
+        })}
+      />
 
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">

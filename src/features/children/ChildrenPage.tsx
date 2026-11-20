@@ -585,6 +585,8 @@ export function ChildrenPage() {
             <div className="w-full sm:w-56 relative z-30">
               <Select
                 size="sm"
+                placement="bottom"
+                align="right"
                 triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
                 value={specialistFilter}
                 onChange={e => {
@@ -765,7 +767,7 @@ export function ChildrenPage() {
           title="Bola ma'lumotlari"
           size="lg"
         >
-          <div className="space-y-5">
+          <div className="space-y-5 max-h-[72vh] overflow-y-auto pr-1 overscroll-contain">
             {/* Header info */}
             <div className="flex items-start gap-4 p-4 rounded-xl bg-warm-50 border border-warm-200/70">
               <Avatar name={selectedChild.fullName} size="lg" className="text-base font-bold shrink-0 flex-shrink-0" />
@@ -870,49 +872,13 @@ export function ChildrenPage() {
             )}
 
             {/* Modal Actions */}
-            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-4 border-t border-warm-200">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const current = selectedChild;
-                    setSelectedChild(null);
-                    setEditingChild(current);
-                  }}
-                  leftIcon={<Edit className="w-3.5 h-3.5 text-amber-600" />}
-                >
-                  Tahrirlash
-                </Button>
-                {selectedChild.status === 'ARCHIVED' ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-emerald-700 border-emerald-300 hover:bg-emerald-50"
-                    onClick={() => {
-                      updateChild(selectedChild.id, { status: 'ACTIVE' });
-                      setSelectedChild({ ...selectedChild, status: 'ACTIVE' });
-                    }}
-                    leftIcon={<RotateCcw className="w-3.5 h-3.5 text-emerald-600" />}
-                  >
-                    Faollashtirish
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-rose-700 border-rose-300 hover:bg-rose-50"
-                    onClick={() => {
-                      archiveChild(selectedChild.id);
-                      setSelectedChild({ ...selectedChild, status: 'ARCHIVED' });
-                    }}
-                    leftIcon={<Archive className="w-3.5 h-3.5 text-rose-600" />}
-                  >
-                    Arxivga o'tkazish
-                  </Button>
-                )}
-              </div>
-              <Button variant="secondary" size="sm" onClick={() => setSelectedChild(null)}>
+            <div className="pt-4 border-t border-warm-200">
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={() => setSelectedChild(null)}
+                className="w-full justify-center h-10 text-xs sm:text-sm font-semibold text-charcoal-700 bg-warm-100 hover:bg-warm-200/80 border border-warm-300/80 rounded-xl transition-colors shadow-2xs cursor-pointer"
+              >
                 Yopish
               </Button>
             </div>

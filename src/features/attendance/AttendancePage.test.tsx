@@ -14,7 +14,6 @@ describe('AttendancePage Component', () => {
       currentUser: {
         id: 'u-admin-1',
         fullName: 'Bosh Administrator',
-        email: 'admin@massaj.uz',
         phone: '+998901234567',
         role: 'SUPER_ADMIN',
         status: 'ACTIVE',
@@ -183,8 +182,8 @@ describe('AttendancePage Component', () => {
     expect(keldiButtons[0]).toHaveClass('bg-emerald-600');
     expect(keldiButtons[1]).not.toHaveClass('bg-emerald-600');
 
-    // Click "Keldi" again on the first appointment to unmark it
+    // Click "Keldi" again on the first appointment — retains confirmed status (backend has no attendance-delete endpoint)
     fireEvent.click(keldiButtons[0]);
-    expect(keldiButtons[0]).not.toHaveClass('bg-emerald-600');
+    expect(keldiButtons[0]).toHaveClass('bg-emerald-600');
   });
 });

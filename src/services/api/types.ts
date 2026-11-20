@@ -14,7 +14,6 @@ export interface LoginResponse {
     id: string;
     phone: string;
     fullName?: string;
-    email?: string;
     role: 'SUPER_ADMIN' | 'ADMIN' | 'SPECIALIST' | 'PARENT';
     status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
   };
@@ -40,7 +39,6 @@ export interface UpdateParentDto {
   fullName?: string;
   phone?: string;
   address?: string;
-  status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
 }
 
 export interface CreateSpecialistDto {
@@ -49,18 +47,17 @@ export interface CreateSpecialistDto {
   password: string;
   specialization: string;
   experienceYears: number;
-  email?: string;
   bio?: string;
 }
 
 export interface UpdateSpecialistDto {
   fullName?: string;
   phone?: string;
-  email?: string;
   specialization?: string;
   experienceYears?: number;
   bio?: string;
-  status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+  workingDays?: number[];
+  workingHours?: { start: string; end: string };
 }
 
 export interface CreateAdminDto {
@@ -68,22 +65,18 @@ export interface CreateAdminDto {
   phone: string;
   role: 'SUPER_ADMIN' | 'ADMIN';
   password?: string;
-  email?: string;
 }
 
 export interface UpdateAdminDto {
   fullName?: string;
   phone?: string;
   role?: 'SUPER_ADMIN' | 'ADMIN';
-  email?: string;
-  status?: string;
 }
 
 export interface CreateEmployeeDto {
   fullName: string;
   position: string;
   phone: string;
-  email?: string;
   salary?: number;
   notes?: string;
 }
@@ -92,10 +85,13 @@ export interface UpdateEmployeeDto {
   fullName?: string;
   position?: string;
   phone?: string;
-  email?: string;
   status?: string;
   salary?: number;
   notes?: string;
+}
+
+export interface SetStatusDto {
+  status: 'ACTIVE' | 'INACTIVE';
 }
 
 export interface CreateChildDto {
@@ -265,4 +261,28 @@ export interface PaginatedResult<T> {
     limit: number;
     totalPages: number;
   };
+}
+
+export interface CreateAppointmentDto {
+  childId: string;
+  parentId?: string;
+  specialistId: string;
+  serviceId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status?: string;
+  notes?: string;
+}
+
+export interface UpdateAppointmentDto {
+  childId?: string;
+  parentId?: string;
+  specialistId?: string;
+  serviceId?: string;
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+  status?: string;
+  notes?: string;
 }

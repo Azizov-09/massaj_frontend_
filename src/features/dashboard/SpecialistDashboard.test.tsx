@@ -13,7 +13,6 @@ describe('SpecialistDashboard Component', () => {
       currentUser: {
         id: 's1',
         fullName: 'Aziz Karimov',
-        email: 'aziz@massaj.uz',
         phone: '+998909998877',
         role: 'SPECIALIST',
         status: 'ACTIVE',

@@ -305,7 +305,7 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
               >
                 <div className="px-3 py-2 border-b border-warm-100/80 mb-1">
                   <p className="text-xs font-bold text-charcoal-900 truncate">{currentUser?.fullName}</p>
-                  <p className="text-[10px] text-charcoal-400 truncate">{currentUser?.email}</p>
+                  <p className="text-[10px] text-charcoal-400 truncate">{currentUser?.phone}</p>
                 </div>
                 <Link
                   to={`${getDashboardPath()}/profile`}

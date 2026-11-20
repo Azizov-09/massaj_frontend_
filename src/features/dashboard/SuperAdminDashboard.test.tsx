@@ -13,7 +13,6 @@ describe('SuperAdminDashboard Component', () => {
       currentUser: {
         id: 'u-admin-1',
         fullName: 'Bosh Administrator',
-        email: 'admin@massaj.uz',
         phone: '+998901234567',
         role: 'SUPER_ADMIN',
         status: 'ACTIVE',

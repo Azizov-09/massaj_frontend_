@@ -1,13 +1,12 @@
-// Services Page
+// Services Page — FE-07/FE-08 fixed: Edit modal + Archive/Restore
 import { useState, useMemo } from 'react';
-import { Plus, Heart, Archive, RotateCcw, Activity, DollarSign } from 'lucide-react';
+import { Plus, Heart, Archive, RotateCcw, Activity, DollarSign, Pencil } from 'lucide-react';
 import { useStore } from '@/store';
 import { formatCurrencyCompact } from '@/utils';
-import { Card, EmptyState } from '@/components/ui/primitives';
+import { Card, EmptyState, Input, Textarea } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/Button';
 import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
 import { Modal, ConfirmDialog } from '@/components/ui/Modal';
-import { Input, Textarea } from '@/components/ui/primitives';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -89,14 +88,95 @@ function CreateServiceForm({ onSuccess, onCancel, createService }: CreateService
   );
 }
 
+// ── Edit Service Form ─────────────────────────────────────────────
+interface EditServiceFormProps {
+  service: Service;
+  onSuccess: () => void;
+  onCancel: () => void;
+  updateService: (id: string, data: Partial<Service>) => Promise<void>;
+}
+
+function EditServiceForm({ service, onSuccess, onCancel, updateService }: EditServiceFormProps) {
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      name: service.name,
+      description: service.description || '',
+      price: String(service.price),
+      durationMinutes: String(service.durationMinutes),
+      category: service.category || '',
+      ageMin: service.ageMin !== undefined ? String(service.ageMin) : '',
+      ageMax: service.ageMax !== undefined ? String(service.ageMax) : '',
+    },
+  });
+
+  const onSubmit = async (data: FormValues) => {
+    setSubmitError(null);
+    try {
+      await updateService(service.id, {
+        name: data.name,
+        description: data.description || '',
+        price: Number(data.price),
+        durationMinutes: Number(data.durationMinutes),
+        category: data.category || undefined,
+        ageMin: data.ageMin ? Number(data.ageMin) : undefined,
+        ageMax: data.ageMax ? Number(data.ageMax) : undefined,
+      });
+      onSuccess();
+    } catch (err: any) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+      setSubmitError(err?.message || 'Serverda xatolik yuz berdi');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className={`space-y-4 transition-transform ${isShaking ? 'animate-shake' : ''}`}>
+      {submitError && (
+        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-50 border-2 border-red-300/60 text-red-700 text-xs font-medium">
+          <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div className="flex-1">
+            <p className="font-semibold text-sm">{submitError}</p>
+            <p className="text-[11px] text-red-500 mt-0.5">Iltimos, ma'lumotlarni tekshirib qaytadan urinib ko'ring.</p>
+          </div>
+        </div>
+      )}
+      <Input label="Xizmat nomi" required placeholder="Terapevtik massaj" error={errors.name?.message} {...register('name')} />
+      <Textarea label="Tavsif" placeholder="Xizmat haqida qisqacha..." rows={2} {...register('description')} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <Input label="Narx (so'm)" required type="number" placeholder="150000" min="1000" error={errors.price?.message} {...register('price')} />
+        <Input label="Davomiyligi (daqiqa)" required type="number" placeholder="45" min="15" max="120" error={errors.durationMinutes?.message} {...register('durationMinutes')} />
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="col-span-2 sm:col-span-1">
+          <Input label="Kategoriya" placeholder="Massaj, LFK..." {...register('category')} />
+        </div>
+        <Input label="Min yosh" type="number" placeholder="1" min="0" max="18" {...register('ageMin')} />
+        <Input label="Max yosh" type="number" placeholder="18" min="0" max="18" {...register('ageMax')} />
+      </div>
+      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-4 border-t border-warm-100">
+        <Button variant="secondary" type="button" onClick={onCancel} disabled={isSubmitting} className="w-full sm:w-auto">Bekor qilish</Button>
+        <Button type="submit" loading={isSubmitting} className="w-full sm:w-auto">Saqlash</Button>
+      </div>
+    </form>
+  );
+}
+
 export function ServicesPage() {
   const services = useStore(s => s.services);
   const sessions = useStore(s => s.sessions);
   const createService = useStore(s => s.createService);
+  const updateService = useStore(s => s.updateService);
   const archiveService = useStore(s => s.archiveService);
   const restoreService = useStore(s => s.restoreService);
+
   const [showCreate, setShowCreate] = useState(false);
+  const [editingService, setEditingService] = useState<Service | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<string | null>(null);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
 
   const activeServices = services.filter(s => s.status === 'ACTIVE');
   const archivedServices = services.filter(s => s.status === 'ARCHIVED');
@@ -118,6 +198,28 @@ export function ServicesPage() {
       return sum + (svc?.price ?? 0);
     }, 0);
 
+  const handleArchiveConfirm = async () => {
+    if (!archiveTarget) return;
+    setIsArchiving(true);
+    setArchiveError(null);
+    try {
+      await archiveService(archiveTarget);
+      setArchiveTarget(null);
+    } catch (err: any) {
+      setArchiveError(err?.message || 'Arxivlab bo\'lmadi');
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    try {
+      await restoreService(id);
+    } catch {
+      // Store shows error toast
+    }
+  };
+
   return (
     <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
       <PageHeader
@@ -136,9 +238,9 @@ export function ServicesPage() {
           index={0}
         />
         <KpiCard
-          label="O‘tkazilgan seanslar"
+          label="O'tkazilgan seanslar"
           value={sessions.filter(s => s.status === 'COMPLETED').length}
-          description="Barcha xizmatlar bo‘yicha"
+          description="Barcha xizmatlar bo'yicha"
           icon={<Activity className="w-4 h-4 text-blue-600" />}
           accentColor="blue"
           index={1}
@@ -193,11 +295,23 @@ export function ServicesPage() {
                       <div className="w-9 h-9 rounded-[10px] bg-brand-100 flex items-center justify-center flex-shrink-0">
                         <Heart className="w-4 h-4 text-brand-600" />
                       </div>
-                      <button onClick={() => setArchiveTarget(svc.id)}
-                        className="p-1.5 text-charcoal-300 hover:text-charcoal-600 hover:bg-warm-100 rounded-[6px] transition-colors"
-                        title="Arxivlash">
-                        <Archive className="w-3.5 h-3.5" />
-                      </button>
+                      {/* Action buttons: Edit + Archive */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setEditingService(svc)}
+                          className="p-1.5 text-charcoal-400 hover:text-brand-600 hover:bg-brand-50 rounded-[6px] transition-colors"
+                          title="Tahrirlash"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => { setArchiveError(null); setArchiveTarget(svc.id); }}
+                          className="p-1.5 text-charcoal-300 hover:text-amber-600 hover:bg-amber-50 rounded-[6px] transition-colors"
+                          title="Arxivlash"
+                        >
+                          <Archive className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                     <p className="text-sm font-semibold text-charcoal-900 mb-0.5">{svc.name}</p>
                     {svc.description && <p className="text-xs text-charcoal-400 mb-3 line-clamp-2">{svc.description}</p>}
@@ -230,18 +344,23 @@ export function ServicesPage() {
               <Card key={svc.id} className="p-4 opacity-60">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-medium text-charcoal-600">{svc.name}</p>
-                  <button onClick={() => restoreService(svc.id)}
-                    className="p-1.5 text-sage-600 hover:bg-sage-50 rounded-[6px] transition-colors" title="Tiklash">
+                  <button
+                    onClick={() => handleRestore(svc.id)}
+                    className="p-1.5 text-sage-600 hover:bg-sage-50 rounded-[6px] transition-colors"
+                    title="Tiklash"
+                  >
                     <RotateCcw className="w-3.5 h-3.5" />
                   </button>
                 </div>
                 <p className="text-sm font-bold text-charcoal-700">{formatCurrencyCompact(svc.price)}</p>
+                <p className="text-xs text-charcoal-400 mt-1">{svc.durationMinutes} daqiqa</p>
               </Card>
             ))}
           </div>
         </div>
       )}
 
+      {/* Create Modal */}
       <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Yangi xizmat" size="md">
         <CreateServiceForm
           createService={createService}
@@ -250,10 +369,37 @@ export function ServicesPage() {
         />
       </Modal>
 
-      <ConfirmDialog isOpen={!!archiveTarget} onClose={() => setArchiveTarget(null)}
-        onConfirm={() => { if (archiveTarget) archiveService(archiveTarget); setArchiveTarget(null); }}
-        title="Xizmatni arxivlash" message="Bu xizmat yangi uchrashuvlarda ko'rinmaydi. Mavjud ma'lumotlar saqlanib qoladi."
-        variant="warning" confirmLabel="Arxivlash" />
+      {/* Edit Modal */}
+      {editingService && (
+        <Modal
+          isOpen={!!editingService}
+          onClose={() => setEditingService(null)}
+          title={`Xizmatni tahrirlash: ${editingService.name}`}
+          size="md"
+        >
+          <EditServiceForm
+            service={editingService}
+            updateService={updateService}
+            onSuccess={() => setEditingService(null)}
+            onCancel={() => setEditingService(null)}
+          />
+        </Modal>
+      )}
+
+      {/* Archive Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!archiveTarget}
+        onClose={() => { setArchiveTarget(null); setArchiveError(null); }}
+        onConfirm={handleArchiveConfirm}
+        title="Xizmatni arxivlash"
+        message={
+          archiveError
+            ? `Xatolik: ${archiveError}\n\nQaytadan urinib ko'ring.`
+            : "Bu xizmat yangi uchrashuvlarda ko'rinmaydi. Mavjud ma'lumotlar va seanslar saqlanib qoladi."
+        }
+        variant={archiveError ? "danger" : "warning"}
+        confirmLabel={isArchiving ? "Arxivlanmoqda..." : "Arxivlash"}
+      />
     </div>
   );
 }
