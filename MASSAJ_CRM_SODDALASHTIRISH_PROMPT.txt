@@ -1,0 +1,427 @@
+================================================================================
+MASSAJ CRM — SODDALASHTIRISH VA HISOB-KITOBNI ULASH UCHUN PROMPT
+================================================================================
+Sana: 22.11.2026
+Loyiha: D:\MASSAJ-CRM
+Holat: kelishilgan talablar. Ushbu fayl o'zgarishlar allaqachon bajarilganini bildirmaydi.
+
+VAZIFA
+Mavjud bolalar massaj va reabilitatsiya CRM loyihasini quyidagi talablarga mosla.
+Bu markazda hozir bitta odam ishlaydi: u markaz egasi, super administrator va
+muolajani bajaradigan mutaxassisning o'zi. Boshqaruvni shunga mos soddalashtir.
+Ota-onalar va ularning alohida kabineti saqlansin.
+
+Avval amaldagi kod, API shartnomasi va ma'lumotlar bog'lanishini tekshir.
+Talablarni haqiqiy server bilan ishlaydigan jarayonga aylantir. Mahalliy state,
+mock ma'lumot yoki faqat chiroyli interfeysni tayyor ishlaydigan funksiya deb ko'rsatma.
+Hozirgi foydalanuvchilar, to'lovlar va klinik tarixni saqla.
+
+================================================================================
+1. QAT'IY KELISHILGAN QARORLAR
+================================================================================
+- Boshqaruv paneli — Dashboard qoladi.
+- Ota-onalar alohida boshqaruv sahifasi sifatida qoladi.
+- Ota-ona kabineti va farzandlari bilan bog'lanish qoladi.
+- Bolalar sahifasi qoladi.
+- Qabul va davomat bitta bo'limga birlashtiriladi.
+- Xizmatlar katalogi alohida qoladi.
+- Kassa: balans to'ldirish va pul harakatlari.
+- Qarzdorlar alohida sahifa bo'lib qoladi; uni Kassa ichiga yashirma.
+- Hisobotlar va Sozlamalar qoladi.
+- Xizmatni bolaga biriktirish uchun alohida menyu yoki sahifa ochilmaydi.
+- Alohida "Bola rejasi" moduli yoki ortiqcha davolash rejasi konstruktori yaratilmaydi.
+- Seanslar soni xizmatni bolaga biriktirish oynasida kiritiladi.
+- Qabul vaqti ixtiyoriy. Uni kiritmasdan ham biriktirish saqlanadi.
+- Seans — bitta bajarilgan muolaja. Seanslar soni kalendar kunlar soni emas.
+- Barcha muolajalar ketma-ket har kuni bajarilishi shart degan qoida qo'yilmaydi.
+- "Bir bola + bir xizmat + bir kun = faqat 1 seans" cheklovini qo'yma.
+  Suhbatdagi bu dastlabki taxmin keyinchalik tuzatilgan. Takroriy pul yechishni
+  bir xil qabul/seans identifikatori bo'yicha oldini ol.
+- Xizmat biriktirish yoki kelajak qabullarini yaratish paytida pul yechilmaydi.
+- Kelishilgan ish tartibida "Keldi" bajarilgan xizmatni ham tasdiqlaydi:
+  bir seans bajariladi va shu seans narxi ota-ona hisobiga yoziladi.
+- "Kelmadi" holatida pul yechilmaydi, bajarilgan seanslar soni oshmaydi.
+
+================================================================================
+2. BOSHQARUV MENYUSI — 9 TA BO'LIM
+================================================================================
+1) Dashboard
+   Bugungi qabullar, tushum, depozit, qarzdorlik va tezkor amallar.
+
+2) Ota-onalar
+   Aloqa ma'lumotlari, hisob holati, biriktirilgan farzandlari, umumiy balans,
+   to'lov tarixi va ota-ona kabinetiga tegishli hisob.
+
+3) Bolalar
+   Asosiy karta, ota-onasi, xizmatlari/seanslari, qabullar va davomat tarixi.
+   Mavjud baholash va rivojlanish qaydlari shu kartaning ichida saqlanadi.
+
+4) Qabul va davomat
+   Kunlik ro'yxat/jadval, bola, xizmat, davomiylik, narx, rejalashtirilgan vaqt,
+   haqiqiy kelgan vaqt, Keldi/Kelmadi va saqlash natijasi.
+
+5) Xizmatlar
+   Xizmat nomi, bir seans davomiyligi va bir seans narxi.
+
+6) Kassa
+   Ichki bo'limlar: "Balans to'ldirish" va "Pul harakatlari".
+   Ota-ona hisobiga to'lov kiritish, kvitansiya, depozit va operatsiyalar tarixi.
+
+7) Qarzdorlar
+   Ota-ona, farzandlari, jami haqiqiy qarz, qarzni keltirgan xizmatlar va
+   tegishli ota-ona hisobiga to'lov qabul qilish.
+
+8) Hisobotlar
+   Kunlik/oylik tushum, balans to'ldirishlar, xizmat hisoblashlari, qaytarilgan
+   hisoblashlar, qarzdorlik, bajarilgan seanslar va davomat.
+
+9) Sozlamalar
+   Markaz ma'lumotlari, egasining ish vaqti, shaxsiy profil va parol.
+   Faollik jurnali kerakli ichki bo'lim sifatida shu yerda ochilishi mumkin.
+
+================================================================================
+3. QAYSILARINI OLIB TASHLASH VA BIRLASHTIRISH KERAK
+================================================================================
+- Adminlar, Mutaxassislar va Xodimlar boshqaruvini asosiy menyudan olib tashla.
+  Bitta egaga ko'p xodimli boshqaruv interfeysi kerak emas.
+- Mutaxassis tanlash maydonlarini kundalik formalardan olib tashla:
+  joriy markaz egasi avtomatik mas'ul mutaxassis bo'ladi.
+- Alohida mutaxassis Dashboardi/menyusi o'rniga egaga bitta umumiy ish kabineti ber.
+  Egasi shu hisobdan qabul, davomat, klinik qayd va moliya bilan ishlasin.
+- Jadval va Davomatni "Qabul va davomat"ga birlashtir.
+- To'lovlar, Tranzaksiyalar va alohida Balanslar menyusini Kassa ichida jamla.
+- Qarzdorlar menyusini alohida saqla.
+- Analitika va Hisobotlarni bitta "Hisobotlar" bo'limiga birlashtir.
+- Baholashlar va Rivojlanishni bolaning kartasidagi ichki bo'limlarga ko'chir.
+- Alohida Goals/Terapevtik maqsadlar va Bola rejasi sahifalarini yaratma.
+- Profilni Sozlamalar ichiga joylashtir.
+- Bildirishnomalarni qo'ng'iroqcha va kerak bo'lsa ichki ro'yxatda saqla;
+  egasining asosiy menyusini ortiqcha bandlar bilan to'ldirma.
+
+Bu bandlar interfeysni soddalashtirish haqida. Administrator/mutaxassis
+identifikatorlarini, bog'lanishlarni, moliyaviy va klinik tarixni bazadan o'chirma.
+Server mutaxassis profilini talab qilsa, uni egasining haqiqiy hisobiga bog'la.
+Soxta mutaxassis yoki birinchi topilgan UUID bilan bog'lashni ishlatma.
+Eski manzillarni mos yangi bo'limga yo'naltir; foydali eski havolalar buzilmasin.
+SUPER_ADMIN va SPECIALIST vakolatlari kerakli amallar uchun serverda moslashtirilsin.
+Ota-onaga egasining boshqaruv yoki pul hisoblash huquqi berilmasin.
+
+================================================================================
+4. XIZMATLAR KATALOGI
+================================================================================
+Yaratish/tahrirlash formasida 3 ta asosiy maydon bo'lsin:
+1) Xizmat nomi.
+2) Bir seans davomiyligi — daqiqada.
+3) Bir seans narxi — so'mda.
+
+Misol: Bolalar massaji | 30 daqiqa | 100 000 so'm / seans.
+Bu misol tibbiy tavsiya yoki barcha xizmatlar uchun standart narx/vaqt emas.
+
+Katalogda bola, ota-ona, boshlanish sanasi, kelish kunlari yoki kursdagi
+seanslar soni kiritilmaydi. Seanslar soni biriktirishda bolaga mos belgilanadi.
+Kategoriya, yosh chegarasi kabi hozirgi ortiqcha maydonlarni asosiy formadan olib
+tashla. Mavjud tarixiy qiymatlar yo'qolmasin.
+Narx/davomiylik haqiqiy musbat sonlar bo'lsin; server ham tekshirsin.
+Tarixda ishlatilgan xizmatni arxivlash/tiklash imkonini saqla.
+
+================================================================================
+5. BOLA YARATISH VA XIZMAT BIRIKTIRISH JOYI
+================================================================================
+Bola yaratishda asosiy ma'lumotlar va ota-onasi kiritiladi.
+Xizmat biriktirish bola yaratishning majburiy sharti bo'lmasin.
+
+"Saqlash" muvaffaqiyatli bajarilgach:
+1) Yaratish oynasi yopiladi.
+2) Yangi bolaning kartasi avtomatik ochiladi.
+3) Kartada "Xizmatlar va seanslar" bloki ko'rinadi.
+4) Bo'sh holat: "Hozircha xizmat biriktirilmagan" va "+ Xizmat biriktirish" tugmasi.
+5) Tugma shu karta ustida kichik modal ochadi.
+
+Foydalanuvchi xizmatni darhol biriktirishi yoki keyinroq davom etishi mumkin.
+Keyinchalik ham Bolalar -> bola kartasi -> Xizmat biriktirish orqali ochiladi.
+Alohida yangi menyu/sahifa va majburiy ko'p bosqichli onboarding qo'shma.
+
+BIRIKTIRISH FORMASI
+- Bola: ochilgan kartadan avtomatik olinadi.
+- Xizmat: faol katalogdan tanlanadi.
+- Seanslar soni: musbat butun son, masalan 10.
+- Bir seans narxi: xizmatdan avtomatik ko'rsatiladi.
+- Bir seans davomiyligi: xizmatdan avtomatik ko'rsatiladi.
+- Boshlanish sanasi.
+- Kelish kunlari: har kuni yoki tanlangan hafta kunlari.
+- Qabul vaqti: IXTIYORIY, bo'sh qoldirish mumkin.
+- Mas'ul mutaxassis: egasi avtomatik, alohida tanlov yo'q.
+
+Bir bolaga bir nechta xizmat biriktirish mumkin.
+Misol: massaj — 10 seans; LFK — 5 seans. Ularning bajarilish hisobi alohida.
+Biriktirish narxlarni to'liq oldindan hisobdan yechish yoki kurs uchun qarz
+yaratish amali emas. Faqat bajarilgan seanslar hisoblanadi.
+
+KARTADA KO'RINISHI
+Bolalar massaji | 30 daqiqa | 100 000 so'm / seans
+Bajarildi: 0 / 10 | Qoldi: 10 | Boshlanish sanasi | Kelish kunlari | Vaqt bo'lsa vaqt
+
+Seanslar tugasa, biriktirilgan xizmat "Yakunlangan" bo'ladi.
+Davom ettirish kerak bo'lsa, egasi ongli ravishda yana seans qo'sha olsin.
+Oldingi bajarilgan seanslar va moliyaviy tarix o'zgarmasin.
+Qo'shimcha seanslar ham avtomatik pul yechishni keltirib chiqarmasin.
+
+================================================================================
+6. SEANSLAR, KUNLAR VA QABUL VAQTI
+================================================================================
+- 10 seans 10 ta bajarilgan muolajani bildiradi, 10 kalendar kunini emas.
+- Tanlangan boshlanish sanasi/kelish kunlariga ko'ra seanslar sonicha
+  rejalashtirilgan qabul yaratiladi. Jarayon serverda doimiy saqlansin.
+- Har kuni ketma-ket kelishni majburiy qilma. Qaysi kunlari kelishini markaz
+  egasi mutaxassis sifatida belgilaydi; dastur tibbiy jadvalni o'zi tayinlamaydi.
+- Taxminiy tugash sanasi jadvaldan chiqishi mumkin; bu qat'iy tugash yoki
+  o'tkazib yuborilgan seanslarni avtomatik bekor qilish muddati bo'lmasin.
+- Kelmagan kunlar bajarilgan seans hisobiga kirmaydi va depozitni kamaytirmaydi.
+- Kelmagan qabul o'rniga qolgan seans uchun boshqa sanaga yozish mumkin bo'lsin;
+  bunday qayta rejalash seans limitini o'z-o'zidan oshirmasin.
+- Bir xil xizmat uchun bir kunda boshqa haqiqiy qabul kerak bo'lsa, tizim
+  "kuniga bir marta" degan umumiy tibbiy taxmin bilan uni taqiqlamasin.
+- Aniq vaqtli qabullarda xizmat davomiyligi, ish vaqti va butun vaqt oralig'i
+  kesishuvini tekshir. Faqat boshlanish soatlari tengligini solishtirish yetmaydi.
+
+VAQT IXTIYORIY
+- Biriktirishda vaqt yozilsa, rejalashtirilgan qabullarga shu vaqt qo'yiladi.
+- Vaqt yozilmasa, qabul sana bo'yicha ro'yxatga tushadi: "Vaqti belgilanmagan".
+- Bo'sh vaqtni majburan 09:00, 10:00 yoki hozirgi vaqt bilan to'ldirma.
+- Rejalashtirilgan vaqt bilan haqiqiy kelgan vaqtni alohida saqla.
+- "Keldi" tasdiqlanganda haqiqiy sana-vaqt serverda avtomatik yozilsin.
+- Xuddi shu holatni qayta saqlash dastlabki kelgan vaqtni almashtirmasin.
+- Sana-vaqtni Asia/Tashkent bo'yicha to'g'ri ko'rsat; sana tungi vaqtlar sabab siljimasin.
+- Katalogdagi 30 daqiqa xizmat davomiyligidir. Uni real o'lchangan muolaja vaqti
+  yoki "Keldi"dan keyin avtomatik haqiqiy tugash deb ko'rsatma.
+
+================================================================================
+7. QABUL VA DAVOMAT — ASOSIY KUNDALIK EKRAN
+================================================================================
+Har qabul qatorida/kartochkasida:
+- Bola va ota-onasi.
+- Biriktirilgan xizmat nomi.
+- Davomiyligi.
+- Shu seans uchun narx.
+- Sana va ixtiyoriy rejalashtirilgan vaqt.
+- Haqiqiy kelgan vaqt, mavjud bo'lsa.
+- Biriktirilgan xizmat bo'yicha bajarildi/jami/qoldi.
+- Asosiy holatlar: Kutilmoqda, Keldi, Kelmadi.
+- Saqlash davomiyligi, muvaffaqiyat va aniq xato ko'rinishi.
+
+Qabulning xizmati biriktirishdan tayyor chiqsin. Har gal mavjud xizmatni boshidan
+tanlash shart bo'lmasin. Boshqa haqiqiy xizmat qo'shish kerak bo'lsa, o'sha bolaning
+mos biriktirilgan xizmati bo'yicha alohida qabul yaratiladi; tarixiy qabul xizmati
+yashirincha almashtirilmasin.
+
+KELDI
+Bu markaz uchun kelishilgan ma'no: xizmat bajarilgani ham tasdiqlanadi.
+Server muvaffaqiyatli tasdiqlagandan keyin birgalikda:
+1) Davomat Keldi bo'ladi.
+2) Haqiqiy kelgan sana-vaqt qayd etiladi.
+3) Shu biriktirish bo'yicha bajarilgan seans soni 1 taga oshadi.
+4) Shu seans narxi ota-onaning umumiy hisobidan hisoblanadi.
+5) Seans, pul harakati va audit izi tegishli IDlar bilan bog'lanadi.
+6) Kassa, Qarzdorlar, Dashboard va ota-ona kabineti yangilanadi.
+
+KELMADI
+- Davomat qayd etiladi.
+- Pul yechilmaydi.
+- Bajarilgan seanslar soni oshmaydi; qolgan seans kuyib ketmaydi.
+- Haqiqiy kelgan vaqt uydirilmaydi.
+
+XATO BELGINI TUZATISH
+- Keldi -> Kelmadi bo'lsa, oldingi hisoblash tegishli qaytarish yozuvi bilan
+  bekor qilinadi, seans hisobi ham bir marta qaytariladi.
+- Pul tarixi o'chirilmaydi; bekor qilish/qaytarish izi qoladi.
+- Keyin qayta Keldi qilinsa, bitta yangi faol hisoblash bo'lsin.
+- Izoh tahriri yoki shu holatni qayta yuborish qayta pul yechmasin.
+- Eski LATE/ABSENT/NO_SHOW yozuvlari va ularning tarixini migratsiyasiz o'chirma;
+  yangi soddalashtirilgan holatlarga moslashuvini aniq belgilab, mavjud tarixni saqla.
+
+================================================================================
+8. OTA-ONANING YAGONA BALANSI, KASSA VA QARZDORLAR
+================================================================================
+Har ota-onaning bitta umumiy hisobi bo'ladi. Farzandlar xizmatlari shu hisobdan
+sarflanadi. Har xarajatda qaysi farzand, xizmat, biriktirish va qabulga tegishli
+ekanligi yoziladi. Bolaga bog'liq tarixni ko'rish mumkin, ammo oila depoziti va
+farzand qarzini bir-biridan uzilgan mustaqil hamyonlar qilib yuritma.
+
+KASSA — BALANS TO'LDIRISH
+- Ota-onani tanlash, summa, to'lov usuli, sana va izoh.
+- Mavjud usullar: naqd, karta, bank o'tkazmasi.
+- Bu olingan pulni qayd etish; Click/Payme yoki bankdan avtomatik pul yechish
+  integratsiyasi qo'shish ushbu vazifaning talabi emas.
+- Server tasdiqlagach kirim yaratiladi va umumiy hisob yangilanadi.
+- Qarz bo'lsa, kirim avval shu ota-onaning qarzini yopadi, qolgani depozit bo'ladi.
+- Kvitansiya va mavjud chop etish imkoniyatini saqla.
+
+KASSA — PUL HARAKATLARI
+Kirimlar, bajarilgan seans hisoblashlari va qaytarishlar bitta tushunarli tarixda.
+Sana/vaqt, ota-ona, tegishli bola, xizmat, summa, yo'nalish va sabab ko'rinsin.
+Seans haqi ota-ona hisobining sarfi; uni markazning operatsion xarajati bilan
+adashtirib, foyda hisobotida ikki marta kamaytirma. Tushum va bajarilgan xizmat
+qiymatini alohida aniq nomla.
+
+MISOL
+1) Ota-ona 500 000 so'm to'ladi -> depozit 500 000, qarz 0.
+2) Birinchi bola 100 000 so'mlik seans oldi -> depozit 400 000, qarz 0.
+3) Ikkinchi bola 150 000 so'mlik seans oldi -> depozit 250 000, qarz 0.
+4) Keyingi bajarilgan seans 300 000 -> depozit 0, qarz 50 000.
+5) Yana 80 000 to'landi -> qarz 0, depozit 30 000.
+
+QARZDORLAR — ALOHIDA SAHIFA
+- Haqiqiy qarzi bor ota-onalar oilaviy hisob bo'yicha ko'rsatiladi.
+- Farzand/xizmatlar kesimidagi sababni tafsilotdan ko'rish mumkin.
+- Ism/telefon qidiruvi, qarz summasi va to'lov kiritishga o'tish bo'lsin.
+- Bitta oilani farzandlar sonicha takroran jami qarzga qo'shma.
+- Kirim va davomat tuzatishidan keyin qarz avtomatik qayta hisoblanadi.
+- Oxirgi muolajadan o'tgan kunni shartnomaviy "qarz muddati o'tgan" deb ko'rsatma.
+
+TARIXIY NARXLAR
+Biriktirish/qabul uchun amal qiladigan narx va davomiylikni saqla.
+Hisoblangan seans xizmat katalogidagi keyingi narx o'zgarishi sabab qayta narxlanmasin.
+Kelajak amaldagi biriktirish tarifini o'zgartirish kerak bo'lsa, bu aniq amal
+bo'lsin va bajarilgan tarixiy seanslarga tegmasin.
+
+================================================================================
+9. SERVERDAGI ISHONCHLILIK VA API
+================================================================================
+- Seans/davomat, bajarilgan seanslar soni va pul hisoblash bitta server
+  tranzaksiyasida bajarilsin. Yarim saqlangan holat bo'lmasin.
+- Bir xil qabulga ikki marta bosish, qayta urinish, ikki tab/qurilma yoki parallel
+  so'rov bir nechta faol pul yechishini yaratmasin. Idempotency va DB cheklovi bo'lsin.
+- Qaytarish/qayta tasdiqlash ketma-ketligini ham idempotent qil.
+- Frontend xizmat narxini o'zi o'ylab topib, mahalliy pul sarfi yaratmasin.
+  Server haqiqiy bog'lanish, tarif, seans qoldig'i va vakolatni tekshirsin.
+- Brauzer yangilanganda yoki boshqa qurilmadan kirganda natija saqlansin.
+- Qabul/biriktirish/davomat so'rovlarida haqiqiy bola, ota-ona, xizmat,
+  biriktirish va qabul bog'lanishlari API shartnomasiga mos yuborilsin.
+- 10/10 bajarilgandan keyin ortiqcha seansni yashirincha hisoblama;
+  avval qo'shimcha seans ongli ravishda biriktirilsin.
+- Xato bo'lsa, muvaffaqiyat ko'rsatma va balans/seans sonini o'zgartirma.
+- Sahifa yangilashdan keyin davomat, biriktirishlar, qabullar, to'lovlar va
+  balansning haqiqiy server holati qayta olinsin.
+- Ota-ona ma'lumotlarini ID almashtirish bilan boshqaniki qilib olish mumkin bo'lmasin.
+- Summalarni pul uchun mos aniq formatda saqla; manfiy/noto'g'ri summa va
+  noto'g'ri seans sonini client ham, server ham tekshirsin.
+
+API CHEGARASI
+Ushbu workspace frontend bo'lishi mumkin. Avval haqiqiy backend/Swaggerni tekshir.
+Endpoint va DTOlarni taxmin qilib uydirma. Oldin /api/v1/appointments so'rovida
+404 kuzatilgan; mavjud route va proxy mosligini qayta tekshir.
+Backend kodi boshqa joyda bo'lsa, kerakli shartnoma va migratsiyalarni aniq
+hujjatlashtir, mavjud frontend qismini mosla va qolgan bog'liqlikni ochiq ayt.
+Server ulanmasdan moliyaviy avtomatlashtirishni yakunlangan deb e'lon qilma.
+
+================================================================================
+10. OTA-ONA KABINETI
+================================================================================
+Ota-onalar bo'limini va PARENT hisobini saqla. Har ota-ona faqat o'ziga
+bog'langan farzandlar va oilaviy hisobini ko'rsin.
+
+Kabinetda:
+- Dashboard va farzandlari.
+- Har bolaning biriktirilgan xizmatlari, davomiyligi, narxi, jami/bajarilgan/qolgan seanslari.
+- Yaqin qabullar, belgilangan sana va vaqt bo'lsa vaqt.
+- Haqiqiy qatnashuv va bajarilgan xizmatlar tarixi.
+- Mavjud mutaxassis tavsiyalari va rivojlanish qaydlari.
+- To'lovlar, pul sarflari, yagona depozit va haqiqiy qarzdorlik.
+- Bildirishnomalar va profil.
+
+Ota-onaga davomat belgilash, pul yechish, narx almashtirish yoki seanslar sonini
+o'zgartirish huquqi berilmaydi. Rejalashtirilgan qabul hali pul sarfi emasligi aniq bo'lsin.
+Ota-ona kabineti balansiga kerakli API ma'lumotlari ham haqiqatan yuklansin.
+
+================================================================================
+11. MOCK VA CHALA ULANGAN JOYLARNI TO'G'RILASH
+================================================================================
+Avvalgi kodda aniqlangan va qayta tekshirib tuzatilishi kerak bo'lgan joylar:
+- src/data/seed.ts ichidagi namuna ma'lumotlari.
+- src/store/index.ts: bo'sh children/services sabab resetToSeedData avtomatik
+  chaqirilishi. Haqiqiy bo'sh ro'yxat productionda demo bilan almashtirilmasin.
+- Sozlamalardagi demo ma'lumotlarni tiklash production ish kabinetidan chiqarilsin.
+- Demo/test ma'lumotlari testda alohida qolishi mumkin; productionga aralashmasin.
+- Login ekranidagi uydirma statistika va mutaxassisning hardcoded 4.95 reytingi.
+  Faqat haqiqiy hisoblangan qiymatni ko'rsat yoki bunday da'voni olib tashla.
+- createAppointment va seans hisoblashlarining faqat mahalliy state bilan ishlashi.
+- Davomat APIga qabul/xizmat bog'lanishi va moliyaviy hisoblash ulanmagani.
+- recordAttendance ichida noto'g'ri/demo IDni birinchi topilgan haqiqiy bola yoki
+  mutaxassis UUIDsiga almashtirish. Noto'g'ri IDda amal rad etilsin; boshqa bolaga yozilmasin.
+- appointments javobi bo'sh bo'lsa ham eski ro'yxatni saqlab qolish.
+  Muvaffaqiyatli [] javobi haqiqiy bo'sh ro'yxatni ko'rsatsin.
+- API xatosida namuna ma'lumot bilan to'ldirma. Qayta urinish va aniq xato ko'rsat;
+  eski kesh qolsa, uning eskirganligi ochiq yozilsin.
+- 100 ta yozuv limiti sabab jami balans/qarzlar noto'g'ri chiqmasin. Moliyaviy
+  jamlamalar serverdan olinsin yoki to'liq pagination bilan hisoblansin.
+- Ishlamaydigan SMS/ovoz/eslatma sozlamalari tayyor xizmatdek ko'rsatilmasin.
+  Ushbu vazifada yangi SMS/bot integratsiyasi yaratish talab qilinmagan.
+
+================================================================================
+12. KO'RINISH, NAVIGATSIYA VA MIGRATSIYA
+================================================================================
+- Mavjud umumiy dizayn va komponentlardan foydalan; butunlay yangi loyiha boshlama.
+- Mobil qurilmada qabul va davomat, xizmat biriktirish, to'lov qabul qilish
+  bir xil to'liq imkoniyat bilan ishlasin.
+- Sodda o'zbekcha matnlar, ko'rinadigan label, klaviatura/fokus boshqaruvi,
+  yuklanish, xato va bo'sh holatlar bo'lsin.
+- Tarix va auditni saqlab, eski moliyaviy hisoblarni yagona ota-ona hisobiga
+  ehtiyotkor migratsiya qil. Tranzaksiyalarni ham bola, ham ota-ona jamlamasida
+  takror hisoblab yuborma.
+- Moliyaviy va klinik ma'lumotlarni o'chirishni soddalashtirish deb talqin qilma.
+- .env va boshqa maxfiy qiymatlarni hujjatga, logga yoki Gitga chiqarmagin.
+- Keraksiz refaktor, yangi rol boshqaruvi, filiallar, ish haqi, alohida tibbiy
+  reja konstruktori, bank integratsiyasi yoki qo'shimcha yangi sahifalar qo'shma.
+- Mavjud BOLIMLAR_QOLLANMASI.txt ni haqiqatan bajarilgan yakuniy holatga mosla;
+  shu promptdagi hali ulanmagan imkoniyatlarni tayyor deb yozma.
+
+================================================================================
+13. QABUL QILISH MEZONLARI VA MUHIM SINOVLAR
+================================================================================
+1) Egasi bitta kabinetdan barcha zarur boshqaruv va klinik amallarni bajaradi.
+2) Asosiy menyuda kelishilgan 9 bo'lim; Ota-onalar va Qarzdorlar alohida qoladi.
+3) Xizmat formasida nom, davomiylik va bir seans narxi; kurs soni katalogda yo'q.
+4) Bola xizmat biriktirmasdan yaratiladi; keyin kartasi avtomatik ochiladi.
+5) Biriktirish faqat bola kartasidagi modal orqali ham darhol, ham keyin bajariladi.
+6) Bitta bolaga ikki xizmat turli seans soni bilan biriktiriladi.
+7) Vaqtli va vaqtsiz biriktirishlar serverda saqlanadi; soxta standart vaqt yo'q.
+8) Belgilangan kunlar bo'yicha kerakli miqdordagi qabullar takrorsiz yaratiladi.
+9) Ketma-ket bo'lmagan kunlarda qatnashish to'g'ri sanaladi; tanaffuslar pul yechmaydi.
+10) Keldi -> 1 bajarilgan seans + 1 faol hisoblash + haqiqiy vaqt.
+11) Double click, retry va parallel so'rov -> hamon 1 faol hisoblash.
+12) Kelmadi -> 0 hisoblash, 0 bajarilgan seans; qolgan seans saqlanadi.
+13) Keldi -> Kelmadi -> Keldi zanjirida balans va seans soni to'g'ri, audit to'liq.
+14) Izoh tahriri qayta pul yechmaydi va dastlabki haqiqiy vaqtni yangilamaydi.
+15) Ikki farzand bitta ota-onaning umumiy depozitidan sarflaydi.
+16) Mablag' yetishmasa faqat yetmagan qismi qarz bo'ladi; kirim avval qarzni yopadi.
+17) Xizmat narxi o'zgarsa, oldingi bajarilgan seans narxi/tarixi o'zgarmaydi.
+18) Bir xil xizmatning ikkita haqiqiy qabuli sanasi bir xil bo'lsa ham alohida
+    seanslar bo'lishi mumkin; ularning har biri faqat bir martadan hisoblanadi.
+19) Seanslar tugasa, qo'shimcha biriktirishsiz ortiqcha avtomatik yechish bo'lmaydi.
+20) Server xatosi/aloqa uzilishida soxta muvaffaqiyat, yarim hisoblash yoki demo yo'q.
+21) Sahifa yangilanganda va boshqa qurilmada kirganda haqiqiy holat saqlanadi.
+22) Ota-ona faqat o'z farzandlari/hisobini ko'radi va boshqaruv amallarini bajara olmaydi.
+23) Production bo'sh bazada namuna bolalar, qabullar yoki pul harakatlari chiqmaydi.
+24) Noto'g'ri ID boshqa bolaning haqiqiy IDsi bilan almashtirilmaydi.
+25) Hisobotlar, Kassa, Qarzdorlar va ota-ona kabinetidagi bir xil hisoblar mos keladi.
+
+Moliyaviy o'zgarishlar uchun server/integratsiya sinovlari shart.
+Frontenddagi mock testning o'zi real pul hisoblash ishlaganini isbotlamaydi.
+Build, lint va tegishli testlarni bajargin. Avvalgi tekshiruvda CreateChildForm
+testi kalendardagi ikkita "5" tugmasini farqlay olmagani sabab yiqilgan;
+takrorlansa, uni haqiqiy yangi regressiyadan ajratib tekshir.
+
+================================================================================
+14. ISHNI YAKUNLASHDA HISOBOT
+================================================================================
+Aniq yoz:
+- Qaysi menyu/sahifalar olib tashlandi, qaysilari birlashtirildi va qayerga ko'chdi.
+- Bola yaratish -> xizmat biriktirish -> qabul/davomat -> hisoblash oqimi.
+- Qaysi API va migratsiyalar haqiqatan bajarildi.
+- Qaysi tekshiruvlar o'tdi va qaysilari o'tmadi.
+- Backendga bog'liq tugallanmagan joylar mavjud bo'lsa, ularning aniq ro'yxati.
+
+Faqat tugma chiqishi, local state o'zgarishi yoki namunaviy ma'lumot bilan natija
+ko'rinishini butun jarayon tayyor bo'ldi deb e'lon qilma.
+Talabdagi barcha ishni shu yerda yozilgan doirada bajargin.
+================================================================================
