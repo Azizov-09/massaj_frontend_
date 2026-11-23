@@ -1,5 +1,5 @@
 import { it, expect } from "vitest";
-import { calculateParentBalance, getTopDebtors } from "./finance.service";
+import { calculateParentBalance } from "./finance.service";
 import type { Transaction } from "@/types";
 const txn = (
   id: string,
@@ -48,20 +48,4 @@ it("counts a transaction once and applies a reversal without touching another fa
     balance: 0,
     debt: 0,
   });
-});
-it("lists one debtor per family even when two children have charges", () => {
-  const rows = [
-    txn("a", 100000, "OUT", { childId: "a" }),
-    txn("b", 50000, "OUT", { childId: "b" }),
-  ];
-  const result = getTopDebtors(
-    rows,
-    [
-      { id: "a", fullName: "A", parentId: "family" },
-      { id: "b", fullName: "B", parentId: "family" },
-    ],
-    [{ id: "family", fullName: "Oila", phone: "" }],
-  );
-  expect(result).toHaveLength(1);
-  expect(result[0].debt).toBe(150000);
 });

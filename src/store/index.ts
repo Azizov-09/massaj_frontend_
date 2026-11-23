@@ -7,8 +7,6 @@ import { persist } from "zustand/middleware";
 import { useShallow } from "zustand/react/shallow";
 import { generateId } from "@/utils";
 import { api } from "@/services/api";
-import { WORKFLOW_UNAVAILABLE } from "@/services/api/workflow";
-import type { UpdateAdminDto } from "@/services/api/types";
 import { normalizePayment } from "@/services/api/finance";
 import type {
   AdminUser,
@@ -17,7 +15,6 @@ import type {
   Child,
   Service,
   Appointment,
-  Session,
   AttendanceRecord,
   Assessment,
   ProgressNote,
@@ -25,7 +22,6 @@ import type {
   Payment,
   Notification,
   ActivityLog,
-  Employee,
   ToastMessage,
   UserRole,
   BaseUser,
@@ -56,8 +52,6 @@ interface AuthState {
 // ─── Data State ───────────────────────────────────────────
 
 interface DataState {
-  admins: AdminUser[];
-  employees: Employee[];
   specialists: Specialist[];
   parents: Parent[];
   children: Child[];
@@ -68,7 +62,6 @@ interface DataState {
   assignmentsError: string | null;
   parentAccounts: Record<string, ParentAccount>;
   accountsError: string | null;
-  sessions: Session[];
   attendance: AttendanceRecord[];
   assessments: Assessment[];
   progressNotes: ProgressNote[];
@@ -126,7 +119,6 @@ interface Actions {
   createChild: (data: Omit<Child, "id" | "createdAt">) => Promise<Child>;
   updateChild: (id: string, data: Partial<Child>) => Promise<void>;
   archiveChild: (id: string) => Promise<void>;
-  deleteChild: (id: string) => Promise<void>;
 
   // Parents
   createParent: (
@@ -136,45 +128,11 @@ interface Actions {
   updateParent: (id: string, data: Partial<Parent>) => Promise<void>;
   deleteParent: (id: string) => Promise<void>;
 
-  // Specialists
-  createSpecialist: (
-    data: Omit<Specialist, "id" | "createdAt">,
-    password?: string,
-  ) => Promise<Specialist>;
-  updateSpecialist: (id: string, data: Partial<Specialist>) => Promise<void>;
-  deleteSpecialist: (id: string) => Promise<void>;
-
   // Services
   createService: (data: Omit<Service, "id" | "createdAt">) => Promise<Service>;
   updateService: (id: string, data: Partial<Service>) => Promise<void>;
   archiveService: (id: string) => Promise<void>;
   restoreService: (id: string) => Promise<void>;
-
-  // Appointments
-  createAppointment: (
-    data: Omit<Appointment, "id" | "createdAt">,
-  ) => Appointment;
-  updateAppointment: (id: string, data: Partial<Appointment>) => void;
-  confirmAppointment: (id: string) => void;
-  startAppointment: (id: string) => void;
-  cancelAppointment: (id: string) => void;
-  markNoShow: (id: string) => void;
-  completeAppointment: (id: string) => void;
-
-  // Sessions
-  startSession: (appointmentId: string) => Session;
-  completeSession: (
-    sessionId: string,
-    note: string,
-    observation: string,
-    recommendation: string,
-  ) => void;
-
-  // Attendance
-  recordAttendance: (
-    data: Omit<AttendanceRecord, "id" | "createdAt">,
-  ) => Promise<AttendanceRecord>;
-  removeAttendance: (appointmentId: string) => void;
 
   // Assessments
   createAssessment: (
@@ -197,30 +155,9 @@ interface Actions {
     createdBy: string;
     idempotencyKey?: string;
   }) => Promise<Payment>;
-
-  // Notifications
-  addNotification: (
-    data: Omit<Notification, "id" | "createdAt" | "isRead"> & {
-      isRead?: boolean;
-    },
-  ) => Notification;
   markNotificationRead: (id: string) => void;
   markNotificationUnread: (id: string) => void;
   markAllNotificationsRead: (userId?: string, role?: UserRole) => void;
-
-  // Admins
-  createAdmin: (
-    data: Omit<AdminUser, "id" | "createdAt">,
-    password?: string,
-  ) => Promise<AdminUser>;
-  updateAdmin: (id: string, data: Partial<AdminUser>) => Promise<void>;
-  deleteAdmin: (id: string) => Promise<void>;
-
-  // Employees
-  createEmployee: (
-    data: Omit<Employee, "id" | "joinedAt">,
-  ) => Promise<Employee>;
-  updateEmployee: (id: string, data: Partial<Employee>) => Promise<void>;
 
   // Activity log helper
   addActivityLog: (log: Omit<ActivityLog, "id" | "timestamp">) => void;
@@ -229,8 +166,6 @@ interface Actions {
   updateClinicSettings: (
     settings: Partial<DataState["clinicSettings"]>,
   ) => Promise<void>;
-  resetStore: () => void;
-  resetToSeedData: () => void;
 }
 
 // ─── Combined Store ───────────────────────────────────────
@@ -309,8 +244,6 @@ export const useStore = create<Store>()(
         set({
           currentUser: null,
           isAuthenticated: false,
-          admins: [],
-          employees: [],
           children: [],
           parents: [],
           specialists: [],
@@ -320,7 +253,7 @@ export const useStore = create<Store>()(
           parentAccounts: {},
           accountsError: null,
           assignmentsError: null,
-          sessions: [],
+
           attendance: [],
           assessments: [],
           transactions: [],
@@ -343,16 +276,6 @@ export const useStore = create<Store>()(
           ) {
             return {
               currentUser: updated as AdminUser,
-              admins: s.admins.map((a) =>
-                a.id === updated.id ? (updated as AdminUser) : a,
-              ),
-            };
-          } else if (s.currentUser.role === "SPECIALIST") {
-            return {
-              currentUser: updated as Specialist,
-              specialists: s.specialists.map((sp) =>
-                sp.id === updated.id ? (updated as Specialist) : sp,
-              ),
             };
           } else if (s.currentUser.role === "PARENT") {
             return {
@@ -365,10 +288,6 @@ export const useStore = create<Store>()(
           return { currentUser: updated as AdminUser };
         });
       },
-
-      // ── Initial Clinical Dataset (Seeded defaults with live backend sync) ──
-      admins: [],
-      employees: [],
       specialists: [],
       parents: [],
       children: [],
@@ -379,7 +298,7 @@ export const useStore = create<Store>()(
       assignmentsError: null,
       parentAccounts: {},
       accountsError: null,
-      sessions: [],
+
       attendance: [],
       assessments: [],
       progressNotes: [],
@@ -433,9 +352,12 @@ export const useStore = create<Store>()(
             set({ currentUser: user });
           }
           const isParent = user?.role === "PARENT";
-          const isSpecialist = user?.role === "SPECIALIST";
           const isAdmin =
             user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
+          if (!isParent && !isAdmin) {
+            set({ isLoadingData: false, isInitialized: true });
+            return;
+          }
           const emptyList = () => Promise.resolve([] as any[]);
           const parentsRequest = isAdmin
             ? api.parents.getAll({ limit: 100 })
@@ -443,9 +365,7 @@ export const useStore = create<Store>()(
 
           const childrenRequest = isParent
             ? api.portal.getMyChildren()
-            : isSpecialist
-              ? api.portal.getMyAssignedChildren()
-              : api.children.getAll({ limit: 100 });
+            : api.children.getAll({ limit: 100 });
 
           const loadClinicalPerChild = async <T>(
             loader: (childId: string) => Promise<T[]>,
@@ -474,18 +394,14 @@ export const useStore = create<Store>()(
 
           const assessmentsRequest = isParent
             ? api.portal.getMyAssessments()
-            : isSpecialist
-              ? api.portal.getMyAuthoredAssessments()
-              : loadClinicalPerChild((childId) =>
-                  api.children.getAssessments(childId),
-                );
+            : loadClinicalPerChild((childId) =>
+                api.children.getAssessments(childId),
+              );
           const progressRequest = isParent
             ? api.portal.getMyProgress()
-            : isSpecialist
-              ? api.portal.getMyRecordedProgress()
-              : loadClinicalPerChild((childId) =>
-                  api.children.getProgress(childId),
-                );
+            : loadClinicalPerChild((childId) =>
+                api.children.getProgress(childId),
+              );
 
           const appointmentsRequest = api.workflow.enabled
             ? api.workflow.getAppointments()
@@ -538,8 +454,6 @@ export const useStore = create<Store>()(
             isAdmin ? api.platform.getSettings() : Promise.resolve(null),
             api.platform.getNotifications(),
             isAdmin ? api.platform.getActivityLogs() : emptyList(),
-            emptyList(),
-            emptyList(),
             assessmentsRequest,
             progressRequest,
             appointmentsRequest,
@@ -557,8 +471,6 @@ export const useStore = create<Store>()(
             settingsRes,
             notificationsRes,
             activityLogsRes,
-            adminsRes,
-            employeesRes,
             assessmentsRes,
             progressRes,
             appointmentsRes,
@@ -632,15 +544,6 @@ export const useStore = create<Store>()(
               Array.isArray(activityLogsRes.value)
                 ? activityLogsRes.value
                 : state.activityLogs;
-            const nextAdmins =
-              adminsRes.status === "fulfilled" && Array.isArray(adminsRes.value)
-                ? adminsRes.value
-                : state.admins;
-            const nextEmployees =
-              employeesRes.status === "fulfilled" &&
-              Array.isArray(employeesRes.value)
-                ? employeesRes.value
-                : state.employees;
             const nextAssessments =
               assessmentsRes.status === "fulfilled" &&
               Array.isArray(assessmentsRes.value)
@@ -675,7 +578,7 @@ export const useStore = create<Store>()(
                   fullName: apt.child.fullName || apt.childName || "Bola",
                   firstName: apt.child.firstName,
                   lastName: apt.child.lastName,
-                  dateOfBirth: apt.child.dateOfBirth || "2020-01-01",
+                  dateOfBirth: apt.child.dateOfBirth || "",
                   gender: apt.child.gender || "MALE",
                   parentId: apt.parentId || apt.child.parentId || "",
                   status: "ACTIVE",
@@ -695,11 +598,9 @@ export const useStore = create<Store>()(
                     apt.specialistName ||
                     "Mutaxassis",
                   specialization: apt.specialist.specialization || "Mutaxassis",
-                  phone: apt.specialist.phone || "+998901234567",
+                  phone: apt.specialist.phone || "",
                   role: "SPECIALIST",
                   status: "ACTIVE",
-                  workingDays: [1, 2, 3, 4, 5, 6, 7],
-                  workingHours: { start: "09:00", end: "18:00" },
                   createdAt: apt.createdAt || new Date().toISOString(),
                 } as Specialist);
                 existingSpecIds.add(apt.specialistId);
@@ -736,7 +637,7 @@ export const useStore = create<Store>()(
               specialists: nextSpecialists,
               services: nextServices,
               appointments: nextAppointments,
-              sessions: state.sessions,
+
               attendance:
                 attendanceRes.status === "fulfilled"
                   ? attendanceRes.value
@@ -753,8 +654,6 @@ export const useStore = create<Store>()(
               transactions: nextTransactions,
               notifications: nextNotifications,
               activityLogs: nextLogs,
-              admins: nextAdmins,
-              employees: nextEmployees,
               clinicSettings: nextSettings,
               isLoadingData: false,
               isInitialized: true,
@@ -941,29 +840,6 @@ export const useStore = create<Store>()(
         }
       },
 
-      deleteChild: async (id) => {
-        try {
-          const child = get().children.find((c) => c.id === id);
-          await api.children.delete(id);
-          set((s) => ({ children: s.children.filter((c) => c.id !== id) }));
-          get().addToast({
-            type: "success",
-            title: "Bola o'chirildi",
-            description: child
-              ? `${child.fullName} tizimdan olib tashlandi`
-              : undefined,
-          });
-        } catch (err: any) {
-          console.error("[Store] deleteChild error:", err);
-          get().addToast({
-            type: "error",
-            title: "Xatolik",
-            description: err?.message || "O'chirib bo'lmadi",
-          });
-          throw err;
-        }
-      },
-
       // ── Parents Actions ──────────────────────────────────
       createParent: async (data, password) => {
         try {
@@ -1097,149 +973,6 @@ export const useStore = create<Store>()(
         }
       },
 
-      // ── Specialist Actions ───────────────────────────────
-      createSpecialist: async (data, password) => {
-        try {
-          const created = await api.specialists.create({
-            fullName: data.fullName,
-            phone: data.phone,
-            password: password || "Password123!",
-            specialization: data.specialization,
-            experienceYears: data.experience || 3,
-            bio: data.bio || undefined,
-          });
-
-          if (!created?.id || created.id === "undefined")
-            throw new Error("Server yozuvni tasdiqlamadi");
-          const spec: Specialist = created;
-
-          set((s) => ({
-            specialists: [
-              spec,
-              ...s.specialists.filter((sp) => sp.id !== spec.id),
-            ],
-          }));
-          get().addToast({ type: "success", title: "Mutaxassis qo'shildi" });
-          return spec;
-        } catch (err: any) {
-          console.error("[Store] createSpecialist error:", err);
-          throw err;
-        }
-      },
-
-      updateSpecialist: async (id, data) => {
-        // Preserve previous state for rollback on failure
-        const prev = get().specialists.find((s) => s.id === id);
-        try {
-          // Status changes use dedicated endpoints, NOT the update payload
-          if (data.status !== undefined && Object.keys(data).length === 1) {
-            if (data.status === "ACTIVE") {
-              if (prev?.status === "ARCHIVED") {
-                try {
-                  await api.specialists.restore(id);
-                } catch {
-                  await api.specialists.activate(id);
-                }
-              } else {
-                await api.specialists.activate(id);
-              }
-            } else if (data.status === "INACTIVE") {
-              await api.specialists.deactivate(id);
-            } else if (data.status === "ARCHIVED") {
-              await api.specialists.archive(id);
-            }
-            set((s) => ({
-              specialists: s.specialists.map((sp) =>
-                sp.id === id ? { ...sp, status: data.status! } : sp,
-              ),
-            }));
-            get().addToast({
-              type: "success",
-              title:
-                data.status === "ACTIVE"
-                  ? prev?.status === "ARCHIVED"
-                    ? "Arxivdan qaytarildi"
-                    : "Faollashtirildi"
-                  : "Nofaol qilindi",
-            });
-            return;
-          }
-
-          // Profile field updates (no status in payload)
-          const dto: any = {};
-          if (data.fullName !== undefined) dto.fullName = data.fullName;
-          if (data.phone !== undefined) dto.phone = data.phone;
-          if (data.specialization !== undefined)
-            dto.specialization = data.specialization;
-          if (data.experience !== undefined)
-            dto.experienceYears = data.experience;
-          if (data.bio !== undefined) dto.bio = data.bio;
-          if (data.workingDays !== undefined)
-            dto.workingDays = data.workingDays;
-          if (data.workingHours !== undefined)
-            dto.workingHours = data.workingHours;
-
-          await api.specialists.update(id, dto);
-          set((s) => ({
-            specialists: s.specialists.map((sp) =>
-              sp.id === id ? { ...sp, ...data } : sp,
-            ),
-          }));
-          get().addToast({
-            type: "success",
-            title: "Mutaxassis ma'lumotlari yangilandi",
-          });
-        } catch (err: any) {
-          console.error("[Store] updateSpecialist error:", err);
-          // Rollback optimistic UI
-          if (prev) {
-            set((s) => ({
-              specialists: s.specialists.map((sp) =>
-                sp.id === id ? prev : sp,
-              ),
-            }));
-          }
-          const friendlyMsg =
-            err?.message?.includes("property") ||
-            err?.message?.includes("should not exist")
-              ? "Mutaxassis ma'lumotlarini yangilab bo'lmadi. Qayta urinib ko'ring."
-              : err?.message || "Yangilab bo'lmadi";
-          get().addToast({
-            type: "error",
-            title: "Xatolik",
-            description: friendlyMsg,
-          });
-          throw err;
-        }
-      },
-
-      deleteSpecialist: async (id) => {
-        try {
-          const spec = get().specialists.find((s) => s.id === id);
-          await api.specialists.archive(id);
-          set((s) => ({
-            specialists: s.specialists.map((sp) =>
-              sp.id === id ? { ...sp, status: "ARCHIVED" } : sp,
-            ),
-          }));
-          get().addToast({
-            type: "info",
-            title: "Mutaxassis arxivlandi",
-            description: spec
-              ? `${spec.fullName} arxivga o'tkazildi`
-              : undefined,
-          });
-        } catch (err: any) {
-          console.error("[Store] deleteSpecialist error:", err);
-          get().addToast({
-            type: "error",
-            title: "Xatolik",
-            description: err?.message || "Arxivlab bo'lmadi",
-          });
-          throw err;
-        }
-      },
-
       // ── Service Actions ──────────────────────────────────
       createService: async (data) => {
         try {
@@ -1328,52 +1061,6 @@ export const useStore = create<Store>()(
           });
           throw err;
         }
-      },
-
-      // ── Appointment Actions ──────────────────────────────
-      // Legacy local actions cannot record clinical or financial success.
-      createAppointment: () => {
-        throw new Error(WORKFLOW_UNAVAILABLE);
-      },
-      updateAppointment: () => {
-        throw new Error(WORKFLOW_UNAVAILABLE);
-      },
-      confirmAppointment: () => {
-        throw new Error(WORKFLOW_UNAVAILABLE);
-      },
-      startAppointment: () => {
-        throw new Error(WORKFLOW_UNAVAILABLE);
-      },
-      cancelAppointment: () => {
-        throw new Error(WORKFLOW_UNAVAILABLE);
-      },
-      markNoShow: () => {
-        throw new Error(WORKFLOW_UNAVAILABLE);
-      },
-      completeAppointment: () => {
-        throw new Error(WORKFLOW_UNAVAILABLE);
-      },
-      startSession: () => {
-        throw new Error(WORKFLOW_UNAVAILABLE);
-      },
-      completeSession: () => {
-        throw new Error(WORKFLOW_UNAVAILABLE);
-      },
-      removeAttendance: () => {
-        throw new Error(WORKFLOW_UNAVAILABLE);
-      },
-      recordAttendance: async (data) => {
-        if (!data.appointmentId || !["PRESENT", "ABSENT"].includes(data.status))
-          throw new Error(WORKFLOW_UNAVAILABLE);
-        await get().commitReception(
-          data.appointmentId,
-          data.status as "PRESENT" | "ABSENT",
-          data.note || "",
-          generateId(),
-        );
-        return get().attendance.find(
-          (a) => a.appointmentId === data.appointmentId,
-        )!;
       },
       fetchServiceAssignments: async (childId) => {
         set({ assignmentsLoading: true, assignmentsError: null });
@@ -1619,19 +1306,6 @@ export const useStore = create<Store>()(
         return confirmed;
       },
 
-      addNotification: (data) => {
-        const notif: Notification = {
-          ...data,
-          id: generateId(),
-          isRead: data.isRead ?? false,
-          createdAt: new Date().toISOString(),
-        };
-        set((s) => ({
-          notifications: [notif, ...s.notifications],
-        }));
-        return notif;
-      },
-
       markNotificationRead: (id) => {
         set((s) => ({
           notifications: s.notifications.map((n) =>
@@ -1675,181 +1349,6 @@ export const useStore = create<Store>()(
         });
       },
 
-      // ── Admins ───────────────────────────────────────────
-      createAdmin: async (data, password) => {
-        try {
-          const created = await api.admins.create({
-            fullName: data.fullName,
-            phone: data.phone,
-            role: data.role,
-            password: password || "Admin123!",
-          });
-
-          if (!created?.id || created.id === "undefined")
-            throw new Error("Server yozuvni tasdiqlamadi");
-          const admin: AdminUser = created;
-
-          set((s) => ({
-            admins: [admin, ...s.admins.filter((a) => a.id !== admin.id)],
-          }));
-          get().addToast({
-            type: "success",
-            title: "Administrator qo‘shildi",
-            description: `${admin.fullName} tizimga muvaffaqiyatli biriktirildi`,
-          });
-          return admin;
-        } catch (err: any) {
-          console.error("[Store] createAdmin error:", err);
-          throw err;
-        }
-      },
-
-      updateAdmin: async (id, data) => {
-        const prev = get().admins.find((a) => a.id === id);
-        try {
-          // Status changes use dedicated endpoints
-          if (data.status !== undefined && Object.keys(data).length === 1) {
-            if (data.status === "ACTIVE") {
-              if (prev?.status === "ARCHIVED") {
-                try {
-                  await api.admins.restore(id);
-                } catch {
-                  await api.admins.activate(id);
-                }
-              } else {
-                await api.admins.activate(id);
-              }
-            } else if (data.status === "INACTIVE") {
-              await api.admins.deactivate(id);
-            } else if (data.status === "ARCHIVED") {
-              await api.admins.archive(id);
-            }
-            set((s) => ({
-              admins: s.admins.map((a) =>
-                a.id === id ? { ...a, status: data.status! } : a,
-              ),
-            }));
-            get().addToast({
-              type: "success",
-              title:
-                data.status === "ACTIVE"
-                  ? prev?.status === "ARCHIVED"
-                    ? "Arxivdan qaytarildi"
-                    : "Faollashtirildi"
-                  : "Nofaol qilindi",
-            });
-            return;
-          }
-
-          const patchPayload: UpdateAdminDto = {};
-          if (data.fullName !== undefined)
-            patchPayload.fullName = data.fullName;
-          if (data.phone !== undefined) patchPayload.phone = data.phone;
-          if (data.role !== undefined) patchPayload.role = data.role;
-
-          let updated: AdminUser | undefined;
-          if (Object.keys(patchPayload).length > 0) {
-            updated = await api.admins.update(id, patchPayload);
-          }
-
-          set((s) => ({
-            admins: s.admins.map((a) =>
-              a.id === id
-                ? { ...a, ...(updated && updated.id ? updated : data) }
-                : a,
-            ),
-          }));
-          get().addToast({ type: "success", title: "Admin yangilandi" });
-        } catch (err: any) {
-          console.error("[Store] updateAdmin error:", err);
-          if (prev) {
-            set((s) => ({
-              admins: s.admins.map((a) => (a.id === id ? prev : a)),
-            }));
-          }
-          get().addToast({
-            type: "error",
-            title: "Xatolik",
-            description:
-              err?.message || "Admin ma'lumotlarini yangilab bo'lmadi",
-          });
-          throw err;
-        }
-      },
-
-      deleteAdmin: async (id) => {
-        try {
-          await api.admins.archive(id);
-          set((s) => ({ admins: s.admins.filter((a) => a.id !== id) }));
-          get().addToast({ type: "success", title: "Admin o'chirildi" });
-        } catch (err: any) {
-          console.error("[Store] deleteAdmin error:", err);
-          get().addToast({
-            type: "error",
-            title: "Xatolik",
-            description: err?.message || "Adminni o'chirib bo'lmadi",
-          });
-          throw err;
-        }
-      },
-
-      // ── Employees ────────────────────────────────────────
-      createEmployee: async (data) => {
-        try {
-          const created = await api.employees.create({
-            fullName: data.fullName,
-            position: data.position,
-            phone: data.phone,
-            salary: data.salary,
-            notes: data.notes,
-          });
-
-          if (!created?.id || created.id === "undefined")
-            throw new Error("Server yozuvni tasdiqlamadi");
-          const emp: Employee = created;
-
-          set((s) => ({
-            employees: [emp, ...s.employees.filter((e) => e.id !== emp.id)],
-          }));
-          get().addToast({ type: "success", title: "Xodim qo'shildi" });
-          return emp;
-        } catch (err: any) {
-          console.error("[Store] createEmployee error:", err);
-          throw err;
-        }
-      },
-
-      updateEmployee: async (id, data) => {
-        try {
-          await api.employees.update(id, {
-            fullName: data.fullName,
-            position: data.position,
-            phone: data.phone,
-            salary: data.salary,
-            notes: data.notes,
-            status: data.status,
-          });
-          set((s) => ({
-            employees: s.employees.map((e) =>
-              e.id === id ? { ...e, ...data } : e,
-            ),
-          }));
-          get().addToast({
-            type: "success",
-            title: "Xodim ma'lumotlari yangilandi",
-          });
-        } catch (err: any) {
-          console.error("[Store] updateEmployee error:", err);
-          get().addToast({
-            type: "error",
-            title: "Xatolik",
-            description:
-              err?.message || "Xodim ma'lumotlarini yangilab bo'lmadi",
-          });
-          throw err;
-        }
-      },
-
       // ── Activity Log ──────────────────────────────────────
       addActivityLog: (log) => {
         const entry: ActivityLog = {
@@ -1891,53 +1390,6 @@ export const useStore = create<Store>()(
           });
           throw err;
         }
-      },
-
-      resetStore: () => {
-        try {
-          localStorage.removeItem("massaj-crm-store");
-          localStorage.removeItem("access_token");
-        } catch {}
-        set({
-          currentUser: null,
-          isAuthenticated: false,
-          admins: [],
-          employees: [],
-          specialists: [],
-          parents: [],
-          children: [],
-          services: [],
-          appointments: [],
-          serviceAssignments: [],
-          parentAccounts: {},
-          accountsError: null,
-          assignmentsError: null,
-          sessions: [],
-          attendance: [],
-          progressNotes: [],
-          payments: [],
-          notifications: [],
-          activityLogs: [],
-          clinicSettings: {
-            clinicName: "Bolalar Massaj & Reabilitatsiya Markazi",
-            phone: "",
-            address: "",
-            workStart: "08:00",
-            workEnd: "18:00",
-          },
-          isLoadingData: false,
-          isInitialized: false,
-          dataError: null,
-        });
-        get().addToast({
-          type: "info",
-          title: "Tizim tozalandi",
-          description: "Barcha sessiyalar bekor qilindi",
-        });
-      },
-
-      resetToSeedData: () => {
-        throw new Error("Demo ma’lumotlar ilovaga yuklanmaydi");
       },
     }),
     {

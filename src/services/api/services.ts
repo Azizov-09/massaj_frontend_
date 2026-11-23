@@ -12,10 +12,6 @@ export function normalizeService(raw: any): Service {
     price: Number(raw.price || 0),
     status: raw.status === 'ARCHIVED' ? 'ARCHIVED' : raw.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
     createdAt: raw.createdAt || new Date().toISOString(),
-    color: raw.color || 'blue',
-    category: raw.category || 'Reabilitatsiya',
-    ageMin: raw.ageMin,
-    ageMax: raw.ageMax,
   };
 }
 
@@ -26,12 +22,6 @@ export class ServicesApi {
     const res = await this.client.get<any>('/services', params);
     const list = Array.isArray(res) ? res : res?.data || res?.items || [];
     return list.map(normalizeService);
-  }
-
-  public async getById(id: string): Promise<Service> {
-    const res = await this.client.get<any>(`/services/${id}`);
-    const item = res?.data || res;
-    return normalizeService(item);
   }
 
   public async create(dto: CreateServiceDto): Promise<Service> {

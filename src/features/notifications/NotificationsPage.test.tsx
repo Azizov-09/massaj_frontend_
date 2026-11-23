@@ -1,10 +1,17 @@
 import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { MemoryRouter } from 'react-router-dom';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { NotificationsPage } from './NotificationsPage';
 import { useStore } from '@/store';
 import type { Notification } from '@/types';
+import { owner, parent } from '@/test/clinicFixtures';
+import { api } from '@/services/api';
+
+function CurrentLocation() {
+  const location = useLocation();
+  return <output data-testid="current-location">{location.pathname + location.search}</output>;
+}
 
 describe('NotificationsPage Component', () => {
   const mockNotifications: Notification[] = [
@@ -41,6 +48,8 @@ describe('NotificationsPage Component', () => {
   ];
 
   beforeEach(() => {
+    vi.spyOn(api.platform, 'markNotificationRead').mockResolvedValue();
+    vi.spyOn(api.platform, 'markAllNotificationsRead').mockResolvedValue();
     useStore.setState({
       currentUser: {
         id: 'admin-1',
@@ -53,6 +62,8 @@ describe('NotificationsPage Component', () => {
       notifications: mockNotifications,
     });
   });
+
+  afterEach(() => vi.restoreAllMocks());
 
   it('renders header, KPI cards and notification groups properly', () => {
     render(
@@ -186,5 +197,59 @@ describe('NotificationsPage Component', () => {
 
     const state = useStore.getState();
     expect(state.notifications.every(n => n.isRead)).toBe(true);
+  });
+
+  it.each([
+    { type: 'payment' as const, relatedEntity: { type: 'payment' as const, id: 'payment' }, label: "To'lovlarga o'tish", destination: '/dashboard/super-admin/cash?tab=transactions' },
+    { type: 'payment' as const, relatedEntity: undefined, label: "Moliya bo'limiga", destination: '/dashboard/super-admin/cash?tab=transactions' },
+    { type: 'assessment' as const, relatedEntity: undefined, label: "Baholashga o'tish", destination: '/dashboard/super-admin/children?section=assessments' },
+  ])('opens the current owner workspace for $type notifications', ({ type, relatedEntity, label, destination }) => {
+    useStore.setState({
+      currentUser: owner,
+      notifications: [{
+        id: 'current-route', userId: owner.id, type, relatedEntity,
+        title: 'Yangi xabar', message: 'Xabar mazmuni', isRead: false,
+        createdAt: new Date().toISOString(),
+      }],
+    });
+    render(<MemoryRouter initialEntries={['/dashboard/super-admin/notifications']}><NotificationsPage /><CurrentLocation /></MemoryRouter>);
+
+    fireEvent.click(screen.getByRole('button', { name: label }));
+
+    expect(screen.getByTestId('current-location')).toHaveTextContent(destination);
+    expect(useStore.getState().notifications[0].isRead).toBe(true);
+  });
+
+  it('opens children for a parent schedule notification', () => {
+    useStore.setState({
+      currentUser: parent,
+      notifications: [{
+        id: 'parent-schedule', userId: parent.id, type: 'schedule',
+        title: 'Qabul vaqti yangilandi', message: 'Yangi qabul vaqti',
+        isRead: false, createdAt: new Date().toISOString(),
+      }],
+    });
+    render(<MemoryRouter initialEntries={['/dashboard/parent/notifications']}><NotificationsPage /><CurrentLocation /></MemoryRouter>);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Bolalar sahifasiga' }));
+
+    expect(screen.getByTestId('current-location')).toHaveTextContent('/dashboard/parent/children');
+  });
+
+  it.each([owner, parent])('keeps historical specialist notifications readable without a retired management link for $role', (user) => {
+    useStore.setState({
+      currentUser: user,
+      notifications: [{
+        id: 'historical-specialist', userId: user.id, type: 'system',
+        title: 'Mutaxassis ma’lumoti yangilangan', message: 'Tarixiy xabar',
+        relatedEntity: { type: 'specialist', id: 'former-specialist' },
+        isRead: false, createdAt: new Date().toISOString(),
+      }],
+    });
+    render(<MemoryRouter><NotificationsPage /></MemoryRouter>);
+
+    expect(screen.getByText('Tarixiy xabar')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: "Mutaxassisga o'tish" })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: "O'qilgan deb belgilash" })).toBeInTheDocument();
   });
 });

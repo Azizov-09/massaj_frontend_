@@ -10,8 +10,8 @@ describe('Auth Guards and Role Redirects', () => {
     expect(ROLE_REDIRECTS.ADMIN).toBe('/dashboard/super-admin');
   });
 
-  it('correctly maps SPECIALIST to /dashboard/specialist without 403 redirect', () => {
-    expect(ROLE_REDIRECTS.SPECIALIST).toBe('/dashboard/specialist');
+  it('denies a standalone SPECIALIST owner access', () => {
+    expect(ROLE_REDIRECTS.SPECIALIST).toBe('/403');
   });
 
   it('maps PARENT to /dashboard/parent', () => {

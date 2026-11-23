@@ -1,6 +1,5 @@
 import { cn, getInitials, getAvatarColor } from '@/utils';
 import { forwardRef } from 'react';
-import { Orb, type OrbState } from '@/components/ui/thinking-orbs';
 
 // ─── Badge ────────────────────────────────────────────────
 
@@ -104,10 +103,6 @@ export function CardBody({ className, children }: { className?: string; children
   return <div className={cn('px-5 py-4', className)}>{children}</div>;
 }
 
-export function CardFooter({ className, children }: { className?: string; children: React.ReactNode }) {
-  return <div className={cn('px-5 py-3 border-t border-warm-100 bg-warm-50/50 rounded-b-[14px]', className)}>{children}</div>;
-}
-
 // ─── Input ────────────────────────────────────────────────
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -167,11 +162,8 @@ Input.displayName = 'Input';
 
 // ─── Select ───────────────────────────────────────────────
 
-export { Select, type SelectProps, type SelectOption } from './Select';
-export { DatePicker, type DatePickerProps } from './DatePicker';
-export { TimePicker, type TimePickerProps } from './TimePicker';
-export { Switch, type SwitchProps } from './Switch';
-export { Slider, type SliderProps } from './Slider';
+export { DatePicker,type DatePickerProps } from './DatePicker';
+export { Select,type SelectOption,type SelectProps } from './Select';
 
 // ─── Textarea ─────────────────────────────────────────────
 
@@ -217,21 +209,6 @@ Textarea.displayName = 'Textarea';
 
 export function Skeleton({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return <div className={cn('shimmer rounded-[10px]', className)} style={style} aria-hidden />;
-}
-
-// ─── Divider ─────────────────────────────────────────────
-
-export function Divider({ className, label }: { className?: string; label?: string }) {
-  if (label) {
-    return (
-      <div className={cn('flex items-center gap-3', className)}>
-        <div className="flex-1 h-px bg-warm-200" />
-        <span className="text-xs text-charcoal-400 font-medium">{label}</span>
-        <div className="flex-1 h-px bg-warm-200" />
-      </div>
-    );
-  }
-  return <div className={cn('h-px bg-warm-200', className)} />;
 }
 
 // ─── Empty State ──────────────────────────────────────────
@@ -284,61 +261,6 @@ export function ProgressBar({ value, className, trackClassName, fillClassName, s
         />
       </div>
       {showLabel && <span className="text-xs font-medium text-charcoal-600 w-8 text-right">{clamped}%</span>}
-    </div>
-  );
-}
-
-// ─── Spinner ──────────────────────────────────────────────
-
-export function Spinner({
-  size = 24,
-  className,
-  label = "Yuklanmoqda",
-}: {
-  size?: number | string;
-  className?: string;
-  label?: string;
-}) {
-  const pixelSize = typeof size === 'number' ? `${size}px` : size;
-  return (
-    <svg
-      style={{ width: pixelSize, height: pixelSize }}
-      className={cn('animate-spin shrink-0', className)}
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-label={label}
-      role="status"
-    >
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
-  );
-}
-
-// ─── LoadingState (Thinking Orb / Globus) ─────────────────
-
-export { Orb, type OrbState };
-
-export function LoadingState({
-  message = "Yuklanmoqda...",
-  subMessage,
-  size = 36,
-  state = "working",
-  className,
-}: {
-  message?: string;
-  subMessage?: string;
-  size?: number;
-  state?: OrbState;
-  className?: string;
-}) {
-  return (
-    <div className={cn("flex flex-col items-center justify-center gap-3 py-10 text-center", className)}>
-      <Orb state={state} size={size} className="text-brand-500" label={message} />
-      <div>
-        <p className="text-sm font-semibold text-charcoal-800">{message}</p>
-        {subMessage && <p className="text-xs text-charcoal-500 mt-0.5">{subMessage}</p>}
-      </div>
     </div>
   );
 }

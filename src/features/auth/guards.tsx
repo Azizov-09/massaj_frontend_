@@ -78,8 +78,10 @@ export function NotFoundPage() {
 // ─── 403 Page ─────────────────────────────────────────────
 
 export function ForbiddenPage() {
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
   const redirectTo = currentUser ? ROLE_REDIRECTS[currentUser.role] : '/login';
+  const hasWorkspace = redirectTo !== '/403';
 
   return (
     <motion.div
@@ -95,12 +97,22 @@ export function ForbiddenPage() {
         <p className="text-sm text-charcoal-400 mb-8">
           Sizda ushbu sahifani ko'rish huquqi mavjud emas. Iltimos administratorga murojaat qiling.
         </p>
-        <Link
-          to={redirectTo}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition-colors"
-        >
-          <Home className="w-4 h-4" /> Dashboardga qaytish
-        </Link>
+        {hasWorkspace ? (
+          <Link
+            to={redirectTo}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition-colors"
+          >
+            <Home className="w-4 h-4" /> Dashboardga qaytish
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={() => { logout(); navigate('/login', { replace: true }); }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition-colors"
+          >
+            Boshqa hisob bilan kirish
+          </button>
+        )}
       </div>
     </motion.div>
   );

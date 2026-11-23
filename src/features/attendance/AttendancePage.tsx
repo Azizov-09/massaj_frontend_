@@ -270,11 +270,7 @@ export function AttendancePage() {
           </p>
           <Link
             className="text-brand-600 font-semibold min-h-11 inline-flex items-center"
-            to={
-              canManage
-                ? "/dashboard/super-admin/children"
-                : "/dashboard/specialist/children"
-            }
+            to="/dashboard/super-admin/children"
           >
             Bola kartasini ochish →
           </Link>

@@ -5,7 +5,6 @@ import { useEffect, useRef, useId } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '@/utils';
-import { Spinner } from '@/components/ui/Spinner';
 
 interface ModalProps {
   isOpen: boolean;
@@ -151,70 +150,5 @@ export function Modal({
         </div>
       )}
     </AnimatePresence>
-  );
-}
-
-// ─── Confirm Dialog ────────────────────────────────────────
-
-interface ConfirmDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  message: string;
-  confirmLabel?: string;
-  confirmText?: string;
-  cancelLabel?: string;
-  cancelText?: string;
-  variant?: 'danger' | 'warning' | 'success' | 'default';
-  loading?: boolean;
-}
-
-export function ConfirmDialog({
-  isOpen,
-  onClose,
-  onConfirm,
-  title,
-  message,
-  confirmLabel,
-  confirmText,
-  cancelLabel,
-  cancelText,
-  variant = 'default',
-  loading,
-}: ConfirmDialogProps) {
-  const finalConfirmLabel = confirmLabel || confirmText || 'Tasdiqlash';
-  const finalCancelLabel = cancelLabel || cancelText || 'Bekor qilish';
-  const confirmColor =
-    variant === 'danger'
-      ? 'bg-danger-main hover:bg-danger-dark text-white shadow-sm'
-      : variant === 'warning'
-      ? 'bg-warning-main hover:bg-warning-dark text-white shadow-sm'
-      : variant === 'success'
-      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-      : 'bg-brand-500 hover:bg-brand-600 text-white shadow-sm';
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm" hideClose>
-      <p className="text-sm text-charcoal-600">{message}</p>
-      <div className="flex flex-col-reverse sm:flex-row gap-2 mt-5">
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={loading}
-          className="w-full sm:flex-1 px-4 py-2.5 text-sm font-medium rounded-[10px] border border-warm-300 text-charcoal-700 hover:bg-warm-100 transition-colors cursor-pointer"
-        >
-          {finalCancelLabel}
-        </button>
-        <button
-          type="button"
-          onClick={onConfirm}
-          disabled={loading}
-          className={cn('w-full sm:flex-1 px-4 py-2.5 text-sm font-medium rounded-[10px] transition-colors inline-flex items-center justify-center gap-2 cursor-pointer', confirmColor)}
-        >
-          {loading && <Spinner size={16} className="text-white shrink-0" />}
-          <span>{loading ? 'Yuklanmoqda...' : finalConfirmLabel}</span>
-        </button>
-      </div>
-    </Modal>
   );
 }

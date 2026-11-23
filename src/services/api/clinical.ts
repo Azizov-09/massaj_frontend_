@@ -1,12 +1,5 @@
 import type { ApiClient } from './client';
-import type {
-  CreateAttendanceDto,
-  UpdateAttendanceDto,
-  CreateAssessmentDto,
-  UpdateAssessmentDto,
-  CreateProgressDto,
-  UpdateProgressDto,
-} from './types';
+import type { CreateAssessmentDto, CreateProgressDto } from './types';
 import type { AttendanceRecord, Assessment, ProgressNote } from '@/types';
 
 export function normalizeAttendance(raw: any): AttendanceRecord {
@@ -96,44 +89,6 @@ export function normalizeProgress(raw: any): ProgressNote {
 export class ClinicalApi {
   constructor(private client: ApiClient) {}
 
-  // ── Attendance ──
-  public async recordAttendance(dto: CreateAttendanceDto): Promise<AttendanceRecord> {
-    const payload: Record<string, any> = {
-      childId: dto.childId,
-      status: dto.status,
-    };
-    if (dto.specialistId) {
-      payload.specialistId = dto.specialistId;
-    }
-    if (dto.date) {
-      payload.date = dto.date;
-    }
-    if (dto.note && dto.note.trim().length > 0) {
-      payload.note = dto.note.trim();
-    }
-    const res = await this.client.post<any>('/attendance', payload);
-    const item = res?.data || res;
-    return normalizeAttendance(item);
-  }
-
-  public async updateAttendance(id: string, dto: UpdateAttendanceDto): Promise<AttendanceRecord> {
-    const res = await this.client.patch<any>(`/attendance/${id}`, dto);
-    const item = res?.data || res;
-    return normalizeAttendance(item);
-  }
-
-  public async getAttendance(params?: {
-    childId?: string;
-    specialistId?: string;
-    date?: string;
-    page?: number;
-    limit?: number;
-  }): Promise<AttendanceRecord[]> {
-    const res = await this.client.get<any>('/attendance', params);
-    const list = Array.isArray(res) ? res : res?.data || res?.items || [];
-    return list.map(normalizeAttendance);
-  }
-
   // ── Assessments ──
   public async createAssessment(dto: CreateAssessmentDto): Promise<Assessment> {
     const res = await this.client.post<any>('/assessments', dto);
@@ -141,52 +96,10 @@ export class ClinicalApi {
     return normalizeAssessment(item);
   }
 
-  public async updateAssessment(id: string, dto: UpdateAssessmentDto): Promise<Assessment> {
-    const res = await this.client.patch<any>(`/assessments/${id}`, dto);
-    const item = res?.data || res;
-    return normalizeAssessment(item);
-  }
-
-  public async getAssessments(params?: { childId?: string; specialistId?: string; page?: number; limit?: number }): Promise<Assessment[]> {
-    try {
-      const res = await this.client.get<any>('/assessments', params);
-      const list = Array.isArray(res) ? res : res?.items || res?.data || [];
-      return list.map(normalizeAssessment);
-    } catch (err: any) {
-      if (err?.status === 404 && params?.childId) {
-        const res = await this.client.get<any>(`/children/${params.childId}/assessments`);
-        const list = Array.isArray(res) ? res : res?.items || res?.data || [];
-        return list.map(normalizeAssessment);
-      }
-      throw err;
-    }
-  }
-
   // ── Progress Notes ──
   public async createProgress(dto: CreateProgressDto): Promise<ProgressNote> {
     const res = await this.client.post<any>('/progress', dto);
     const item = res?.data || res;
     return normalizeProgress(item);
-  }
-
-  public async updateProgress(id: string, dto: UpdateProgressDto): Promise<ProgressNote> {
-    const res = await this.client.patch<any>(`/progress/${id}`, dto);
-    const item = res?.data || res;
-    return normalizeProgress(item);
-  }
-
-  public async getProgress(params?: { childId?: string; specialistId?: string; page?: number; limit?: number }): Promise<ProgressNote[]> {
-    try {
-      const res = await this.client.get<any>('/progress', params);
-      const list = Array.isArray(res) ? res : res?.items || res?.data || [];
-      return list.map(normalizeProgress);
-    } catch (err: any) {
-      if (err?.status === 404 && params?.childId) {
-        const res = await this.client.get<any>(`/children/${params.childId}/progress`);
-        const list = Array.isArray(res) ? res : res?.items || res?.data || [];
-        return list.map(normalizeProgress);
-      }
-      throw err;
-    }
   }
 }

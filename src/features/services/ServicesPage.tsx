@@ -138,7 +138,6 @@ export function ServicesPage() {
                 await create({
                   ...data,
                   description: "",
-                  category: "",
                   status: "ACTIVE",
                 });
               setOpen(false);

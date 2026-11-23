@@ -1,10 +1,5 @@
 import type { ApiClient } from './client';
-import type {
-  UpdateSettingsDto,
-  CreateAnnouncementDto,
-  PublishAnnouncementDto,
-  UpdateNotificationPreferencesDto,
-} from './types';
+import type { UpdateSettingsDto } from './types';
 import type { Notification, ActivityLog } from '@/types';
 
 export function normalizeNotification(raw: any): Notification {
@@ -63,52 +58,11 @@ export class PlatformApi {
     return list.map(normalizeNotification);
   }
 
-  public async getUnreadCount(): Promise<number> {
-    const res = await this.client.get<any>('/notifications/unread-count');
-    return Number(res?.count ?? res?.unreadCount ?? res?.data?.count ?? 0);
-  }
-
   public async markNotificationRead(id: string): Promise<void> {
     await this.client.patch(`/notifications/${id}/read`);
   }
 
   public async markAllNotificationsRead(): Promise<void> {
     await this.client.patch('/notifications/read-all');
-  }
-
-  public async getNotificationPreferences(): Promise<any> {
-    const res = await this.client.get<any>('/notification-preferences');
-    return res?.data || res;
-  }
-
-  public async updateNotificationPreferences(dto: UpdateNotificationPreferencesDto): Promise<any> {
-    const res = await this.client.patch<any>('/notification-preferences', dto);
-    return res?.data || res;
-  }
-
-  // ── Announcements ──
-  public async createAnnouncement(dto: CreateAnnouncementDto): Promise<any> {
-    const res = await this.client.post<any>('/announcements', dto);
-    return res?.data || res;
-  }
-
-  public async publishAnnouncement(id: string, dto?: PublishAnnouncementDto): Promise<any> {
-    const res = await this.client.post<any>(`/announcements/${id}/publish`, dto || {});
-    return res?.data || res;
-  }
-
-  public async getMyAnnouncements(): Promise<any[]> {
-    const res = await this.client.get<any>('/announcements/my');
-    return Array.isArray(res) ? res : res?.data || [];
-  }
-
-  public async markAnnouncementRead(id: string): Promise<void> {
-    await this.client.patch(`/announcements/${id}/read`);
-  }
-
-  // ── Documents ──
-  public async getDocument(id: string): Promise<any> {
-    const res = await this.client.get<any>(`/documents/${id}`);
-    return res?.data || res;
   }
 }

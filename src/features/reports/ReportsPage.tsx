@@ -1,4 +1,3 @@
-import type { Session } from "@/types";
 // ═══════════════════════════════════════════════════════
 //  Reports Page — Senior Medical/Wellness CRM Standard
 //  Features: Filterable, Searchable, Paginated DataTable,
@@ -80,30 +79,27 @@ type AnyReportRow = FinanceRow | AttendanceRow | SessionsRow | ChildrenRow;
 
 export function ReportsPage() {
   const transactions = useStore((s) => s.transactions);
-  const oldSessions = useStore((s) => s.sessions);
   const appointments = useStore((s) => s.appointments);
-  const sessions = useMemo<Session[]>(
-    () => [
-      ...oldSessions,
-      ...appointments
+  const sessions = useMemo(
+    () =>
+      appointments
         .filter(
-          (a) =>
-            a.attendanceStatus === "PRESENT" &&
-            a.actualArrivalTime &&
-            !oldSessions.some((s) => s.appointmentId === a.id),
+          (appointment) =>
+            appointment.attendanceStatus === "PRESENT" &&
+            appointment.actualArrivalTime,
         )
-        .map((a) => ({
-          id: a.id,
-          appointmentId: a.id,
-          childId: a.childId,
-          specialistId: a.specialistId,
-          serviceId: a.serviceId,
-          startTime: a.actualArrivalTime!,
+        .map((appointment) => ({
+          id: appointment.id,
+          appointmentId: appointment.id,
+          childId: appointment.childId,
+          specialistId: appointment.specialistId,
+          serviceId: appointment.serviceId,
+          startTime: appointment.actualArrivalTime!,
+          note: appointment.notes,
           status: "COMPLETED" as const,
-          createdAt: a.createdAt,
+          createdAt: appointment.createdAt,
         })),
-    ],
-    [oldSessions, appointments],
+    [appointments],
   );
   const children = useStore((s) => s.children);
   const specialists = useStore((s) => s.specialists);
@@ -189,7 +185,7 @@ export function ReportsPage() {
               mutaxassis: spec?.fullName ?? "—",
               xizmat: svc?.name ?? "—",
               holat: s.status || "COMPLETED",
-              kuzatuv: s.observation || s.note || "—",
+              kuzatuv: s.note || "—",
             };
           });
 

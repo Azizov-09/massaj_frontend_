@@ -7,7 +7,6 @@ import { useState, useMemo } from "react";
 import {
   TrendingUp,
   Plus,
-  Activity,
   FileText,
   ClipboardCheck,
   Search,
@@ -16,9 +15,6 @@ import {
   Eye,
   LayoutGrid,
   Table as TableIcon,
-  Stethoscope,
-  Copy,
-  Check,
   AlertCircle,
   HeartPulse,
   ChevronRight,
@@ -41,12 +37,7 @@ import { DataTable, Column } from "@/components/tables/DataTable";
 import { Modal } from "@/components/ui/Modal";
 import type { AssessmentScores } from "@/types";
 
-type EventTypeFilter =
-  | "ALL"
-  | "SESSION"
-  | "NOTE"
-  | "ASSESSMENT"
-  | "WITH_RECOMMENDATION";
+type EventTypeFilter = "ALL" | "NOTE" | "ASSESSMENT";
 type ViewMode = "TIMELINE" | "TABLE";
 
 interface TimelineEvent {
@@ -56,11 +47,10 @@ interface TimelineEvent {
   childName?: string;
   specialistId: string;
   specialistName?: string;
-  type: "NOTE" | "SESSION" | "ASSESSMENT";
+  type: "NOTE" | "ASSESSMENT";
   title: string;
   content: string;
   details?: string;
-  recommendation?: string;
   scores?: AssessmentScores;
   avgScore?: number;
   isFutureDate?: boolean;
@@ -79,15 +69,11 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
   const specialists = useStore((s) => s.specialists);
   const parents = useStore((s) => s.parents);
   const progressNotes = useStore((s) => s.progressNotes);
-  const sessions = useStore((s) => s.sessions);
   const assessments = useStore((s) => s.assessments);
   const createProgressNote = useStore((s) => s.createProgressNote);
 
   const isParent = currentUser?.role === "PARENT";
-  const ownerSpecialistId =
-    currentUser?.specialistId ||
-    (currentUser?.role === "SPECIALIST" ? currentUser.id : "");
-  const isSpecialist = currentUser?.role === "SPECIALIST";
+  const ownerSpecialistId = currentUser?.specialistId || "";
 
   const availableChildren = useMemo(() => {
     if (isParent && currentUser) {
@@ -98,14 +84,12 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
 
   const [search, setSearch] = useState("");
   const [selectedChildId, setSelectedChildId] = useState<string>(childId || "");
-  const [specialistFilter] = useState<string>("");
   const [activeTab, setActiveTab] = useState<EventTypeFilter>("ALL");
   const [viewMode, setViewMode] = useState<ViewMode>("TIMELINE");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(
     null,
   );
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
@@ -113,7 +97,6 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
   // New progress note state
   const [formData, setFormData] = useState({
     childId: childId || "",
-    specialistId: ownerSpecialistId,
     note: "",
     recommendation: "",
   });
@@ -124,7 +107,7 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
     return Number((sum / 5).toFixed(1));
   };
 
-  // Timeline events: combined from progressNotes, completed sessions with notes, and assessments
+  // Timeline events from saved progress notes and assessments
   const rawTimelineEvents = useMemo(() => {
     const parentChildIds = availableChildren.map((c) => c.id);
     const list: TimelineEvent[] = [];
@@ -133,8 +116,6 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
     progressNotes.forEach((p) => {
       if (childId && p.childId !== childId) return;
       if (isParent && !parentChildIds.includes(p.childId)) return;
-      if (isSpecialist && currentUser && p.specialistId !== currentUser.id)
-        return;
       const ch = children.find((c) => c.id === p.childId);
       const sp = specialists.find((s) => s.id === p.specialistId);
       const isFuture = new Date(p.date).getTime() > CURRENT_TIMESTAMP;
@@ -153,50 +134,10 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
       });
     });
 
-    // 2. Completed sessions with notes
-    sessions.forEach((ses) => {
-      if (childId && ses.childId !== childId) return;
-      if (
-        ses.status !== "COMPLETED" ||
-        (!ses.note && !ses.observation && !ses.recommendation)
-      )
-        return;
-      if (isParent && !parentChildIds.includes(ses.childId)) return;
-      if (isSpecialist && currentUser && ses.specialistId !== currentUser.id)
-        return;
-      const sDate = ses.endTime
-        ? (ses.endTime || "").split("T")[0]
-        : ses.startTime
-          ? (ses.startTime || "").split("T")[0]
-          : new Date().toISOString().split("T")[0];
-      const ch = children.find((c) => c.id === ses.childId);
-      const sp = specialists.find((s) => s.id === ses.specialistId);
-      const isFuture = new Date(sDate).getTime() > CURRENT_TIMESTAMP;
-      list.push({
-        id: ses.id,
-        date: sDate,
-        childId: ses.childId,
-        childName: ch?.fullName,
-        specialistId: ses.specialistId,
-        specialistName: sp?.fullName,
-        type: "SESSION",
-        title: "Seans natijasi va tavsiyalar",
-        content:
-          ses.observation || ses.note || "Seans muvaffaqiyatli yakunlandi.",
-        details: ses.recommendation
-          ? `Tavsiya: ${ses.recommendation}`
-          : undefined,
-        recommendation: ses.recommendation,
-        isFutureDate: isFuture,
-      });
-    });
-
-    // 3. Assessments
+    // 2. Assessments
     assessments.forEach((asmnt) => {
       if (childId && asmnt.childId !== childId) return;
       if (isParent && !parentChildIds.includes(asmnt.childId)) return;
-      if (isSpecialist && currentUser && asmnt.specialistId !== currentUser.id)
-        return;
       const ch = children.find((c) => c.id === asmnt.childId);
       const sp = specialists.find((s) => s.id === asmnt.specialistId);
       const avg = calcAvg(asmnt.scores);
@@ -224,11 +165,8 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
   }, [
     childId,
     progressNotes,
-    sessions,
     assessments,
     isParent,
-    isSpecialist,
-    currentUser,
     availableChildren,
     children,
     specialists,
@@ -237,50 +175,34 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
   // Overall Statistics
   const stats = useMemo(() => {
     const total = rawTimelineEvents.length;
-    const sessionCount = rawTimelineEvents.filter(
-      (e) => e.type === "SESSION",
+    const noteCount = rawTimelineEvents.filter(
+      (event) => event.type === "NOTE",
     ).length;
-    const noteCount = rawTimelineEvents.filter((e) => e.type === "NOTE").length;
     const assessmentCount = rawTimelineEvents.filter(
-      (e) => e.type === "ASSESSMENT",
+      (event) => event.type === "ASSESSMENT",
     ).length;
-    const recommendationCount = rawTimelineEvents.filter((e) =>
-      Boolean(e.recommendation || (e.details && e.type === "SESSION")),
-    ).length;
-    const coveredChildren = new Set(rawTimelineEvents.map((e) => e.childId))
-      .size;
 
     return {
       total,
-      sessionCount,
       noteCount,
       assessmentCount,
-      recommendationCount,
-      coveredChildren,
     };
   }, [rawTimelineEvents]);
 
   // Tab counts
   const tabCounts = useMemo(() => {
-    let session = 0;
     let note = 0;
     let assessment = 0;
-    let recommendation = 0;
 
     rawTimelineEvents.forEach((e) => {
-      if (e.type === "SESSION") session++;
       if (e.type === "NOTE") note++;
       if (e.type === "ASSESSMENT") assessment++;
-      if (e.recommendation || (e.details && e.type === "SESSION"))
-        recommendation++;
     });
 
     return {
       all: rawTimelineEvents.length,
-      session,
       note,
       assessment,
-      recommendation,
     };
   }, [rawTimelineEvents]);
 
@@ -291,21 +213,9 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
       if (childId && evt.childId !== childId) return false;
       if (selectedChildId && evt.childId !== selectedChildId) return false;
 
-      // Specialist filter
-      if (specialistFilter && evt.specialistId !== specialistFilter)
-        return false;
-
       // Event Type tab filter
-      if (activeTab === "SESSION" && evt.type !== "SESSION") return false;
       if (activeTab === "NOTE" && evt.type !== "NOTE") return false;
       if (activeTab === "ASSESSMENT" && evt.type !== "ASSESSMENT") return false;
-      if (
-        activeTab === "WITH_RECOMMENDATION" &&
-        !evt.recommendation &&
-        !(evt.details && evt.type === "SESSION")
-      )
-        return false;
-
       // Search query
       if (search.trim()) {
         const q = search.trim().toLowerCase();
@@ -325,16 +235,14 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
         const matchSpec = specName.includes(q);
         const matchTitle = (evt.title || "").toLowerCase().includes(q);
         const matchContent = (evt.content || "").toLowerCase().includes(q);
-        const matchRec =
-          evt.recommendation?.toLowerCase().includes(q) ||
-          evt.details?.toLowerCase().includes(q);
+        const matchDetails = evt.details?.toLowerCase().includes(q);
 
         if (
           !matchChild &&
           !matchSpec &&
           !matchTitle &&
           !matchContent &&
-          !matchRec
+          !matchDetails
         ) {
           return false;
         }
@@ -346,7 +254,6 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
     rawTimelineEvents,
     childId,
     selectedChildId,
-    specialistFilter,
     activeTab,
     search,
     children,
@@ -354,21 +261,13 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
   ]);
 
   const hasActiveFilters = Boolean(
-    search || selectedChildId || specialistFilter || activeTab !== "ALL",
+    search || selectedChildId || activeTab !== "ALL",
   );
 
   const resetAllFilters = () => {
     setSearch("");
     setSelectedChildId("");
     setActiveTab("ALL");
-  };
-
-  const handleCopyRecommendation = (id: string, text: string) => {
-    if (navigator?.clipboard?.writeText) {
-      navigator.clipboard.writeText(text);
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -406,7 +305,6 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
       setShowCreateModal(false);
       setFormData({
         childId: availableChildren[0]?.id ?? "",
-        specialistId: ownerSpecialistId,
         note: "",
         recommendation: "",
       });
@@ -421,14 +319,6 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
 
   const getEventTypeMeta = (type: TimelineEvent["type"]) => {
     switch (type) {
-      case "SESSION":
-        return {
-          icon: <Activity className="w-3.5 h-3.5" />,
-          nodeBg: "bg-emerald-600 text-white ring-4 ring-emerald-50",
-          badgeVariant: "success" as const,
-          label: "Seans xulosasi",
-          cardBorder: "hover:border-emerald-200",
-        };
       case "NOTE":
         return {
           icon: <FileText className="w-3.5 h-3.5" />,
@@ -576,11 +466,6 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
           <p className="text-xs font-medium text-charcoal-800 line-clamp-2">
             {row.content}
           </p>
-          {row.recommendation && (
-            <p className="text-[11px] font-semibold text-emerald-800 bg-emerald-50/80 px-2 py-0.5 rounded-[4px] border border-emerald-200/80 truncate">
-              Tavsiya: {row.recommendation}
-            </p>
-          )}
           {row.scores && (
             <p className="text-[11px] text-charcoal-500">{row.details}</p>
           )}
@@ -619,7 +504,7 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
             ? "Farzandim rivojlanish tarixi"
             : "Rivojlanish va monitoring (Progress)"
         }
-        description="Bolalar reabilitatsiyasi, mashq dinamikasi, seans xulosalari va shifokor tavsiyalarining to'liq xronologiyasi"
+        description="Bolalar reabilitatsiyasi, kuzatuv qaydlari, tavsiyalar va baholashlar tarixi"
         actions={
           !isParent && Boolean(ownerSpecialistId) ? (
             <Button
@@ -639,7 +524,7 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
         </p>
       )}
       {/* KPI Cards Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         <div
           onClick={() => setActiveTab("ALL")}
           className={cn(
@@ -661,42 +546,22 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
         </div>
 
         <div
-          onClick={() => setActiveTab("SESSION")}
+          onClick={() => setActiveTab("NOTE")}
           className={cn(
             "cursor-pointer transition-all duration-200 rounded-[14px]",
-            activeTab === "SESSION"
-              ? "ring-2 ring-emerald-500 shadow-sm"
+            activeTab === "NOTE"
+              ? "ring-2 ring-brand-500 shadow-sm"
               : "hover:scale-[1.01]",
           )}
-          title="Seans xulosalari"
+          title="Mutaxassis kuzatuvlari"
         >
           <KpiCard
-            label="Seans xulosalari"
-            value={`${stats.sessionCount} ta`}
-            description="Muolaja yakunlari"
-            icon={<Activity className="w-5 h-5 text-emerald-600" />}
-            accentColor="sage"
+            label="Mutaxassis qaydlari"
+            value={stats.noteCount}
+            description="Saqlangan kuzatuv va tavsiyalar"
+            icon={<FileText className="w-5 h-5 text-brand-600" />}
+            accentColor="brand"
             index={1}
-          />
-        </div>
-
-        <div
-          onClick={() => setActiveTab("WITH_RECOMMENDATION")}
-          className={cn(
-            "cursor-pointer transition-all duration-200 rounded-[14px]",
-            activeTab === "WITH_RECOMMENDATION"
-              ? "ring-2 ring-amber-500 shadow-sm"
-              : "hover:scale-[1.01]",
-          )}
-          title="Tavsiyali qaydlar"
-        >
-          <KpiCard
-            label="Tibbiy tavsiyalar"
-            value={`${stats.recommendationCount} ta`}
-            description="Uy mashqlari va ko‘rsatmalar"
-            icon={<Stethoscope className="w-5 h-5 text-amber-600" />}
-            accentColor="gold"
-            index={2}
           />
         </div>
 
@@ -716,7 +581,7 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
             description="5 mezonli dinamik testlar"
             icon={<ClipboardCheck className="w-5 h-5 text-blue-600" />}
             accentColor="blue"
-            index={3}
+            index={2}
           />
         </div>
       </div>
@@ -745,11 +610,6 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
             {[
               { key: "ALL", label: "Barchasi", count: tabCounts.all },
               {
-                key: "SESSION",
-                label: "Seans xulosalari",
-                count: tabCounts.session,
-              },
-              {
                 key: "NOTE",
                 label: "Mutaxassis qaydlari",
                 count: tabCounts.note,
@@ -758,11 +618,6 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
                 key: "ASSESSMENT",
                 label: "Baholash natijalari",
                 count: tabCounts.assessment,
-              },
-              {
-                key: "WITH_RECOMMENDATION",
-                label: "Tavsiyali qaydlar",
-                count: tabCounts.recommendation,
               },
             ].map((tab) => {
               const isActive = activeTab === tab.key;
@@ -876,30 +731,20 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
               onChange={(e) => setActiveTab(e.target.value as EventTypeFilter)}
               options={[
                 { value: "ALL", label: `Barcha turlar (${tabCounts.all})` },
-                { value: "SESSION", label: `Seanslar (${tabCounts.session})` },
                 { value: "NOTE", label: `Qaydlar (${tabCounts.note})` },
                 {
                   value: "ASSESSMENT",
                   label: `Baholashlar (${tabCounts.assessment})`,
-                },
-                {
-                  value: "WITH_RECOMMENDATION",
-                  label: `Tavsiyalar (${tabCounts.recommendation})`,
                 },
               ]}
               aria-label="Hodisa turi bo'yicha filter"
             />
           </div>
 
-          {/* Child & Specialist Filters — 2-column grid on mobile to save vertical space */}
-          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
+          {/* Child filter */}
+          <div className="w-full sm:w-56">
             {/* Child Select */}
-            <div
-              className={cn(
-                "w-full sm:w-56",
-                (isSpecialist || isParent) && "col-span-2 sm:col-span-1",
-              )}
-            >
+            <div className="w-full">
               <Select
                 size="sm"
                 triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
@@ -918,8 +763,6 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
                 aria-label="Bola bo'yicha filter"
               />
             </div>
-
-            {/* Specialist Select */}
           </div>
 
           {/* Reset Filters */}
@@ -1123,49 +966,6 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
                             </div>
                           </div>
                         )}
-
-                        {/* Recommendation Highlight Callout (if available) */}
-                        {evt.recommendation && (
-                          <div
-                            className="p-3.5 rounded-[12px] bg-emerald-50/70 border border-emerald-200/80 text-emerald-950 space-y-1.5"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800">
-                                <Stethoscope className="w-4 h-4 text-emerald-600" />
-                                <span>
-                                  Ota-ona uchun tavsiya va uy mashqlari
-                                </span>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleCopyRecommendation(
-                                    evt.id,
-                                    evt.recommendation!,
-                                  )
-                                }
-                                className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-emerald-900 bg-white/80 hover:bg-white px-2 py-0.5 rounded-[6px] border border-emerald-200 shadow-2xs transition-colors cursor-pointer"
-                                title="Tavsiyani nusxalash"
-                              >
-                                {copiedId === evt.id ? (
-                                  <>
-                                    <Check className="w-3 h-3 text-emerald-600" />
-                                    <span>Nusxalandi!</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy className="w-3 h-3" />
-                                    <span>Nusxalash</span>
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                            <p className="text-xs font-medium text-emerald-900 leading-relaxed">
-                              {evt.recommendation}
-                            </p>
-                          </div>
-                        )}
                       </div>
 
                       {/* Card Footer / View Details */}
@@ -1195,13 +995,6 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
                 {filteredEvents.length}
               </strong>{" "}
               ta qayd
-            </span>
-            <span>•</span>
-            <span>
-              Seanslar:{" "}
-              <strong className="text-charcoal-800 font-semibold">
-                {tabCounts.session}
-              </strong>
             </span>
             <span>•</span>
             <span>
@@ -1451,45 +1244,6 @@ export function ProgressPage({ childId }: { childId?: string } = {}) {
                     {selectedEvent.content}
                   </p>
                 </div>
-
-                {/* Home Advice Callout */}
-                {selectedEvent.recommendation && (
-                  <div className="p-4 rounded-xl bg-emerald-50/80 border border-emerald-200/90 text-emerald-950 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Stethoscope className="w-4 h-4 text-emerald-700" />
-                        <span className="text-xs font-bold text-emerald-900">
-                          Ota-onaga berilgan maxsus tavsiyalar
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleCopyRecommendation(
-                            selectedEvent.id,
-                            selectedEvent.recommendation!,
-                          )
-                        }
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 bg-white px-2.5 py-1 rounded-[6px] border border-emerald-300 shadow-2xs hover:bg-emerald-50 transition-colors cursor-pointer"
-                      >
-                        {copiedId === selectedEvent.id ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>Nusxalandi!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5" />
-                            <span>Nusxalash</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <p className="text-xs sm:text-sm font-medium text-emerald-900 whitespace-pre-wrap leading-relaxed">
-                      {selectedEvent.recommendation}
-                    </p>
-                  </div>
-                )}
 
                 {/* Modal Footer */}
                 <div className="flex items-center justify-end pt-3 border-t border-warm-100">

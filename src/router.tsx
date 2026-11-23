@@ -70,18 +70,6 @@ const ParentDashboard = lazyWithRetry(() =>
     default: m.ParentDashboard,
   })),
 );
-const SpecialistDashboard = lazyWithRetry(() =>
-  import("@/features/dashboard/SpecialistDashboard").then((m) => ({
-    default: m.SpecialistDashboard,
-  })),
-);
-
-// Operations & Clinical
-const SchedulePage = lazyWithRetry(() =>
-  import("@/features/schedule/SchedulePage").then((m) => ({
-    default: m.SchedulePage,
-  })),
-);
 const AttendancePage = lazyWithRetry(() =>
   import("@/features/attendance/AttendancePage").then((m) => ({
     default: m.AttendancePage,
@@ -90,11 +78,6 @@ const AttendancePage = lazyWithRetry(() =>
 const ServicesPage = lazyWithRetry(() =>
   import("@/features/services/ServicesPage").then((m) => ({
     default: m.ServicesPage,
-  })),
-);
-const AssessmentsPage = lazyWithRetry(() =>
-  import("@/features/assessments/AssessmentsPage").then((m) => ({
-    default: m.AssessmentsPage,
   })),
 );
 const ProgressPage = lazyWithRetry(() =>
@@ -258,32 +241,6 @@ const superAdminRoutes = {
   ],
 };
 
-// ─── Specialist Routes ───────────────────────────────────
-
-const specialistRoutes = {
-  path: "/dashboard/specialist",
-  errorElement: <DashboardSectionError />,
-  element: (
-    <ProtectedRoute allowedRoles={["SPECIALIST"]}>
-      <DashboardLayout />
-    </ProtectedRoute>
-  ),
-  children: [
-    { index: true, element: withSuspense(SpecialistDashboard) },
-    { path: "schedule", element: withSuspense(SchedulePage) },
-    { path: "attendance", element: withSuspense(AttendancePage) },
-    { path: "children", element: withSuspense(ChildrenPage) },
-    { path: "assessments", element: withSuspense(AssessmentsPage) },
-    { path: "progress", element: withSuspense(ProgressPage) },
-    {
-      path: "goals",
-      element: <Navigate to="/dashboard/specialist/progress" replace />,
-    },
-    { path: "notifications", element: withSuspense(NotificationsPage) },
-    { path: "profile", element: withSuspense(ProfilePage) },
-  ],
-};
-
 // ─── Parent Routes ────────────────────────────────────────
 
 const parentRoutes = {
@@ -319,7 +276,57 @@ const router = createBrowserRouter([
       { path: "403", element: <ForbiddenPage /> },
       { path: "404", element: <NotFoundPage /> },
       superAdminRoutes,
-      specialistRoutes,
+      {
+        path: "/dashboard/specialist",
+        element: (
+          <ProtectedRoute allowedRoles={["SUPER_ADMIN", "ADMIN"]}>
+            <DashboardLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          { index: true, element: <LegacyRoute to="/dashboard/super-admin" /> },
+          {
+            path: "schedule",
+            element: <LegacyRoute to="/dashboard/super-admin/attendance" />,
+          },
+          {
+            path: "attendance",
+            element: <LegacyRoute to="/dashboard/super-admin/attendance" />,
+          },
+          {
+            path: "children",
+            element: <LegacyRoute to="/dashboard/super-admin/children" />,
+          },
+          {
+            path: "assessments",
+            element: (
+              <LegacyRoute to="/dashboard/super-admin/children?section=assessments" />
+            ),
+          },
+          {
+            path: "progress",
+            element: (
+              <LegacyRoute to="/dashboard/super-admin/children?section=progress" />
+            ),
+          },
+          {
+            path: "goals",
+            element: (
+              <LegacyRoute to="/dashboard/super-admin/children?section=progress" />
+            ),
+          },
+          {
+            path: "notifications",
+            element: <LegacyRoute to="/dashboard/super-admin/notifications" />,
+          },
+          {
+            path: "profile",
+            element: (
+              <LegacyRoute to="/dashboard/super-admin/settings?tab=profile" />
+            ),
+          },
+        ],
+      },
       parentRoutes,
       { path: "*", element: <NotFoundPage /> },
     ],

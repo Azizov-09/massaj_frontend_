@@ -49,12 +49,6 @@ export class ParentsApi {
     return list.map(normalizeParent);
   }
 
-  public async getById(id: string): Promise<Parent> {
-    const res = await this.client.get<any>(`/parents/${id}`);
-    const item = res?.data || res;
-    return normalizeParent(item);
-  }
-
   public async create(dto: CreateParentDto): Promise<Parent> {
     const res = await this.client.post<any>("/parents", dto);
     const item = res?.data || res;
@@ -103,25 +97,6 @@ export class ParentsApi {
   /** Restore a previously archived parent */
   public async restore(id: string): Promise<void> {
     await this.client.post(`/parents/${id}/restore`);
-  }
-
-  /** Safe "delete" maps to archive */
-  public async delete(id: string): Promise<void> {
-    await this.archive(id);
-  }
-
-  public async getBalance(
-    parentId: string,
-  ): Promise<{ balance: number; debt: number }> {
-    const res = await this.client.get<any>(`/parents/${parentId}/balance`);
-    return res?.data || res || { balance: 0, debt: 0 };
-  }
-
-  public async getFinancialSummary(parentId: string): Promise<any> {
-    const res = await this.client.get<any>(
-      `/parents/${parentId}/financial-summary`,
-    );
-    return res?.data || res;
   }
 
   public async getMe(): Promise<Parent> {

@@ -17,7 +17,8 @@ Backend bo‘yicha aniq vazifalar BACKEND_ULASH_TALABLARI.txt da yozilgan.
 --------------------------------------------------------------------------------
 SUPER_ADMIN yoki ADMIN bitta kabinetdan boshqaruv va klinik ishni yuritadi.
 Mutaxassis kabinetiga o‘tish yoki rol almashtirish talab qilinmaydi.
-Oddiy SPECIALIST hisobiga moliyaviy huquqlar berilmagan.
+Alohida SPECIALIST kabineti olib tashlangan. Egasi SUPER_ADMIN yoki ADMIN
+hisobi bilan ishlaydi; mustaqil SPECIALIST hisobi 403 sahifasiga tushadi.
 
 Asosiy menyu — 9 ta bo‘lim:
   Dashboard          /dashboard/super-admin
@@ -32,8 +33,9 @@ Asosiy menyu — 9 ta bo‘lim:
 
 Bildirishnomalar yuqoridagi qo‘ng‘iroq orqali ochiladi.
 Profil va parol Sozlamalar ichida joylashgan.
-Adminlar, xodimlar va mutaxassislar boshqaruvi egasining menyusidan olindi.
-Ularning avvalgi ma’lumotlari va tarixini o‘chirish bajarilmagan.
+Adminlar, xodimlar va mutaxassislar boshqaruvi sahifalari hamda ularga tegishli
+ishlatilmaydigan frontend store/API kodlari olib tashlangan.
+Serverdagi avvalgi ma’lumotlar va tarix o‘zgartirilmagan.
 
 2. DASHBOARD
 --------------------------------------------------------------------------------
@@ -199,15 +201,20 @@ server shartnomasiga bog‘liq. Ulanmagan joyda aniq holat yozuvi chiqadi.
 /activity-logs → Sozlamalar / Faollik tarixi.
 /profile → Sozlamalar / Profil va parol.
 Mavjud query parametrlari saqlanadi; kerakli tab/section yangilanadi.
-Legacy SPECIALIST kabineti saqlangan; unga moliyaviy huquq qo‘shilmagan.
+Eski /dashboard/specialist havolalari faqat egasiga yangi kabinetning mos
+bo‘limiga yo‘naltiradi. Bu havolalar ota-ona yoki mustaqil SPECIALIST hisobiga
+egasining huquqlarini bermaydi. 403 sahifasidan boshqa hisob bilan kirish mumkin.
 
 13. NAMUNA MA’LUMOTLAR VA TEKSHIRUV CHEGARASI
 --------------------------------------------------------------------------------
 Production store bo‘sh bazani demo bolalar yoki pul harakatlari bilan to‘ldirmaydi.
-seed.ts production storega import qilinmaydi; sinov fixturelari alohida.
+Eski seed.ts demo bazasi fayli o‘chirilgan; sinov fixturelari faqat testlar uchun.
 Noto‘g‘ri ID birinchi topilgan haqiqiy bolaning IDsi bilan almashtirilmaydi.
 Moliyaviy ro‘yxatlar birinchi 100 ta yozuv bilan cheklanib qolmasligi uchun
 pagination qo‘llanadi. Server sahifalashni bajarmasa, xato qaytariladi.
+Eski alohida seans store modeli olib tashlangan. Rivojlanish sahifasi serverdagi
+qayd va baholashlarni ko‘rsatadi. Seans hisoboti “Keldi” deb tasdiqlangan,
+haqiqiy kelish vaqti mavjud qabullardan tuziladi.
 
 Frontend testlari va build serverdagi moliyaviy tranzaksiyalar, parallel
 davomat, migratsiya yoki real qurilmalarda ishlashni o‘z-o‘zidan isbotlamaydi.

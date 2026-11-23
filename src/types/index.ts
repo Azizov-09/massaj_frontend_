@@ -19,7 +19,6 @@ export type AppointmentStatus =
   | "CANCELLED"
   | "NO_SHOW";
 
-export type SessionStatus = "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 
 export type AttendanceStatus = "PRESENT" | "ABSENT" | "LATE" | "NO_SHOW";
 
@@ -52,33 +51,11 @@ export interface AdminUser extends BaseUser {
   lastLogin?: string;
 }
 
-export interface Employee {
-  id: string;
-  fullName: string;
-  position: string;
-  phone: string;
-  status: EntityStatus;
-  joinedAt: string;
-  avatar?: string;
-  salary?: number;
-  notes?: string;
-}
-
 // ─── Specialist ───────────────────────────────────────────
-
-export interface WorkingHours {
-  start: string; // "HH:mm"
-  end: string;
-}
 
 export interface Specialist extends BaseUser {
   role: "SPECIALIST";
   specialization: string;
-  experience: number; // years
-  workingDays: number[]; // 0=Sunday, 1=Monday, ..., 6=Saturday
-  workingHours: WorkingHours;
-  bio?: string;
-  rating?: number;
   user?: {
     id?: string;
     fullName?: string;
@@ -106,7 +83,6 @@ export interface Child {
   dateOfBirth: string; // ISO date
   gender: Gender;
   parentId: string;
-  assignedSpecialistId?: string;
   phone?: string;
   address?: string;
   emergencyContact?: string;
@@ -128,10 +104,6 @@ export interface Service {
   price: number; // UZS
   status: EntityStatus;
   createdAt: string;
-  color?: string; // For calendar display
-  category?: string;
-  ageMin?: number;
-  ageMax?: number;
 }
 
 // ─── Appointment ─────────────────────────────────────────
@@ -197,20 +169,6 @@ export interface ParentAccount {
 
 // ─── Session ──────────────────────────────────────────────
 
-export interface Session {
-  id: string;
-  appointmentId: string;
-  childId: string;
-  specialistId: string;
-  serviceId: string;
-  startTime: string; // ISO datetime
-  endTime?: string; // ISO datetime
-  status: SessionStatus;
-  note?: string;
-  observation?: string;
-  recommendation?: string;
-  createdAt: string;
-}
 
 // ─── Attendance ───────────────────────────────────────────
 
@@ -375,116 +333,6 @@ export interface ActivityLog {
   timestamp: string;
 }
 
-// ─── Analytics / Derived Types ────────────────────────────
-
-export interface FinancialSummary {
-  totalRevenue: number;
-  totalDebt: number;
-  currentBalance: number;
-  todayRevenue: number;
-  monthlyRevenue: number;
-  yearlyRevenue: number;
-  monthlyDebt: number;
-  lastMonthDebt: number;
-  recoveredDebt: number;
-}
-
-export interface ChildBalance {
-  childId: string;
-  parentId: string;
-  balance: number; // positive = balance available
-  debt: number; // positive = owes money
-}
-
-export interface DateRange {
-  from: Date;
-  to: Date;
-}
-
-export type DateFilterPreset =
-  | "today"
-  | "yesterday"
-  | "last7days"
-  | "thisWeek"
-  | "thisMonth"
-  | "lastMonth"
-  | "thisYear"
-  | "custom";
-
-// ─── Repository Interfaces ────────────────────────────────
-
-export interface PaginatedResult<T> {
-  data: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
-
-export interface QueryOptions {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-  filters?: Record<string, string | string[] | boolean | null | undefined>;
-}
-
-// ─── Form Types ────────────────────────────────────────────
-
-export interface CreateChildInput {
-  fullName: string;
-  dateOfBirth: string;
-  gender: Gender;
-  parentId: string;
-  assignedSpecialistId?: string;
-  phone?: string;
-  address?: string;
-  emergencyContact?: string;
-  notes?: string;
-  diagnosis?: string;
-  allergies?: string;
-}
-
-export interface CreateParentInput {
-  fullName: string;
-  phone: string;
-  address?: string;
-  password: string;
-}
-
-export interface CreateAppointmentInput {
-  childId: string;
-  parentId: string;
-  specialistId: string;
-  serviceId: string;
-  date: string;
-  startTime: string;
-  notes?: string;
-}
-
-export interface CreatePaymentInput {
-  parentId: string;
-  childId?: string;
-  amount: number;
-  method: PaymentMethod;
-  date: string;
-  notes?: string;
-}
-
-export interface CompleteSessionInput {
-  note: string;
-  observation: string;
-  recommendation: string;
-}
-
-export interface CreateServiceInput {
-  name: string;
-  description: string;
-  durationMinutes: number;
-  price: number;
-}
-
 // ─── UI State Types ──────────────────────────────────────
 
 export interface ToastMessage {
@@ -493,23 +341,4 @@ export interface ToastMessage {
   title: string;
   description?: string;
   duration?: number;
-}
-
-export interface ModalState {
-  isOpen: boolean;
-  type?: string;
-  data?: unknown;
-}
-
-// ─── Settings ─────────────────────────────────────────────
-
-export interface CenterSettings {
-  centerName: string;
-  address: string;
-  phone: string;
-  workingDays: number[];
-  workingHours: WorkingHours;
-  currency: string;
-  timezone: string;
-  language: string;
 }

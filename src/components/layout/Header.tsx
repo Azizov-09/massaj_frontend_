@@ -96,18 +96,6 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
               .slice(0, 5)
               .map((c) => ({ type: "child", label: c.fullName, id: c.id }));
           }
-          if (currentUser?.role === "SPECIALIST") {
-            return [
-              ...children
-                .filter(
-                  (c) =>
-                    c.assignedSpecialistId === currentUser.id &&
-                    c.fullName.toLowerCase().includes(q),
-                )
-                .slice(0, 3)
-                .map((c) => ({ type: "child", label: c.fullName, id: c.id })),
-            ];
-          }
           return [
             ...children
               .filter((c) => c.fullName.toLowerCase().includes(q))
@@ -131,8 +119,6 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
       case "SUPER_ADMIN":
       case "ADMIN":
         return "/dashboard/super-admin";
-      case "SPECIALIST":
-        return "/dashboard/specialist";
       case "PARENT":
         return "/dashboard/parent";
       default:

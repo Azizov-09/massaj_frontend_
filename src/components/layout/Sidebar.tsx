@@ -4,26 +4,7 @@
 import { useMemo } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  LayoutDashboard,
-  Users,
-  Baby,
-  Clock,
-  ClipboardList,
-  Stethoscope,
-  Wallet,
-  FileText,
-  Bell,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  LogOut,
-  User,
-  Heart,
-  TrendingDown,
-  TrendingUp,
-  X,
-} from "lucide-react";
+import { LayoutDashboard, Users, Baby, ClipboardList, Wallet, FileText, Bell, Settings, ChevronLeft, ChevronRight, LogOut, User, Heart, TrendingDown, TrendingUp, X } from "lucide-react";
 import { cn, getRoleLabel } from "@/utils";
 import { useAuth, useSidebar, useStore } from "@/store";
 import { Avatar } from "@/components/ui/primitives";
@@ -166,72 +147,6 @@ function getParentNav(unreadCount: number): NavGroup[] {
   ];
 }
 
-function getSpecialistNav(unreadCount: number): NavGroup[] {
-  return [
-    {
-      label: "Umumiy",
-      items: [
-        {
-          label: "Dashboard",
-          path: "/dashboard/specialist",
-          icon: <LayoutDashboard className="w-4 h-4" />,
-        },
-      ],
-    },
-    {
-      label: "Klinik faoliyat",
-      items: [
-        {
-          label: "Jadvalim",
-          path: "/dashboard/specialist/schedule",
-          icon: <Clock className="w-4 h-4" />,
-        },
-        {
-          label: "Davomat",
-          path: "/dashboard/specialist/attendance",
-          icon: <ClipboardList className="w-4 h-4" />,
-        },
-        {
-          label: "Bolalar",
-          path: "/dashboard/specialist/children",
-          icon: <Baby className="w-4 h-4" />,
-        },
-      ],
-    },
-    {
-      label: "Tashxis va rivojlanish",
-      items: [
-        {
-          label: "Baholashlar",
-          path: "/dashboard/specialist/assessments",
-          icon: <Stethoscope className="w-4 h-4" />,
-        },
-        {
-          label: "Rivojlanish",
-          path: "/dashboard/specialist/progress",
-          icon: <TrendingUp className="w-4 h-4" />,
-        },
-      ],
-    },
-    {
-      label: "Tizim",
-      items: [
-        {
-          label: "Bildirishnomalar",
-          path: "/dashboard/specialist/notifications",
-          icon: <Bell className="w-4 h-4" />,
-          badge: unreadCount || undefined,
-        },
-        {
-          label: "Profilim",
-          path: "/dashboard/specialist/profile",
-          icon: <User className="w-4 h-4" />,
-        },
-      ],
-    },
-  ];
-}
-
 interface SidebarProps {
   mobileOpen?: boolean;
   onMobileClose?: () => void;
@@ -256,8 +171,6 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
       case "SUPER_ADMIN":
       case "ADMIN":
         return getSuperAdminNav();
-      case "SPECIALIST":
-        return getSpecialistNav(unreadCount);
       case "PARENT":
         return getParentNav(unreadCount);
       default:

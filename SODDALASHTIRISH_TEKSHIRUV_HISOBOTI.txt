@@ -14,7 +14,8 @@ Yechim: lokal hisoblash olib tashlangan, faqat to‘liq server natijasi qabul qi
 
 1. SAHIFA XARITASI
 Egasining 9 bo‘limi va eski route yo‘naltirishlari BOLIMLAR_QOLLANMASI.txt da.
-Ota-ona va legacy specialist kabinetlarining ruxsat chegaralari saqlangan.
+Ota-ona kabineti saqlangan. Alohida specialist kabineti olingan; eski URLlar
+faqat owner ruxsati bilan yangi bo‘limlarga yo‘naltiriladi.
 
 2. QA / REGRESSION
 Frontend testlari quyidagilarni tekshiradi:
@@ -29,6 +30,8 @@ Frontend testlari quyidagilarni tekshiradi:
 - Ikki farzandning yagona oila hisobi, reversal va takror ledger IDsi.
 - Parentning yozish amallari rad etilishi.
 Mavjud klinik, hisobot, auth va UI primitive testlari ham regressiyaga kiradi.
+Yopilgan specialist kabinetidan ownerga huquq oshmasligi, 403dan chiqish,
+loginning yagona role redirecti va bildirishnoma havolalari ham tekshiriladi.
 Serverdagi parallel pul yechish va DB rollback bu sinovlar bilan isbotlanmagan.
 
 3. UI/UX
@@ -113,6 +116,24 @@ Frontend soddalashtirildi va eski xavfli lokal moliya olib tashlandi.
 To‘liq yangi xizmat-seans-hisoblash tizimi uchun backend ishlari ham zarur.
 Backend kelishuvga ko‘ra keyingi alohida vazifa; ushbu frontend o‘zgarishida
 serverdagi hisoblash ishlari yakunlandi deb belgilanmagan.
+
+15. ISHLATILMAYDIGAN FRONTEND KODLARINI TOZALASH
+- Eski admin/mutaxassis boshqaruv sahifalari, alohida specialist dashboard va
+  eski jadval/qabul formasi fayllari o‘chirildi.
+- Eski qarzdorlar komponentlari, demo seed, foydalanilmaydigan hook, UI
+  komponentlari, ikon sprite va ulargagina tegishli sinovlar olindi.
+- Xodim/analytics API adapterlari, chaqirilmaydigan API metodlari va DTOlari,
+  eski boshqaruv hamda lokal appointment/session store amallari tozalandi.
+- Ishlatilmaydigan moliyaviy hisoblashlar olindi; ota-ona hisobining tarixiy
+  ledger fallbacki va uning takror ID/reversal/oila chegarasi testlari qoldi.
+- Hech qayerdan to‘ldirilmaydigan sessions state olindi. Klinik qayd va
+  baholash tarixi saqlangan; hisobotlar tasdiqlangan qabullarga asoslanadi.
+- Eski mutaxassis filtrlari, ko‘rsatilmaydigan reyting/ish jadvali atributlari,
+  soxta telefon va tug‘ilgan sana fallbacklari olib tashlandi.
+- Ishlamaydigan bildirishnoma manzillari yangilandi, eski mutaxassis CTA olindi.
+- TypeScriptda noUnusedLocals va noUnusedParameters yoqildi; yangi ortiqcha
+  import, lokal o‘zgaruvchi yoki parametr buildda aniqlanadi.
+- Backend, .env va serverdagi foydalanuvchi ma’lumotlari o‘zgartirilmagan.
 
 YAKUNIY AVTOMATIK TEKSHIRUV
 - To‘liq suite: 26 test fayli, 127 test o‘tdi.

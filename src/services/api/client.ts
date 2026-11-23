@@ -1,12 +1,4 @@
-// ═══════════════════════════════════════════════════════
-//  API Client Layer — Core HTTP Engine
-// ═══════════════════════════════════════════════════════
 
-export interface ApiResponse<T = any> {
-  data: T;
-  message?: string;
-  statusCode?: number;
-}
 
 export class ApiError extends Error {
   public status: number;
@@ -403,17 +395,5 @@ export class ApiClient {
       method: 'PATCH',
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-  }
-
-  public put<T>(endpoint: string, body?: any, options?: RequestInit): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...options,
-      method: 'PUT',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-    });
-  }
-
-  public delete<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   }
 }

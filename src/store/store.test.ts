@@ -47,11 +47,6 @@ describe("Global Zustand Store Tests", () => {
     expect(useStore.getState().isAuthenticated).toBe(false);
     expect(useStore.getState().currentUser).toBeNull();
   });
-  it("rejects legacy local appointments without changing stored data", () => {
-    const before = useStore.getState().appointments;
-    expect(() => useStore.getState().createAppointment({} as any)).toThrow();
-    expect(useStore.getState().appointments).toBe(before);
-  });
   it("adds and removes toast messages correctly", () => {
     useStore.getState().addToast({ type: "success", title: "Saqlandi" });
     const toast = useStore.getState().toasts[0];

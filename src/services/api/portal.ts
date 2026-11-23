@@ -48,42 +48,4 @@ export class PortalApi {
     const res = await this.client.get<any>("/parent/my-balance");
     return normalizeAccount(res);
   }
-
-  public async getMyDebt(): Promise<{ debt: number }> {
-    const res = await this.client.get<any>("/parent/my-debt");
-    return res?.data || res || { debt: 0 };
-  }
-
-  // ─── Specialist Portal ───
-  public async getMySchedule(): Promise<any> {
-    try {
-      const res = await this.client.get<any>("/specialist/my-attendances");
-      return res?.data || res;
-    } catch {
-      return [];
-    }
-  }
-
-  public async getMySpecialistAttendances(): Promise<any[]> {
-    const res = await this.client.get<any>("/specialist/my-attendances");
-    return Array.isArray(res) ? res : res?.data || [];
-  }
-
-  public async getMyAssignedChildren(): Promise<Child[]> {
-    const res = await this.client.get<any>("/specialist/my-children");
-    const list = Array.isArray(res) ? res : res?.data || [];
-    return list.map(normalizeChild);
-  }
-
-  public async getMyAuthoredAssessments(): Promise<Assessment[]> {
-    const res = await this.client.get<any>("/specialist/my-assessments");
-    const list = Array.isArray(res) ? res : res?.data || [];
-    return list.map(normalizeAssessment);
-  }
-
-  public async getMyRecordedProgress(): Promise<ProgressNote[]> {
-    const res = await this.client.get<any>("/specialist/my-progress");
-    const list = Array.isArray(res) ? res : res?.data || [];
-    return list.map(normalizeProgress);
-  }
 }

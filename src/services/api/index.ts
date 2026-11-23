@@ -11,28 +11,22 @@ import { ServicesApi } from "./services";
 import { ClinicalApi } from "./clinical";
 import { FinanceApi } from "./finance";
 import { PlatformApi } from "./platform";
-import { AnalyticsApi } from "./analytics";
 import { PortalApi } from "./portal";
 import { AdminsApi } from "./admins";
-import { EmployeesApi } from "./employees";
-import { AppointmentsApi } from "./appointments";
 import { ClinicWorkflowApi } from "./workflow";
 
-export * from "./client";
-export * from "./types";
+export * from "./admins";
 export * from "./auth";
 export * from "./children";
-export * from "./parents";
-export * from "./specialists";
-export * from "./services";
+export * from "./client";
 export * from "./clinical";
 export * from "./finance";
+export * from "./parents";
 export * from "./platform";
-export * from "./analytics";
 export * from "./portal";
-export * from "./admins";
-export * from "./employees";
-export * from "./appointments";
+export * from "./services";
+export * from "./specialists";
+export * from "./types";
 export * from "./workflow";
 
 export class AppApi extends ApiClient {
@@ -41,15 +35,12 @@ export class AppApi extends ApiClient {
   public parents: ParentsApi;
   public specialists: SpecialistsApi;
   public services: ServicesApi;
-  public appointments: AppointmentsApi;
   public workflow: ClinicWorkflowApi;
   public clinical: ClinicalApi;
   public finance: FinanceApi;
   public platform: PlatformApi;
-  public analytics: AnalyticsApi;
   public portal: PortalApi;
   public admins: AdminsApi;
-  public employees: EmployeesApi;
 
   constructor(baseUrl?: string) {
     super(baseUrl);
@@ -58,15 +49,12 @@ export class AppApi extends ApiClient {
     this.parents = new ParentsApi(this);
     this.specialists = new SpecialistsApi(this);
     this.services = new ServicesApi(this);
-    this.appointments = new AppointmentsApi(this);
     this.workflow = new ClinicWorkflowApi(this);
     this.clinical = new ClinicalApi(this);
     this.finance = new FinanceApi(this);
     this.platform = new PlatformApi(this);
-    this.analytics = new AnalyticsApi(this);
     this.portal = new PortalApi(this);
     this.admins = new AdminsApi(this);
-    this.employees = new EmployeesApi(this);
   }
 }
 

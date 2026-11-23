@@ -79,10 +79,7 @@ export function AssessmentsPage({ childId }: { childId?: string } = {}) {
   const createAssessment = useStore((s) => s.createAssessment);
 
   const isParent = currentUser?.role === "PARENT";
-  const ownerSpecialistId =
-    currentUser?.specialistId ||
-    (currentUser?.role === "SPECIALIST" ? currentUser.id : "");
-  const isSpecialist = currentUser?.role === "SPECIALIST";
+  const ownerSpecialistId = currentUser?.specialistId || "";
 
   const myChildIds = useMemo(() => {
     if (isParent && currentUser) {
@@ -100,15 +97,11 @@ export function AssessmentsPage({ childId }: { childId?: string } = {}) {
     if (isParent && currentUser) {
       return scoped.filter((a) => myChildIds.includes(a.childId));
     }
-    if (isSpecialist && currentUser) {
-      return scoped.filter((a) => a.specialistId === currentUser.id);
-    }
     return scoped;
-  }, [assessments, childId, isParent, isSpecialist, currentUser, myChildIds]);
+  }, [assessments, childId, isParent, currentUser, myChildIds]);
 
   const [search, setSearch] = useState("");
   const [selectedChildId, setSelectedChildId] = useState<string>(childId || "");
-  const [specialistFilter] = useState<string>("");
   const [scoreTab, setScoreTab] = useState<ScoreFilter>("ALL");
   const [viewMode, setViewMode] = useState<ViewMode>("TABLE");
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -122,12 +115,10 @@ export function AssessmentsPage({ childId }: { childId?: string } = {}) {
   // New assessment form state
   const [formData, setFormData] = useState<{
     childId: string;
-    specialistId: string;
     scores: AssessmentScores;
     professionalObservation: string;
   }>({
     childId: childId || "",
-    specialistId: ownerSpecialistId,
     scores: {
       movement: 3,
       coordination: 3,
@@ -191,10 +182,6 @@ export function AssessmentsPage({ childId }: { childId?: string } = {}) {
         if (childId && a.childId !== childId) return false;
         if (selectedChildId && a.childId !== selectedChildId) return false;
 
-        // Specialist filter
-        if (specialistFilter && a.specialistId !== specialistFilter)
-          return false;
-
         // Score filter
         const avg = calcAvg(a.scores);
         if (scoreTab === "HIGH" && avg < 4.0) return false;
@@ -228,7 +215,6 @@ export function AssessmentsPage({ childId }: { childId?: string } = {}) {
     baseAssessments,
     childId,
     selectedChildId,
-    specialistFilter,
     scoreTab,
     search,
     children,
@@ -236,7 +222,7 @@ export function AssessmentsPage({ childId }: { childId?: string } = {}) {
   ]);
 
   const hasActiveFilters = Boolean(
-    search || selectedChildId || specialistFilter || scoreTab !== "ALL",
+    search || selectedChildId || scoreTab !== "ALL",
   );
 
   const resetAllFilters = () => {
@@ -855,15 +841,10 @@ export function AssessmentsPage({ childId }: { childId?: string } = {}) {
             />
           </div>
 
-          {/* Child & Specialist Filters — 2-column grid on mobile to save vertical space */}
-          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
+          {/* Child filter */}
+          <div className="w-full sm:w-56">
             {/* Child Select */}
-            <div
-              className={cn(
-                "w-full sm:w-56",
-                isSpecialist && "col-span-2 sm:col-span-1",
-              )}
-            >
+            <div className="w-full">
               <Select
                 size="sm"
                 triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
@@ -876,8 +857,6 @@ export function AssessmentsPage({ childId }: { childId?: string } = {}) {
                 aria-label="Bola bo'yicha filter"
               />
             </div>
-
-            {/* Specialist Select */}
           </div>
 
           {/* Reset Filters Button */}

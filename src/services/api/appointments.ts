@@ -1,5 +1,3 @@
-import type { ApiClient } from "./client";
-import type { CreateAppointmentDto, UpdateAppointmentDto } from "./types";
 import type { Appointment } from "@/types";
 
 export function normalizeAppointment(raw: any): Appointment {
@@ -119,54 +117,4 @@ export function normalizeAppointment(raw: any): Appointment {
       : undefined,
     serviceName: serviceName || undefined,
   };
-}
-
-export class AppointmentsApi {
-  constructor(private client: ApiClient) {}
-
-  public async getAll(params?: {
-    date?: string;
-    specialistId?: string;
-    childId?: string;
-    page?: number;
-    limit?: number;
-  }): Promise<Appointment[]> {
-    const res = await this.client.get<any>("/appointments", params);
-    // Support items/meta pagination, data wrapping, or raw array
-    const list = Array.isArray(res)
-      ? res
-      : Array.isArray(res?.data)
-        ? res.data
-        : Array.isArray(res?.items)
-          ? res.items
-          : Array.isArray(res?.data?.items)
-            ? res.data.items
-            : [];
-    return list.map(normalizeAppointment);
-  }
-
-  public async getById(id: string): Promise<Appointment> {
-    const res = await this.client.get<any>(`/appointments/${id}`);
-    const item = res?.data || res;
-    return normalizeAppointment(item);
-  }
-
-  public async create(dto: CreateAppointmentDto): Promise<Appointment> {
-    const res = await this.client.post<any>("/appointments", dto);
-    const item = res?.data || res;
-    return normalizeAppointment(item);
-  }
-
-  public async update(
-    id: string,
-    dto: UpdateAppointmentDto,
-  ): Promise<Appointment> {
-    const res = await this.client.patch<any>(`/appointments/${id}`, dto);
-    const item = res?.data || res;
-    return normalizeAppointment(item);
-  }
-
-  public async delete(id: string): Promise<void> {
-    await this.client.delete(`/appointments/${id}`);
-  }
 }

@@ -23,6 +23,7 @@ import { cn } from "@/utils";
 import { useAuth, useStore } from "@/store";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { ROLE_REDIRECTS } from "./guards.constants";
 
 const loginSchema = z.object({
   phone: z.string().min(3, "Telefon raqamini kiriting"),
@@ -33,13 +34,6 @@ const loginSchema = z.object({
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
-
-const ROLE_REDIRECTS: Record<string, string> = {
-  SUPER_ADMIN: "/dashboard/super-admin",
-  ADMIN: "/dashboard/super-admin",
-  SPECIALIST: "/dashboard/specialist",
-  PARENT: "/dashboard/parent",
-};
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -67,11 +61,9 @@ export function LoginPage() {
     const result = await login(data.phone, data.password);
     if (result.success) {
       const userRole = useStore.getState().currentUser?.role;
-      if (userRole && ROLE_REDIRECTS[userRole]) {
-        navigate(ROLE_REDIRECTS[userRole], { replace: true });
-        return;
-      }
-      navigate("/dashboard/super-admin", { replace: true });
+      navigate(userRole ? ROLE_REDIRECTS[userRole] ?? "/403" : "/403", {
+        replace: true,
+      });
     } else {
       setServerError(result.error ?? "Login yoki parol noto'g'ri");
     }

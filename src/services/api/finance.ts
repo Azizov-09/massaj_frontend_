@@ -1,10 +1,9 @@
 import { normalizeAccount } from "./account";
 import { getAllPages } from "./pagination";
 import type { ApiClient } from "./client";
-import type { RecordPaymentDto, RefundDto } from "./types";
 import type { Payment, Transaction, PaymentMethod } from "@/types";
 
-import { isUUID } from "@/utils";
+
 
 export function normalizePayment(raw: any): Payment {
   if (!raw) return raw;
@@ -91,44 +90,6 @@ export class FinanceApi {
     return list.map(normalizePayment);
   }
 
-  public async getPaymentById(id: string): Promise<Payment> {
-    const res = await this.client.get<any>(`/payments/${id}`);
-    const item = res?.data || res;
-    return normalizePayment(item);
-  }
-
-  public async recordPayment(dto: RecordPaymentDto): Promise<Payment> {
-    const amountVal = Math.round(Number(dto.amount));
-    const idempotencyKey =
-      dto.idempotencyKey && dto.idempotencyKey.trim().length >= 8
-        ? dto.idempotencyKey.trim()
-        : `pay-${typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "pay-" + Date.now() + "-" + Math.random().toString(36).slice(2, 10)}`;
-
-    const payload: Record<string, any> = {
-      parentId: dto.parentId,
-      amount: amountVal,
-      method: dto.method,
-      idempotencyKey,
-    };
-    if (dto.childId && isUUID(dto.childId)) {
-      payload.childId = dto.childId;
-    }
-    if (dto.note && dto.note.trim()) {
-      payload.note = dto.note.trim();
-    }
-    if (dto.paidAt) {
-      payload.paidAt = dto.paidAt;
-    }
-    const res = await this.client.post<any>("/payments", payload);
-    const item = res?.data || res;
-    return normalizePayment(item);
-  }
-
-  public async refundPayment(id: string, dto: RefundDto): Promise<any> {
-    const res = await this.client.post<any>(`/payments/${id}/refund`, dto);
-    return res?.data || res;
-  }
-
   // ── Transactions ──
   public async getTransactions(params?: {
     parentId?: string;
@@ -148,41 +109,10 @@ export class FinanceApi {
     return list.map(normalizeTransaction);
   }
 
-  public async getTransactionById(id: string): Promise<Transaction> {
-    const res = await this.client.get<any>(`/transactions/${id}`);
-    const item = res?.data || res;
-    return normalizeTransaction(item);
-  }
-
-  // ── Debtors & Balances ──
-  public async getDebtors(): Promise<any[]> {
-    const res = await this.client.get<any>("/debtors");
-    return Array.isArray(res) ? res : res?.data || [];
-  }
-
-  public async getParentDebtor(parentId: string): Promise<any> {
-    const res = await this.client.get<any>(`/debtors/${parentId}`);
-    return res?.data || res;
-  }
-
-  public async getChildBalance(
-    childId: string,
-  ): Promise<{ balance: number; debt: number }> {
-    const res = await this.client.get<any>(`/children/${childId}/balance`);
-    return res?.data || res || { balance: 0, debt: 0 };
-  }
-
   public async getParentBalance(
     parentId: string,
   ): Promise<{ balance: number; debt: number }> {
     const res = await this.client.get<any>(`/parents/${parentId}/balance`);
     return normalizeAccount(res);
-  }
-
-  public async getParentFinancialSummary(parentId: string): Promise<any> {
-    const res = await this.client.get<any>(
-      `/parents/${parentId}/financial-summary`,
-    );
-    return res?.data || res;
   }
 }
