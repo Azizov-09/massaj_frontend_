@@ -1,15 +1,27 @@
-import type { ApiClient } from './client';
-import type { LoginDto, LoginResponse, RefreshDto, ChangePasswordDto } from './types';
+import { ApiError } from "./client";
+import type { ApiClient } from "./client";
+import type {
+  LoginDto,
+  LoginResponse,
+  RefreshDto,
+  ChangePasswordDto,
+} from "./types";
 
 export class AuthApi {
   constructor(private client: ApiClient) {}
 
   public async login(dto: LoginDto): Promise<LoginResponse> {
-    const res = await this.client.post<any>('/auth/login', dto);
+    const res = await this.client.post<any>("/auth/login", dto);
     // Support nested data structures: res.data or direct res
     const token = res?.accessToken || res?.data?.accessToken || res?.token;
     const refreshToken = res?.refreshToken || res?.data?.refreshToken;
     const user = res?.user || res?.data?.user;
+    if (
+      !token ||
+      !user?.id ||
+      !["SUPER_ADMIN", "ADMIN", "PARENT", "SPECIALIST"].includes(user.role)
+    )
+      throw new ApiError("Server foydalanuvchini tasdiqlamadi", 502);
     if (token) {
       this.client.setToken(token);
     }
@@ -19,18 +31,17 @@ export class AuthApi {
     return {
       accessToken: token,
       refreshToken,
-      user: user || {
-        id: 'user-me',
-        phone: dto.phone,
-        role: 'SUPER_ADMIN',
-      },
+      user,
     };
   }
 
-  public async refresh(dto?: RefreshDto): Promise<{ accessToken: string; refreshToken?: string }> {
-    const tokenToSend = dto?.refreshToken || this.client.getInMemoryRefreshToken() || '';
+  public async refresh(
+    dto?: RefreshDto,
+  ): Promise<{ accessToken: string; refreshToken?: string }> {
+    const tokenToSend =
+      dto?.refreshToken || this.client.getInMemoryRefreshToken() || "";
     const payload = tokenToSend ? { refreshToken: tokenToSend } : {};
-    const res = await this.client.post<any>('/auth/refresh', payload);
+    const res = await this.client.post<any>("/auth/refresh", payload);
     const token = res?.accessToken || res?.data?.accessToken;
     const newRefresh = res?.refreshToken || res?.data?.refreshToken;
     if (token) {
@@ -45,7 +56,10 @@ export class AuthApi {
   public async logout(refreshToken?: string): Promise<void> {
     try {
       const token = refreshToken || this.client.getInMemoryRefreshToken();
-      await this.client.post('/auth/logout', token ? { refreshToken: token } : {});
+      await this.client.post(
+        "/auth/logout",
+        token ? { refreshToken: token } : {},
+      );
     } catch {
       // Ignored
     } finally {
@@ -56,7 +70,7 @@ export class AuthApi {
 
   public async logoutAll(): Promise<void> {
     try {
-      await this.client.post('/auth/logout-all');
+      await this.client.post("/auth/logout-all");
     } catch {
       // Ignored
     } finally {
@@ -66,6 +80,6 @@ export class AuthApi {
   }
 
   public async changePassword(dto: ChangePasswordDto): Promise<void> {
-    await this.client.post('/auth/change-password', dto);
+    await this.client.post("/auth/change-password", dto);
   }
 }

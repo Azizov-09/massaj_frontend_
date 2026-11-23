@@ -2,50 +2,52 @@
 //  Zustand Store — Global Application State & API Sync
 // ═══════════════════════════════════════════════════════
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { useShallow } from 'zustand/react/shallow';
-import { generateId, isUUID, formatCurrency } from '@/utils';
-import { api } from '@/services/api';
-import type { CreateAttendanceDto, UpdateAdminDto } from '@/services/api/types';
-import { calculateParentBalance } from '@/services/finance.service';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { useShallow } from "zustand/react/shallow";
+import { generateId } from "@/utils";
+import { api } from "@/services/api";
+import { WORKFLOW_UNAVAILABLE } from "@/services/api/workflow";
+import type { UpdateAdminDto } from "@/services/api/types";
+import { normalizePayment } from "@/services/api/finance";
 import type {
-  AdminUser, Specialist, Parent, Child, Service,
-  Appointment, Session, AttendanceRecord, Assessment,
-  ProgressNote, Transaction, Payment,
-  Notification, ActivityLog, Employee,
-  ToastMessage, UserRole, BaseUser,
-} from '@/types';
-import {
-  SERVICES,
-  SPECIALISTS,
-  PARENTS,
-  CHILDREN,
-  APPOINTMENTS,
-  SESSIONS,
-  ATTENDANCE_RECORDS,
-  ASSESSMENTS,
-  PROGRESS_NOTES,
-  TRANSACTIONS,
-  PAYMENTS,
-  NOTIFICATIONS,
-  ACTIVITY_LOGS,
-  ADMINS,
-  EMPLOYEES,
-} from '@/data/seed';
+  AdminUser,
+  Specialist,
+  Parent,
+  Child,
+  Service,
+  Appointment,
+  Session,
+  AttendanceRecord,
+  Assessment,
+  ProgressNote,
+  Transaction,
+  Payment,
+  Notification,
+  ActivityLog,
+  Employee,
+  ToastMessage,
+  UserRole,
+  BaseUser,
+  ServiceAssignment,
+  CreateServiceAssignmentInput,
+  ParentAccount,
+} from "@/types";
 
 const IS_TEST_ENV =
-  (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') ||
-  (import.meta as any).env?.MODE === 'test' ||
+  (typeof process !== "undefined" && process.env?.NODE_ENV === "test") ||
+  (import.meta as any).env?.MODE === "test" ||
   Boolean((import.meta as any).env?.VITEST);
-const DEMO_DATA_ENABLED = IS_TEST_ENV || (import.meta as any).env?.VITE_ENABLE_DEMO_DATA === 'true';
 
 // ─── Auth State ───────────────────────────────────────────
 
 interface AuthState {
   currentUser: (AdminUser | Specialist | Parent) | null;
   isAuthenticated: boolean;
-  login: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (
+    identifier: string,
+    password: string,
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   expireSession: () => void;
   updateCurrentUser: (data: Partial<AdminUser | Specialist | Parent>) => void;
@@ -61,6 +63,11 @@ interface DataState {
   children: Child[];
   services: Service[];
   appointments: Appointment[];
+  serviceAssignments: ServiceAssignment[];
+  assignmentsLoading: boolean;
+  assignmentsError: string | null;
+  parentAccounts: Record<string, ParentAccount>;
+  accountsError: string | null;
   sessions: Session[];
   attendance: AttendanceRecord[];
   assessments: Assessment[];
@@ -88,7 +95,7 @@ interface UIState {
   toasts: ToastMessage[];
   setSidebarCollapsed: (v: boolean) => void;
   toggleSidebar: () => void;
-  addToast: (toast: Omit<ToastMessage, 'id'>) => void;
+  addToast: (toast: Omit<ToastMessage, "id">) => void;
   removeToast: (id: string) => void;
 }
 
@@ -98,30 +105,55 @@ interface Actions {
   // Sync
   fetchInitialData: () => Promise<void>;
 
+  fetchServiceAssignments: (childId: string) => Promise<void>;
+  createServiceAssignment: (
+    data: CreateServiceAssignmentInput,
+    key: string,
+  ) => Promise<ServiceAssignment>;
+  extendServiceAssignment: (
+    id: string,
+    count: number,
+    key: string,
+  ) => Promise<void>;
+  saveReception: (data: Record<string, unknown>, key: string) => Promise<void>;
+  commitReception: (
+    id: string,
+    status: "PRESENT" | "ABSENT",
+    note: string,
+    key: string,
+  ) => Promise<void>;
   // Children
-  createChild: (data: Omit<Child, 'id' | 'createdAt'>) => Promise<Child>;
+  createChild: (data: Omit<Child, "id" | "createdAt">) => Promise<Child>;
   updateChild: (id: string, data: Partial<Child>) => Promise<void>;
   archiveChild: (id: string) => Promise<void>;
   deleteChild: (id: string) => Promise<void>;
 
   // Parents
-  createParent: (data: Omit<Parent, 'id' | 'createdAt'>, password?: string) => Promise<Parent>;
+  createParent: (
+    data: Omit<Parent, "id" | "createdAt">,
+    password?: string,
+  ) => Promise<Parent>;
   updateParent: (id: string, data: Partial<Parent>) => Promise<void>;
   deleteParent: (id: string) => Promise<void>;
 
   // Specialists
-  createSpecialist: (data: Omit<Specialist, 'id' | 'createdAt'>, password?: string) => Promise<Specialist>;
+  createSpecialist: (
+    data: Omit<Specialist, "id" | "createdAt">,
+    password?: string,
+  ) => Promise<Specialist>;
   updateSpecialist: (id: string, data: Partial<Specialist>) => Promise<void>;
   deleteSpecialist: (id: string) => Promise<void>;
 
   // Services
-  createService: (data: Omit<Service, 'id' | 'createdAt'>) => Promise<Service>;
+  createService: (data: Omit<Service, "id" | "createdAt">) => Promise<Service>;
   updateService: (id: string, data: Partial<Service>) => Promise<void>;
   archiveService: (id: string) => Promise<void>;
   restoreService: (id: string) => Promise<void>;
 
   // Appointments
-  createAppointment: (data: Omit<Appointment, 'id' | 'createdAt'>) => Appointment;
+  createAppointment: (
+    data: Omit<Appointment, "id" | "createdAt">,
+  ) => Appointment;
   updateAppointment: (id: string, data: Partial<Appointment>) => void;
   confirmAppointment: (id: string) => void;
   startAppointment: (id: string) => void;
@@ -135,50 +167,68 @@ interface Actions {
     sessionId: string,
     note: string,
     observation: string,
-    recommendation: string
+    recommendation: string,
   ) => void;
 
   // Attendance
-  recordAttendance: (data: Omit<AttendanceRecord, 'id' | 'createdAt'>) => Promise<AttendanceRecord>;
+  recordAttendance: (
+    data: Omit<AttendanceRecord, "id" | "createdAt">,
+  ) => Promise<AttendanceRecord>;
   removeAttendance: (appointmentId: string) => void;
 
   // Assessments
-  createAssessment: (data: Omit<Assessment, 'id' | 'createdAt'>) => Promise<Assessment>;
+  createAssessment: (
+    data: Omit<Assessment, "id" | "createdAt">,
+  ) => Promise<Assessment>;
 
   // Progress Notes
-  createProgressNote: (data: Omit<ProgressNote, 'id' | 'createdAt'>) => Promise<ProgressNote>;
+  createProgressNote: (
+    data: Omit<ProgressNote, "id" | "createdAt">,
+  ) => Promise<ProgressNote>;
 
   // Payments
   recordPayment: (data: {
     parentId: string;
     childId?: string;
     amount: number;
-    method: Payment['method'];
+    method: Payment["method"];
     date: string;
     notes?: string;
     createdBy: string;
+    idempotencyKey?: string;
   }) => Promise<Payment>;
 
   // Notifications
-  addNotification: (data: Omit<Notification, 'id' | 'createdAt' | 'isRead'> & { isRead?: boolean }) => Notification;
+  addNotification: (
+    data: Omit<Notification, "id" | "createdAt" | "isRead"> & {
+      isRead?: boolean;
+    },
+  ) => Notification;
   markNotificationRead: (id: string) => void;
   markNotificationUnread: (id: string) => void;
   markAllNotificationsRead: (userId?: string, role?: UserRole) => void;
 
   // Admins
-  createAdmin: (data: Omit<AdminUser, 'id' | 'createdAt'>, password?: string) => Promise<AdminUser>;
+  createAdmin: (
+    data: Omit<AdminUser, "id" | "createdAt">,
+    password?: string,
+  ) => Promise<AdminUser>;
   updateAdmin: (id: string, data: Partial<AdminUser>) => Promise<void>;
   deleteAdmin: (id: string) => Promise<void>;
 
   // Employees
-  createEmployee: (data: Omit<Employee, 'id' | 'joinedAt'>) => Promise<Employee>;
+  createEmployee: (
+    data: Omit<Employee, "id" | "joinedAt">,
+  ) => Promise<Employee>;
   updateEmployee: (id: string, data: Partial<Employee>) => Promise<void>;
 
   // Activity log helper
-  addActivityLog: (log: Omit<ActivityLog, 'id' | 'timestamp'>) => void;
+  addActivityLog: (log: Omit<ActivityLog, "id" | "timestamp">) => void;
 
   // Clinic Settings & Reset
-  updateClinicSettings: (settings: Partial<DataState['clinicSettings']>) => Promise<void>;
+  updateClinicSettings: (
+    settings: Partial<DataState["clinicSettings"]>,
+  ) => Promise<void>;
   resetStore: () => void;
   resetToSeedData: () => void;
 }
@@ -195,48 +245,11 @@ export const useStore = create<Store>()(
       isAuthenticated: false,
 
       login: async (identifier, password) => {
-        const isDemoEmail = identifier.includes('@demo.com') || identifier.includes('@massaj.uz');
-
-        // Demo identities are isolated to tests. Production must always use a
-        // backend-issued identity and JWT; local auth fallbacks create a false
-        // authenticated state and trigger protected API calls without a token.
-        if (isDemoEmail && password === 'demo123') {
-          if (!IS_TEST_ENV) {
-            return {
-              success: false,
-              error: "Demo kirish productionda o'chirilgan. Backenddagi telefon raqami va parol bilan kiring.",
-            };
-          }
-
-          const role: UserRole = identifier.includes('specialist')
-            ? 'SPECIALIST'
-            : identifier.includes('parent')
-            ? 'PARENT'
-            : 'SUPER_ADMIN';
-
-          const user: any = {
-            id: `user-${role.toLowerCase()}`,
-            fullName:
-              role === 'SUPER_ADMIN'
-                ? 'Alisher Nazarov'
-                : role === 'SPECIALIST'
-                ? 'Dilorom Karimova'
-                : 'Malika Yusupova',
-            phone: '+998901234567',
-            role,
-            status: 'ACTIVE',
-            createdAt: new Date().toISOString(),
-          };
-
-          set({ currentUser: user, isAuthenticated: true });
-          return { success: true };
-        }
-
         let phone = identifier.trim();
-        const digitsOnly = phone.replace(/[^0-9]/g, '');
+        const digitsOnly = phone.replace(/[^0-9]/g, "");
         if (digitsOnly.length === 9) {
           phone = `+998${digitsOnly}`;
-        } else if (digitsOnly.length === 12 && digitsOnly.startsWith('998')) {
+        } else if (digitsOnly.length === 12 && digitsOnly.startsWith("998")) {
           phone = `+${digitsOnly}`;
         }
 
@@ -245,18 +258,25 @@ export const useStore = create<Store>()(
           const res = await api.auth.login({ phone, password });
           if (res && res.accessToken) {
             const u = res.user;
+            if (
+              !u?.id ||
+              !["SUPER_ADMIN", "ADMIN", "SPECIALIST", "PARENT"].includes(u.role)
+            )
+              throw new Error("Server foydalanuvchini tasdiqlamadi");
             const currentUser: any = {
-              id: u.id || 'u-admin-1',
-              fullName: u.fullName || 'Administrator',
+              id: u.id,
+              fullName: u.fullName || "Foydalanuvchi",
               phone: u.phone || phone,
-              role: u.role || 'SUPER_ADMIN',
-              status: u.status || 'ACTIVE',
+              role: u.role,
+              status: u.status || "ACTIVE",
               createdAt: new Date().toISOString(),
+              specialistId:
+                (u as any).specialistId || (u as any).specialist?.id,
             };
             set({ currentUser, isAuthenticated: true });
             get().addToast({
-              type: 'success',
-              title: 'Tizimga kirildi',
+              type: "success",
+              title: "Tizimga kirildi",
               description: `Xush kelibsiz, ${currentUser.fullName}`,
             });
             // Fetch live data from backend
@@ -265,10 +285,13 @@ export const useStore = create<Store>()(
           }
         } catch (err: any) {
           if (!IS_TEST_ENV) {
-            console.warn('[Auth] Real backend login attempt response:', err);
+            console.warn("[Auth] Real backend login attempt response:", err);
           }
 
-          const friendlyMsg = (err?.message && err.message !== 'fetch failed') ? err.message : "Telefon raqami yoki parol noto'g'ri";
+          const friendlyMsg =
+            err?.message && err.message !== "fetch failed"
+              ? err.message
+              : "Telefon raqami yoki parol noto'g'ri";
           return { success: false, error: friendlyMsg };
         }
 
@@ -293,6 +316,10 @@ export const useStore = create<Store>()(
           specialists: [],
           services: [],
           appointments: [],
+          serviceAssignments: [],
+          parentAccounts: {},
+          accountsError: null,
+          assignmentsError: null,
           sessions: [],
           attendance: [],
           assessments: [],
@@ -307,23 +334,32 @@ export const useStore = create<Store>()(
       },
 
       updateCurrentUser: (data) => {
-        set(s => {
+        set((s) => {
           if (!s.currentUser) return s;
           const updated = { ...s.currentUser, ...data };
-          if (s.currentUser.role === 'SUPER_ADMIN' || s.currentUser.role === 'ADMIN') {
+          if (
+            s.currentUser.role === "SUPER_ADMIN" ||
+            s.currentUser.role === "ADMIN"
+          ) {
             return {
               currentUser: updated as AdminUser,
-              admins: s.admins.map(a => a.id === updated.id ? (updated as AdminUser) : a),
+              admins: s.admins.map((a) =>
+                a.id === updated.id ? (updated as AdminUser) : a,
+              ),
             };
-          } else if (s.currentUser.role === 'SPECIALIST') {
+          } else if (s.currentUser.role === "SPECIALIST") {
             return {
               currentUser: updated as Specialist,
-              specialists: s.specialists.map(sp => sp.id === updated.id ? (updated as Specialist) : sp),
+              specialists: s.specialists.map((sp) =>
+                sp.id === updated.id ? (updated as Specialist) : sp,
+              ),
             };
-          } else if (s.currentUser.role === 'PARENT') {
+          } else if (s.currentUser.role === "PARENT") {
             return {
               currentUser: updated as Parent,
-              parents: s.parents.map(p => p.id === updated.id ? (updated as Parent) : p),
+              parents: s.parents.map((p) =>
+                p.id === updated.id ? (updated as Parent) : p,
+              ),
             };
           }
           return { currentUser: updated as AdminUser };
@@ -331,27 +367,32 @@ export const useStore = create<Store>()(
       },
 
       // ── Initial Clinical Dataset (Seeded defaults with live backend sync) ──
-      admins: DEMO_DATA_ENABLED ? ADMINS : [],
-      employees: DEMO_DATA_ENABLED ? EMPLOYEES : [],
-      specialists: DEMO_DATA_ENABLED ? SPECIALISTS : [],
-      parents: DEMO_DATA_ENABLED ? PARENTS : [],
-      children: DEMO_DATA_ENABLED ? CHILDREN : [],
-      services: DEMO_DATA_ENABLED ? SERVICES : [],
-      appointments: DEMO_DATA_ENABLED ? APPOINTMENTS : [],
-      sessions: DEMO_DATA_ENABLED ? SESSIONS : [],
-      attendance: DEMO_DATA_ENABLED ? ATTENDANCE_RECORDS : [],
-      assessments: DEMO_DATA_ENABLED ? ASSESSMENTS : [],
-      progressNotes: DEMO_DATA_ENABLED ? PROGRESS_NOTES : [],
-      transactions: DEMO_DATA_ENABLED ? TRANSACTIONS : [],
-      payments: DEMO_DATA_ENABLED ? PAYMENTS : [],
-      notifications: DEMO_DATA_ENABLED ? NOTIFICATIONS : [],
-      activityLogs: DEMO_DATA_ENABLED ? ACTIVITY_LOGS : [],
+      admins: [],
+      employees: [],
+      specialists: [],
+      parents: [],
+      children: [],
+      services: [],
+      appointments: [],
+      serviceAssignments: [],
+      assignmentsLoading: false,
+      assignmentsError: null,
+      parentAccounts: {},
+      accountsError: null,
+      sessions: [],
+      attendance: [],
+      assessments: [],
+      progressNotes: [],
+      transactions: [],
+      payments: [],
+      notifications: [],
+      activityLogs: [],
       clinicSettings: {
-        clinicName: 'Bolalar Massaj & Reabilitatsiya Markazi',
-        phone: '+998 71 200 00 00',
-        address: 'Toshkent sh., Chilonzor tumani, 9-mavze',
-        workStart: '08:00',
-        workEnd: '18:00',
+        clinicName: "Bolalar Massaj & Reabilitatsiya Markazi",
+        phone: "",
+        address: "",
+        workStart: "08:00",
+        workEnd: "18:00",
       },
       isLoadingData: false,
       isInitialized: false,
@@ -376,18 +417,29 @@ export const useStore = create<Store>()(
           set({
             isLoadingData: false,
             isInitialized: false,
-            dataError: 'Sessiya tugagan. Qayta tizimga kiring.',
+            dataError: "Sessiya tugagan. Qayta tizimga kiring.",
           });
           return;
         }
 
         set({ isLoadingData: true, dataError: null });
         try {
-          const user = get().currentUser;
-          const isParent = user?.role === 'PARENT';
-          const isSpecialist = user?.role === 'SPECIALIST';
-          const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
+          let user = get().currentUser;
+          if (user?.role === "PARENT") {
+            const profile = await api.parents.getMe();
+            if (!profile?.id || profile.id === "undefined")
+              throw new Error("Ota-ona profili tasdiqlanmadi");
+            user = { ...user, ...profile };
+            set({ currentUser: user });
+          }
+          const isParent = user?.role === "PARENT";
+          const isSpecialist = user?.role === "SPECIALIST";
+          const isAdmin =
+            user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
           const emptyList = () => Promise.resolve([] as any[]);
+          const parentsRequest = isAdmin
+            ? api.parents.getAll({ limit: 100 })
+            : emptyList();
 
           const childrenRequest = isParent
             ? api.portal.getMyChildren()
@@ -395,15 +447,24 @@ export const useStore = create<Store>()(
               ? api.portal.getMyAssignedChildren()
               : api.children.getAll({ limit: 100 });
 
-          const loadClinicalPerChild = async <T,>(loader: (childId: string) => Promise<T[]>): Promise<T[]> => {
+          const loadClinicalPerChild = async <T>(
+            loader: (childId: string) => Promise<T[]>,
+          ): Promise<T[]> => {
             const children = await childrenRequest;
             const combined: T[] = [];
             const batchSize = 8;
             for (let index = 0; index < children.length; index += batchSize) {
               const batch = children.slice(index, index + batchSize);
-              const batchResults = await Promise.allSettled(batch.map(child => loader(child.id)));
-              batchResults.forEach(result => {
-                if (result.status === 'fulfilled' && Array.isArray(result.value)) {
+              const batchResults = await Promise.allSettled(
+                batch.map((child) => loader(child.id)),
+              );
+              if (batchResults.some((result) => result.status === "rejected"))
+                throw new Error("Bola tarixi to‘liq yuklanmadi");
+              batchResults.forEach((result) => {
+                if (
+                  result.status === "fulfilled" &&
+                  Array.isArray(result.value)
+                ) {
                   combined.push(...result.value);
                 }
               });
@@ -415,30 +476,75 @@ export const useStore = create<Store>()(
             ? api.portal.getMyAssessments()
             : isSpecialist
               ? api.portal.getMyAuthoredAssessments()
-              : loadClinicalPerChild(childId => api.children.getAssessments(childId));
+              : loadClinicalPerChild((childId) =>
+                  api.children.getAssessments(childId),
+                );
           const progressRequest = isParent
             ? api.portal.getMyProgress()
             : isSpecialist
               ? api.portal.getMyRecordedProgress()
-              : loadClinicalPerChild(childId => api.children.getProgress(childId));
+              : loadClinicalPerChild((childId) =>
+                  api.children.getProgress(childId),
+                );
 
-          const appointmentsRequest = api.appointments.getAll({ limit: 100 });
+          const appointmentsRequest = api.workflow.enabled
+            ? api.workflow.getAppointments()
+            : emptyList();
+          const attendanceRequest = isParent
+            ? api.portal.getMyAttendances()
+            : loadClinicalPerChild((childId) =>
+                api.children.getAttendance(childId),
+              );
+          const accountsRequest = isParent
+            ? api.portal.getMyBalance().then((value) => ({
+                [user!.id]: { ...value, parentId: user!.id },
+              }))
+            : isAdmin
+              ? parentsRequest.then(async (parents) => {
+                  const accounts: Record<string, ParentAccount> = {};
+                  for (let index = 0; index < parents.length; index += 8) {
+                    await Promise.all(
+                      parents.slice(index, index + 8).map(async (parent) => {
+                        const value = await api.finance.getParentBalance(
+                          parent.id,
+                        );
+                        if (
+                          !Number.isFinite(value.balance) ||
+                          !Number.isFinite(value.debt) ||
+                          value.balance < 0 ||
+                          value.debt < 0 ||
+                          (value.balance > 0 && value.debt > 0)
+                        )
+                          throw new Error("Oila hisobi serverda tasdiqlanmadi");
+                        accounts[parent.id] = { ...value, parentId: parent.id };
+                      }),
+                    );
+                  }
+                  return accounts;
+                })
+              : Promise.resolve({});
 
           const results = await Promise.allSettled([
             childrenRequest,
-            isAdmin ? api.parents.getAll({ limit: 100 }) : emptyList(),
+            parentsRequest,
             isAdmin ? api.specialists.getAll({ limit: 100 }) : emptyList(),
             api.services.getAll(),
-            isParent ? api.portal.getMyPayments() : isAdmin ? api.finance.getPayments({ limit: 100 }) : emptyList(),
+            isParent
+              ? api.portal.getMyPayments()
+              : isAdmin
+                ? api.finance.getPayments({ limit: 100 })
+                : emptyList(),
             isAdmin ? api.finance.getTransactions() : emptyList(),
             isAdmin ? api.platform.getSettings() : Promise.resolve(null),
             api.platform.getNotifications(),
             isAdmin ? api.platform.getActivityLogs() : emptyList(),
-            isAdmin ? api.admins.getAll({ limit: 100 }) : emptyList(),
-            isAdmin ? api.employees.getAll({ limit: 100 }) : emptyList(),
+            emptyList(),
+            emptyList(),
             assessmentsRequest,
             progressRequest,
             appointmentsRequest,
+            attendanceRequest,
+            accountsRequest,
           ]);
 
           const [
@@ -456,88 +562,173 @@ export const useStore = create<Store>()(
             assessmentsRes,
             progressRes,
             appointmentsRes,
+            attendanceRes,
+            accountsRes,
           ] = results;
 
-          const failures = results.filter(result => result.status === 'rejected');
-          const unauthorized = failures.some(result =>
-            result.status === 'rejected' && (result.reason as any)?.status === 401
+          const failures = results.filter(
+            (result) => result.status === "rejected",
+          );
+          const unauthorized = failures.some(
+            (result) =>
+              result.status === "rejected" &&
+              (result.reason as any)?.status === 401,
           );
           if (unauthorized) {
             get().expireSession();
             return;
           }
 
-          const syncError = failures.length > 0
-            ? `${failures.length} ta bo'lim serverdan yangilanmadi. Ko'rsatilgan ayrim ma'lumotlar eskirgan bo'lishi mumkin.`
-            : null;
+          const syncError =
+            failures.length > 0
+              ? `${failures.length} ta bo'lim serverdan yangilanmadi. Ko'rsatilgan ayrim ma'lumotlar eskirgan bo'lishi mumkin.`
+              : null;
 
-          set(state => {
-            let nextChildren = childrenRes.status === 'fulfilled' && Array.isArray(childrenRes.value) ? childrenRes.value : state.children;
-            let nextParents = parentsRes.status === 'fulfilled' && Array.isArray(parentsRes.value) ? parentsRes.value : state.parents;
-            let nextSpecialists = specialistsRes.status === 'fulfilled' && Array.isArray(specialistsRes.value) ? specialistsRes.value : state.specialists;
-            const nextServices = servicesRes.status === 'fulfilled' && Array.isArray(servicesRes.value) ? servicesRes.value : state.services;
-            const nextPayments = paymentsRes.status === 'fulfilled' && Array.isArray(paymentsRes.value) ? paymentsRes.value : state.payments;
-            const nextTransactions = transactionsRes.status === 'fulfilled' && Array.isArray(transactionsRes.value) ? transactionsRes.value : state.transactions;
-            const nextNotifications = notificationsRes.status === 'fulfilled' && Array.isArray(notificationsRes.value) ? notificationsRes.value : state.notifications;
-            const nextLogs = activityLogsRes.status === 'fulfilled' && Array.isArray(activityLogsRes.value) ? activityLogsRes.value : state.activityLogs;
-            const nextAdmins = adminsRes.status === 'fulfilled' && Array.isArray(adminsRes.value) ? adminsRes.value : state.admins;
-            const nextEmployees = employeesRes.status === 'fulfilled' && Array.isArray(employeesRes.value) ? employeesRes.value : state.employees;
-            const nextAssessments = assessmentsRes.status === 'fulfilled' && Array.isArray(assessmentsRes.value) ? assessmentsRes.value : state.assessments;
-            const nextProgress = progressRes.status === 'fulfilled' && Array.isArray(progressRes.value) ? progressRes.value : state.progressNotes;
+          if (
+            !get().isAuthenticated ||
+            get().currentUser?.id !== user?.id ||
+            get().currentUser?.role !== user?.role
+          )
+            return;
 
-            const nextAppointments = appointmentsRes.status === 'fulfilled' && Array.isArray(appointmentsRes.value) && appointmentsRes.value.length > 0
-              ? appointmentsRes.value
-              : state.appointments;
+          set((state) => {
+            let nextChildren =
+              childrenRes.status === "fulfilled" &&
+              Array.isArray(childrenRes.value)
+                ? childrenRes.value
+                : state.children;
+            let nextParents =
+              parentsRes.status === "fulfilled" &&
+              Array.isArray(parentsRes.value)
+                ? parentsRes.value
+                : state.parents;
+            let nextSpecialists =
+              specialistsRes.status === "fulfilled" &&
+              Array.isArray(specialistsRes.value)
+                ? specialistsRes.value
+                : state.specialists;
+            const nextServices =
+              servicesRes.status === "fulfilled" &&
+              Array.isArray(servicesRes.value)
+                ? servicesRes.value
+                : state.services;
+            const nextPayments =
+              paymentsRes.status === "fulfilled" &&
+              Array.isArray(paymentsRes.value)
+                ? paymentsRes.value
+                : state.payments;
+            const nextTransactions =
+              transactionsRes.status === "fulfilled" &&
+              Array.isArray(transactionsRes.value)
+                ? transactionsRes.value
+                : state.transactions;
+            const nextNotifications =
+              notificationsRes.status === "fulfilled" &&
+              Array.isArray(notificationsRes.value)
+                ? notificationsRes.value
+                : state.notifications;
+            const nextLogs =
+              activityLogsRes.status === "fulfilled" &&
+              Array.isArray(activityLogsRes.value)
+                ? activityLogsRes.value
+                : state.activityLogs;
+            const nextAdmins =
+              adminsRes.status === "fulfilled" && Array.isArray(adminsRes.value)
+                ? adminsRes.value
+                : state.admins;
+            const nextEmployees =
+              employeesRes.status === "fulfilled" &&
+              Array.isArray(employeesRes.value)
+                ? employeesRes.value
+                : state.employees;
+            const nextAssessments =
+              assessmentsRes.status === "fulfilled" &&
+              Array.isArray(assessmentsRes.value)
+                ? assessmentsRes.value
+                : state.assessments;
+            const nextProgress =
+              progressRes.status === "fulfilled" &&
+              Array.isArray(progressRes.value)
+                ? progressRes.value
+                : state.progressNotes;
+
+            const nextAppointments =
+              appointmentsRes.status === "fulfilled" &&
+              Array.isArray(appointmentsRes.value)
+                ? appointmentsRes.value
+                : state.appointments;
 
             // Ensure any child or specialist embedded in appointments is registered in local lookup maps
-            const existingChildIds = new Set(nextChildren.map(c => c.id));
+            const existingChildIds = new Set(nextChildren.map((c) => c.id));
             const extraChildren: Child[] = [];
-            const existingSpecIds = new Set(nextSpecialists.map(s => s.id));
+            const existingSpecIds = new Set(nextSpecialists.map((s) => s.id));
             const extraSpecialists: Specialist[] = [];
 
-            nextAppointments.forEach(apt => {
-              if (apt.childId && !existingChildIds.has(apt.childId) && apt.child) {
+            nextAppointments.forEach((apt) => {
+              if (
+                apt.childId &&
+                !existingChildIds.has(apt.childId) &&
+                apt.child
+              ) {
                 extraChildren.push({
                   id: apt.childId,
-                  fullName: apt.child.fullName || apt.childName || 'Bola',
+                  fullName: apt.child.fullName || apt.childName || "Bola",
                   firstName: apt.child.firstName,
                   lastName: apt.child.lastName,
-                  dateOfBirth: apt.child.dateOfBirth || '2020-01-01',
-                  gender: apt.child.gender || 'MALE',
-                  parentId: apt.parentId || apt.child.parentId || '',
-                  status: 'ACTIVE',
+                  dateOfBirth: apt.child.dateOfBirth || "2020-01-01",
+                  gender: apt.child.gender || "MALE",
+                  parentId: apt.parentId || apt.child.parentId || "",
+                  status: "ACTIVE",
                   createdAt: apt.createdAt || new Date().toISOString(),
                 } as Child);
                 existingChildIds.add(apt.childId);
               }
-              if (apt.specialistId && !existingSpecIds.has(apt.specialistId) && apt.specialist) {
+              if (
+                apt.specialistId &&
+                !existingSpecIds.has(apt.specialistId) &&
+                apt.specialist
+              ) {
                 extraSpecialists.push({
                   id: apt.specialistId,
-                  fullName: apt.specialist.fullName || apt.specialistName || 'Mutaxassis',
-                  specialization: apt.specialist.specialization || 'Mutaxassis',
-                  phone: apt.specialist.phone || '+998901234567',
-                  role: 'SPECIALIST',
-                  status: 'ACTIVE',
+                  fullName:
+                    apt.specialist.fullName ||
+                    apt.specialistName ||
+                    "Mutaxassis",
+                  specialization: apt.specialist.specialization || "Mutaxassis",
+                  phone: apt.specialist.phone || "+998901234567",
+                  role: "SPECIALIST",
+                  status: "ACTIVE",
                   workingDays: [1, 2, 3, 4, 5, 6, 7],
-                  workingHours: { start: '09:00', end: '18:00' },
+                  workingHours: { start: "09:00", end: "18:00" },
                   createdAt: apt.createdAt || new Date().toISOString(),
                 } as Specialist);
                 existingSpecIds.add(apt.specialistId);
               }
             });
 
-            if (extraChildren.length > 0) nextChildren = [...nextChildren, ...extraChildren];
-            if (extraSpecialists.length > 0) nextSpecialists = [...nextSpecialists, ...extraSpecialists];
+            if (extraChildren.length > 0)
+              nextChildren = [...nextChildren, ...extraChildren];
+            if (extraSpecialists.length > 0)
+              nextSpecialists = [...nextSpecialists, ...extraSpecialists];
 
-            const nextSettings = settingsRes.status === 'fulfilled' && settingsRes.value
-              ? {
-                  clinicName: settingsRes.value.centerName || state.clinicSettings.clinicName,
-                  phone: settingsRes.value.phone || state.clinicSettings.phone,
-                  address: settingsRes.value.address || state.clinicSettings.address,
-                  workStart: settingsRes.value.workingHours?.start || state.clinicSettings.workStart,
-                  workEnd: settingsRes.value.workingHours?.end || state.clinicSettings.workEnd,
-                }
-              : state.clinicSettings;
+            const nextSettings =
+              settingsRes.status === "fulfilled" && settingsRes.value
+                ? {
+                    clinicName:
+                      settingsRes.value.centerName ||
+                      state.clinicSettings.clinicName,
+                    phone:
+                      settingsRes.value.phone || state.clinicSettings.phone,
+                    address:
+                      settingsRes.value.address || state.clinicSettings.address,
+                    workStart:
+                      settingsRes.value.workingHours?.start ||
+                      state.clinicSettings.workStart,
+                    workEnd:
+                      settingsRes.value.workingHours?.end ||
+                      state.clinicSettings.workEnd,
+                  }
+                : state.clinicSettings;
 
             return {
               children: nextChildren,
@@ -546,7 +737,16 @@ export const useStore = create<Store>()(
               services: nextServices,
               appointments: nextAppointments,
               sessions: state.sessions,
-              attendance: state.attendance,
+              attendance:
+                attendanceRes.status === "fulfilled"
+                  ? attendanceRes.value
+                  : state.attendance,
+              parentAccounts:
+                accountsRes.status === "fulfilled" ? accountsRes.value : {},
+              accountsError:
+                accountsRes.status === "rejected"
+                  ? "Oila balansini serverdan tekshirib bo‘lmadi. Qayta yuklang."
+                  : null,
               assessments: nextAssessments,
               progressNotes: nextProgress,
               payments: nextPayments,
@@ -562,8 +762,11 @@ export const useStore = create<Store>()(
             };
           });
         } catch (err: any) {
-          console.warn('[Store] fetchInitialData error:', err);
-          set({ isLoadingData: false, dataError: err?.message || 'Ma’lumotlarni yuklashda xatolik' });
+          console.warn("[Store] fetchInitialData error:", err);
+          set({
+            isLoadingData: false,
+            dataError: err?.message || "Ma’lumotlarni yuklashda xatolik",
+          });
         }
       },
 
@@ -572,85 +775,144 @@ export const useStore = create<Store>()(
       toasts: [],
 
       setSidebarCollapsed: (v) => set({ sidebarCollapsed: v }),
-      toggleSidebar: () => set(s => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+      toggleSidebar: () =>
+        set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
 
       addToast: (toast) => {
         const id = generateId();
-        set(s => ({ toasts: [...s.toasts, { ...toast, id }] }));
+        set((s) => ({ toasts: [...s.toasts, { ...toast, id }] }));
         const duration = toast.duration ?? 4000;
         setTimeout(() => get().removeToast(id), duration);
       },
 
       removeToast: (id) => {
-        set(s => ({ toasts: s.toasts.filter(t => t.id !== id) }));
+        set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
       },
 
       // ── Children Actions ─────────────────────────────────
       // ── Children Actions ─────────────────────────────────
       createChild: async (data) => {
+        if (!["SUPER_ADMIN", "ADMIN"].includes(get().currentUser?.role || ""))
+          throw new Error("Ruxsat yo‘q");
         try {
-          const names = (data.fullName || '').trim().split(' ');
+          const names = (data.fullName || "").trim().split(" ");
           const created = await api.children.create({
-            firstName: names[0] || 'Bola',
-            lastName: names.slice(1).join(' ') || '',
-            birthDate: data.dateOfBirth || '2020-01-01',
+            firstName: names[0] || "Bola",
+            lastName: names.slice(1).join(" ") || "",
+            birthDate: data.dateOfBirth || "2020-01-01",
             gender: data.gender,
             address: data.address,
             notes: data.notes,
           });
 
-          const child: Child = created && created.id ? created : {
-            ...data,
-            id: generateId(),
-            createdAt: new Date().toISOString(),
-          };
-
-          if (child.parentId && created && created.id) {
-            api.children.linkParent(created.id, child.parentId, { relationship: 'Ota/Ona', isPrimary: true }).catch(() => {});
+          if (!created?.id || created.id === "undefined")
+            throw new Error("Bola serverda tasdiqlanmadi");
+          const child: Child = { ...created };
+          if (data.parentId && !created.parentId) {
+            try {
+              await api.children.linkParent(created.id, data.parentId, {
+                relationship: "Ota/Ona",
+                isPrimary: true,
+              });
+              child.parentId = data.parentId;
+            } catch {
+              get().addToast({
+                type: "warning",
+                title: "Bola yaratildi, ota-ona biriktirilmadi",
+                description:
+                  "Qayta bola yaratmang. Bola kartasini tahrirlab ota-onani biriktiring.",
+                duration: 12000,
+              });
+            }
           }
 
-          set(s => ({
-            children: [child, ...s.children.filter(c => c.id !== child.id)],
-            parents: s.parents.map(p =>
+          set((s) => ({
+            children: [child, ...s.children.filter((c) => c.id !== child.id)],
+            parents: s.parents.map((p) =>
               p.id === child.parentId && !p.childrenIds.includes(child.id)
                 ? { ...p, childrenIds: [...p.childrenIds, child.id] }
-                : p
+                : p,
             ),
           }));
 
           get().addActivityLog({
-            actorId: get().currentUser?.id ?? 'system',
-            actorName: get().currentUser?.fullName ?? 'Sistema',
-            actorRole: (get().currentUser as BaseUser)?.role ?? 'ADMIN',
-            action: 'CREATE',
-            entity: 'child',
+            actorId: get().currentUser?.id ?? "system",
+            actorName: get().currentUser?.fullName ?? "Sistema",
+            actorRole: (get().currentUser as BaseUser)?.role ?? "ADMIN",
+            action: "CREATE",
+            entity: "child",
             entityId: child.id,
             description: `Yangi bola qo'shildi: ${child.fullName}`,
           });
-          get().addToast({ type: 'success', title: 'Bola qo\'shildi', description: `${child.fullName} muvaffaqiyatli qo'shildi` });
+          get().addToast({
+            type: "success",
+            title: "Bola qo'shildi",
+            description: `${child.fullName} muvaffaqiyatli qo'shildi`,
+          });
           return child;
         } catch (err: any) {
-          console.error('[Store] createChild error:', err);
+          console.error("[Store] createChild error:", err);
           throw err;
         }
       },
 
       updateChild: async (id, data) => {
+        if (!["SUPER_ADMIN", "ADMIN"].includes(get().currentUser?.role || ""))
+          throw new Error("Ruxsat yo‘q");
         try {
-          const names = data.fullName ? data.fullName.trim().split(' ') : undefined;
+          const previous = get().children.find((c) => c.id === id);
+          if (data.status !== undefined) {
+            if (data.status === "ACTIVE") await api.children.restore(id);
+            else if (data.status === "ARCHIVED") await api.children.archive(id);
+            else throw new Error("Bu holatni server qo‘llamaydi");
+            if (Object.keys(data).length === 1) {
+              set((state) => ({
+                children: state.children.map((c) =>
+                  c.id === id ? { ...c, status: data.status! } : c,
+                ),
+              }));
+              return;
+            }
+          }
+          if (data.parentId && data.parentId !== previous?.parentId) {
+            if (previous?.parentId)
+              throw new Error(
+                "Ota-onani almashtirish serverda moliyaviy tarix bilan tekshirilishi kerak",
+              );
+            await api.children.linkParent(id, data.parentId, {
+              relationship: "Ota/Ona",
+              isPrimary: true,
+            });
+          }
+          const names = data.fullName
+            ? data.fullName.trim().split(" ")
+            : undefined;
           await api.children.update(id, {
             firstName: names ? names[0] : undefined,
-            lastName: names ? names.slice(1).join(' ') : undefined,
+            lastName: names ? names.slice(1).join(" ") : undefined,
             birthDate: data.dateOfBirth,
             gender: data.gender,
             address: data.address,
             notes: data.notes,
           });
-          set(s => ({ children: s.children.map(c => c.id === id ? { ...c, ...data } : c) }));
-          get().addToast({ type: 'success', title: 'Yangilandi', description: 'Bola ma\'lumotlari yangilandi' });
+          set((s) => ({
+            children: s.children.map((c) =>
+              c.id === id ? { ...c, ...data } : c,
+            ),
+          }));
+          get().addToast({
+            type: "success",
+            title: "Yangilandi",
+            description: "Bola ma'lumotlari yangilandi",
+          });
         } catch (err: any) {
-          console.error('[Store] updateChild error:', err);
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Bola ma\'lumotlarini yangilab bo\'lmadi' });
+          console.error("[Store] updateChild error:", err);
+          get().addToast({
+            type: "error",
+            title: "Xatolik",
+            description:
+              err?.message || "Bola ma'lumotlarini yangilab bo'lmadi",
+          });
           throw err;
         }
       },
@@ -658,28 +920,46 @@ export const useStore = create<Store>()(
       archiveChild: async (id) => {
         try {
           await api.children.archive(id);
-          set(s => ({ children: s.children.map(c => c.id === id ? { ...c, status: 'ARCHIVED' } : c) }));
-          get().addToast({ type: 'info', title: 'Arxivlandi', description: 'Bola arxivga o\'tkazildi' });
+          set((s) => ({
+            children: s.children.map((c) =>
+              c.id === id ? { ...c, status: "ARCHIVED" } : c,
+            ),
+          }));
+          get().addToast({
+            type: "info",
+            title: "Arxivlandi",
+            description: "Bola arxivga o'tkazildi",
+          });
         } catch (err: any) {
-          console.error('[Store] archiveChild error:', err);
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Arxivlab bo\'lmadi' });
+          console.error("[Store] archiveChild error:", err);
+          get().addToast({
+            type: "error",
+            title: "Xatolik",
+            description: err?.message || "Arxivlab bo'lmadi",
+          });
           throw err;
         }
       },
 
       deleteChild: async (id) => {
         try {
-          const child = get().children.find(c => c.id === id);
+          const child = get().children.find((c) => c.id === id);
           await api.children.delete(id);
-          set(s => ({ children: s.children.filter(c => c.id !== id) }));
+          set((s) => ({ children: s.children.filter((c) => c.id !== id) }));
           get().addToast({
-            type: 'success',
+            type: "success",
             title: "Bola o'chirildi",
-            description: child ? `${child.fullName} tizimdan olib tashlandi` : undefined,
+            description: child
+              ? `${child.fullName} tizimdan olib tashlandi`
+              : undefined,
           });
         } catch (err: any) {
-          console.error('[Store] deleteChild error:', err);
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'O\'chirib bo\'lmadi' });
+          console.error("[Store] deleteChild error:", err);
+          get().addToast({
+            type: "error",
+            title: "Xatolik",
+            description: err?.message || "O'chirib bo'lmadi",
+          });
           throw err;
         }
       },
@@ -690,32 +970,36 @@ export const useStore = create<Store>()(
           const created = await api.parents.create({
             fullName: data.fullName,
             phone: data.phone,
-            password: password || 'Password123!',
+            password: password || "Password123!",
             address: data.address,
           });
 
-          const parent: Parent = created && created.id ? created : {
-            ...data,
-            id: generateId(),
-            createdAt: new Date().toISOString(),
-          };
+          if (!created?.id || created.id === "undefined")
+            throw new Error("Server yozuvni tasdiqlamadi");
+          const parent: Parent = created;
 
-          set(s => ({ parents: [parent, ...s.parents.filter(p => p.id !== parent.id)] }));
-          get().addToast({ type: 'success', title: 'Qo\'shildi', description: `${parent.fullName} tizimga qo'shildi` });
+          set((s) => ({
+            parents: [parent, ...s.parents.filter((p) => p.id !== parent.id)],
+          }));
+          get().addToast({
+            type: "success",
+            title: "Qo'shildi",
+            description: `${parent.fullName} tizimga qo'shildi`,
+          });
           return parent;
         } catch (err: any) {
-          console.error('[Store] createParent error:', err);
+          console.error("[Store] createParent error:", err);
           throw err;
         }
       },
 
       updateParent: async (id, data) => {
-        const prev = get().parents.find(p => p.id === id);
+        const prev = get().parents.find((p) => p.id === id);
         try {
           // If status is being updated
           if (data.status !== undefined) {
-            if (data.status === 'ACTIVE') {
-              if (prev?.status === 'ARCHIVED') {
+            if (data.status === "ACTIVE") {
+              if (prev?.status === "ARCHIVED") {
                 try {
                   await api.parents.restore(id);
                 } catch {
@@ -724,16 +1008,21 @@ export const useStore = create<Store>()(
               } else {
                 await api.parents.activate(id);
               }
-            } else if (data.status === 'INACTIVE') {
+            } else if (data.status === "INACTIVE") {
               await api.parents.deactivate(id);
-            } else if (data.status === 'ARCHIVED') {
+            } else if (data.status === "ARCHIVED") {
               await api.parents.archive(id);
             }
           }
 
           // Profile update — supports fullName, phone, address (NOT status in body)
-          const patchPayload: { fullName?: string; phone?: string; address?: string } = {};
-          if (data.fullName !== undefined) patchPayload.fullName = data.fullName;
+          const patchPayload: {
+            fullName?: string;
+            phone?: string;
+            address?: string;
+          } = {};
+          if (data.fullName !== undefined)
+            patchPayload.fullName = data.fullName;
           if (data.phone !== undefined) patchPayload.phone = data.phone;
           if (data.address !== undefined) patchPayload.address = data.address;
 
@@ -742,38 +1031,68 @@ export const useStore = create<Store>()(
             updatedParent = await api.parents.update(id, patchPayload);
           }
 
-          set(s => ({
-            parents: s.parents.map(p => p.id === id ? { ...p, ...(updatedParent || {}), ...data } : p)
+          set((s) => ({
+            parents: s.parents.map((p) =>
+              p.id === id ? { ...p, ...(updatedParent || {}), ...data } : p,
+            ),
           }));
-          get().addToast({ type: 'success', title: data.status && Object.keys(data).length === 1 ? (data.status === 'ACTIVE' ? (prev?.status === 'ARCHIVED' ? 'Arxivdan qaytarildi' : 'Faollashtirildi') : 'Nofaol qilindi') : 'Ota-ona ma\'lumotlari yangilandi' });
+          get().addToast({
+            type: "success",
+            title:
+              data.status && Object.keys(data).length === 1
+                ? data.status === "ACTIVE"
+                  ? prev?.status === "ARCHIVED"
+                    ? "Arxivdan qaytarildi"
+                    : "Faollashtirildi"
+                  : "Nofaol qilindi"
+                : "Ota-ona ma'lumotlari yangilandi",
+          });
           return;
         } catch (err: any) {
-          console.error('[Store] updateParent error:', err);
+          console.error("[Store] updateParent error:", err);
           if (prev) {
-            set(s => ({ parents: s.parents.map(p => p.id === id ? prev : p) }));
+            set((s) => ({
+              parents: s.parents.map((p) => (p.id === id ? prev : p)),
+            }));
           }
-          const friendlyMsg = err?.message?.includes('property') || err?.message?.includes('should not exist')
-            ? 'Ota-ona ma\'lumotlarini yangilab bo\'lmadi. Qayta urinib ko\'ring.'
-            : err?.message || 'Yangilab bo\'lmadi';
-          get().addToast({ type: 'error', title: 'Xatolik', description: friendlyMsg });
+          const friendlyMsg =
+            err?.message?.includes("property") ||
+            err?.message?.includes("should not exist")
+              ? "Ota-ona ma'lumotlarini yangilab bo'lmadi. Qayta urinib ko'ring."
+              : err?.message || "Yangilab bo'lmadi";
+          get().addToast({
+            type: "error",
+            title: "Xatolik",
+            description: friendlyMsg,
+          });
           throw err;
         }
       },
 
       deleteParent: async (id) => {
         try {
-          const parent = get().parents.find(p => p.id === id);
+          const parent = get().parents.find((p) => p.id === id);
           // Archive is the safe semantic — preserves children, balances, history
           await api.parents.archive(id);
-          set(s => ({ parents: s.parents.map(p => p.id === id ? { ...p, status: 'ARCHIVED' } : p) }));
+          set((s) => ({
+            parents: s.parents.map((p) =>
+              p.id === id ? { ...p, status: "ARCHIVED" } : p,
+            ),
+          }));
           get().addToast({
-            type: 'info',
-            title: 'Ota-ona arxivlandi',
-            description: parent ? `${parent.fullName} arxivga o'tkazildi` : undefined,
+            type: "info",
+            title: "Ota-ona arxivlandi",
+            description: parent
+              ? `${parent.fullName} arxivga o'tkazildi`
+              : undefined,
           });
         } catch (err: any) {
-          console.error('[Store] deleteParent error:', err);
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Arxivlab bo\'lmadi' });
+          console.error("[Store] deleteParent error:", err);
+          get().addToast({
+            type: "error",
+            title: "Xatolik",
+            description: err?.message || "Arxivlab bo'lmadi",
+          });
           throw err;
         }
       },
@@ -784,35 +1103,38 @@ export const useStore = create<Store>()(
           const created = await api.specialists.create({
             fullName: data.fullName,
             phone: data.phone,
-            password: password || 'Password123!',
+            password: password || "Password123!",
             specialization: data.specialization,
             experienceYears: data.experience || 3,
             bio: data.bio || undefined,
           });
 
-          const spec: Specialist = created && created.id ? created : {
-            ...data,
-            id: generateId(),
-            createdAt: new Date().toISOString(),
-          };
+          if (!created?.id || created.id === "undefined")
+            throw new Error("Server yozuvni tasdiqlamadi");
+          const spec: Specialist = created;
 
-          set(s => ({ specialists: [spec, ...s.specialists.filter(sp => sp.id !== spec.id)] }));
-          get().addToast({ type: 'success', title: 'Mutaxassis qo\'shildi' });
+          set((s) => ({
+            specialists: [
+              spec,
+              ...s.specialists.filter((sp) => sp.id !== spec.id),
+            ],
+          }));
+          get().addToast({ type: "success", title: "Mutaxassis qo'shildi" });
           return spec;
         } catch (err: any) {
-          console.error('[Store] createSpecialist error:', err);
+          console.error("[Store] createSpecialist error:", err);
           throw err;
         }
       },
 
       updateSpecialist: async (id, data) => {
         // Preserve previous state for rollback on failure
-        const prev = get().specialists.find(s => s.id === id);
+        const prev = get().specialists.find((s) => s.id === id);
         try {
           // Status changes use dedicated endpoints, NOT the update payload
           if (data.status !== undefined && Object.keys(data).length === 1) {
-            if (data.status === 'ACTIVE') {
-              if (prev?.status === 'ARCHIVED') {
+            if (data.status === "ACTIVE") {
+              if (prev?.status === "ARCHIVED") {
                 try {
                   await api.specialists.restore(id);
                 } catch {
@@ -821,13 +1143,25 @@ export const useStore = create<Store>()(
               } else {
                 await api.specialists.activate(id);
               }
-            } else if (data.status === 'INACTIVE') {
+            } else if (data.status === "INACTIVE") {
               await api.specialists.deactivate(id);
-            } else if (data.status === 'ARCHIVED') {
+            } else if (data.status === "ARCHIVED") {
               await api.specialists.archive(id);
             }
-            set(s => ({ specialists: s.specialists.map(sp => sp.id === id ? { ...sp, status: data.status! } : sp) }));
-            get().addToast({ type: 'success', title: data.status === 'ACTIVE' ? (prev?.status === 'ARCHIVED' ? 'Arxivdan qaytarildi' : 'Faollashtirildi') : 'Nofaol qilindi' });
+            set((s) => ({
+              specialists: s.specialists.map((sp) =>
+                sp.id === id ? { ...sp, status: data.status! } : sp,
+              ),
+            }));
+            get().addToast({
+              type: "success",
+              title:
+                data.status === "ACTIVE"
+                  ? prev?.status === "ARCHIVED"
+                    ? "Arxivdan qaytarildi"
+                    : "Faollashtirildi"
+                  : "Nofaol qilindi",
+            });
             return;
           }
 
@@ -835,42 +1169,73 @@ export const useStore = create<Store>()(
           const dto: any = {};
           if (data.fullName !== undefined) dto.fullName = data.fullName;
           if (data.phone !== undefined) dto.phone = data.phone;
-          if (data.specialization !== undefined) dto.specialization = data.specialization;
-          if (data.experience !== undefined) dto.experienceYears = data.experience;
+          if (data.specialization !== undefined)
+            dto.specialization = data.specialization;
+          if (data.experience !== undefined)
+            dto.experienceYears = data.experience;
           if (data.bio !== undefined) dto.bio = data.bio;
-          if (data.workingDays !== undefined) dto.workingDays = data.workingDays;
-          if (data.workingHours !== undefined) dto.workingHours = data.workingHours;
+          if (data.workingDays !== undefined)
+            dto.workingDays = data.workingDays;
+          if (data.workingHours !== undefined)
+            dto.workingHours = data.workingHours;
 
           await api.specialists.update(id, dto);
-          set(s => ({ specialists: s.specialists.map(sp => sp.id === id ? { ...sp, ...data } : sp) }));
-          get().addToast({ type: 'success', title: 'Mutaxassis ma\'lumotlari yangilandi' });
+          set((s) => ({
+            specialists: s.specialists.map((sp) =>
+              sp.id === id ? { ...sp, ...data } : sp,
+            ),
+          }));
+          get().addToast({
+            type: "success",
+            title: "Mutaxassis ma'lumotlari yangilandi",
+          });
         } catch (err: any) {
-          console.error('[Store] updateSpecialist error:', err);
+          console.error("[Store] updateSpecialist error:", err);
           // Rollback optimistic UI
           if (prev) {
-            set(s => ({ specialists: s.specialists.map(sp => sp.id === id ? prev : sp) }));
+            set((s) => ({
+              specialists: s.specialists.map((sp) =>
+                sp.id === id ? prev : sp,
+              ),
+            }));
           }
-          const friendlyMsg = err?.message?.includes('property') || err?.message?.includes('should not exist')
-            ? 'Mutaxassis ma\'lumotlarini yangilab bo\'lmadi. Qayta urinib ko\'ring.'
-            : err?.message || 'Yangilab bo\'lmadi';
-          get().addToast({ type: 'error', title: 'Xatolik', description: friendlyMsg });
+          const friendlyMsg =
+            err?.message?.includes("property") ||
+            err?.message?.includes("should not exist")
+              ? "Mutaxassis ma'lumotlarini yangilab bo'lmadi. Qayta urinib ko'ring."
+              : err?.message || "Yangilab bo'lmadi";
+          get().addToast({
+            type: "error",
+            title: "Xatolik",
+            description: friendlyMsg,
+          });
           throw err;
         }
       },
 
       deleteSpecialist: async (id) => {
         try {
-          const spec = get().specialists.find(s => s.id === id);
+          const spec = get().specialists.find((s) => s.id === id);
           await api.specialists.archive(id);
-          set(s => ({ specialists: s.specialists.map(sp => sp.id === id ? { ...sp, status: 'ARCHIVED' } : sp) }));
+          set((s) => ({
+            specialists: s.specialists.map((sp) =>
+              sp.id === id ? { ...sp, status: "ARCHIVED" } : sp,
+            ),
+          }));
           get().addToast({
-            type: 'info',
-            title: 'Mutaxassis arxivlandi',
-            description: spec ? `${spec.fullName} arxivga o'tkazildi` : undefined,
+            type: "info",
+            title: "Mutaxassis arxivlandi",
+            description: spec
+              ? `${spec.fullName} arxivga o'tkazildi`
+              : undefined,
           });
         } catch (err: any) {
-          console.error('[Store] deleteSpecialist error:', err);
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Arxivlab bo\'lmadi' });
+          console.error("[Store] deleteSpecialist error:", err);
+          get().addToast({
+            type: "error",
+            title: "Xatolik",
+            description: err?.message || "Arxivlab bo'lmadi",
+          });
           throw err;
         }
       },
@@ -885,17 +1250,17 @@ export const useStore = create<Store>()(
             price: data.price,
           });
 
-          const svc: Service = created && created.id ? created : {
-            ...data,
-            id: generateId(),
-            createdAt: new Date().toISOString(),
-          };
+          if (!created?.id || created.id === "undefined")
+            throw new Error("Server yozuvni tasdiqlamadi");
+          const svc: Service = created;
 
-          set(s => ({ services: [svc, ...s.services.filter(sv => sv.id !== svc.id)] }));
-          get().addToast({ type: 'success', title: 'Xizmat qo\'shildi' });
+          set((s) => ({
+            services: [svc, ...s.services.filter((sv) => sv.id !== svc.id)],
+          }));
+          get().addToast({ type: "success", title: "Xizmat qo'shildi" });
           return svc;
         } catch (err: any) {
-          console.error('[Store] createService error:', err);
+          console.error("[Store] createService error:", err);
           throw err;
         }
       },
@@ -908,11 +1273,19 @@ export const useStore = create<Store>()(
             durationMinutes: data.durationMinutes,
             price: data.price,
           });
-          set(s => ({ services: s.services.map(sv => sv.id === id ? { ...sv, ...data } : sv) }));
-          get().addToast({ type: 'success', title: 'Xizmat yangilandi' });
+          set((s) => ({
+            services: s.services.map((sv) =>
+              sv.id === id ? { ...sv, ...data } : sv,
+            ),
+          }));
+          get().addToast({ type: "success", title: "Xizmat yangilandi" });
         } catch (err: any) {
-          console.error('[Store] updateService error:', err);
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Yangilab bo\'lmadi' });
+          console.error("[Store] updateService error:", err);
+          get().addToast({
+            type: "error",
+            title: "Xatolik",
+            description: err?.message || "Yangilab bo'lmadi",
+          });
           throw err;
         }
       },
@@ -920,11 +1293,19 @@ export const useStore = create<Store>()(
       archiveService: async (id) => {
         try {
           await api.services.archive(id);
-          set(s => ({ services: s.services.map(sv => sv.id === id ? { ...sv, status: 'ARCHIVED' } : sv) }));
-          get().addToast({ type: 'info', title: 'Xizmat arxivlandi' });
+          set((s) => ({
+            services: s.services.map((sv) =>
+              sv.id === id ? { ...sv, status: "ARCHIVED" } : sv,
+            ),
+          }));
+          get().addToast({ type: "info", title: "Xizmat arxivlandi" });
         } catch (err: any) {
-          console.error('[Store] archiveService error:', err);
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Arxivlab bo\'lmadi' });
+          console.error("[Store] archiveService error:", err);
+          get().addToast({
+            type: "error",
+            title: "Xatolik",
+            description: err?.message || "Arxivlab bo'lmadi",
+          });
           throw err;
         }
       },
@@ -932,276 +1313,203 @@ export const useStore = create<Store>()(
       restoreService: async (id) => {
         try {
           await api.services.restore(id);
-          set(s => ({ services: s.services.map(sv => sv.id === id ? { ...sv, status: 'ACTIVE' } : sv) }));
-          get().addToast({ type: 'success', title: 'Xizmat tiklandi' });
+          set((s) => ({
+            services: s.services.map((sv) =>
+              sv.id === id ? { ...sv, status: "ACTIVE" } : sv,
+            ),
+          }));
+          get().addToast({ type: "success", title: "Xizmat tiklandi" });
         } catch (err: any) {
-          console.error('[Store] restoreService error:', err);
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Qayta tiklab bo\'lmadi' });
+          console.error("[Store] restoreService error:", err);
+          get().addToast({
+            type: "error",
+            title: "Xatolik",
+            description: err?.message || "Qayta tiklab bo'lmadi",
+          });
           throw err;
         }
       },
 
       // ── Appointment Actions ──────────────────────────────
-      createAppointment: (data) => {
-        const apt: Appointment = { ...data, id: generateId(), createdAt: new Date().toISOString() };
-        set(s => ({ appointments: [...s.appointments, apt] }));
-
-        get().addActivityLog({
-          actorId: get().currentUser?.id ?? 'system',
-          actorName: get().currentUser?.fullName ?? 'Sistema',
-          actorRole: (get().currentUser as BaseUser)?.role ?? 'ADMIN',
-          action: 'CREATE', entity: 'appointment', entityId: apt.id,
-          description: 'Yangi uchrashuv yaratildi',
-        });
-        get().addToast({ type: 'success', title: 'Uchrashuv yaratildi' });
-        return apt;
+      // Legacy local actions cannot record clinical or financial success.
+      createAppointment: () => {
+        throw new Error(WORKFLOW_UNAVAILABLE);
       },
-
-      updateAppointment: (id, data) => {
-        set(s => ({ appointments: s.appointments.map(a => a.id === id ? { ...a, ...data, updatedAt: new Date().toISOString() } : a) }));
+      updateAppointment: () => {
+        throw new Error(WORKFLOW_UNAVAILABLE);
       },
-
-      confirmAppointment: (id) => {
-        set(s => ({ appointments: s.appointments.map(a => a.id === id ? { ...a, status: 'CONFIRMED', updatedAt: new Date().toISOString() } : a) }));
-        get().addToast({ type: 'success', title: 'Uchrashuv tasdiqlandi' });
+      confirmAppointment: () => {
+        throw new Error(WORKFLOW_UNAVAILABLE);
       },
-
-      startAppointment: (id) => {
-        set(s => ({ appointments: s.appointments.map(a => a.id === id ? { ...a, status: 'IN_PROGRESS', updatedAt: new Date().toISOString() } : a) }));
+      startAppointment: () => {
+        throw new Error(WORKFLOW_UNAVAILABLE);
       },
-
-      cancelAppointment: (id) => {
-        set(s => ({ appointments: s.appointments.map(a => a.id === id ? { ...a, status: 'CANCELLED', updatedAt: new Date().toISOString() } : a) }));
-        get().addToast({ type: 'info', title: 'Bekor qilindi', description: 'Uchrashuv bekor qilindi' });
+      cancelAppointment: () => {
+        throw new Error(WORKFLOW_UNAVAILABLE);
       },
-
-      markNoShow: (id) => {
-        set(s => ({ appointments: s.appointments.map(a => a.id === id ? { ...a, status: 'NO_SHOW', updatedAt: new Date().toISOString() } : a) }));
-        get().addToast({ type: 'warning', title: 'Kelmagan deb belgilandi' });
+      markNoShow: () => {
+        throw new Error(WORKFLOW_UNAVAILABLE);
       },
-
-      completeAppointment: (id) => {
-        set(s => ({ appointments: s.appointments.map(a => a.id === id ? { ...a, status: 'COMPLETED', updatedAt: new Date().toISOString() } : a) }));
+      completeAppointment: () => {
+        throw new Error(WORKFLOW_UNAVAILABLE);
       },
-
-      // ── Session Actions ──────────────────────────────────
-      startSession: (appointmentId) => {
-        const apt = get().appointments.find(a => a.id === appointmentId);
-        if (!apt) throw new Error('Uchrashuv topilmadi');
-        get().startAppointment(appointmentId);
-        const session: Session = {
-          id: generateId(),
-          appointmentId,
-          childId: apt.childId,
-          specialistId: apt.specialistId,
-          serviceId: apt.serviceId,
-          startTime: new Date().toISOString(),
-          status: 'IN_PROGRESS',
-          createdAt: new Date().toISOString(),
-        };
-        set(s => ({ sessions: [...s.sessions, session] }));
-        get().addToast({ type: 'info', title: 'Seans boshlandi' });
-        return session;
+      startSession: () => {
+        throw new Error(WORKFLOW_UNAVAILABLE);
       },
-
-      completeSession: (sessionId, note, observation, recommendation) => {
-        const session = get().sessions.find(s => s.id === sessionId);
-        if (!session) return;
-
-        const endTime = new Date().toISOString();
-        set(s => ({
-          sessions: s.sessions.map(ses =>
-            ses.id === sessionId
-              ? { ...ses, status: 'COMPLETED', endTime, note, observation, recommendation }
-              : ses
-          ),
-        }));
-
-        // Complete the linked appointment
-        get().completeAppointment(session.appointmentId);
-
-        // Create SESSION_CHARGE transaction
-        const service = get().services.find(sv => sv.id === session.serviceId);
-        const amount = service?.price ?? 100_000;
-        const apt = get().appointments.find(a => a.id === session.appointmentId);
-        const child = get().children.find(c => c.id === session.childId);
-
-        const txn: Transaction = {
-          id: generateId(),
-          type: 'SESSION_CHARGE',
-          direction: 'OUT',
-          amount,
-          childId: session.childId,
-          parentId: apt?.parentId,
-          sessionId: session.id,
-          appointmentId: session.appointmentId,
-          description: `Seans narxi - ${service?.name ?? 'Xizmat'}`,
-          date: endTime,
-          createdAt: endTime,
-          createdBy: session.specialistId,
-        };
-        set(s => ({ transactions: [...s.transactions, txn] }));
-
-        // Activity log
-        get().addActivityLog({
-          actorId: session.specialistId,
-          actorName: get().specialists.find(sp => sp.id === session.specialistId)?.fullName ?? '',
-          actorRole: 'SPECIALIST',
-          action: 'COMPLETE', entity: 'session', entityId: sessionId,
-          description: `${child?.fullName ?? ''} bilan seans yakunlandi`,
-        });
-
-        // 1. In-app bildirishnoma: Seans yakunlandi (Admin va mutaxassis uchun)
-        const specialist = get().specialists.find(sp => sp.id === session.specialistId);
-        get().addNotification({
-          userId: 'admin-1',
-          type: 'session',
-          title: 'Seans yakunlandi',
-          message: `${specialist?.fullName ?? 'Mutaxassis'} ${child?.fullName ?? 'Bemor'} bilan seans yakunladi.`,
-          relatedEntity: { type: 'session', id: sessionId },
-        });
-
-        // 2. In-app bildirishnoma: Ota-onaga balans va qarzdorlik holati haqida
-        const targetParentId = apt?.parentId ?? child?.parentId;
-        if (targetParentId) {
-          // Hisoblangan balans va qarzni tekshirish
-          const updatedTxns = [...get().transactions, txn];
-          const allParentChildren = get().children.filter(c => c.parentId === targetParentId).map(c => c.id);
-          const parentFin = calculateParentBalance(targetParentId, allParentChildren, updatedTxns);
-
-          if (parentFin.debt > 0) {
-            get().addNotification({
-              userId: targetParentId,
-              type: 'debt',
-              title: 'Qarzdorlik haqida ogohlantirish',
-              message: `${child?.fullName ?? 'Farzandingiz'}ning seansi yakunlandi (${formatAmount(amount)} so'm). Hisobingizda mablag' yetarli emas, joriy qarzdorlik: ${formatAmount(parentFin.debt)} so'm. Iltimos, hisobni to'ldiring.`,
-              relatedEntity: { type: 'child', id: session.childId },
-            });
-          } else {
-            get().addNotification({
-              userId: targetParentId,
-              type: 'session',
-              title: 'Seans yakunlandi',
-              message: `${child?.fullName ?? 'Farzandingiz'}ning ${service?.name ?? 'muolaja'} seansi yakunlandi. Qoldiq balans: ${formatAmount(parentFin.balance)} so'm.`,
-              relatedEntity: { type: 'child', id: session.childId },
-            });
-          }
-        }
-
-        get().addToast({ type: 'success', title: 'Seans yakunlandi', description: `${formatAmount(amount)} so'm hisoblandi` });
+      completeSession: () => {
+        throw new Error(WORKFLOW_UNAVAILABLE);
       },
-
-      // ── Attendance ───────────────────────────────────────
+      removeAttendance: () => {
+        throw new Error(WORKFLOW_UNAVAILABLE);
+      },
       recordAttendance: async (data) => {
-        // Resolve real backend childId
-        let resolvedChildId = data.childId;
-        const currentChildren = get().children;
-        const matchedChild = currentChildren.find(c => c.id === data.childId);
-        if (matchedChild && isUUID(matchedChild.id)) {
-          resolvedChildId = matchedChild.id;
-        } else if (!isUUID(resolvedChildId)) {
-          // If demo ID, resolve to matching child by name or first backend child with valid UUID
-          const byName = currentChildren.find(c => isUUID(c.id) && matchedChild && c.fullName === matchedChild.fullName);
-          const firstUuidChild = currentChildren.find(c => isUUID(c.id));
-          if (byName) {
-            resolvedChildId = byName.id;
-          } else if (firstUuidChild) {
-            resolvedChildId = firstUuidChild.id;
-          }
-        }
-
-        // Resolve specialistId (must be valid UUID if provided)
-        let resolvedSpecialistId: string | undefined = undefined;
-        if (data.specialistId) {
-          if (isUUID(data.specialistId)) {
-            resolvedSpecialistId = data.specialistId;
-          } else {
-            const matchedSpec = get().specialists.find(s => s.id === data.specialistId);
-            if (matchedSpec && isUUID(matchedSpec.id)) {
-              resolvedSpecialistId = matchedSpec.id;
-            } else {
-              const firstUuidSpec = get().specialists.find(s => isUUID(s.id));
-              if (firstUuidSpec) {
-                resolvedSpecialistId = firstUuidSpec.id;
-              }
-            }
-          }
-        }
-
-        // Clean payload strictly conforming to backend CreateAttendanceDto (no appointmentId!)
-        const payload: CreateAttendanceDto = {
-          childId: resolvedChildId,
-          status: data.status,
-          date: data.date ? new Date(data.date).toISOString() : new Date().toISOString(),
-        };
-
-        if (resolvedSpecialistId && isUUID(resolvedSpecialistId)) {
-          payload.specialistId = resolvedSpecialistId;
-        }
-
-        if (data.note && data.note.trim().length > 0) {
-          payload.note = data.note.trim();
-        }
-
+        if (!data.appointmentId || !["PRESENT", "ABSENT"].includes(data.status))
+          throw new Error(WORKFLOW_UNAVAILABLE);
+        await get().commitReception(
+          data.appointmentId,
+          data.status as "PRESENT" | "ABSENT",
+          data.note || "",
+          generateId(),
+        );
+        return get().attendance.find(
+          (a) => a.appointmentId === data.appointmentId,
+        )!;
+      },
+      fetchServiceAssignments: async (childId) => {
+        set({ assignmentsLoading: true, assignmentsError: null });
         try {
-          const created = IS_TEST_ENV
-            ? { ...data, id: generateId(), createdAt: new Date().toISOString() }
-            : await api.clinical.recordAttendance(payload);
-          const record: AttendanceRecord = {
-            ...data,
-            ...created,
-            appointmentId: data.appointmentId,
-            id: created.id,
-            createdAt: created.createdAt,
-          };
-
-          set(s => ({
-            attendance: [
-              ...s.attendance.filter(a => {
-                if (data.appointmentId && a.appointmentId) {
-                  return a.appointmentId !== data.appointmentId;
-                }
-                return !(a.childId === data.childId && a.date === data.date);
-              }),
-              record,
+          const rows = await api.workflow.getAssignments(childId);
+          set((s) => ({
+            serviceAssignments: [
+              ...s.serviceAssignments.filter((a) => a.childId !== childId),
+              ...rows,
             ],
           }));
-          get().addToast({ type: 'success', title: 'Davomat belgilandi' });
-          return record;
-        } catch (err: any) {
-          get().addToast({ type: 'error', title: 'Davomat saqlanmadi', description: err?.message });
-          throw err;
+        } catch (error) {
+          set({
+            assignmentsError:
+              error instanceof Error ? error.message : "Xizmatlar yuklanmadi",
+          });
+        } finally {
+          set({ assignmentsLoading: false });
+        }
+      },
+      createServiceAssignment: async (data, key) => {
+        const user = get().currentUser;
+        if (!user || !["SUPER_ADMIN", "ADMIN"].includes(user.role))
+          throw new Error("Ruxsat yo‘q");
+        const item = await api.workflow.createAssignment(data, key);
+        if (item.childId !== data.childId || item.serviceId !== data.serviceId)
+          throw new Error("Server boshqa xizmatni qaytardi");
+        set((s) => ({
+          serviceAssignments: [
+            ...s.serviceAssignments.filter((a) => a.id !== item.id),
+            item,
+          ],
+        }));
+        await get().fetchInitialData();
+        return item;
+      },
+      extendServiceAssignment: async (id, count, key) => {
+        if (!["SUPER_ADMIN", "ADMIN"].includes(get().currentUser?.role || ""))
+          throw new Error("Ruxsat yo‘q");
+        const item = await api.workflow.extendAssignment(id, count, key);
+        if (item.id !== id) throw new Error("Server boshqa xizmatni qaytardi");
+        set((s) => ({
+          serviceAssignments: s.serviceAssignments.map((a) =>
+            a.id === id ? item : a,
+          ),
+        }));
+        await get().fetchInitialData();
+      },
+      saveReception: async (data, key) => {
+        if (!["SUPER_ADMIN", "ADMIN"].includes(get().currentUser?.role || ""))
+          throw new Error("Ruxsat yo‘q");
+        const item = await api.workflow.createAppointment(data, key);
+        set((s) => ({
+          appointments: [
+            ...s.appointments.filter((a) => a.id !== item.id),
+            item,
+          ],
+        }));
+      },
+      commitReception: async (id, status, note, key) => {
+        const actorId = get().currentUser?.id;
+        if (!["SUPER_ADMIN", "ADMIN"].includes(get().currentUser?.role || ""))
+          throw new Error("Ruxsat yo‘q");
+        const appointment = get().appointments.find((a) => a.id === id);
+        if (!appointment || !Number.isInteger(appointment.version))
+          throw new Error(
+            "Qabul versiyasi serverdan tasdiqlanmadi. Qayta yuklang.",
+          );
+        const result = await api.workflow.commitAttendance(id, {
+          status,
+          note,
+          expectedVersion: appointment.version!,
+          idempotencyKey: key,
+        });
+        if (get().currentUser?.id !== actorId)
+          throw new Error(
+            "Sessiya o‘zgardi. Natijani qayta yuklab tekshiring.",
+          );
+        set((s) => ({
+          appointments: s.appointments.map((a) =>
+            a.id === id ? result.appointment : a,
+          ),
+          attendance: [
+            ...s.attendance.filter((a) => a.appointmentId !== id),
+            result.attendance,
+          ],
+          serviceAssignments: [
+            ...s.serviceAssignments.filter(
+              (a) => a.id !== result.assignment.id,
+            ),
+            result.assignment,
+          ],
+          parentAccounts: {
+            ...s.parentAccounts,
+            [result.parentAccount.parentId]: result.parentAccount,
+          },
+        }));
+        // The journal is read back from the server, never manufactured locally.
+        try {
+          const transactions = await api.finance.getTransactions();
+          if (get().currentUser?.id === actorId) set({ transactions });
+        } catch {
+          set({
+            dataError:
+              "Davomat saqlandi. Pul harakatlarini yangilash uchun qayta yuklang.",
+          });
         }
       },
 
-      removeAttendance: (idOrAppointmentId) => {
-        set(s => ({
-          attendance: s.attendance.filter(a => a.id !== idOrAppointmentId && a.appointmentId !== idOrAppointmentId),
-        }));
-        get().addToast({ type: 'info', title: 'Davomat bekor qilindi' });
-      },
-
-      // ── Assessments ──────────────────────────────────────
       createAssessment: async (data) => {
         try {
-          const created = IS_TEST_ENV
-            ? { ...data, id: generateId(), createdAt: new Date().toISOString() }
-            : await api.clinical.createAssessment({
-                childId: data.childId,
-                specialistId: data.specialistId,
-                movement: data.scores.movement,
-                coordination: data.scores.coordination,
-                flexibility: data.scores.flexibility,
-                activityTolerance: data.scores.activityTolerance,
-                sessionResponse: data.scores.sessionResponse,
-                professionalObservation: data.professionalObservation,
-              });
+          const created = await api.clinical.createAssessment({
+            childId: data.childId,
+            specialistId: data.specialistId,
+            movement: data.scores.movement,
+            coordination: data.scores.coordination,
+            flexibility: data.scores.flexibility,
+            activityTolerance: data.scores.activityTolerance,
+            sessionResponse: data.scores.sessionResponse,
+            professionalObservation: data.professionalObservation,
+          });
           const assessment: Assessment = { ...data, ...created };
-          set(s => ({ assessments: [assessment, ...s.assessments.filter(item => item.id !== assessment.id)] }));
-          get().addToast({ type: 'success', title: 'Baholash saqlandi' });
+          set((s) => ({
+            assessments: [
+              assessment,
+              ...s.assessments.filter((item) => item.id !== assessment.id),
+            ],
+          }));
+          get().addToast({ type: "success", title: "Baholash saqlandi" });
           return assessment;
         } catch (err: any) {
-          get().addToast({ type: 'error', title: 'Baholash saqlanmadi', description: err?.message });
+          get().addToast({
+            type: "error",
+            title: "Baholash saqlanmadi",
+            description: err?.message,
+          });
           throw err;
         }
       },
@@ -1209,155 +1517,108 @@ export const useStore = create<Store>()(
       // ── Progress Notes ───────────────────────────────────
       createProgressNote: async (data) => {
         try {
-          const created = IS_TEST_ENV
-            ? { ...data, id: generateId(), createdAt: new Date().toISOString() }
-            : await api.clinical.createProgress({
-                childId: data.childId,
-                specialistId: data.specialistId,
-                title: 'Rivojlanish qaydi',
-                description: data.note,
-              });
+          const created = await api.clinical.createProgress({
+            childId: data.childId,
+            specialistId: data.specialistId,
+            title: "Rivojlanish qaydi",
+            description: data.note,
+          });
           const note: ProgressNote = { ...data, ...created };
-          set(s => ({ progressNotes: [note, ...s.progressNotes.filter(item => item.id !== note.id)] }));
-          get().addToast({ type: 'success', title: 'Rivojlanish qaydi saqlandi' });
+          set((s) => ({
+            progressNotes: [
+              note,
+              ...s.progressNotes.filter((item) => item.id !== note.id),
+            ],
+          }));
+          get().addToast({
+            type: "success",
+            title: "Rivojlanish qaydi saqlandi",
+          });
           return note;
         } catch (err: any) {
-          get().addToast({ type: 'error', title: 'Rivojlanish qaydi saqlanmadi', description: err?.message });
+          get().addToast({
+            type: "error",
+            title: "Rivojlanish qaydi saqlanmadi",
+            description: err?.message,
+          });
           throw err;
         }
       },
 
       // ── Payments ─────────────────────────────────────────
       recordPayment: async (data) => {
-        if (!data.parentId) {
-          throw new Error('Ota-onani tanlash majburiy');
-        }
-        const cleanAmount = Math.round(Number(data.amount));
-        if (!cleanAmount || cleanAmount <= 0) {
-          throw new Error("To'lov summasi 0 dan katta bo'lishi kerak");
-        }
-        if (cleanAmount > 2_000_000_000) {
-          throw new Error("To'lov summasi 2,000,000,000 so'mdan oshmasligi kerak");
-        }
-
-        const targetChildId = data.childId && data.childId.trim() ? data.childId.trim() : undefined;
-        const now = new Date().toISOString();
-        const txnId = generateId();
-        const idempotencyKey = `pay-${generateId()}`;
-
-        let confirmedPayment: Payment;
-
-        const isTestEnv =
-          (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') ||
-          (import.meta as any).env?.MODE === 'test' ||
-          Boolean((import.meta as any).env?.VITEST);
-
-        if (isTestEnv) {
-          const payId = generateId();
-          confirmedPayment = {
-            id: payId,
-            parentId: data.parentId,
-            childId: targetChildId,
-            amount: cleanAmount,
-            method: data.method,
-            date: data.date || now,
-            notes: data.notes,
-            idempotencyKey,
-            transactionId: txnId,
-            createdBy: data.createdBy,
-            createdAt: now,
-          };
-        } else {
-          // Live API call: do NOT assume success!
-          const res = await api.finance.recordPayment({
-            parentId: data.parentId,
-            childId: targetChildId,
-            amount: cleanAmount,
-            method: data.method,
-            note: data.notes,
-            paidAt: data.date || now,
-            idempotencyKey,
-          });
-
-          confirmedPayment = {
-            ...res,
-            parentId: data.parentId,
-            childId: res.childId || targetChildId,
-            amount: cleanAmount,
-            method: data.method,
-            date: res.date || data.date || now,
-            notes: data.notes || res.notes,
-            idempotencyKey,
-            transactionId: res.transactionId || txnId,
-            createdBy: data.createdBy,
-          };
-        }
-
-        // Only after backend confirms, commit to store:
-        const txn: Transaction = {
-          id: confirmedPayment.transactionId || txnId,
-          type: 'PAYMENT',
-          direction: 'IN',
-          amount: cleanAmount,
+        const actorId = get().currentUser?.id;
+        if (!["SUPER_ADMIN", "ADMIN"].includes(get().currentUser?.role || ""))
+          throw new Error("Ruxsat yo‘q");
+        if (
+          !data.parentId ||
+          !Number.isSafeInteger(data.amount) ||
+          data.amount <= 0 ||
+          data.amount > 2_000_000_000
+        )
+          throw new Error("Ota-ona va to‘lov summasini tekshiring");
+        if (!api.workflow.familyTopUpEnabled)
+          throw new Error(
+            "Oila balansini to‘ldirish serverga hali ulanmagan. To‘lov qabul qilingani tasdiqlanmadi.",
+          );
+        const res: any = await api.workflow.topUp({
           parentId: data.parentId,
-          childId: confirmedPayment.childId || targetChildId,
-          paymentId: confirmedPayment.id,
-          description: `To'lov qabul qilindi - ${data.method}`,
-          date: data.date || now,
-          createdAt: now,
-          createdBy: data.createdBy,
-        };
-
-        set(s => ({
-          payments: [confirmedPayment, ...s.payments.filter(p => p.id !== confirmedPayment.id)],
-          transactions: [txn, ...s.transactions],
+          amount: data.amount,
+          method: data.method,
+          note: data.notes,
+          idempotencyKey: data.idempotencyKey || generateId(),
+        });
+        const body = res?.data || res;
+        if (get().currentUser?.id !== actorId)
+          throw new Error(
+            "Sessiya o‘zgardi. Natijani qayta yuklab tekshiring.",
+          );
+        if (
+          !body?.payment?.id ||
+          body.payment.parentId !== data.parentId ||
+          Number(body.payment.amount) !== data.amount ||
+          body.payment.method !== data.method ||
+          !Number.isFinite(
+            Date.parse(
+              body.payment.paidAt ||
+                body.payment.date ||
+                body.payment.createdAt,
+            ),
+          ) ||
+          !body.parentAccount ||
+          body.parentAccount.parentId !== data.parentId
+        )
+          throw new Error(
+            "To‘lov javobi to‘liq emas. Qayta yuklab tekshiring.",
+          );
+        const account = body.parentAccount;
+        if (
+          !Number.isFinite(account.balance) ||
+          !Number.isFinite(account.debt) ||
+          account.balance < 0 ||
+          account.debt < 0 ||
+          (account.balance > 0 && account.debt > 0)
+        )
+          throw new Error("Oila hisobi tasdiqlanmadi");
+        const confirmed = normalizePayment(body.payment);
+        set((s) => ({
+          payments: [
+            confirmed,
+            ...s.payments.filter((p) => p.id !== confirmed.id),
+          ],
+          parentAccounts: { ...s.parentAccounts, [account.parentId]: account },
         }));
-
-        const parent = get().parents.find(p => p.id === data.parentId);
-        get().addActivityLog({
-          actorId: data.createdBy,
-          actorName: get().currentUser?.fullName ?? 'Admin',
-          actorRole: (get().currentUser as BaseUser)?.role ?? 'ADMIN',
-          action: 'PAYMENT',
-          entity: 'payment',
-          entityId: confirmedPayment.id,
-          description: `${parent?.fullName ?? ''} dan ${formatCurrency(cleanAmount)} qabul qilindi`,
-        });
-
-        // In-app notification with real confirmed payment
-        get().addNotification({
-          userId: data.parentId,
-          type: 'payment',
-          title: "To'lov qabul qilindi",
-          message: `${formatCurrency(cleanAmount)} to'lov qabul qilindi. Balansingiz yangilandi.`,
-          relatedEntity: { type: 'payment', id: confirmedPayment.id },
-        });
-
-        get().addToast({
-          type: 'success',
-          title: "To'lov qabul qilindi",
-          description: `${formatCurrency(cleanAmount)} muvaffaqiyatli saqlandi`,
-        });
-
-        // Live server synchronization of finance, debtors, and notifications
-        if (!isTestEnv) {
-          Promise.allSettled([
-            api.finance.getPayments({ limit: 100 }),
-            api.finance.getTransactions({ limit: 100 }),
-            api.platform.getNotifications(),
-          ]).then(([pRes, tRes, nRes]) => {
-            set(s => ({
-              payments: pRes.status === 'fulfilled' && Array.isArray(pRes.value) ? pRes.value : s.payments,
-              transactions: tRes.status === 'fulfilled' && Array.isArray(tRes.value) ? tRes.value : s.transactions,
-              notifications: nRes.status === 'fulfilled' && Array.isArray(nRes.value) ? nRes.value : s.notifications,
-            }));
-          }).catch(() => {});
+        try {
+          const transactions = await api.finance.getTransactions();
+          set({ transactions });
+        } catch {
+          set({
+            dataError: "To‘lov saqlandi. Pul harakatlarini qayta yuklang.",
+          });
         }
-
-        return confirmedPayment;
+        return confirmed;
       },
 
-      // ── Notifications ────────────────────────────────────
       addNotification: (data) => {
         const notif: Notification = {
           ...data,
@@ -1365,27 +1626,38 @@ export const useStore = create<Store>()(
           isRead: data.isRead ?? false,
           createdAt: new Date().toISOString(),
         };
-        set(s => ({
+        set((s) => ({
           notifications: [notif, ...s.notifications],
         }));
         return notif;
       },
 
       markNotificationRead: (id) => {
-        set(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, isRead: true } : n) }));
-        api.platform.markNotificationRead(id).catch(err => {
-          console.warn('[Store] Background markNotificationRead sync warning:', err);
+        set((s) => ({
+          notifications: s.notifications.map((n) =>
+            n.id === id ? { ...n, isRead: true } : n,
+          ),
+        }));
+        api.platform.markNotificationRead(id).catch((err) => {
+          console.warn(
+            "[Store] Background markNotificationRead sync warning:",
+            err,
+          );
         });
       },
 
       markNotificationUnread: (id) => {
-        set(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, isRead: false } : n) }));
+        set((s) => ({
+          notifications: s.notifications.map((n) =>
+            n.id === id ? { ...n, isRead: false } : n,
+          ),
+        }));
       },
 
       markAllNotificationsRead: (userId, role) => {
-        const isAdmin = role === 'SUPER_ADMIN' || role === 'ADMIN';
-        set(s => ({
-          notifications: s.notifications.map(n => {
+        const isAdmin = role === "SUPER_ADMIN" || role === "ADMIN";
+        set((s) => ({
+          notifications: s.notifications.map((n) => {
             if (isAdmin || !userId) {
               return { ...n, isRead: true };
             }
@@ -1395,8 +1667,11 @@ export const useStore = create<Store>()(
             return n;
           }),
         }));
-        api.platform.markAllNotificationsRead().catch(err => {
-          console.warn('[Store] Background markAllNotificationsRead sync warning:', err);
+        api.platform.markAllNotificationsRead().catch((err) => {
+          console.warn(
+            "[Store] Background markAllNotificationsRead sync warning:",
+            err,
+          );
         });
       },
 
@@ -1407,31 +1682,35 @@ export const useStore = create<Store>()(
             fullName: data.fullName,
             phone: data.phone,
             role: data.role,
-            password: password || 'Admin123!',
+            password: password || "Admin123!",
           });
 
-          const admin: AdminUser = created && created.id ? created : {
-            ...data,
-            id: generateId(),
-            createdAt: new Date().toISOString(),
-          };
+          if (!created?.id || created.id === "undefined")
+            throw new Error("Server yozuvni tasdiqlamadi");
+          const admin: AdminUser = created;
 
-          set(s => ({ admins: [admin, ...s.admins.filter(a => a.id !== admin.id)] }));
-          get().addToast({ type: 'success', title: 'Administrator qo‘shildi', description: `${admin.fullName} tizimga muvaffaqiyatli biriktirildi` });
+          set((s) => ({
+            admins: [admin, ...s.admins.filter((a) => a.id !== admin.id)],
+          }));
+          get().addToast({
+            type: "success",
+            title: "Administrator qo‘shildi",
+            description: `${admin.fullName} tizimga muvaffaqiyatli biriktirildi`,
+          });
           return admin;
         } catch (err: any) {
-          console.error('[Store] createAdmin error:', err);
+          console.error("[Store] createAdmin error:", err);
           throw err;
         }
       },
 
       updateAdmin: async (id, data) => {
-        const prev = get().admins.find(a => a.id === id);
+        const prev = get().admins.find((a) => a.id === id);
         try {
           // Status changes use dedicated endpoints
           if (data.status !== undefined && Object.keys(data).length === 1) {
-            if (data.status === 'ACTIVE') {
-              if (prev?.status === 'ARCHIVED') {
+            if (data.status === "ACTIVE") {
+              if (prev?.status === "ARCHIVED") {
                 try {
                   await api.admins.restore(id);
                 } catch {
@@ -1440,18 +1719,31 @@ export const useStore = create<Store>()(
               } else {
                 await api.admins.activate(id);
               }
-            } else if (data.status === 'INACTIVE') {
+            } else if (data.status === "INACTIVE") {
               await api.admins.deactivate(id);
-            } else if (data.status === 'ARCHIVED') {
+            } else if (data.status === "ARCHIVED") {
               await api.admins.archive(id);
             }
-            set(s => ({ admins: s.admins.map(a => a.id === id ? { ...a, status: data.status! } : a) }));
-            get().addToast({ type: 'success', title: data.status === 'ACTIVE' ? (prev?.status === 'ARCHIVED' ? 'Arxivdan qaytarildi' : 'Faollashtirildi') : 'Nofaol qilindi' });
+            set((s) => ({
+              admins: s.admins.map((a) =>
+                a.id === id ? { ...a, status: data.status! } : a,
+              ),
+            }));
+            get().addToast({
+              type: "success",
+              title:
+                data.status === "ACTIVE"
+                  ? prev?.status === "ARCHIVED"
+                    ? "Arxivdan qaytarildi"
+                    : "Faollashtirildi"
+                  : "Nofaol qilindi",
+            });
             return;
           }
 
           const patchPayload: UpdateAdminDto = {};
-          if (data.fullName !== undefined) patchPayload.fullName = data.fullName;
+          if (data.fullName !== undefined)
+            patchPayload.fullName = data.fullName;
           if (data.phone !== undefined) patchPayload.phone = data.phone;
           if (data.role !== undefined) patchPayload.role = data.role;
 
@@ -1460,16 +1752,27 @@ export const useStore = create<Store>()(
             updated = await api.admins.update(id, patchPayload);
           }
 
-          set(s => ({
-            admins: s.admins.map(a => a.id === id ? { ...a, ...(updated && updated.id ? updated : data) } : a)
+          set((s) => ({
+            admins: s.admins.map((a) =>
+              a.id === id
+                ? { ...a, ...(updated && updated.id ? updated : data) }
+                : a,
+            ),
           }));
-          get().addToast({ type: 'success', title: 'Admin yangilandi' });
+          get().addToast({ type: "success", title: "Admin yangilandi" });
         } catch (err: any) {
-          console.error('[Store] updateAdmin error:', err);
+          console.error("[Store] updateAdmin error:", err);
           if (prev) {
-            set(s => ({ admins: s.admins.map(a => a.id === id ? prev : a) }));
+            set((s) => ({
+              admins: s.admins.map((a) => (a.id === id ? prev : a)),
+            }));
           }
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Admin ma\'lumotlarini yangilab bo\'lmadi' });
+          get().addToast({
+            type: "error",
+            title: "Xatolik",
+            description:
+              err?.message || "Admin ma'lumotlarini yangilab bo'lmadi",
+          });
           throw err;
         }
       },
@@ -1477,11 +1780,15 @@ export const useStore = create<Store>()(
       deleteAdmin: async (id) => {
         try {
           await api.admins.archive(id);
-          set(s => ({ admins: s.admins.filter(a => a.id !== id) }));
-          get().addToast({ type: 'success', title: "Admin o'chirildi" });
+          set((s) => ({ admins: s.admins.filter((a) => a.id !== id) }));
+          get().addToast({ type: "success", title: "Admin o'chirildi" });
         } catch (err: any) {
-          console.error('[Store] deleteAdmin error:', err);
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Adminni o\'chirib bo\'lmadi' });
+          console.error("[Store] deleteAdmin error:", err);
+          get().addToast({
+            type: "error",
+            title: "Xatolik",
+            description: err?.message || "Adminni o'chirib bo'lmadi",
+          });
           throw err;
         }
       },
@@ -1497,17 +1804,17 @@ export const useStore = create<Store>()(
             notes: data.notes,
           });
 
-          const emp: Employee = created && created.id ? created : {
-            ...data,
-            id: generateId(),
-            joinedAt: new Date().toISOString(),
-          };
+          if (!created?.id || created.id === "undefined")
+            throw new Error("Server yozuvni tasdiqlamadi");
+          const emp: Employee = created;
 
-          set(s => ({ employees: [emp, ...s.employees.filter(e => e.id !== emp.id)] }));
-          get().addToast({ type: 'success', title: 'Xodim qo\'shildi' });
+          set((s) => ({
+            employees: [emp, ...s.employees.filter((e) => e.id !== emp.id)],
+          }));
+          get().addToast({ type: "success", title: "Xodim qo'shildi" });
           return emp;
         } catch (err: any) {
-          console.error('[Store] createEmployee error:', err);
+          console.error("[Store] createEmployee error:", err);
           throw err;
         }
       },
@@ -1522,19 +1829,35 @@ export const useStore = create<Store>()(
             notes: data.notes,
             status: data.status,
           });
-          set(s => ({ employees: s.employees.map(e => e.id === id ? { ...e, ...data } : e) }));
-          get().addToast({ type: 'success', title: 'Xodim ma\'lumotlari yangilandi' });
+          set((s) => ({
+            employees: s.employees.map((e) =>
+              e.id === id ? { ...e, ...data } : e,
+            ),
+          }));
+          get().addToast({
+            type: "success",
+            title: "Xodim ma'lumotlari yangilandi",
+          });
         } catch (err: any) {
-          console.error('[Store] updateEmployee error:', err);
-          get().addToast({ type: 'error', title: 'Xatolik', description: err?.message || 'Xodim ma\'lumotlarini yangilab bo\'lmadi' });
+          console.error("[Store] updateEmployee error:", err);
+          get().addToast({
+            type: "error",
+            title: "Xatolik",
+            description:
+              err?.message || "Xodim ma'lumotlarini yangilab bo'lmadi",
+          });
           throw err;
         }
       },
 
       // ── Activity Log ──────────────────────────────────────
       addActivityLog: (log) => {
-        const entry: ActivityLog = { ...log, id: generateId(), timestamp: new Date().toISOString() };
-        set(s => ({ activityLogs: [entry, ...s.activityLogs] }));
+        const entry: ActivityLog = {
+          ...log,
+          id: generateId(),
+          timestamp: new Date().toISOString(),
+        };
+        set((s) => ({ activityLogs: [entry, ...s.activityLogs] }));
       },
 
       // ── Clinic Settings & Reset ───────────────────────────
@@ -1544,25 +1867,36 @@ export const useStore = create<Store>()(
             centerName: settings.clinicName,
             phone: settings.phone,
             address: settings.address,
-            workingHours: settings.workStart || settings.workEnd
-              ? {
-                  start: settings.workStart ?? get().clinicSettings.workStart,
-                  end: settings.workEnd ?? get().clinicSettings.workEnd,
-                }
-              : undefined,
+            workingHours:
+              settings.workStart || settings.workEnd
+                ? {
+                    start: settings.workStart ?? get().clinicSettings.workStart,
+                    end: settings.workEnd ?? get().clinicSettings.workEnd,
+                  }
+                : undefined,
           });
-          set(s => ({ clinicSettings: { ...s.clinicSettings, ...settings } }));
-          get().addToast({ type: 'success', title: 'Sozlamalar saqlandi', description: 'Markaz ma’lumotlari yangilandi' });
+          set((s) => ({
+            clinicSettings: { ...s.clinicSettings, ...settings },
+          }));
+          get().addToast({
+            type: "success",
+            title: "Sozlamalar saqlandi",
+            description: "Markaz ma’lumotlari yangilandi",
+          });
         } catch (err: any) {
-          get().addToast({ type: 'error', title: 'Sozlamalar saqlanmadi', description: err?.message });
+          get().addToast({
+            type: "error",
+            title: "Sozlamalar saqlanmadi",
+            description: err?.message,
+          });
           throw err;
         }
       },
 
       resetStore: () => {
         try {
-          localStorage.removeItem('massaj-crm-store');
-          localStorage.removeItem('access_token');
+          localStorage.removeItem("massaj-crm-store");
+          localStorage.removeItem("access_token");
         } catch {}
         set({
           currentUser: null,
@@ -1574,6 +1908,10 @@ export const useStore = create<Store>()(
           children: [],
           services: [],
           appointments: [],
+          serviceAssignments: [],
+          parentAccounts: {},
+          accountsError: null,
+          assignmentsError: null,
           sessions: [],
           attendance: [],
           progressNotes: [],
@@ -1581,71 +1919,44 @@ export const useStore = create<Store>()(
           notifications: [],
           activityLogs: [],
           clinicSettings: {
-            clinicName: 'Bolalar Massaj & Reabilitatsiya Markazi',
-            phone: '+998 71 200 00 00',
-            address: 'Toshkent sh., Chilonzor tumani, 9-mavze',
-            workStart: '08:00',
-            workEnd: '18:00',
+            clinicName: "Bolalar Massaj & Reabilitatsiya Markazi",
+            phone: "",
+            address: "",
+            workStart: "08:00",
+            workEnd: "18:00",
           },
           isLoadingData: false,
           isInitialized: false,
           dataError: null,
         });
-        get().addToast({ type: 'info', title: 'Tizim tozalandi', description: 'Barcha sessiyalar bekor qilindi' });
+        get().addToast({
+          type: "info",
+          title: "Tizim tozalandi",
+          description: "Barcha sessiyalar bekor qilindi",
+        });
       },
 
       resetToSeedData: () => {
-        set({
-          admins: ADMINS,
-          employees: EMPLOYEES,
-          specialists: SPECIALISTS,
-          parents: PARENTS,
-          children: CHILDREN,
-          services: SERVICES,
-          appointments: APPOINTMENTS,
-          sessions: SESSIONS,
-          attendance: ATTENDANCE_RECORDS,
-          assessments: ASSESSMENTS,
-          progressNotes: PROGRESS_NOTES,
-          transactions: TRANSACTIONS,
-          payments: PAYMENTS,
-          notifications: NOTIFICATIONS,
-          activityLogs: ACTIVITY_LOGS,
-          clinicSettings: {
-            clinicName: 'Bolalar Massaj & Reabilitatsiya Markazi',
-            phone: '+998 71 200 00 00',
-            address: 'Toshkent sh., Chilonzor tumani, 9-mavze',
-            workStart: '08:00',
-            workEnd: '18:00',
-          },
-          isLoadingData: false,
-          isInitialized: true,
-          dataError: null,
-        });
-        get().addToast({
-          type: 'success',
-          title: 'Ma\'lumotlar yangilandi',
-          description: 'Klinika ma\'lumotlari muvaffaqiyatli tiklandi',
-        });
+        throw new Error("Demo ma’lumotlar ilovaga yuklanmaydi");
       },
     }),
     {
-      name: 'massaj-crm-live-storage-v1',
+      name: "massaj-crm-live-storage-v1",
       onRehydrateStorage: () => (state) => {
         // Clear any old mock demo data lingering in legacy keys
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           try {
-            const legacy = localStorage.getItem('massaj-crm-store');
-            if (legacy && (legacy.includes('201.7') || legacy.includes('Alisher Nazarov') || legacy.includes('superadmin@demo.com'))) {
-              localStorage.removeItem('massaj-crm-store');
+            const legacy = localStorage.getItem("massaj-crm-store");
+            if (
+              legacy &&
+              (legacy.includes("201.7") ||
+                legacy.includes("superadmin@demo.com"))
+            ) {
+              localStorage.removeItem("massaj-crm-store");
             }
           } catch {}
         }
         if (state) {
-          // If stored state has 0 services or 0 children, initialize with realistic clinic data
-          if ((!state.services || state.services.length === 0) || (!state.children || state.children.length === 0)) {
-            state.resetToSeedData();
-          }
           if (state.isAuthenticated) {
             // Immediately fetch fresh live data from Render backend if connected
             state.fetchInitialData();
@@ -1658,44 +1969,41 @@ export const useStore = create<Store>()(
         sidebarCollapsed: state.sidebarCollapsed,
         clinicSettings: state.clinicSettings,
       }),
-    }
-  )
+    },
+  ),
 );
 
 // Convenience selectors (Shallow memoized to prevent render cascading)
 export const useAuth = () => {
   return useStore(
-    useShallow(s => ({
+    useShallow((s) => ({
       currentUser: s.currentUser,
       isAuthenticated: s.isAuthenticated,
       login: s.login,
       logout: s.logout,
       updateCurrentUser: s.updateCurrentUser,
-    }))
+    })),
   );
 };
 
 export const useToasts = () => {
   return useStore(
-    useShallow(s => ({
+    useShallow((s) => ({
       toasts: s.toasts,
       addToast: s.addToast,
       removeToast: s.removeToast,
-    }))
+    })),
   );
 };
 
 export const useSidebar = () => {
   return useStore(
-    useShallow(s => ({
+    useShallow((s) => ({
       collapsed: s.sidebarCollapsed,
       toggle: s.toggleSidebar,
       set: s.setSidebarCollapsed,
-    }))
+    })),
   );
 };
 
 // Helper (used inside store without import cycle)
-function formatAmount(amount: number): string {
-  return new Intl.NumberFormat('uz-UZ').format(amount);
-}

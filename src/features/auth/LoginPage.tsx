@@ -2,36 +2,43 @@
 //  Login Page — Senior Healthcare/Pediatric CRM Split-Screen Authentication
 // ═══════════════════════════════════════════════════════
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Eye, EyeOff, Heart, ArrowRight, ShieldCheck,
-  Users, Lock, Stethoscope,
-  Phone, HelpCircle, Shield
-} from 'lucide-react';
-import { cn } from '@/utils';
-import { useAuth, useStore } from '@/store';
-import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
+  Eye,
+  EyeOff,
+  Heart,
+  ArrowRight,
+  ShieldCheck,
+  Lock,
+  Phone,
+  HelpCircle,
+  Shield,
+} from "lucide-react";
+import { cn } from "@/utils";
+import { useAuth, useStore } from "@/store";
+import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
 
 const loginSchema = z.object({
   phone: z.string().min(3, "Telefon raqamini kiriting"),
-  password: z.string().min(6, 'Parol kamida 6 ta belgidan iborat bo‘lishi kerak'),
+  password: z
+    .string()
+    .min(6, "Parol kamida 6 ta belgidan iborat bo‘lishi kerak"),
   rememberMe: z.boolean().optional(),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-
 const ROLE_REDIRECTS: Record<string, string> = {
-  SUPER_ADMIN: '/dashboard/super-admin',
-  ADMIN: '/dashboard/super-admin',
-  SPECIALIST: '/dashboard/specialist',
-  PARENT: '/dashboard/parent',
+  SUPER_ADMIN: "/dashboard/super-admin",
+  ADMIN: "/dashboard/super-admin",
+  SPECIALIST: "/dashboard/specialist",
+  PARENT: "/dashboard/parent",
 };
 
 export function LoginPage() {
@@ -39,7 +46,7 @@ export function LoginPage() {
   const { login } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
-  const [serverError, setServerError] = useState('');
+  const [serverError, setServerError] = useState("");
   const [showForgotModal, setShowForgotModal] = useState(false);
 
   const {
@@ -49,14 +56,14 @@ export function LoginPage() {
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      phone: '',
-      password: '',
+      phone: "",
+      password: "",
       rememberMe: true,
     },
   });
 
   const onSubmit = async (data: LoginForm) => {
-    setServerError('');
+    setServerError("");
     const result = await login(data.phone, data.password);
     if (result.success) {
       const userRole = useStore.getState().currentUser?.role;
@@ -64,7 +71,7 @@ export function LoginPage() {
         navigate(ROLE_REDIRECTS[userRole], { replace: true });
         return;
       }
-      navigate('/dashboard/super-admin', { replace: true });
+      navigate("/dashboard/super-admin", { replace: true });
     } else {
       setServerError(result.error ?? "Login yoki parol noto'g'ri");
     }
@@ -90,7 +97,7 @@ export function LoginPage() {
           className="absolute inset-0 opacity-[0.035] pointer-events-none"
           style={{
             backgroundImage: `radial-gradient(circle, #ffffff 1px, transparent 1px)`,
-            backgroundSize: '24px 24px',
+            backgroundSize: "24px 24px",
           }}
         />
 
@@ -103,9 +110,11 @@ export function LoginPage() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-xl tracking-tight text-white">MASSAJ</span>
+                  <span className="font-extrabold text-xl tracking-tight text-white">
+                    MASSAJ
+                  </span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-500/20 text-brand-300 border border-brand-400/30">
-                    CRM v2.5
+                    CRM
                   </span>
                 </div>
                 <p className="text-white/50 text-[11px] font-medium tracking-wide">
@@ -124,74 +133,34 @@ export function LoginPage() {
             >
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs text-white/90 font-medium mb-4 shadow-2xs">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Klinik telemetriya va real-vaqt monitoringi
+                Markazning ish kabineti
               </div>
               <h2 className="text-3xl xl:text-4xl font-extrabold text-white leading-tight">
-                Bolajonlar salomatligi uchun{' '}
+                Bolajonlar salomatligi uchun{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-amber-300 to-emerald-400">
                   professional CRM
                 </span>
               </h2>
               <p className="text-white/65 text-sm xl:text-base leading-relaxed mt-3 max-w-md">
-                Muolajalar jadvali, klinik baholash, mutaxassis tavsiyalari va shaffof moliyaviy hisob-kitoblar bir tizimda.
+                Muolajalar jadvali, klinik baholash, mutaxassis tavsiyalari va
+                shaffof moliyaviy hisob-kitoblar bir tizimda.
               </p>
             </motion.div>
 
-            {/* Elevated Interactive Showcase Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="p-5 rounded-2xl bg-white/[0.07] backdrop-blur-xl border border-white/10 shadow-2xl space-y-4"
-            >
-              {/* Telemetry pill row */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-xl bg-white/[0.05] border border-white/5">
-                  <div className="flex items-center gap-2 text-white/50 text-xs mb-1">
-                    <Users className="w-3.5 h-3.5 text-brand-400" />
-                    <span>Mijoz bolalar</span>
-                  </div>
-                  <p className="text-lg font-bold text-white">1,200+ nafar</p>
-                  <span className="text-[11px] text-emerald-400 font-medium">99.2% tiklanish ko‘rsatkichi</span>
-                </div>
-                <div className="p-3 rounded-xl bg-white/[0.05] border border-white/5">
-                  <div className="flex items-center gap-2 text-white/50 text-xs mb-1">
-                    <Stethoscope className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Mutaxassislar</span>
-                  </div>
-                  <p className="text-lg font-bold text-white">14 nafar shifokor</p>
-                  <span className="text-[11px] text-brand-300 font-medium">Nevrolog & Ortoped</span>
-                </div>
-              </div>
-
-              {/* Patient progress simulation snippet */}
-              <div className="p-3 rounded-xl bg-white/[0.05] border border-white/5 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-brand-500/30 text-brand-300 flex items-center justify-center font-bold text-[10px]">
-                      AA
-                    </div>
-                    <span className="font-semibold text-white/90">Amir Aliyev (6 yosh)</span>
-                  </div>
-                  <span className="text-emerald-400 font-bold tabular-nums">85% natija</span>
-                </div>
-                <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
-                  <div className="h-full rounded-full bg-gradient-to-r from-brand-500 to-emerald-400 w-[85%]" />
-                </div>
-                <p className="text-[11px] text-white/50 truncate">
-                  Muolaja kursi: Umumiy rivojlantiruvchi bolalar massaji
-                </p>
-              </div>
-            </motion.div>
+            <div className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3 text-white/80">
+              <p>Bolalar va ota-onalar ma’lumotlari</p>
+              <p>Qabul, xizmatlar va seanslar</p>
+              <p>To‘lovlar va oila hisobi</p>
+            </div>
           </div>
 
           {/* Bottom Trust & Compliance Strip */}
           <div className="pt-6 border-t border-white/10 flex items-center justify-between text-xs text-white/50">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-emerald-400" />
-              <span>256-bit shifrlangan klinik audit</span>
+              <span>Hisobingiz bilan tizimga kiring</span>
             </div>
-            <span className="text-white/30">Tibbiy standart</span>
+            <span className="text-white/30">MASSAJ CRM</span>
           </div>
         </div>
       </div>
@@ -205,7 +174,10 @@ export function LoginPage() {
           <div className="flex items-center gap-1.5 text-xs text-charcoal-400">
             <Phone className="w-3.5 h-3.5 text-brand-500" />
             <span className="hidden sm:inline">Qo‘llab-quvvatlash:</span>
-            <a href="tel:+998712000000" className="font-semibold text-charcoal-700 hover:text-brand-600">
+            <a
+              href="tel:+998712000000"
+              className="font-semibold text-charcoal-700 hover:text-brand-600"
+            >
               +998 71 200 00 00
             </a>
           </div>
@@ -220,12 +192,16 @@ export function LoginPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg text-charcoal-900">MASSAJ CRM</span>
+                <span className="font-extrabold text-lg text-charcoal-900">
+                  MASSAJ CRM
+                </span>
                 <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
                   Bolalar Klinikasi
                 </span>
               </div>
-              <p className="text-xs text-charcoal-400">Reabilitatsiya va massaj markazi</p>
+              <p className="text-xs text-charcoal-400">
+                Reabilitatsiya va massaj markazi
+              </p>
             </div>
           </div>
 
@@ -247,16 +223,27 @@ export function LoginPage() {
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-charcoal-500 leading-relaxed">
-                Klinik boshqaruv, qabullar monitoringi va shaxsiy kabinetga kirish uchun ma’lumotlaringizni kiriting
+                Klinik boshqaruv, qabullar monitoringi va shaxsiy kabinetga
+                kirish uchun ma’lumotlaringizni kiriting
               </p>
             </div>
 
             {/* ─── Login Form ─── */}
-            <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              noValidate
+              className="space-y-4"
+            >
               {/* Phone Input */}
               <div>
-                <label htmlFor="phone" className="block text-xs font-bold text-charcoal-700 mb-1.5">
-                  Telefon raqami <span className="text-rose-600" aria-hidden>*</span>
+                <label
+                  htmlFor="phone"
+                  className="block text-xs font-bold text-charcoal-700 mb-1.5"
+                >
+                  Telefon raqami{" "}
+                  <span className="text-rose-600" aria-hidden>
+                    *
+                  </span>
                 </label>
                 <div className="relative">
                   <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none">
@@ -267,19 +254,22 @@ export function LoginPage() {
                     type="tel"
                     autoComplete="tel"
                     placeholder="+998 90 123 45 67"
-                    {...register('phone')}
+                    {...register("phone")}
                     className={cn(
-                      'w-full bg-white border rounded-[10px] pl-10 pr-4 py-2.5 text-xs sm:text-sm text-charcoal-900 placeholder:text-charcoal-400 shadow-2xs',
-                      'transition-all outline-none',
-                      'hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100',
-                      errors.phone ? 'border-rose-500' : 'border-warm-300'
+                      "w-full bg-white border rounded-[10px] pl-10 pr-4 py-2.5 text-xs sm:text-sm text-charcoal-900 placeholder:text-charcoal-400 shadow-2xs",
+                      "transition-all outline-none",
+                      "hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100",
+                      errors.phone ? "border-rose-500" : "border-warm-300",
                     )}
                     aria-invalid={!!errors.phone}
-                    aria-describedby={errors.phone ? 'phone-error' : undefined}
+                    aria-describedby={errors.phone ? "phone-error" : undefined}
                   />
                 </div>
                 {errors.phone && (
-                  <p id="phone-error" className="mt-1 text-xs text-rose-600 font-medium">
+                  <p
+                    id="phone-error"
+                    className="mt-1 text-xs text-rose-600 font-medium"
+                  >
                     {errors.phone.message}
                   </p>
                 )}
@@ -288,8 +278,14 @@ export function LoginPage() {
               {/* Password Input */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="password" className="block text-xs font-bold text-charcoal-700">
-                    Parol <span className="text-rose-600" aria-hidden>*</span>
+                  <label
+                    htmlFor="password"
+                    className="block text-xs font-bold text-charcoal-700"
+                  >
+                    Parol{" "}
+                    <span className="text-rose-600" aria-hidden>
+                      *
+                    </span>
                   </label>
                   <button
                     type="button"
@@ -305,29 +301,37 @@ export function LoginPage() {
                   </div>
                   <input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     placeholder="••••••••"
-                    {...register('password')}
+                    {...register("password")}
                     className={cn(
-                      'w-full bg-white border rounded-[10px] pl-10 pr-11 py-2.5 text-xs sm:text-sm text-charcoal-900 placeholder:text-charcoal-400 shadow-2xs',
-                      'transition-all outline-none',
-                      'hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100',
-                      errors.password ? 'border-rose-500' : 'border-warm-300'
+                      "w-full bg-white border rounded-[10px] pl-10 pr-11 py-2.5 text-xs sm:text-sm text-charcoal-900 placeholder:text-charcoal-400 shadow-2xs",
+                      "transition-all outline-none",
+                      "hover:border-warm-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100",
+                      errors.password ? "border-rose-500" : "border-warm-300",
                     )}
                     aria-invalid={!!errors.password}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(v => !v)}
+                    onClick={() => setShowPassword((v) => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700 p-1 rounded transition-colors cursor-pointer"
-                    aria-label={showPassword ? 'Parolni yashirish' : 'Parolni ko‘rsatish'}
+                    aria-label={
+                      showPassword ? "Parolni yashirish" : "Parolni ko‘rsatish"
+                    }
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="mt-1 text-xs text-rose-600 font-medium">{errors.password.message}</p>
+                  <p className="mt-1 text-xs text-rose-600 font-medium">
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
 
@@ -337,7 +341,7 @@ export function LoginPage() {
                   <input
                     type="checkbox"
                     id="rememberMe"
-                    {...register('rememberMe')}
+                    {...register("rememberMe")}
                     className="w-4 h-4 rounded-[4px] border-warm-300 text-brand-600 focus:ring-brand-500/20 cursor-pointer"
                   />
                   <span>Meni eslab qol</span>
@@ -369,9 +373,11 @@ export function LoginPage() {
                 type="submit"
                 loading={isSubmitting}
                 className="w-full h-11 text-sm font-bold shadow-sm shadow-brand-500/20 cursor-pointer justify-center"
-                rightIcon={!isSubmitting ? <ArrowRight className="w-4 h-4" /> : undefined}
+                rightIcon={
+                  !isSubmitting ? <ArrowRight className="w-4 h-4" /> : undefined
+                }
               >
-                {isSubmitting ? 'Tizimga ulanmoqda...' : 'Kirish'}
+                {isSubmitting ? "Tizimga ulanmoqda..." : "Kirish"}
               </Button>
             </form>
           </motion.div>
@@ -379,7 +385,8 @@ export function LoginPage() {
           {/* Bottom Security Notice */}
           <div className="text-center mt-5 space-y-1">
             <p className="text-[11px] text-charcoal-400">
-              © {new Date().getFullYear()} Bolalar Massaj va Reabilitatsiya Markazi. Barcha huquqlar himoyalangan.
+              © {new Date().getFullYear()} Bolalar Massaj va Reabilitatsiya
+              Markazi. Barcha huquqlar himoyalangan.
             </p>
           </div>
         </div>
@@ -399,31 +406,51 @@ export function LoginPage() {
           <div className="p-3.5 rounded-xl bg-warm-100/70 border border-warm-200/80 flex items-start gap-3">
             <HelpCircle className="w-5 h-5 text-brand-600 shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-charcoal-900 text-sm">Xavfsizlik eslatmasi</p>
+              <p className="font-bold text-charcoal-900 text-sm">
+                Xavfsizlik eslatmasi
+              </p>
               <p className="mt-1 leading-relaxed">
-                Tibbiy va klinik ma'lumotlar xavfsizligi sababli, foydalanuvchi hisobi paroli faqat markaz administratsiyasi tomonidan tasdiqlanadi.
+                Tibbiy va klinik ma'lumotlar xavfsizligi sababli, foydalanuvchi
+                hisobi paroli faqat markaz administratsiyasi tomonidan
+                tasdiqlanadi.
               </p>
             </div>
           </div>
 
           <div className="space-y-2">
-            <p className="font-bold text-charcoal-800">Qayta tiklash tartibi:</p>
+            <p className="font-bold text-charcoal-800">
+              Qayta tiklash tartibi:
+            </p>
             <ol className="list-decimal list-inside space-y-1 text-charcoal-600 leading-relaxed">
               <li>Markaz operatori yoki administratoriga qo‘ng‘iroq qiling.</li>
-              <li>Tizimda ro‘yxatdan o‘tgan telefon raqamingizni tasdiqlang.</li>
-              <li>SMS orqali kelgan bir martalik kod yordamida yangi parol o‘rnating.</li>
+              <li>
+                Tizimda ro‘yxatdan o‘tgan telefon raqamingizni tasdiqlang.
+              </li>
+              <li>
+                SMS orqali kelgan bir martalik kod yordamida yangi parol
+                o‘rnating.
+              </li>
             </ol>
           </div>
 
           <div className="p-3 rounded-xl bg-white border border-warm-200 flex items-center justify-between">
-            <span className="font-medium text-charcoal-500">Administrator telefoni:</span>
-            <a href="tel:+998712000000" className="font-bold text-brand-600 hover:underline">
+            <span className="font-medium text-charcoal-500">
+              Administrator telefoni:
+            </span>
+            <a
+              href="tel:+998712000000"
+              className="font-bold text-brand-600 hover:underline"
+            >
               +998 71 200 00 00
             </a>
           </div>
 
           <div className="pt-2 flex justify-end">
-            <Button variant="secondary" onClick={() => setShowForgotModal(false)} className="w-full sm:w-auto">
+            <Button
+              variant="secondary"
+              onClick={() => setShowForgotModal(false)}
+              className="w-full sm:w-auto"
+            >
               Tushunarli
             </Button>
           </div>

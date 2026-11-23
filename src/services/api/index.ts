@@ -2,36 +2,38 @@
 //  API Layer Hub — Pediatric Massage CRM
 // ═══════════════════════════════════════════════════════
 
-import { ApiClient } from './client';
-import { AuthApi } from './auth';
-import { ChildrenApi } from './children';
-import { ParentsApi } from './parents';
-import { SpecialistsApi } from './specialists';
-import { ServicesApi } from './services';
-import { ClinicalApi } from './clinical';
-import { FinanceApi } from './finance';
-import { PlatformApi } from './platform';
-import { AnalyticsApi } from './analytics';
-import { PortalApi } from './portal';
-import { AdminsApi } from './admins';
-import { EmployeesApi } from './employees';
-import { AppointmentsApi } from './appointments';
+import { ApiClient } from "./client";
+import { AuthApi } from "./auth";
+import { ChildrenApi } from "./children";
+import { ParentsApi } from "./parents";
+import { SpecialistsApi } from "./specialists";
+import { ServicesApi } from "./services";
+import { ClinicalApi } from "./clinical";
+import { FinanceApi } from "./finance";
+import { PlatformApi } from "./platform";
+import { AnalyticsApi } from "./analytics";
+import { PortalApi } from "./portal";
+import { AdminsApi } from "./admins";
+import { EmployeesApi } from "./employees";
+import { AppointmentsApi } from "./appointments";
+import { ClinicWorkflowApi } from "./workflow";
 
-export * from './client';
-export * from './types';
-export * from './auth';
-export * from './children';
-export * from './parents';
-export * from './specialists';
-export * from './services';
-export * from './clinical';
-export * from './finance';
-export * from './platform';
-export * from './analytics';
-export * from './portal';
-export * from './admins';
-export * from './employees';
-export * from './appointments';
+export * from "./client";
+export * from "./types";
+export * from "./auth";
+export * from "./children";
+export * from "./parents";
+export * from "./specialists";
+export * from "./services";
+export * from "./clinical";
+export * from "./finance";
+export * from "./platform";
+export * from "./analytics";
+export * from "./portal";
+export * from "./admins";
+export * from "./employees";
+export * from "./appointments";
+export * from "./workflow";
 
 export class AppApi extends ApiClient {
   public auth: AuthApi;
@@ -40,6 +42,7 @@ export class AppApi extends ApiClient {
   public specialists: SpecialistsApi;
   public services: ServicesApi;
   public appointments: AppointmentsApi;
+  public workflow: ClinicWorkflowApi;
   public clinical: ClinicalApi;
   public finance: FinanceApi;
   public platform: PlatformApi;
@@ -56,6 +59,7 @@ export class AppApi extends ApiClient {
     this.specialists = new SpecialistsApi(this);
     this.services = new ServicesApi(this);
     this.appointments = new AppointmentsApi(this);
+    this.workflow = new ClinicWorkflowApi(this);
     this.clinical = new ClinicalApi(this);
     this.finance = new FinanceApi(this);
     this.platform = new PlatformApi(this);

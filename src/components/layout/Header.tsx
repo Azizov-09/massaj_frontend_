@@ -1,13 +1,22 @@
 // ═══════════════════════════════════════════════════════
 //  Header — Sticky top navigation bar
 // ═══════════════════════════════════════════════════════
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Menu, Bell, Search, ChevronDown, LogOut, User, Settings, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn, formatRelativeTime } from '@/utils';
-import { useAuth, useStore } from '@/store';
-import { Avatar } from '@/components/ui/primitives';
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import {
+  Menu,
+  Bell,
+  Search,
+  ChevronDown,
+  LogOut,
+  User,
+  Settings,
+  X,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn, formatRelativeTime } from "@/utils";
+import { useAuth, useStore } from "@/store";
+import { Avatar } from "@/components/ui/primitives";
 
 interface HeaderProps {
   onMobileMenuOpen: () => void;
@@ -21,85 +30,113 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const notifications = useStore(s => s.notifications);
-  const markRead = useStore(s => s.markNotificationRead);
-  const markAll = useStore(s => s.markAllNotificationsRead);
-  const children = useStore(s => s.children);
-  const parents = useStore(s => s.parents);
-  const specialists = useStore(s => s.specialists);
+  const notifications = useStore((s) => s.notifications);
+  const markRead = useStore((s) => s.markNotificationRead);
+  const markAll = useStore((s) => s.markAllNotificationsRead);
+  const children = useStore((s) => s.children);
+  const parents = useStore((s) => s.parents);
 
   const userNotifs = notifications
-    .filter(n => n.userId === currentUser?.id || currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN')
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .filter(
+      (n) =>
+        n.userId === currentUser?.id ||
+        currentUser?.role === "SUPER_ADMIN" ||
+        currentUser?.role === "ADMIN",
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
     .slice(0, 8);
 
-  const unreadCount = userNotifs.filter(n => !n.isRead).length;
+  const unreadCount = userNotifs.filter((n) => !n.isRead).length;
 
   // Close dropdowns on outside click or Escape key
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target as Node))
+        setNotifOpen(false);
+      if (profileRef.current && !profileRef.current.contains(e.target as Node))
+        setProfileOpen(false);
+      if (searchRef.current && !searchRef.current.contains(e.target as Node))
+        setSearchOpen(false);
     };
     const keyHandler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         setNotifOpen(false);
         setProfileOpen(false);
         setSearchOpen(false);
       }
     };
-    document.addEventListener('mousedown', handler);
-    window.addEventListener('keydown', keyHandler);
+    document.addEventListener("mousedown", handler);
+    window.addEventListener("keydown", keyHandler);
     return () => {
-      document.removeEventListener('mousedown', handler);
-      window.removeEventListener('keydown', keyHandler);
+      document.removeEventListener("mousedown", handler);
+      window.removeEventListener("keydown", keyHandler);
     };
   }, []);
 
   // Search results
-  const searchResults = searchQuery.length >= 2 ? (() => {
-    const q = searchQuery.toLowerCase();
-    if (currentUser?.role === 'PARENT') {
-      return children
-        .filter(c => c.parentId === currentUser.id && c.fullName.toLowerCase().includes(q))
-        .slice(0, 5)
-        .map(c => ({ type: 'child', label: c.fullName, id: c.id }));
-    }
-    if (currentUser?.role === 'SPECIALIST') {
-      return [
-        ...children.filter(c => c.assignedSpecialistId === currentUser.id && c.fullName.toLowerCase().includes(q)).slice(0, 3).map(c => ({ type: 'child', label: c.fullName, id: c.id })),
-        ...specialists.filter(s => s.fullName.toLowerCase().includes(q)).slice(0, 2).map(s => ({ type: 'specialist', label: s.fullName, id: s.id })),
-      ];
-    }
-    return [
-      ...children.filter(c => c.fullName.toLowerCase().includes(q)).slice(0, 3).map(c => ({ type: 'child', label: c.fullName, id: c.id })),
-      ...parents.filter(p => p.fullName.toLowerCase().includes(q)).slice(0, 2).map(p => ({ type: 'parent', label: p.fullName, id: p.id })),
-      ...specialists.filter(s => s.fullName.toLowerCase().includes(q)).slice(0, 2).map(s => ({ type: 'specialist', label: s.fullName, id: s.id })),
-    ];
-  })() : [];
+  const searchResults =
+    searchQuery.length >= 2
+      ? (() => {
+          const q = searchQuery.toLowerCase();
+          if (currentUser?.role === "PARENT") {
+            return children
+              .filter(
+                (c) =>
+                  c.parentId === currentUser.id &&
+                  c.fullName.toLowerCase().includes(q),
+              )
+              .slice(0, 5)
+              .map((c) => ({ type: "child", label: c.fullName, id: c.id }));
+          }
+          if (currentUser?.role === "SPECIALIST") {
+            return [
+              ...children
+                .filter(
+                  (c) =>
+                    c.assignedSpecialistId === currentUser.id &&
+                    c.fullName.toLowerCase().includes(q),
+                )
+                .slice(0, 3)
+                .map((c) => ({ type: "child", label: c.fullName, id: c.id })),
+            ];
+          }
+          return [
+            ...children
+              .filter((c) => c.fullName.toLowerCase().includes(q))
+              .slice(0, 3)
+              .map((c) => ({ type: "child", label: c.fullName, id: c.id })),
+            ...parents
+              .filter((p) => p.fullName.toLowerCase().includes(q))
+              .slice(0, 2)
+              .map((p) => ({ type: "parent", label: p.fullName, id: p.id })),
+          ];
+        })()
+      : [];
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const getDashboardPath = () => {
     switch (currentUser?.role) {
-      case 'SUPER_ADMIN':
-      case 'ADMIN':
-        return '/dashboard/super-admin';
-      case 'SPECIALIST':
-        return '/dashboard/specialist';
-      case 'PARENT':
-        return '/dashboard/parent';
+      case "SUPER_ADMIN":
+      case "ADMIN":
+        return "/dashboard/super-admin";
+      case "SPECIALIST":
+        return "/dashboard/specialist";
+      case "PARENT":
+        return "/dashboard/parent";
       default:
-        return '/';
+        return "/";
     }
   };
 
@@ -118,16 +155,24 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
       <div className="flex-1 min-w-0">
         {breadcrumbs && breadcrumbs.length > 0 ? (
           <>
-            <nav aria-label="Joylashuv" className="hidden sm:flex items-center gap-1.5 text-sm">
+            <nav
+              aria-label="Joylashuv"
+              className="hidden sm:flex items-center gap-1.5 text-sm"
+            >
               {breadcrumbs.map((crumb, i) => (
                 <span key={i} className="flex items-center gap-1.5">
                   {i > 0 && <span className="text-charcoal-300">/</span>}
                   {crumb.path ? (
-                    <Link to={crumb.path} className="text-charcoal-400 hover:text-charcoal-700 transition-colors font-medium">
+                    <Link
+                      to={crumb.path}
+                      className="text-charcoal-400 hover:text-charcoal-700 transition-colors font-medium"
+                    >
                       {crumb.label}
                     </Link>
                   ) : (
-                    <span className="text-charcoal-800 font-semibold">{crumb.label}</span>
+                    <span className="text-charcoal-800 font-semibold">
+                      {crumb.label}
+                    </span>
                   )}
                 </span>
               ))}
@@ -137,7 +182,9 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
             </h1>
           </>
         ) : title ? (
-          <h1 className="text-sm font-bold text-charcoal-900 truncate">{title}</h1>
+          <h1 className="text-sm font-bold text-charcoal-900 truncate">
+            {title}
+          </h1>
         ) : null}
       </div>
 
@@ -146,7 +193,7 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
         {/* Search */}
         <div className="relative" ref={searchRef}>
           <button
-            onClick={() => setSearchOpen(v => !v)}
+            onClick={() => setSearchOpen((v) => !v)}
             className="w-9 h-9 flex items-center justify-center rounded-[9px] text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 active:bg-warm-200 transition-colors cursor-pointer"
             aria-label="Qidirish"
           >
@@ -166,12 +213,15 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
                   <input
                     autoFocus
                     value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Qidirish..."
                     className="flex-1 text-sm outline-none bg-transparent text-charcoal-900 placeholder:text-charcoal-400"
                   />
                   {searchQuery && (
-                    <button onClick={() => setSearchQuery('')} className="text-charcoal-300 hover:text-charcoal-600">
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="text-charcoal-300 hover:text-charcoal-600"
+                    >
                       <X className="w-3.5 h-3.5" />
                     </button>
                   )}
@@ -184,24 +234,41 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
                         className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-warm-50 text-left transition-colors"
                         onClick={() => {
                           setSearchOpen(false);
-                          setSearchQuery('');
+                          setSearchQuery("");
                           const basePath = getDashboardPath();
-                          if (r.type === 'child') navigate(`${basePath}/children`);
-                          else if (r.type === 'parent') navigate(`${basePath}/parents`);
-                          else if (r.type === 'specialist') navigate(`${basePath}/specialists`);
+                          if (r.type === "child")
+                            navigate(
+                              `${basePath}/children?childId=${encodeURIComponent(r.id)}`,
+                            );
+                          else if (r.type === "parent")
+                            navigate(
+                              `${basePath}/parents?search=${encodeURIComponent(r.label)}`,
+                            );
+                          else if (r.type === "specialist")
+                            navigate(`${basePath}/specialists`);
                         }}
                       >
                         <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-[6px] bg-brand-100 text-brand-700 uppercase">
-                          {r.type === 'child' ? 'Bola' : r.type === 'parent' ? 'Ota-ona' : 'Mutaxassis'}
+                          {r.type === "child"
+                            ? "Bola"
+                            : r.type === "parent"
+                              ? "Ota-ona"
+                              : "Mutaxassis"}
                         </span>
-                        <span className="text-sm text-charcoal-800">{r.label}</span>
+                        <span className="text-sm text-charcoal-800">
+                          {r.label}
+                        </span>
                       </button>
                     ))}
                   </div>
                 ) : searchQuery.length >= 2 ? (
-                  <p className="px-3 py-4 text-sm text-charcoal-400 text-center">Hech narsa topilmadi</p>
+                  <p className="px-3 py-4 text-sm text-charcoal-400 text-center">
+                    Hech narsa topilmadi
+                  </p>
                 ) : (
-                  <p className="px-3 py-3 text-xs text-charcoal-400">Qidirish uchun yozing...</p>
+                  <p className="px-3 py-3 text-xs text-charcoal-400">
+                    Qidirish uchun yozing...
+                  </p>
                 )}
               </motion.div>
             )}
@@ -211,14 +278,14 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
         {/* Notifications */}
         <div className="relative" ref={notifRef}>
           <button
-            onClick={() => setNotifOpen(v => !v)}
+            onClick={() => setNotifOpen((v) => !v)}
             className="relative p-2 rounded-[8px] text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 transition-colors"
-            aria-label={`Bildirishnomalar${unreadCount > 0 ? `, ${unreadCount} o'qilmagan` : ''}`}
+            aria-label={`Bildirishnomalar${unreadCount > 0 ? `, ${unreadCount} o'qilmagan` : ""}`}
           >
             <Bell className="w-[18px] h-[18px]" />
             {unreadCount > 0 && (
               <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-brand-500 text-white text-[9px] font-bold flex items-center justify-center">
-                {unreadCount > 9 ? '9+' : unreadCount}
+                {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
           </button>
@@ -232,10 +299,14 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
                 className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-16 sm:top-full mt-2 w-auto sm:w-80 max-w-sm bg-white/98 backdrop-blur-md rounded-2xl shadow-[0_16px_40px_-6px_rgba(24,24,27,0.14),0_6px_16px_-4px_rgba(24,24,27,0.06)] border border-warm-200/90 overflow-hidden z-50"
               >
                 <div className="flex items-center justify-between px-4 py-3 border-b border-warm-100">
-                  <span className="text-sm font-semibold text-charcoal-900">Bildirishnomalar</span>
+                  <span className="text-sm font-semibold text-charcoal-900">
+                    Bildirishnomalar
+                  </span>
                   {unreadCount > 0 && (
                     <button
-                      onClick={() => markAll(currentUser?.id, currentUser?.role)}
+                      onClick={() =>
+                        markAll(currentUser?.id, currentUser?.role)
+                      }
                       className="text-xs text-brand-600 hover:text-brand-700 font-medium"
                     >
                       Barchasini o'qildi deb belgilash
@@ -244,22 +315,35 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
                 </div>
                 <div className="max-h-80 overflow-y-auto">
                   {userNotifs.length === 0 ? (
-                    <p className="px-4 py-6 text-sm text-charcoal-400 text-center">Bildirishnomalar yo'q</p>
+                    <p className="px-4 py-6 text-sm text-charcoal-400 text-center">
+                      Bildirishnomalar yo'q
+                    </p>
                   ) : (
-                    userNotifs.map(notif => (
+                    userNotifs.map((notif) => (
                       <button
                         key={notif.id}
                         onClick={() => markRead(notif.id)}
                         className={cn(
-                          'w-full flex items-start gap-3 px-4 py-3 hover:bg-warm-50 text-left border-b border-warm-50 transition-colors',
-                          !notif.isRead && 'bg-brand-50/50'
+                          "w-full flex items-start gap-3 px-4 py-3 hover:bg-warm-50 text-left border-b border-warm-50 transition-colors",
+                          !notif.isRead && "bg-brand-50/50",
                         )}
                       >
-                        <div className={cn('w-2 h-2 rounded-full mt-2 flex-shrink-0', notif.isRead ? 'bg-warm-200' : 'bg-brand-500')} />
+                        <div
+                          className={cn(
+                            "w-2 h-2 rounded-full mt-2 flex-shrink-0",
+                            notif.isRead ? "bg-warm-200" : "bg-brand-500",
+                          )}
+                        />
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-charcoal-900">{notif.title}</p>
-                          <p className="text-xs text-charcoal-500 mt-0.5 line-clamp-2">{notif.message}</p>
-                          <p className="text-[10px] text-charcoal-400 mt-1">{formatRelativeTime(notif.createdAt)}</p>
+                          <p className="text-sm font-medium text-charcoal-900">
+                            {notif.title}
+                          </p>
+                          <p className="text-xs text-charcoal-500 mt-0.5 line-clamp-2">
+                            {notif.message}
+                          </p>
+                          <p className="text-[10px] text-charcoal-400 mt-1">
+                            {formatRelativeTime(notif.createdAt)}
+                          </p>
                         </div>
                       </button>
                     ))
@@ -282,16 +366,27 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
         {/* Profile menu */}
         <div className="relative" ref={profileRef}>
           <button
-            onClick={() => setProfileOpen(v => !v)}
+            onClick={() => setProfileOpen((v) => !v)}
             className="flex items-center gap-2 pl-2 pr-1.5 py-1 rounded-[10px] hover:bg-warm-100 transition-colors"
             aria-expanded={profileOpen}
             aria-haspopup="menu"
           >
-            {currentUser && <Avatar name={currentUser.fullName} src={currentUser.avatar} size="xs" />}
+            {currentUser && (
+              <Avatar
+                name={currentUser.fullName}
+                src={currentUser.avatar}
+                size="xs"
+              />
+            )}
             <span className="hidden sm:block text-sm font-medium text-charcoal-800 max-w-[120px] truncate">
               {currentUser?.fullName}
             </span>
-            <ChevronDown className={cn('w-3.5 h-3.5 text-charcoal-400 transition-transform duration-200', profileOpen && 'rotate-180')} />
+            <ChevronDown
+              className={cn(
+                "w-3.5 h-3.5 text-charcoal-400 transition-transform duration-200",
+                profileOpen && "rotate-180",
+              )}
+            />
           </button>
           <AnimatePresence>
             {profileOpen && (
@@ -304,25 +399,32 @@ export function Header({ onMobileMenuOpen, title, breadcrumbs }: HeaderProps) {
                 className="absolute right-0 top-full mt-2 w-52 bg-white/98 backdrop-blur-md rounded-2xl shadow-[0_16px_40px_-6px_rgba(24,24,27,0.14),0_6px_16px_-4px_rgba(24,24,27,0.06)] border border-warm-200/90 p-1.5 overflow-hidden z-50 space-y-0.5"
               >
                 <div className="px-3 py-2 border-b border-warm-100/80 mb-1">
-                  <p className="text-xs font-bold text-charcoal-900 truncate">{currentUser?.fullName}</p>
-                  <p className="text-[10px] text-charcoal-400 truncate">{currentUser?.phone}</p>
+                  <p className="text-xs font-bold text-charcoal-900 truncate">
+                    {currentUser?.fullName}
+                  </p>
+                  <p className="text-[10px] text-charcoal-400 truncate">
+                    {currentUser?.phone}
+                  </p>
                 </div>
                 <Link
-                  to={`${getDashboardPath()}/profile`}
+                  to={`${getDashboardPath()}${["SUPER_ADMIN", "ADMIN"].includes(currentUser?.role || "") ? "/settings?tab=profile" : "/profile"}`}
                   role="menuitem"
                   className="flex items-center gap-2.5 px-3 py-2 text-xs sm:text-sm font-medium text-charcoal-700 hover:bg-warm-100/70 hover:text-charcoal-900 rounded-xl transition-all"
                   onClick={() => setProfileOpen(false)}
                 >
                   <User className="w-3.5 h-3.5 text-charcoal-500" /> Profil
                 </Link>
-                <Link
-                  to={`${getDashboardPath()}/settings`}
-                  role="menuitem"
-                  className="flex items-center gap-2.5 px-3 py-2 text-xs sm:text-sm font-medium text-charcoal-700 hover:bg-warm-100/70 hover:text-charcoal-900 rounded-xl transition-all"
-                  onClick={() => setProfileOpen(false)}
-                >
-                  <Settings className="w-3.5 h-3.5 text-charcoal-500" /> Sozlamalar
-                </Link>
+                {["SUPER_ADMIN", "ADMIN"].includes(currentUser?.role || "") && (
+                  <Link
+                    to={`${getDashboardPath()}/settings`}
+                    role="menuitem"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs sm:text-sm font-medium text-charcoal-700 hover:bg-warm-100/70 hover:text-charcoal-900 rounded-xl transition-all"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    <Settings className="w-3.5 h-3.5 text-charcoal-500" />{" "}
+                    Sozlamalar
+                  </Link>
+                )}
                 <div className="border-t border-warm-100/80 mt-1 pt-1">
                   <button
                     role="menuitem"

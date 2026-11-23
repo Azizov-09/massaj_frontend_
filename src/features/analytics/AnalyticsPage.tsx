@@ -1,329 +1,118 @@
-// ═══════════════════════════════════════════════════════
-//  Analytics Page — Visual Business Intelligence Dashboard
-// ═══════════════════════════════════════════════════════
-
-import { useState, useMemo } from 'react';
+﻿import { useMemo, useState } from "react";
+import { format, subDays } from "date-fns";
 import {
-  TrendingUp, Users, DollarSign, Activity
-} from 'lucide-react';
-import {
-  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
-} from 'recharts';
-import { useStore } from '@/store';
-import { formatCurrency, formatCurrencyCompact } from '@/utils';
-import { Card, CardHeader, CardBody } from '@/components/ui/primitives';
-import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
-
-const COLORS = ['#f97316', '#4a8063', '#d97706', '#2563eb', '#8b5cf6', '#ec4899'];
-
+  AreaChart,
+  Area,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useStore } from "@/store";
+import { Button } from "@/components/ui/Button";
+import { formatCurrency } from "@/utils";
 export function AnalyticsPage() {
-  const transactions = useStore(s => s.transactions);
-  const appointments = useStore(s => s.appointments);
-  const sessions = useStore(s => s.sessions);
-  const specialists = useStore(s => s.specialists);
-  const services = useStore(s => s.services);
-  const attendance = useStore(s => s.attendance);
-
-  const [timeRange, setTimeRange] = useState<'7days' | 'month' | 'year'>('month');
-
-  // Revenue & Charges trend data
-  const revenueTrend = useMemo(() => {
-    // Generate recent dates
-    const days = timeRange === '7days' ? 7 : timeRange === 'month' ? 14 : 12;
-    const map: Record<string, { date: string; Tushum: number; Xarajat: number }> = {};
-
-    const now = new Date();
-    for (let i = days - 1; i >= 0; i--) {
-      const d = new Date();
-      if (timeRange === 'year') {
-        d.setMonth(now.getMonth() - i);
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        map[key] = { date: key, Tushum: 0, Xarajat: 0 };
-      } else {
-        d.setDate(now.getDate() - i);
-        const key = d.toISOString().split('T')[0];
-        map[key] = { date: key.slice(5), Tushum: 0, Xarajat: 0 };
-      }
-    }
-
-    transactions.forEach(t => {
-      const rawDate = t.date || '';
-      const dKey = timeRange === 'year' ? rawDate.slice(0, 7) : rawDate.split('T')[0];
-      if (!dKey) return;
-      const lookup = timeRange === 'year' ? dKey : dKey.slice(5);
-      if (map[lookup] || map[dKey]) {
-        const item = map[lookup] || map[dKey];
-        if (t.direction === 'IN') item.Tushum += (t.amount || 0);
-        else item.Xarajat += (t.amount || 0);
-      }
-    });
-
-    return Object.values(map);
-  }, [transactions, timeRange]);
-
-  // Specialist workload
-  const specialistWorkload = useMemo(() => {
-    return specialists.map(sp => {
-      const specSessions = sessions.filter(s => s.specialistId === sp.id && s.status === 'COMPLETED');
-      return {
-        name: (sp.fullName || 'Mutaxassis').split(' ')[0],
-        seanslar: specSessions.length,
-      };
-    });
-  }, [specialists, sessions]);
-
-  // Service popularity
-  const servicePopularity = useMemo(() => {
-    return services.map(svc => {
-      const count = sessions.filter(s => s.serviceId === svc.id).length;
-      return {
-        name: svc.name || 'Xizmat',
-        seanslar: count,
-      };
-    }).sort((a, b) => b.seanslar - a.seanslar).slice(0, 5);
-  }, [services, sessions]);
-
-  // Appointment status donut
-  const appointmentStatusData = useMemo(() => {
-    const statuses = ['SCHEDULED', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
-    const labels: Record<string, string> = {
-      SCHEDULED: 'Rejalashtirilgan',
-      CONFIRMED: 'Tasdiqlangan',
-      COMPLETED: 'Yakunlangan',
-      CANCELLED: 'Bekor qilingan',
-    };
-    return statuses.map((st, i) => {
-      const count = appointments.filter(a => a.status === st).length;
-      return {
-        name: labels[st] || st,
-        value: count,
-        color: COLORS[i % COLORS.length],
-      };
-    }).filter(d => d.value > 0);
-  }, [appointments]);
-
-  // Totals
-  const totalRevenue = transactions.filter(t => t.direction === 'IN').reduce((acc, t) => acc + t.amount, 0);
-  const totalCompletedSessions = sessions.filter(s => s.status === 'COMPLETED').length;
-  const attendanceRate = attendance.length > 0
-    ? Math.round((attendance.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length / attendance.length) * 100)
-    : 0;
-
+  const transactions = useStore((s) => s.transactions);
+  const accounts = useStore((s) => s.parentAccounts);
+  const parents = useStore((s) => s.parents);
+  const accountsError = useStore((s) => s.accountsError);
+  const [days, setDays] = useState(30);
+  const data = useMemo(
+    () =>
+      Array.from({ length: days }, (_, index) => {
+        const date = format(
+          subDays(new Date(), days - 1 - index),
+          "yyyy-MM-dd",
+        );
+        const rows = transactions.filter((t) => t.date.slice(0, 10) === date);
+        return {
+          date,
+          Tushum: rows
+            .filter((t) => t.type === "PAYMENT" && t.direction === "IN")
+            .reduce((sum, t) => sum + t.amount, 0),
+          "Xizmat haqi": rows
+            .filter((t) => t.type === "SESSION_CHARGE")
+            .reduce(
+              (sum, t) => sum + (t.direction === "OUT" ? t.amount : -t.amount),
+              0,
+            ),
+        };
+      }),
+    [transactions, days],
+  );
+  const complete = !accountsError && parents.every((p) => accounts[p.id]);
   return (
-    <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <PageHeader
-          title="Biznes analitika"
-          description="Moliyaviy ko‘rsatkichlar, seanslar samaradorligi va xodimlar yuklamasi"
-        />
-        <div className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start h-9 p-1 rounded-[10px] bg-warm-100/90 border border-warm-200/80 shadow-2xs gap-1">
-          <button
-            onClick={() => setTimeRange('7days')}
-            className={`flex-1 sm:flex-initial text-center h-7 px-3 text-xs font-semibold rounded-[7px] transition-all ${
-              timeRange === '7days' ? 'bg-white shadow-2xs text-charcoal-900 font-bold' : 'text-charcoal-500 hover:text-charcoal-900'
-            }`}
+    <div className="p-4 lg:p-6 max-w-6xl mx-auto space-y-5">
+      <h1 className="text-2xl font-bold">Moliyaviy tahlil</h1>
+      <div className="flex flex-wrap gap-2">
+        {[7, 30, 90].map((value) => (
+          <Button
+            key={value}
+            variant={days === value ? "primary" : "secondary"}
+            onClick={() => setDays(value)}
           >
-            7 kun
-          </button>
-          <button
-            onClick={() => setTimeRange('month')}
-            className={`flex-1 sm:flex-initial text-center h-7 px-3 text-xs font-semibold rounded-[7px] transition-all ${
-              timeRange === 'month' ? 'bg-white shadow-2xs text-charcoal-900 font-bold' : 'text-charcoal-500 hover:text-charcoal-900'
-            }`}
-          >
-            Shu oy
-          </button>
-          <button
-            onClick={() => setTimeRange('year')}
-            className={`flex-1 sm:flex-initial text-center h-7 px-3 text-xs font-semibold rounded-[7px] transition-all ${
-              timeRange === 'year' ? 'bg-white shadow-2xs text-charcoal-900 font-bold' : 'text-charcoal-500 hover:text-charcoal-900'
-            }`}
-          >
-            Shu yil
-          </button>
-        </div>
+            {value} kun
+          </Button>
+        ))}
       </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <KpiCard
-          label="Jami tushum"
-          value={formatCurrencyCompact(totalRevenue)}
-          description="Barcha muolajalar tushumi"
-          icon={<DollarSign className="w-5 h-5 text-brand-600" />}
-          accentColor="brand"
-          changeType="positive"
-          index={0}
-        />
-        <KpiCard
-          label="Bajarilgan seanslar"
-          value={totalCompletedSessions}
-          description="Muvaffaqiyatli seanslar"
-          icon={<Activity className="w-5 h-5 text-emerald-600" />}
-          accentColor="sage"
-          changeType="positive"
-          index={1}
-        />
-        <KpiCard
-          label="Davomat ko‘rsatkichi"
-          value={`${attendanceRate}%`}
-          description="Bolalar davomati darajasi"
-          icon={<Users className="w-5 h-5 text-amber-500" />}
-          accentColor="gold"
-          index={2}
-        />
-        <KpiCard
-          label="O‘rtacha seans narxi"
-          value={formatCurrencyCompact(totalCompletedSessions > 0 ? Math.round(totalRevenue / totalCompletedSessions) : 0)}
-          description="Har bir seans bo'yicha"
-          icon={<TrendingUp className="w-5 h-5 text-blue-500" />}
-          accentColor="blue"
-          index={3}
-        />
+      <div className="grid sm:grid-cols-3 gap-4">
+        {[
+          [
+            "Tushum",
+            formatCurrency(data.reduce((sum, d) => sum + d.Tushum, 0)),
+          ],
+          [
+            "Bajarilgan xizmatlar haqi",
+            formatCurrency(data.reduce((sum, d) => sum + d["Xizmat haqi"], 0)),
+          ],
+          [
+            "Joriy oila qarzlari",
+            complete
+              ? formatCurrency(
+                  Object.values(accounts).reduce((sum, a) => sum + a.debt, 0),
+                )
+              : "Tasdiqlanmagan",
+          ],
+        ].map(([label, value]) => (
+          <article key={label} className="bg-white border rounded-xl p-5">
+            <p>{label}</p>
+            <p className="text-xl font-bold mt-2">{value}</p>
+          </article>
+        ))}
       </div>
-
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Main Revenue Area Chart */}
-        <div className="lg:col-span-8">
-          <Card className="h-full">
-            <CardHeader>
-              <h3 className="text-sm font-bold text-charcoal-900">Daromad va Xarajat dinamikasi</h3>
-              <p className="text-xs text-charcoal-400">Kirim va Chiqim oqimi taqqoslanishi</p>
-            </CardHeader>
-            <CardBody>
-              <div className="h-72 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={revenueTrend}>
-                    <defs>
-                      <linearGradient id="colorIn" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorOut" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#4a8063" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="#4a8063" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f4ece1" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#8c827a' }} />
-                    <YAxis
-                      tick={{ fontSize: 11, fill: '#8c827a' }}
-                      allowDecimals={false}
-                      tickFormatter={v => v <= 0 ? '0' : v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : `${Math.round(v / 1000)}k`}
-                    />
-                    <Tooltip formatter={(v: unknown) => [formatCurrency(Number(v) || 0), '']} />
-                    <Legend />
-                    <Area type="monotone" dataKey="Tushum" stroke="#f97316" strokeWidth={2.5} fillOpacity={1} fill="url(#colorIn)" />
-                    <Area type="monotone" dataKey="Xarajat" stroke="#4a8063" strokeWidth={2.5} fillOpacity={1} fill="url(#colorOut)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardBody>
-          </Card>
+      <p className="text-sm text-charcoal-600">
+        Xizmat haqi oila hisobidagi sarfdir. U markazning tashqi xarajati
+        sifatida hisoblanmaydi.
+      </p>
+      <section
+        className="bg-white border rounded-xl p-4 space-y-3"
+        aria-label="Tushum va xizmatlar haqi grafigi"
+      >
+        <h2 className="text-xl font-bold">Kunlar bo‘yicha</h2>
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+              <YAxis tick={{ fontSize: 10 }} />
+              <Tooltip />
+              <Area
+                dataKey="Tushum"
+                stroke="#4a8063"
+                fill="#4a8063"
+                fillOpacity={0.15}
+              />
+              <Area
+                dataKey="Xizmat haqi"
+                stroke="#f97316"
+                fill="#f97316"
+                fillOpacity={0.12}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
-
-        {/* Appointment Status Donut */}
-        <div className="lg:col-span-4">
-          <Card className="h-full">
-            <CardHeader>
-              <h3 className="text-sm font-bold text-charcoal-900">Uchrashuvlar taqsimoti</h3>
-              <p className="text-xs text-charcoal-400">Statuslar bo‘yicha uchrashuvlar holati</p>
-            </CardHeader>
-            <CardBody className="flex flex-col items-center">
-              {appointmentStatusData.length === 0 ? (
-                <div className="h-64 flex flex-col items-center justify-center text-center p-4">
-                  <Activity className="w-8 h-8 text-charcoal-300 mb-2" />
-                  <p className="text-xs font-semibold text-charcoal-600">Uchrashuvlar mavjud emas</p>
-                  <p className="text-[11px] text-charcoal-400 mt-0.5">Uchrashuvlar qayd etilgach taqsimot ko'rsatiladi</p>
-                </div>
-              ) : (
-                <>
-                  <div className="h-48 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={appointmentStatusData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={50}
-                          outerRadius={75}
-                          paddingAngle={4}
-                          dataKey="value"
-                        >
-                          {appointmentStatusData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(v: unknown) => [String(v ?? ''), '']} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  <div className="w-full space-y-2 mt-4">
-                    {appointmentStatusData.map((d) => (
-                      <div key={d.name} className="flex items-center justify-between text-xs">
-                        <span className="flex items-center gap-2 text-charcoal-600 font-medium">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
-                          {d.name}
-                        </span>
-                        <span className="font-bold text-charcoal-900">{d.value} ta</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </CardBody>
-          </Card>
-        </div>
-
-        {/* Specialist workload Bar Chart */}
-        <div className="lg:col-span-6">
-          <Card>
-            <CardHeader>
-              <h3 className="text-sm font-bold text-charcoal-900">Mutaxassislar yuklamasi</h3>
-              <p className="text-xs text-charcoal-400">O‘tkazilgan seanslar soni mutaxassislar kesimida</p>
-            </CardHeader>
-            <CardBody>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={specialistWorkload}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f4ece1" vertical={false} />
-                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#8c827a' }} />
-                    <YAxis tick={{ fontSize: 11, fill: '#8c827a' }} />
-                    <Tooltip />
-                    <Bar dataKey="seanslar" fill="#f97316" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardBody>
-          </Card>
-        </div>
-
-        {/* Service Popularity Bar Chart */}
-        <div className="lg:col-span-6">
-          <Card>
-            <CardHeader>
-              <h3 className="text-sm font-bold text-charcoal-900">Eng ommabop xizmatlar</h3>
-              <p className="text-xs text-charcoal-400">Eng ko‘p o‘tkazilgan muolajalar</p>
-            </CardHeader>
-            <CardBody>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={servicePopularity} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f4ece1" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 11, fill: '#8c827a' }} />
-                    <YAxis dataKey="name" type="category" width={110} tick={{ fontSize: 10, fill: '#8c827a' }} />
-                    <Tooltip />
-                    <Bar dataKey="seanslar" fill="#4a8063" radius={[0, 6, 6, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardBody>
-          </Card>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

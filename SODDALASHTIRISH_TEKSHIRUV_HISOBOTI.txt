@@ -1,0 +1,128 @@
+﻿================================================================================
+SODDALASHTIRISH — TEXNIK TEKSHIRUV VA QOLGAN ISHLAR
+================================================================================
+23.11.2026. Tekshiruv chegarasi: ushbu frontend repo, mavjud Swagger, avtomatik
+frontend sinovlari. Real DB, staging/prod yozish sinovi va brauzer o‘lchovlari yo‘q.
+Oxirgi kelishuv: faqat frontend tugatiladi; backend alohida keyingi vazifa.
+
+0. AUTO-DETECT / ARXITEKTURA
+Ichki CRM + qabul xizmati + oilaviy moliya + ota-ona kabineti.
+React Router, Zustand, TypeScript va Vite saqlangan. Yangi loyiha yaratilmagan.
+Eng muhim avvalgi xato: seans tugaganda faqat lokal state ichida charge yaratish.
+Bu pul hisobining boshqa qurilma yoki refreshdan keyin yo‘qolishiga olib kelardi.
+Yechim: lokal hisoblash olib tashlangan, faqat to‘liq server natijasi qabul qilinadi.
+
+1. SAHIFA XARITASI
+Egasining 9 bo‘limi va eski route yo‘naltirishlari BOLIMLAR_QOLLANMASI.txt da.
+Ota-ona va legacy specialist kabinetlarining ruxsat chegaralari saqlangan.
+
+2. QA / REGRESSION
+Frontend testlari quyidagilarni tekshiradi:
+- To‘qqizta owner menyusi.
+- Bola yaratish xizmat talab qilmasligi, xatoda forma ma’lumotlari saqlanishi.
+- Bola kartasiga to‘g‘ridan-to‘g‘ri kirish va boshqa oilaning bolasi yashirilishi.
+- Vaqtsiz xizmat biriktirish, ikki xizmatning mustaqil hisoblagichlari.
+- Backend shartnomasiz davomat/charge HTTP so‘rovi chiqmasligi.
+- Xatoda davomat, seans soni va wallet o‘zgarmasligi.
+- Retry uchun bir xil amal kaliti, to‘liq javobsiz moliyaviy muvaffaqiyat yo‘qligi.
+- 101+ yozuv paginationi, takror sahifa xatosi.
+- Ikki farzandning yagona oila hisobi, reversal va takror ledger IDsi.
+- Parentning yozish amallari rad etilishi.
+Mavjud klinik, hisobot, auth va UI primitive testlari ham regressiyaga kiradi.
+Serverdagi parallel pul yechish va DB rollback bu sinovlar bilan isbotlanmagan.
+
+3. UI/UX
+Menyu qisqardi; jadval+davomat, kassa amallari va sozlamalar birlashtirildi.
+Xizmat katalogi nom/daqiqa/narx bilan cheklangan. Kurs sozlamalari bola kartasida.
+Mavjud brand va umumiy komponentlar ishlatilgan.
+Yuklanish, bo‘sh ro‘yxat, xato va serverga ulanmagan holatlar farqlangan.
+
+4. PERSONALAR
+Yangi foydalanuvchi: saqlangan bola kartasi avtomatik ochiladi.
+Shoshilgan foydalanuvchi: retryda ma’lumot yo‘qolmaydi va kalit qayta ishlatiladi.
+Texnik bo‘lmagan foydalanuvchi: nomlangan maydonlar, sodda o‘zbekcha holatlar.
+Mobil foydalanuvchi: wrap/grid layout va yirik asosiy tugmalar.
+Doimiy foydalanuvchi: query tab/section/childId havolalari va legacy redirectlar.
+Bular implementatsiya xususiyatlari; haqiqiy foydalanuvchi tadqiqoti o‘tkazilmadi.
+
+5. ACCESSIBILITY
+Yangi formalarda label, native input/select, xatoda role=alert ishlatiladi.
+Tab bo‘limlari aria-selected, tabpanel va Arrow/Home/End klaviaturasini qo‘llaydi.
+Umumiy modal fokus boshqaruvidan foydalanilgan; asosiy tugmalar 44px minimum.
+WCAG 2.1 AA muvofiqligi yoki kontrast sinovi to‘liq tasdiqlanmagan.
+
+6. MOBILE
+Yangi kartalar kichik ekranda bir ustunga o‘tadi, harakatlar qatorga o‘raladi.
+Kun/hafta boshqaruvi va optional vaqt native maydonlar bilan ishlaydi.
+Browser access host mavjud emasligi sabab jonli mobil screenshot va qurilma
+sinovi bajarilmadi; vizual tayyorlikka yakuniy baho berilmagan.
+
+7. CONTENT
+Kirishdagi namuna bola/natija statistikasi, shifokorlar soni va 4.95 reyting olindi.
+Moliyaviy ma’lumot kelmaganda “Tasdiqlanmagan” ko‘rsatiladi.
+Xizmat haqi bilan markaz tashqi xarajati bir tushuncha qilib ko‘rsatilmaydi.
+
+8. PERFORMANCE
+Owner boshqaruvida admins/employees so‘rovlari olib tashlandi.
+Moliyaviy ledger to‘liq sahifalanadi, klinik/balans chaqiruvlari batchda bajariladi.
+Ko‘p oilada individual balans so‘rovlari ko‘payadi; backendda bulk family-summary
+endpointi keyingi optimizatsiya bo‘lishi mumkin.
+LCP, INP, CLS va TTFB o‘lchanmagan; Core Web Vitals bahosi chiqarilmagan.
+
+9. SECURITY
+Fake UUID mapping va user/role fallback olib tashlangan.
+Oddiy SPECIALIST moliya huquqiga ko‘tarilmagan; parent formalar read-only.
+Parent ledger javobida parentId ham tekshiriladi; server JWT/tenant nazorati shart.
+.env o‘zgartirilmagan va Gitga kiritilmagan. Hujjatga token/parol yozilmagan.
+Server IDOR, rate limit, session va barcha OWASP nazoratlarini tekshirish
+backend/staging kirishisiz yakunlangan deb aytilmaydi.
+
+10. PRODUCT
+Asosiy foydalanuvchi oqimi frontendda mavjud. Yozish APIlari bo‘lmagan qadamlar
+faollashtirilmagan. Yangi funksiya sifatida filial, ish haqi, bank yoki SMS
+integratsiyasi qo‘shilmagan.
+
+11. DEVOPS / RELEASE
+Build va lint lokal bajariladi. Test natijalari yakuniy topshirishda ko‘rsatiladi.
+Bu o‘zgarish Vercel hostingini almashtirmaydi va yangi Sites hosting yaratmaydi.
+Server migratsiyasi va staging moliyaviy sinovlari release bog‘liqligi bo‘lib qoladi.
+Git push deploy yakunlanganining isboti emas; bu vazifada prod yozish bajarilmagan.
+
+12. A/B TEST
+Bir kishi ishlaydigan markaz uchun statistik A/B testga yetarli namuna yo‘q.
+Variantlar uchun uydirma conversion foizi yoki “95% ishonch” chiqarilmadi.
+Qabulni topish, davomat belgilash va to‘lov qayd etish vaqtini amaliy pilotda
+kuzatish, keyin foydalanuvchining aniq qiyinchiligiga qarab takomillashtirish kerak.
+
+13. SPRINT / QOLGAN TICKETLAR
+BE-01 | Backend | ServiceAssignment, snapshot, optional vaqt va N ta rezerv.
+Done: idempotent yaratish/uzaytirish, count/date/weekday validatsiyasi va DB testi.
+BE-02 | Backend | Atomik attendance + wallet + counter + immutable reversal.
+Done: parallel/retry/rollback va PRESENT→ABSENT→PRESENT staging sinovlari.
+BE-03 | Backend | Parent wallet top-up, UZS birligi va tarix migratsiyasi.
+Done: oilaning barcha farzandlari umumiy hisob, oldin/keyin jami mos, audit saqlangan.
+BE-04 | Backend | Owner-specialist link va parent read APIlarining ruxsatlari.
+Done: boshqa oila/tenantga IDOR rad etilishi, oddiy specialistga moliya yopiq.
+QA-01 | Frontend + backend | Mobil va real server bilan yakuniy end-to-end tekshiruv.
+Done: vaqtli/vaqtsiz kurs, davomat, qaytarish, to‘lov, refresh va ikkinchi qurilma.
+Har bir backend ticket uchun aniq DTO/invariant BACKEND_ULASH_TALABLARI.txt da.
+Muddatlar backend kodi va DB ko‘rilmaguncha taxmin qilinmagan.
+
+14. YAKUNIY HUKM
+Frontend soddalashtirildi va eski xavfli lokal moliya olib tashlandi.
+To‘liq yangi xizmat-seans-hisoblash tizimi uchun backend ishlari ham zarur.
+Backend kelishuvga ko‘ra keyingi alohida vazifa; ushbu frontend o‘zgarishida
+serverdagi hisoblash ishlari yakunlandi deb belgilanmagan.
+
+YAKUNIY AVTOMATIK TEKSHIRUV
+- To‘liq suite: 26 test fayli, 127 test o‘tdi.
+- Demo login olib tashlangach auth va workflow chegarasi: qo‘shimcha qayta
+  tekshiruvda 2 fayl, 16 test o‘tdi (bu yuqoridagi testlarning bir qismi).
+- npm run build: muvaffaqiyatli.
+- npm run lint: xato va ogohlantirish yo‘q.
+- git diff --check: o‘tdi.
+- Production JSda namuna foydalanuvchi/bola, 4.95 reyting va demo123 uchun
+  belgilangan izlashlar: moslik yo‘q.
+- Vizual browser QA: browser access host mavjud emasligi sabab bajarilmadi.
+- Backend/DB o‘zgartirishlari va real moliyaviy yozishlar: bajarilmadi.
+================================================================================

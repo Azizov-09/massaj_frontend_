@@ -1,883 +1,216 @@
+﻿================================================================================
+MASSAJ CRM — BO‘LIMLAR VA KUNDALIK ISH QO‘LLANMASI
 ================================================================================
-BOLALAR MASSAJ VA REABILITATSIYA MARKAZI — MASSAJ CRM
-BO'LIMLAR VA KUNDALIK ISH BO'YICHA QO'LLANMA
-================================================================================
-Yangilangan sana: 20.11.2026
-Asos: loyihaning joriy routeri, menyulari, sahifalari, formalari va API chaqiruvlari.
-
-Ushbu qo'llanma markaz rahbari, administrator, mutaxassis va ota-ona uchun
-mo'ljallangan. Har bir bo'limning vazifasi, mavjud amallari va undan foydalanish
-tartibi tushuntiriladi. Misollardagi ismlar va summalar shartli.
-
-Tekshiruv manba kod bo'yicha bajarildi. Serverga ulanib barcha amallarni bajarish,
-mobil qurilmada sinash yoki tibbiy natijalarni tasdiqlash o'tkazilmadi.
-"Mavjud" deganda joriy interfeys va koddagi imkoniyat nazarda tutiladi.
-Serverga bog'liq amallarda muvaffaqiyat yoki xato xabarini tekshirish kerak.
-
-================================================================================
-0. TIZIM TUZILISHI, ROLLAR VA SAHIFALAR XARITASI
-================================================================================
-
-LOYIHA TURI
-Bolalar massaj va reabilitatsiya markazi uchun ichki CRM:
-- Bolalar va ota-onalar bilan ishlash.
-- Mutaxassislar, xizmatlar, qabul jadvali va davomatni boshqarish.
-- Klinik baholash va rivojlanish qaydlarini yuritish.
-- To'lovlar, balans, qarzdorlik va hisobotlarni ko'rish.
-
-ROLLAR
-- SUPER_ADMIN — super administrator.
-- ADMIN — administrator. Interfeysda super administrator bilan bir boshqaruv
-  hududidan foydalanadi. Serverdagi amal ruxsatlari alohida tekshiriladi.
-- SPECIALIST — mutaxassis.
-- PARENT — ota-ona.
-
-To'rtta rol uchun uchta boshqaruv paneli bor. Administrator panelining
-"/super-admin" manzili faqat SUPER_ADMIN roli kiradi degani emas.
-
-KIRISH VA YORDAMCHI SAHIFALAR
-Sahifa                 | URL       | Kirish sharti
------------------------|-----------|-----------------------------------------
-Yo'naltirish           | /         | Sessiya bo'lsa rol paneliga, bo'lmasa login
-Tizimga kirish         | /login    | Oldindan kirish talab qilinmaydi
-Ruxsat yo'q            | /403      | Oldindan kirish talab qilinmaydi
-Sahifa topilmadi       | /404      | Oldindan kirish talab qilinmaydi
-Noma'lum manzil         | *         | 404 ko'rinishi
-
-ADMINISTRATOR HUDUDI — SUPER_ADMIN VA ADMIN
-Quyidagi barcha manzillar tizimga kirishni talab qiladi.
-
-Sahifa                 | URL
------------------------|--------------------------------------------------------
-Boshqaruv paneli       | /dashboard/super-admin
-Adminlar               | /dashboard/super-admin/admins
-Mutaxassislar          | /dashboard/super-admin/specialists
-Ota-onalar             | /dashboard/super-admin/parents
-Bolalar                | /dashboard/super-admin/children
-Jadval                 | /dashboard/super-admin/schedule
-Davomat                | /dashboard/super-admin/attendance
-Xizmatlar              | /dashboard/super-admin/services
-Baholashlar            | /dashboard/super-admin/assessments
-Rivojlanish            | /dashboard/super-admin/progress
-To'lovlar              | /dashboard/super-admin/payments
-Tranzaksiyalar         | /dashboard/super-admin/transactions
-Balanslar              | /dashboard/super-admin/balance
-Qarzdorlar             | /dashboard/super-admin/debtors
-Analitika              | /dashboard/super-admin/analytics
-Hisobotlar             | /dashboard/super-admin/reports
-Bildirishnomalar       | /dashboard/super-admin/notifications
-Faollik jurnali        | /dashboard/super-admin/activity-logs
-Sozlamalar             | /dashboard/super-admin/settings
-Shaxsiy profil         | /dashboard/super-admin/profile
-
-MUTAXASSIS HUDUDI — SPECIALIST
-Sahifa                 | URL
------------------------|--------------------------------------------------------
-Boshqaruv paneli       | /dashboard/specialist
-Jadvalim               | /dashboard/specialist/schedule
-Davomat                | /dashboard/specialist/attendance
-Bolalar                | /dashboard/specialist/children
-Baholashlar            | /dashboard/specialist/assessments
-Rivojlanish            | /dashboard/specialist/progress
-Bildirishnomalar       | /dashboard/specialist/notifications
-Shaxsiy profil         | /dashboard/specialist/profile
-
-Mutaxassis uchun bolalar serverdagi biriktirilgan bolalar ro'yxatidan olinadi.
-Jadval va davomat o'z qabullari, baholash va rivojlanish o'zi yozgan qaydlar
-bo'yicha cheklanadi. Umumiy moliya, adminlar va sozlamalar menyusi berilmaydi.
-
-OTA-ONA HUDUDI — PARENT
-Sahifa                 | URL
------------------------|--------------------------------------------------------
-Boshqaruv paneli       | /dashboard/parent
-Bolalarim              | /dashboard/parent/children
-Rivojlanish            | /dashboard/parent/progress
-To'lovlarim            | /dashboard/parent/payments
-Balans                 | /dashboard/parent/balance
-Qarz                   | /dashboard/parent/debt
-Bildirishnomalar       | /dashboard/parent/notifications
-Shaxsiy profil         | /dashboard/parent/profile
-
-Ota-ona o'ziga bog'langan bolalar, to'lovlar, rivojlanish va moliyaviy holatni
-ko'rishga mo'ljallangan kabinetdan foydalanadi. Alohida jadval yoki baholashlar
-sahifasi yo'q; yaqin qabullar dashboardda, baholashlar rivojlanish tarixida chiqadi.
-
-ESKI MANZILLAR
-- /dashboard/super-admin/employees -> /dashboard/super-admin/specialists
-- /dashboard/super-admin/goals -> /dashboard/super-admin/progress
-- /dashboard/specialist/goals -> /dashboard/specialist/progress
-
-"Xodimlar" va "Terapevtik maqsadlar" hozir alohida sahifalar emas.
-Ushbu yo'naltirishlar eski havolalar uchun saqlangan.
-
-UMUMIY NAVIGATSIYA
-- Chap menyu rolga mos bo'limlarni ko'rsatadi; kompyuterda yig'ish/kengaytirish mumkin.
-- Mobilda yuqoridagi menyu tugmasi orqali yon menyu ochiladi.
-- Yuqoridagi qidiruv kamida 2 belgidan keyin natija beradi.
-  Admin bolalar, ota-onalar va mutaxassislarni; ota-ona o'z bolalarini qidiradi.
-- Qo'ng'iroqcha so'nggi bildirishnomalar va o'qilmaganlar sonini ko'rsatadi.
-- Profil menyusidan shaxsiy profil va tizimdan chiqishga o'tiladi.
-- Serverdan ma'lumot kelmasa, yuqoridagi xabar va "Qayta urinish" amalidan
-  foydalaniladi. Qisman yuklangan ma'lumotlar eskirgan bo'lishi mumkin.
-
-================================================================================
-1. TIZIMGA KIRISH
-================================================================================
-URL: /login
-
-MAQSADI
-Telefon raqami va parol bilan hisobga kirish, foydalanuvchini roliga mos panelga
-yo'naltirish. Xodim yoki ota-ona o'z hisobidan foydalanadi.
-
-MAVJUD IMKONIYATLAR
-- Telefon raqami va parol maydonlari.
-- Parolni ko'rsatish/yashirish.
-- "Meni eslab qol" katakchasi.
-- "Parolni unutdingizmi?" yordam oynasi.
-- Yuborish vaqtidagi yuklanish va xato xabarlari.
-
-FOYDALANISH
-1. Ro'yxatdan o'tgan telefon va parolni kiriting.
-2. Kirish tugmasini bosing.
-3. Tizim rolga qarab administrator, mutaxassis yoki ota-ona panelini ochadi.
-
-9 xonali mahalliy raqam +998 bilan to'ldiriladi; 998 bilan boshlangan 12 xonali
-raqamga "+" qo'shiladi. Asosiy kirish usuli email emas, telefondir.
-Eski READMEdagi demo email/parollar amaldagi production kirish yo'li emas.
-
-CHEKLOVLAR
-- "Meni eslab qol" tanlovi hozir login chaqiruviga uzatilmaydi.
-- Parolni unutish oynasi yo'riqnoma beradi; unda OTP yuborish yoki kod kiritib
-  parol tiklash jarayoni amalga oshirilmagan.
-- Sessiya tugab, yangilanmasa, qayta kirish kerak bo'ladi.
-
-MISOL
-Mutaxassis telefon va parolini kiritadi; tizim uning ish panelini ochadi.
-
-================================================================================
-2. ROLGA MOS BOSHQARUV PANELLARI
-================================================================================
-
-A) ADMINISTRATOR PANELI — /dashboard/super-admin
-MAQSADI: markazning moliyaviy va operatsion holatini bir ekranda kuzatish.
-
-MAVJUD BLOKLAR
-- 8 ko'rsatkich: jami tushum, jami qarzdorlik, joriy balans, bugungi tushum,
-  faol bemor bolalar, faol mutaxassislar, bugungi qabullar, bugungi seanslar.
-- Moliyaviy dinamika va uchrashuvlar holati taqsimoti.
-- Bugungi klinik jadval, qabul tafsilotlari va holat filtri.
-- So'nggi moliyaviy amallar, yirik qarzdorlar, mutaxassislar yuklamasi.
-- Yangi uchrashuv yaratish oynasi va tegishli bo'limlarga tez o'tish.
-
-Davr tanlovlari: Bugun, Kecha, 7 kun, Bu oy, O'tgan oy, Bu yil.
-Davr tanlovi barcha kartochkalarni bir xil davrga cheklaydi deb qabul qilmang:
-bugungi ko'rsatkichlar va umumiy jamlamalar alohida hisoblanadi.
-
-B) MUTAXASSIS PANELI — /dashboard/specialist
-MAQSADI: bugungi qabullar va o'ziga biriktirilgan bolalar bilan ishlash.
-
-- Bugungi muolajalar, biriktirilgan bolalar, bajarilgan seanslar ko'rsatkichlari.
-- Bugungi qabullarni holat bo'yicha ko'rish va navbatdagi qabul.
-- Seansni boshlash, davomatga o'tish va tezkor kuzatuv qaydi yozish.
-- Qaydga uy vazifasini qo'shish.
-
-"Kasbiy reyting" kartochkasidagi 4.95 qiymati yakunlangan seans borligiga qarab
-beriladi; haqiqiy ota-onalar baholaridan hisoblanadigan reyting deb talqin qilmang.
-Seansni boshlash hozir mahalliy xotira holatini o'zgartiradi.
-
-C) OTA-ONA PANELI — /dashboard/parent
-MAQSADI: o'z farzandlarining qabullari, qaydlari va hisobini kuzatish.
-
-- Farzandlar soni, navbatdagi qabullar, depozit va qarzdorlik ko'rsatkichlari.
-- Farzandlar kartochkalari: mutaxassis, tug'ilgan sana, bajarilgan seanslar.
-- Yaqinlashayotgan qabullar: sana, boshlanish/tugash vaqti, xizmat va mutaxassis.
-- Mutaxassis tavsiyalari, uy mashqlari va matnni nusxalash.
-- Balansga, rivojlanish tarixiga o'tish va qabulga yozilish oynasi.
-
-Xona raqami yoki 10/15 seanslik kursning qolgan sonini boshqaradigan alohida
-kurs mexanizmi bu panelda mavjud deb ko'rsatilmaydi.
-
-MISOL
-Administrator bugungi qabullarni tekshiradi; ota-ona o'z kabinetida navbatdagi
-qabul vaqtini va mutaxassis yozgan tavsiyani ko'radi.
-
-================================================================================
-3. BOLALAR / BOLALARIM
-================================================================================
-URL: tegishli rol hududidagi /children
-
-MAQSADI
-Bolaning asosiy kartasi, ota-onasi, mutaxassisi va holatini bir joyda yuritish.
-Bu ma'lumotlar jadval, baholash, rivojlanish va moliya bilan bog'lanadi.
-
-MAVJUD IMKONIYATLAR
-- Bola va ota-ona ismi bo'yicha qidiruv.
-- Faol, nofaol, arxivlangan holatlar va mutaxassis bo'yicha filtrlar.
-- Jadval va mobil kartochkalar; yosh, mutaxassis, keyingi seans, balans va holat.
-- Yangi bola qo'shish, tafsilot, tahrirlash, arxivlash, tiklash, o'chirish.
-- O'chirish oldidan tasdiqlash va xato bo'lsa xabar.
-
-QO'SHISH FORMASI
-To'liq ism, tug'ilgan sana, jins, ota-ona/vasiy, telefon; ixtiyoriy mutaxassis,
-manzil, favqulodda aloqa, admin eslatmalari va tibbiy eslatma/tashxis.
-Telefon +998 (XX) XXX-XX-XX ko'rinishida kiritiladi.
-Ota-ona hisobida ota-ona maydoni joriy foydalanuvchiga bog'lanadi.
-
-TAFSILOT OYNASI
-Bolaning asosiy ma'lumotlari, depozit/qarz, ota-onasi, mutaxassisi va izohi.
-To'liq klinik tarix "Baholashlar" va "Rivojlanish" bo'limlarida ko'riladi.
-
-CHEKLOVLAR
-- Qon guruhi, tug'ruq tarixi yoki surat/fayl yuklash uchun alohida forma yo'q.
-- Arxivlash, faolsizlantirish va o'chirish turli amallardir.
-- Sahifadagi ayrim boshqaruv tugmalari umumiy komponentda berilgan; rolga mos
-  server ruxsatini tugmaning ko'rinishiga qarab kafolatlab bo'lmaydi.
-
-MISOL
-Administrator avval ota-onani yaratadi, keyin bolani shu ota-onaga va mutaxassisga
-bog'laydi. Bola kartasidan keyingi seans va moliyaviy holatini ko'radi.
-
-================================================================================
-4. OTA-ONALAR
-================================================================================
-URL: /dashboard/super-admin/parents
-
-MAQSADI
-Ota-ona yoki vasiy bilan aloqa, farzandlarni bog'lash va moliyaviy holatni ko'rish.
-
-MAVJUD IMKONIYATLAR
-- Ism/telefon bo'yicha qidiruv.
-- Barchasi, faol, qarzdorlar, depozitdagilar va nofaol filtrlari.
-- Farzandlar, telefon, manzil, balans va hisob holati.
-- Yaratish, tafsilot, tahrirlash, faollashtirish/nofaol qilish, arxivlash va tiklash.
-- Telefon orqali bog'lanish va farzandning bolalar bo'limiga o'tish.
-
-YARATISH FORMASI
-To'liq ism, telefon, parol, manzil va izoh.
-Parol kamida 12 belgi, katta harf, kichik harf va raqamdan iborat bo'ladi.
-Parol yaratish tugmasi 14 belgili variant beradi; ko'rsatish/yashirish mumkin.
-
-Bitta ota-onaga bir nechta farzand bog'lanadi. Oila jamlamasi bolalarning alohida
-hisoblari va ota-onaning bevosita hisobidan tuziladi; bu avtomatik umumiy
-hamyondan barcha farzand qarzini yopish degani emas.
-
-CHEKLOVLAR
-Qo'shimcha telefon/email maydoni yoki shu sahifadan avtomatik SMS yuborish yo'q.
-Arxivlash tarixni saqlash uchun ishlatiladi; amal natijasidagi holatni tekshiring.
-
-MISOL
-Ikki farzandi bor ota-ona uchun bitta hisob ochiladi, har bir bola shu hisobga
-bog'lanadi. To'lovda qaysi bolaga yoki umumiy hisobga tushayotgani tanlanadi.
-
-================================================================================
-5. MUTAXASSISLAR
-================================================================================
-URL: /dashboard/super-admin/specialists
-
-MAQSADI
-Mutaxassisning yo'nalishi, tajribasi, ish jadvali va faoliyatini boshqarish.
-
-MAVJUD IMKONIYATLAR
-- Ism, telefon va mutaxassislik bo'yicha qidiruv; holat filtri.
-- Jadval/mobil kartochkalar: yo'nalish, tajriba, ish kunlari, seanslar, holat.
-- Yangi mutaxassis, profil, tahrirlash, faol/nofaol qilish, arxivlash va tiklash.
-- Faol mutaxassislar, bajarilgan seanslar, o'rtacha tajriba va jami xodimlar KPIlari.
-
-YARATISH
-Ism, mutaxassislik, telefon, parol, tajriba va qisqacha bio.
-Parol talabi ota-ona yaratishdagi kabi: kamida 12 belgi, katta/kichik harf va raqam.
-
-TAHRIRLASH
-Asosiy ma'lumotlar, tajriba, bio, haftadagi ish kunlari, ish boshlanish/tugashi
-va hisob holati. Arxivlashda tarixni saqlash ko'zda tutilgan.
-
-CHEKLOV
-Eski /employees manzili shu sahifaga yo'naltiriladi. Alohida xodimlar ro'yxati,
-maosh yoki ish haqi hisoblash sahifasi hozir mavjud emas.
-
-MISOL
-Rahbar yangi mutaxassisni qo'shadi, keyin tahrirlash oynasida ish kunlari va
-soatlarini belgilaydi. Ushbu jadval qabul formasidagi tekshiruvga ta'sir qiladi.
-
-================================================================================
-6. ADMINLAR
-================================================================================
-URL: /dashboard/super-admin/admins
-
-MAQSADI
-Markazning administrator hisoblari, rollari va faolligini boshqarish.
-
-MAVJUD IMKONIYATLAR
-- Ism yoki telefon bo'yicha qidiruv.
-- Barchasi, Super Adminlar, Administratorlar va faol hisoblar filtrlari.
-- Ism, rol, telefon, qo'shilgan sana va holat.
-- Yangi administrator, profil, tahrirlash, faollikni o'zgartirish va arxivlash.
-- Yaratishda ism, telefon, rol va parol; tahrirlashda ism, telefon, rol va holat.
-- Yangi parol: kamida 12 belgi, katta/kichik harf va raqam.
-
-CHEKLOVLAR
-- Alohida oxirgi kirish tarixi yoki parolni tiklash tugmasi yo'q.
-- SUPER_ADMIN va ADMIN bir xil hududdan foydalanadi; ularni interfeys bo'yicha
-  barcha huquqlari bir xil yoki oddiy admin mutlaqo kira olmaydi deb yozish noto'g'ri.
-- Amalning yakuniy ruxsati backendga bog'liq.
-
-MISOL
-Rahbar resepshn xodimiga ADMIN hisobini yaratadi va ishga kirish ma'lumotlarini beradi.
-
-================================================================================
-7. JADVAL VA QABULGA YOZILISH
-================================================================================
-URL: administrator yoki mutaxassis hududidagi /schedule
-
-MAQSADI
-Qabullarning kunlik/haftalik taqvimini va mutaxassis bandligini ko'rish.
-
-JADVALDA
-- Kunlik va haftalik ko'rinish.
-- Sana tanlash, oldingi/keyingi kun yoki hafta, "Bugun" tugmasi.
-- Administrator uchun mutaxassis filtri; mutaxassis uchun o'z jadvali.
-- Jami qabullar, kutilayotganlar, yakunlanganlar va bo'sh slotlar ko'rsatkichlari.
-- Qabul blokini bosib bola, xizmat, mutaxassis, vaqt va holat tafsilotini ko'rish.
-
-YANGI QABUL
-Administrator dashboardidagi yangi uchrashuv yoki ota-ona dashboardidagi
-qabulga yozilish tugmasidan forma ochiladi.
-Maydonlar: bola, mutaxassis, xizmat, sana, boshlanish vaqti, izoh.
-Tugash vaqti xizmat davomiyligidan hisoblanadi.
-Forma ish soati, seansning ish vaqtidan oshmasligi, mutaxassis ish kuni va
-bir xil boshlanish vaqtidagi bandlikni tekshiradi.
-
-MUHIM CHEKLOVLAR
-- Jadval sahifasining o'zida qabul qo'shish/tahrirlash, vaqtini ko'chirish,
-  drag-and-drop, xona tanlash yoki oylik ko'rinish yo'q.
-- To'qnashuv tekshiruvi bir xil boshlanish vaqtiga qaraydi. Vaqt oralig'i
-  kesishadigan barcha qabullarni aniqlash kafolatlanmagan.
-- Yangi qabul hozir ilovaning mahalliy xotirasiga qo'shiladi; serverga yaratish
-  so'rovi yuborilmaydi. Sahifani yangilaganda saqlanib qolishiga tayanmang.
-- Qabullarni serverdan olish mavjud; bu yangi qabul ham serverda saqlanadi degani emas.
-
-MISOL
-Administrator avval kerakli kun va mutaxassis bandligini tekshiradi, keyin
-dashboarddan qabul formasini ochadi. Davomiyligi kesishadigan vaqtni qo'lda ham
-tekshiradi va hozirgi mahalliy saqlash cheklovini hisobga oladi.
-
-================================================================================
-8. DAVOMAT
-================================================================================
-URL: administrator yoki mutaxassis hududidagi /attendance
-
-MAQSADI
-Tanlangan sanadagi har bir qabul bo'yicha bola qatnashganini va izohni qayd etish.
-
-MAVJUD IMKONIYATLAR
-- Sana, mutaxassis, qidiruv va davomat holati bo'yicha filtrlar.
-- Bola, ota-ona, xizmat, mutaxassis, vaqt va davomati.
-- Belgilanmagan qabullarni ommaviy "Keldi" deb belgilash.
-- Qabulga izoh qo'shish/tahrirlash va tayyor izoh variantlari.
-- Davomat darajasi va holatlar bo'yicha ko'rsatkichlar.
-
-HOLATLAR
-PRESENT — Keldi.
-LATE — Kechikdi.
-ABSENT — Sababli kelmadi.
-NO_SHOW — Sababsiz kelmadi.
-UNMARKED — hali belgilanmagan yozuvlar uchun filtr.
-
-MUHIM
-Davomatni saqlash serverga yuboriladi. "Keldi"ni bosishning o'zi avtomatik to'lov,
-seans narxi yoki kursdan 1 seans kamaytirishni bajarmaydi.
-Davomatning qabulga bog'lanishi mahalliy holatda yuritiladi; boshlang'ich
-yuklashda davomat tarixini qayta olish hozir ulab tugatilmagan.
-
-MISOL
-Mutaxassis bugungi qabulni topadi, "Kechikdi"ni tanlaydi va qisqa izoh yozadi.
-Muvaffaqiyat xabari kelganidan keyin qayd saqlanganini tekshiradi.
-
-================================================================================
-9. XIZMATLAR
-================================================================================
-URL: /dashboard/super-admin/services
-
-MAQSADI
-Xizmat narxi, davomiyligi va tavsifini yagona katalogda yuritish.
-
-MAVJUD IMKONIYATLAR
-- Faol va arxivlangan xizmat kartochkalari.
-- Faol xizmatlar, o'tkazilgan seanslar, jami tushum va arxivlanganlar ko'rsatkichlari.
-- Xizmat qo'shish, tahrirlash, tasdiqlash orqali arxivlash va tiklash.
-- Nom, tavsif, narx, davomiylik, kategoriya, minimal/maksimal yosh maydonlari.
-
-Qabul davomiyligi xizmatdan olinadi. Narx va davomiylikni yangilashda server
-tasdig'ini tekshiring.
-
-CHEKLOV
-10 yoki 15 seanslik kurs paketi, tavsiya qilingan seanslar soni va qolgan
-seanslarni avtomatik boshqarish ushbu formaning maydonlari emas.
-
-MISOL
-Administrator yangi xizmatning nomi, narxi va 45 daqiqalik davomiyligini kiritadi.
-Keyingi qabulni rejalashda forma shu davomiylikni ishlatadi.
-
-================================================================================
-10. BAHOLASHLAR
-================================================================================
-URL: administrator yoki mutaxassis hududidagi /assessments
-
-MAQSADI
-Bolaning holatini beshta mezon va mutaxassis xulosasi orqali qayd etish.
-
-BAHOLASH MEZONLARI — HAR BIRI 1–5 BALL
-- Harakat faolligi.
-- Koordinatsiya.
-- Mushak tonusi (egiluvchanlik).
-- Chidamlilik.
-- Muolajaga javob.
-
-MAVJUD IMKONIYATLAR
-- Yangi baholash: bola, mutaxassis, beshta ball, professional kuzatuv va xulosa.
-- O'rtacha ball hamda baholashlar/bolalar bo'yicha jamlamalar.
-- Jadval va kartochka ko'rinishi, tafsilot oynasi.
-- Bola, mutaxassis, xulosa matni va natija darajasi bo'yicha filtr/qidiruv.
-- Yuqori: o'rtacha >= 4; o'rta: 3 <= o'rtacha < 4; past: o'rtacha < 3.
-
-CHEKLOVLAR
-Bu ichki besh mezonli baholash; tayyor GMFCS, Ashworth yoki boshqa xalqaro
-shkala moduli mavjud deb talqin qilinmaydi. Qayta ko'rik sanasi uchun alohida
-maydon yo'q. Ota-ona baholashlarni o'z rivojlanish tarixidan ko'radi.
-
-MISOL
-Mutaxassis bola uchun beshta mezonni baholaydi va kuzatuvini yozadi.
-Keyingi baholash ham alohida qayd sifatida yaratiladi.
-
-================================================================================
-11. RIVOJLANISH VA KUZATUV TARIXI
-================================================================================
-URL: tegishli rol hududidagi /progress
-
-MAQSADI
-Mutaxassis qaydlari, baholashlar va izohli yakunlangan seanslarni bir tarixda ko'rish.
-
-MAVJUD IMKONIYATLAR
-- Xronologik lenta va jadval ko'rinishi.
-- Barchasi, seanslar, qaydlar, baholashlar va tavsiyalar bo'yicha filtrlar.
-- Bola, mutaxassis yoki xulosa matni bo'yicha qidiruv.
-- Qayd tafsiloti, ballar va mavjud seans tavsiyasini nusxalash.
-- Administrator/mutaxassis uchun yangi kuzatuv qaydi.
-- Formada bola, mutaxassis, majburiy kuzatuv matni va ixtiyoriy uy tavsiyasi.
-  Uy tavsiyasi qaydning matniga qo'shib saqlanadi.
-- Ota-ona uchun o'z bolalarining tarixini ko'rish.
-
-CHEKLOVLAR
-- Alohida rivojlanish egri chizig'i yoki kayfiyat tanlash formasi yo'q.
-- "Terapevtik maqsadlar" sahifasi shu yerga birlashtirilgan yo'naltirishdir.
-  SMART maqsad yaratish, muddat belgilash va 0–100% bajarilishni boshqarish yo'q.
-- Tavsiyalar filtri seansning alohida tavsiya maydoniga tayanadi. Oddiy qaydga
-  matn qilib qo'shilgan uy tavsiyasi ushbu filtrda albatta chiqadi deb kutmang.
-
-MISOL
-Mutaxassis seansdagi kuzatuvni va uy uchun ko'rsatmasini yozadi.
-Ota-ona rivojlanish bo'limidan shu qaydni o'qiydi.
-
-================================================================================
-12. TO'LOVLAR
-================================================================================
-URL: administrator yoki ota-ona hududidagi /payments
-
-MAQSADI
-Qabul qilingan to'lovni qayd etish va to'lov tarixini ko'rish.
-
-MAVJUD IMKONIYATLAR
-- Jami, shu oy va bugungi tushum, to'lovlar soni.
-- To'lovchi, bola, summa, usul, sana/vaqt va izoh jadvali.
-- Ota-ona/bola ismi, ID yoki izoh bo'yicha qidiruv; usul bo'yicha filtr.
-- Kvitansiya oynasi va brauzer orqali chop etish.
-- Yangi to'lovni administratorlar qo'shadi; ota-ona o'z tarixini ko'radi.
-
-FORMA
-Ota-ona majburiy, bola ixtiyoriy; summa, usul, sana va izoh.
-Usullar: CASH — naqd, CARD — karta, TRANSFER — bank o'tkazmasi.
-Summa 0 dan katta va 2 000 000 000 so'mdan oshmasligi kerak.
-
-TO'LOVNI QAYD ETISH
-1. To'lovchi va kerak bo'lsa bolani tanlang.
-2. Haqiqatda qabul qilingan summa, usul va sanani kiriting.
-3. Server tasdig'ini kuting; xato bo'lsa to'lov qabul qilindi deb hisoblamang.
-4. Kvitansiyani ochib tekshiring, kerak bo'lsa chop eting.
-
-CHEKLOVLAR
-- Karta/bank usulini tanlash bankdan pul yechmaydi; bu to'lovni qayd etishdir.
-- Click, Payme, Uzcard yoki Humo bilan alohida to'lov integratsiyasi yo'q.
-- Alohida PDF eksport tugmasi yo'q. Brauzer chop etish oynasi imkon bersa,
-  "PDF sifatida saqlash" tanlanishi mumkin.
-- Sana oralig'i filtri bu sahifada yo'q; tranzaksiyalar/hisobotlardan foydalaning.
-- Kvitansiya fiskal chek yoki tashqi to'lov provayderi tasdig'i deb kafolatlanmaydi.
-
-MISOL
-Administrator bola uchun olingan 500 000 so'm naqd to'lovni kiritadi.
-Server tasdiqlagach, to'lov va unga tegishli kirim tranzaksiyasi ko'rinadi.
-
-================================================================================
-13. TRANZAKSIYALAR
-================================================================================
-URL: /dashboard/super-admin/transactions
-
-MAQSADI
-Kirim/chiqim va hisoblash yozuvlarini yagona moliyaviy jurnalda ko'rish.
-
-MAVJUD IMKONIYATLAR
-- Barchasi, kirim, chiqim va xarajatlar bo'yicha ajratish.
-- Turlar: PAYMENT, SESSION_CHARGE, REFUND, ADJUSTMENT, EXPENSE.
-- ID, tavsif yoki mijoz ismi bo'yicha qidiruv; turi va sana oralig'i filtrlari.
-- Summa, yo'nalish, ota-ona/bola, tavsif va sana; tafsilot oynasi.
-- Kirim, chiqim, sof saldo va operatsiyalar jamlamasi.
-- Filtrlangan yozuvlarni CSV formatida yuklab olish.
-
-CHEKLOV
-Bu sahifa mavjud yozuvlarni ko'rish va eksport qilish uchun.
-Unda alohida xarajat kiritish, pul qaytarish yoki tranzaksiyani tahrirlash
-formasi yo'q. Ro'yxatda REFUND turi borligi pulni bankka qaytarish amali degani emas.
-
-MISOL
-Administrator sana oralig'i va PAYMENT filtrini tanlaydi, tegishli kirimlarni
-tekshiradi va CSV faylni yuklab oladi.
-
-================================================================================
-14. BALANSLAR
-================================================================================
-URL: administrator yoki ota-ona hududidagi /balance
-
-MAQSADI
-Depozit va qarzdorlikni ota-ona/farzand hisoblari asosida ko'rsatish.
-
-MAVJUD IMKONIYATLAR
-- Ota-ona, farzandlar, depozit, qarz va holat jadvali.
-- Ism, telefon, farzand nomi bo'yicha qidiruv.
-- Barchasi, qarzdorlar, depozitdagilar va nol balans filtrlari.
-- Administrator uchun tezkor to'lov oynasi.
-- Ota-ona uchun o'z hisobining jamlamasi.
-
-HISOBLASH QOIDASI
-- Bir hisobdagi kirim avval shu hisobning qarzini yopadi, qolgani depozitga o'tadi.
-- Chiqim depozitni kamaytiradi; yetmagan qismi qarzga yoziladi.
-- Depozit va qarz alohida ko'rsatiladi; ikkalasi manfiy bo'lmaydi.
-- Bolalar hisoblari va bolaga bog'lanmagan ota-ona hisobi alohida hisoblanib,
-  keyin oila kesimida jamlanadi.
-
-Shuning uchun bir oilada depozit ham, qarz ham ko'rinishi mumkin.
-Umumiy ota-ona depoziti bolaning alohida qarziga avtomatik o'tkazilmaydi.
-Qarzni yopishda to'lovni tegishli bolaga bog'lashni tekshiring.
-
-CHEKLOV
-Alohida "Qayta hisoblash" tugmasi yo'q. Natija yuklangan tranzaksiyalardan
-olinadi. Ota-ona balans/qarz ko'rinishlari uchun kerakli ma'lumotlarni serverdan
-to'liq yuklash hali tugatilmagan; bo'sh ro'yxatni "qarz yo'q" deb qabul qilmang.
-
-MISOL
-Bola hisobida 100 000 so'm qarz bo'lsa, shu bolaga 150 000 so'm kirim
-yozilganda 100 000 qarz yopilib, 50 000 depozit qoladi.
-
-================================================================================
-15. QARZDORLAR / QARZ
-================================================================================
-URL: /dashboard/super-admin/debtors yoki /dashboard/parent/debt
-
-MAQSADI
-Bolalar kesimida qarzdorlikni kuzatish va administratorga to'lovni qayd etishni
-tezlashtirish.
-
-MAVJUD IMKONIYATLAR
-- Bola, ota-ona, telefon, qarz, depozit va o'tgan kunlar.
-- Ism/telefon qidiruvi; qarz miqdori bo'yicha guruhlar.
-- Katta qarz: >= 1 000 000 so'm.
-- O'rta: 300 000 <= qarz < 1 000 000 so'm.
-- Kichik: < 300 000 so'm.
-- Ism, qarz yoki kunlar bo'yicha saralash; sahifada 10/20/50 yozuv.
-- Tafsilot, bola kartasiga o'tish va administrator uchun tezkor to'lov.
-- CSV eksport. Interfeysdagi "Excel" amali ham .csv fayl yuklaydi.
-- Telefon orqali aloqa va Telegram uchun eslatma matnini tayyorlash.
-
-TELEGRAM ESLATMASI
-Tugma matnni nusxalashga urinadi va Telegram ulashish oynasini ochadi.
-Kimga yuborish va yuborishni foydalanuvchi tanlaydi.
-Xabar avtomatik jo'natilmaydi; SMS yuborish amali yo'q.
-
-CHEKLOVLAR
-- Ro'yxat hisoblangan eng katta qarzli 100 ta yozuv bilan cheklangan.
-- "Kechikkan kunlar" oxirgi seans hisoblash yozuviga tayanadi; shartnomadagi
-  to'lov muddati o'tganini tasdiqlovchi ko'rsatkich emas.
-- Ota-ona moliyaviy ma'lumotlari yuklanishi bo'yicha 14-bo'lim cheklovi amal qiladi.
-
-MISOL
-Administrator katta qarz filtrini ochadi, bolani tanlab shu bolaga to'lov
-qayd etadi yoki ota-onaga yuborish uchun Telegram matnini tayyorlaydi.
-
-================================================================================
-16. ANALITIKA
-================================================================================
-URL: /dashboard/super-admin/analytics
-
-MAQSADI
-Yuklangan moliyaviy va operatsion ma'lumotlarni grafiklarda ko'rish.
-
-MAVJUD BLOKLAR
-- Jami tushum, bajarilgan seanslar, davomat, o'rtacha seans narxi.
-- Kirim va chiqim dinamikasi.
-- Qabullar holati bo'yicha doiraviy diagramma.
-- Mutaxassislar yuklamasi — yakunlangan seanslar.
-- Seanslar soni bo'yicha eng ko'p ishlatilgan 5 xizmat.
-
-DAVR TANLOVI
-7 kun, Oy va Yil tanlovi moliyaviy dinamika grafigiga ta'sir qiladi.
-Hozir "Oy" amalda oxirgi 14 kunni, "Yil" 12 oyni tayyorlaydi.
-Qolgan KPI va diagrammalar yuklangan umumiy ma'lumotlardan hisoblanadi.
-
-CHEKLOV
-Yangi/qaytgan mijozlar yoki hafta kunlari yuklamasi uchun alohida grafik yo'q.
-"Xarajat" grafik nomi barcha chiqimlarni, jumladan seans hisoblashlarini ham
-qamrashi mumkin; uni markazning sof operatsion xarajati deb talqin qilmang.
-
-MISOL
-Rahbar xizmatlar bo'yicha seanslar sonini va mutaxassis yuklamasini solishtiradi.
-
-================================================================================
-17. HISOBOTLAR
-================================================================================
-URL: /dashboard/super-admin/reports
-
-MAQSADI
-Joriy ma'lumotlarni jadvalda tekshirish va tashqi ishlov uchun yuklab olish.
-
-HISOBOT TURLARI
-- FINANCE — moliya: tranzaksiyalar, yo'nalish, summa, mijoz va tavsif.
-- ATTENDANCE — davomat: sana, bola, mutaxassis, holat va izoh.
-- SESSIONS — seanslar: vaqt, bola, mutaxassis, xizmat, holat va kuzatuv.
-- CHILDREN — bolalar: ism, tug'ilgan sana, jins, ota-ona, telefon, seanslar va holat.
-
-MAVJUD IMKONIYATLAR
-- Hisobot turini tanlash, matn bo'yicha qidiruv va filtrlarni tozalash.
-- Moliya, davomat va seanslarda sana oralig'i.
-- Davomat/seanslarda mutaxassis filtri.
-- Jadval/mobil kartochka ko'rinishi.
-- Filtrlangan natijani CSV yoki JSON formatida yuklab olish.
-
-CHEKLOVLAR
-- Bolalar hisoboti sana oralig'i bilan cheklanmaydi.
-- Tayyor PDF, haqiqiy .xlsx, maosh/bonus yoki xizmat rentabelligi hisoboti yo'q.
-- Ushbu eksport soliq yoki rasmiy buxgalteriya hisoboti sifatida tasdiqlanmagan.
-- Natija ilovaga yuklangan ma'lumotlar hajmiga bog'liq.
-
-MISOL
-Administrator davomat hisobotini tanlaydi, sana va mutaxassisni belgilaydi,
-CSV faylni yuklab olib Excelda ochadi.
-
-================================================================================
-18. BILDIRISHNOMALAR
-================================================================================
-URL: tegishli rol hududidagi /notifications
-
-MAQSADI
-Tizim ichidagi xabarlarni ko'rish va o'qilgan holatini boshqarish.
-
-MAVJUD IMKONIYATLAR
-- Kategoriyalar: uchrashuv, to'lov, qarzdorlik, seans, baholash, jadval, tizim.
-- Barchasi/o'qilmaganlar va kategoriya filtrlari.
-- O'qilgan/o'qilmagan holat filtri, sarlavha/matn qidiruvi.
-- Yangidan eskiga yoki eskidan yangiga saralash, sana bo'yicha guruhlar.
-- Bitta yoki barcha tegishli xabarlarni o'qilgan deb belgilash.
-- O'qilmagan deb qaytarish va mavjud bog'langan bo'limga o'tish.
-- Yuqoridagi qo'ng'iroqcha bilan qisqa ko'rinish.
-
-Administrator yuklangan xabarlarni, boshqa foydalanuvchilar o'zlariga
-yo'naltirilganlarini ko'radi.
-
-CHEKLOVLAR
-O'qilgan va barchasini o'qilgan qilish serverga fon so'rovi bilan yuboriladi.
-"O'qilmagan"ga qaytarish hozir faqat mahalliy holatni o'zgartiradi.
-Bu markazdagi SMS, brauzer push yoki Telegram bot yetkazib berish xizmati emas.
-Xabarlar avtomatik real vaqtda kelishi kafolatlanmagan.
-
-MISOL
-Ota-ona to'lov haqidagi ichki xabarni o'qiydi va uni o'qilgan deb belgilaydi.
-
-================================================================================
-19. FAOLLIK JURNALI
-================================================================================
-URL: /dashboard/super-admin/activity-logs
-
-MAQSADI
-Tizimdagi mavjud harakat qaydlarini kim bajargani va qaysi obyektga tegishli
-ekanini ko'rish.
-
-MAVJUD IMKONIYATLAR
-- Foydalanuvchi ismi, tavsif va obyekt IDsi bo'yicha qidiruv.
-- Harakat va obyekt turi filtrlari.
-- Foydalanuvchi, rol, amal, obyekt/ID, tavsif va vaqt ko'rinishi.
-- Filtrlangan qaydlarni JSON formatida yuklab olish.
-
-CHEKLOVLAR
-IP manzil, qurilma yoki eski/yangi qiymatlarni solishtirish oynasi yo'q.
-Ayrim harakatlar ilovaning mahalliy jurnaliga yoziladi. Har bir amalning serverda
-o'zgarmas audit izi 100% saqlanishi ushbu frontend bilan kafolatlanmaydi.
-
-MISOL
-Administrator bolaning IDsi yoki xodim ismini qidiradi va mavjud harakatlarni
-ko'rib, kerak bo'lsa JSON ko'rinishida yuklab oladi.
-
-================================================================================
-20. TIZIM SOZLAMALARI
-================================================================================
-URL: /dashboard/super-admin/settings
-
-MAQSADI
-Markaz nomi, aloqa ma'lumotlari va umumiy ish vaqtini o'zgartirish.
-
-SERVERGA SAQLANADIGAN MAYDONLAR
-- Markaz nomi.
-- Kontakt telefon.
-- Manzil.
-- Ish boshlanish va tugash vaqti.
-"O'zgarishlarni saqlash" tugmasi server javobini kutadi.
-
-INTERFEYSDA BOR, AMMO ULANIB TUGATILMAGAN
-SMS eslatmalari, ovozli signallar va 2/12/24/48 soat oldin eslatish tanlovi.
-Hozir ular sahifa ichidagi vaqtinchalik holat; saqlash yoki SMS yuborish
-mexanizmiga ulanmagan.
-
-NAMUNAVIY MA'LUMOTLARNI TIKLASH
-"Ma'lumotlarni qayta tiklash" tasdiqlash oynasidan keyin ilovaning joriy
-ro'yxatlarini namunaviy ma'lumotlar bilan almashtiradi.
-Bu server bazasini tozalash, zaxira nusxa yaratish yoki backupdan tiklash emas.
-Haqiqiy ma'lumotlar bilan ishlashda ushbu namuna amalini ishlatmang.
-
-CHEKLOV
-Logotip yuklash, klinika dam olish kunlari, seanslar orasidagi tanaffus yoki
-alohida xavfsizlik boshqaruvi uchun forma yo'q.
-Mutaxassis ish kunlari uning tahrirlash oynasida belgilanadi.
-
-MISOL
-Administrator telefon yoki ish vaqtini o'zgartirib, saqlash natijasini kutadi.
-
-================================================================================
-21. SHAXSIY PROFIL
-================================================================================
-URL: tegishli rol hududidagi /profile
-
-MAQSADI
-Joriy hisob ma'lumotlarini ko'rish va parolni almashtirish.
-
-MAVJUD IMKONIYATLAR
-- Ism, telefon, rol va hisob holati ko'rinishi.
-- Ism/telefonni tahrirlash formasi.
-- Joriy parol, yangi parol va tasdiqlash maydonlari.
-- Yangi parol kamida 12 belgi, katta harf, kichik harf va raqamni talab qiladi.
-
-ROLGA MOS AMALDAGI CHEKLOVLAR
-- Administrator: ism va telefon serverga saqlanadi.
-- Ota-ona: ism yangilanadi; telefon o'zgartirilsa qo'llab-quvvatlanmaslik xabari chiqadi.
-- Mutaxassis: shu sahifadan shaxsiy aloqa ma'lumotlarini yangilash ulanmagan;
-  administratorning "Mutaxassislar" bo'limidan foydalanish kerak.
-- Parolni almashtirish barcha rollar uchun auth API orqali yuboriladi.
-
-CHEKLOV
-Rasm/avatar yoki email yuklash/tahrirlash formasi yo'q.
-Tizimdan chiqish yuqoridagi profil menyusi yoki yon menyudan bajariladi.
-
-MISOL
-Foydalanuvchi joriy parolni va yangi parolni ikki marta kiritadi.
-Server tasdiqlagandan keyin parol o'zgartirilgan hisoblanadi.
-
-================================================================================
-22. XATO SAHIFALARI VA YORDAM
-================================================================================
-- /403: "Ruxsat yo'q" — joriy rol uchun ochilmagan hududga kirilganda.
-- /404 va noma'lum URL: "Sahifa topilmadi"; orqaga yoki bosh sahifaga qaytish mumkin.
-- Sahifa yoki JavaScript yuklanishi xatosi uchun umumiy xato chegaralari mavjud.
-- Alohida /500 sahifasi routerda yo'q.
-- Server bilan aloqa uzilsa, formadagi/yuklashdagi xabarni o'qing va qayta urinib ko'ring.
-- Sessiya tugagan bo'lsa, qayta kiring.
-
-Bo'sh jadval har doim "ma'lumot yo'q" degani emas: filtr, rol, server xatosi,
-qisman yuklash yoki hali ulanmagan sinxronizatsiyani ham tekshiring.
-
-================================================================================
-23. KUNDALIK ISH TARTIBI
-================================================================================
-
-ADMINISTRATOR UCHUN
-1. Markaz ma'lumotlari, xizmatlar va mutaxassis ish jadvalini tekshiring.
-2. Ota-onani yarating, so'ng bolani unga bog'lab qo'shing.
-3. Jadvaldan bandlikni tekshiring; dashboarddan qabul formasini oching.
-4. Qabul yaratishning mahalliy saqlash cheklovini hisobga oling.
-5. Kelganda davomatni alohida belgilang.
-6. Haqiqatda olingan to'lovni tegishli ota-ona/bolaga kiriting.
-7. Balans, qarzdorlar va hisobotlarni yuklash holati bilan birga tekshiring.
-
-MUTAXASSIS UCHUN
-1. Bugungi dashboard va o'z jadvalingizni ko'ring.
-2. Har bir qabul davomatini belgilang.
-3. Kerak bo'lsa baholash va rivojlanish qaydini kiriting.
-4. Uy tavsiyasini qayd matniga qo'shing.
-5. Seansni boshlash, davomat va moliyaviy hisoblashni alohida jarayon deb biling.
-
-OTA-ONA UCHUN
-1. Farzandingiz hisobingizga bog'langanini tekshiring.
-2. Dashboarddan yaqin qabullar va tavsiyalarni ko'ring.
-3. Rivojlanishdan klinik qaydlarni o'qing.
-4. To'lovlar tarixini ko'ring; balans/qarz bo'sh bo'lsa administrator bilan aniqlashtiring.
-5. Qabulga yozilish formasida hozirgi saqlash cheklovi borligini hisobga oling.
-
-================================================================================
-24. MA'LUMOTLAR VA AVTOMATLASHTIRISHNING HOZIRGI CHEGARALARI
-================================================================================
-
-SERVERGA BOG'LANGAN ASOSIY AMALLAR
-Kirish, bolalar/ota-onalar/mutaxassislar/adminlar/xizmatlar bilan ishlash,
-davomat, baholash va rivojlanish qaydlarini yaratish, to'lov qayd etish,
-umumiy sozlamalarni saqlash. Har biri backend ruxsati va javobiga bog'liq.
-
-MAHALLIY HOLATDA QOLAYOTGAN QISMLAR
-- Qabul yaratish va holatini o'zgartirish.
-- Seansni boshlash/yakunlash va seans haqi yozuvi.
-- Ayrim bildirishnoma va faollik qaydlari, "o'qilmagan"ga qaytarish.
-- SMS/ovoz/eslatma tanlovlari.
-
-Seansni yakunlash va SESSION_CHARGE yaratish mantiqi ichki holat boshqaruvida
-bor, lekin sahifalarda to'liq yakunlash amali ulanmagan. Uni kundalik ishda
-tayyor avtomatik hisoblash jarayoni deb qabul qilmang.
-
-YUKLASH VA SAQLANISH
-- Asosiy ma'lumotlar kirishda va qayta yuklashda API orqali olinadi; uzluksiz
-  real vaqt yoki offline sinxronlash kafolatlanmaydi.
-- Ayrim boshlang'ich ro'yxatlar 100 ta yozuv limiti bilan olinadi.
-  Jamlamalar doim butun server bazasini qamrab oladi deb hisoblamang.
-- Davomat va seanslar tarixini boshlang'ich yuklash to'liq ulanmagan.
-- Ota-ona kabinetida to'lov tarixi olinadi, lekin balans/qarzga kerak bo'lgan
-  ota-ona va tranzaksiya ro'yxatlari boshlang'ich yuklashda olinmaydi.
-- Mahalliy yaratilgan qabullar, seanslar va jurnal yozuvlari brauzer qayta
-  yuklanganda saqlanib qolishi kafolatlanmaydi.
-- Namuna ma'lumotlari va kirish ekranidagi reklama raqamlari markazning
-  tasdiqlangan haqiqiy ko'rsatkichlari emas.
-
-USHBU QO'LLANMADA ESKI MATNDAN TUZATILGAN ASOSIY JOYLAR
-- 4 rol va 3 panel, ularning haqiqiy manzillari.
-- Alohida goals/employees o'rniga amaldagi yo'naltirishlar.
-- Jadvalning kunlik/haftalik ko'rinishi va qabul yaratish chegarasi.
-- Haqiqiy davomat holatlari va avtomatik pul yechish haqidagi noto'g'ri va'da.
-- Besh mezonli baholash va rivojlanish lentasi.
-- CASH/CARD/TRANSFER, CSV/JSON va brauzer orqali chop etish.
-- Balans/qarzning alohida hisoblanishi, Telegramni qo'lda yuborish.
-- Profil, SMS sozlamalari va namunaviy ma'lumotlarni tiklash cheklovlari.
-- "Barcha jarayonlar 100% avtomatlashtirilgan" degan tasdiqlanmagan xulosa.
-
-MANBA FAYLLAR
-- src/router.tsx
-- src/components/layout/Sidebar.tsx, Header.tsx, DashboardLayout.tsx
-- src/features/ ichidagi sahifalar va yaratish/tahrirlash formalari
-- src/store/index.ts
-- src/services/api/ va src/services/finance.service.ts
-- src/types/index.ts
-
-Keyingi yangilashda avval router va menyu, keyin tegishli sahifa/formalar,
-so'ng ma'lumotning serverga saqlanishi tekshiriladi. Interfeysdagi yozuvning o'zi
-amal backendga ulanganini tasdiqlamaydi.
+Yangilangan sana: 23.11.2026
+Asos: joriy frontend kodi va serverning tekshirilgan Swagger hujjati.
+Joriy topshiriq: faqat frontend. Backend keyingi alohida bosqichda bajariladi.
+
+LOYIHA HOLATI
+Bu repo React frontend hisoblanadi. Server manzili .env orqali ulanadi.
+Menyular va formalar bir kishi ishlaydigan markazga moslashtirildi.
+Xizmat biriktirish, qabul yaratish va davomatdan avtomatik hisoblash uchun
+serverda yangi API kerak. Shu APIlar ulanmaguncha tegishli saqlash tugmalari
+faol bo‘lmaydi. Interfeysning mavjudligi server amali tayyorligini bildirmaydi.
+Backend bo‘yicha aniq vazifalar BACKEND_ULASH_TALABLARI.txt da yozilgan.
+
+1. EGASINING ISH KABINETI
+--------------------------------------------------------------------------------
+SUPER_ADMIN yoki ADMIN bitta kabinetdan boshqaruv va klinik ishni yuritadi.
+Mutaxassis kabinetiga o‘tish yoki rol almashtirish talab qilinmaydi.
+Oddiy SPECIALIST hisobiga moliyaviy huquqlar berilmagan.
+
+Asosiy menyu — 9 ta bo‘lim:
+  Dashboard          /dashboard/super-admin
+  Ota-onalar         /dashboard/super-admin/parents
+  Bolalar            /dashboard/super-admin/children
+  Qabul va davomat   /dashboard/super-admin/attendance
+  Xizmatlar          /dashboard/super-admin/services
+  Kassa              /dashboard/super-admin/cash
+  Qarzdorlar         /dashboard/super-admin/debtors
+  Hisobotlar         /dashboard/super-admin/reports
+  Sozlamalar         /dashboard/super-admin/settings
+
+Bildirishnomalar yuqoridagi qo‘ng‘iroq orqali ochiladi.
+Profil va parol Sozlamalar ichida joylashgan.
+Adminlar, xodimlar va mutaxassislar boshqaruvi egasining menyusidan olindi.
+Ularning avvalgi ma’lumotlari va tarixini o‘chirish bajarilmagan.
+
+2. DASHBOARD
+--------------------------------------------------------------------------------
+Faol bolalar, bugungi qabullar, bugungi to‘lovlar va oila qarzlari ko‘rsatiladi.
+Qabul va Kassa bo‘limlariga tezkor havolalar mavjud.
+Qarz jami serverdan olingan oila hisoblariga asoslanadi. Hisob yuklanmagan
+bo‘lsa nol o‘rniga “Tasdiqlanmagan” ko‘rsatiladi.
+Qabullar API ulanmagan bo‘lsa bu holat aniq yoziladi.
+
+3. OTA-ONALAR
+--------------------------------------------------------------------------------
+Ota-onaning alohida hisobi, aloqa ma’lumotlari va farzandlari saqlanadi.
+Ota-onalar bo‘limi Bolalar bo‘limidan alohida qolgan.
+Ota-onani arxivlash tarix va farzandlarini butunlay o‘chirish degani emas.
+Ota-ona uchun alohida kabinet saqlangan.
+
+4. BOLALAR VA BOLA KARTASI
+--------------------------------------------------------------------------------
+Bola qo‘shishda:
+  - To‘liq ism, tug‘ilgan sana va jins.
+  - Ro‘yxatdagi ota-ona.
+  - Ixtiyoriy manzil va qo‘shimcha ma’lumotlar.
+
+Xizmat tanlash bola yaratish uchun majburiy emas.
+Muvaffaqiyatli yaratishdan so‘ng bola kartasi avtomatik ochiladi.
+Server bola yaratib, ota-onani biriktirishda xato bersa, aniq xabar chiqadi.
+Bunday holatda qayta bola yaratmang; mavjud kartadan “Tahrirlash” orqali
+ota-onani biriktiring. Bog‘langan ota-onani boshqa oilaga almashtirish server
+moliyaviy migratsiyasi tekshirilmaguncha bu formada bajarilmaydi.
+
+Bola kartasida:
+  - Umumiy ma’lumotlar va mavjud tarixiy tashxis/allergiya ma’lumotlari.
+  - Ota-onaning umumiy depoziti va qarzi.
+  - Xizmatlar va seanslar.
+  - Qabul va davomat tarixi.
+  - Baholashlar.
+  - Rivojlanish qaydlari.
+
+Arxivlash profildagi moliyaviy va klinik tarixni yo‘q qilmaydi.
+
+5. XIZMATLAR KATALOGI
+--------------------------------------------------------------------------------
+Xizmat formasida faqat:
+  - Xizmat nomi.
+  - Davomiyligi, daqiqada.
+  - Bir seans narxi, so‘mda.
+
+Seanslar soni, boshlanish sanasi va haftaning kunlari katalogda kiritilmaydi.
+Xizmatni tahrirlash, arxivlash va arxivdan tiklash mavjud API bilan ishlaydi.
+Avvalgi seanslarning narxini katalogdagi yangi narx bilan qayta hisoblash
+frontendda bajarilmaydi. Server tarixiy narx nusxalarini saqlashi kerak.
+
+6. XIZMAT BIRIKTIRISH
+--------------------------------------------------------------------------------
+Alohida sahifa yo‘q. Bola kartasi → Xizmatlar va seanslar → Xizmat biriktirish.
+
+Oynada:
+  - Faol katalogdan xizmat tanlash.
+  - Musbat butun son bilan seanslar soni.
+  - Boshlanish sanasi.
+  - Kelish uchun haftaning kunlari.
+  - Ixtiyoriy qabul vaqti.
+
+Narx va davomiylik tanlangan xizmatdan olinadi.
+Vaqt bo‘sh qoldirilsa yashirin 09:00 yoki 10:00 belgilanmaydi.
+Bitta bolaga bir nechta xizmat mustaqil seans sonlari bilan biriktirilishi mumkin.
+Jami, bajarilgan va qolgan seanslar alohida ko‘rsatiladi.
+Qo‘shimcha seans qo‘shish bola kartasidagi mavjud xizmat orqali bajariladi.
+
+HOZIRGI CHEGARA: biriktirish va seans qo‘shish oynalari tayyor; serverdagi
+tegishli API mavjud bo‘lmagani uchun yozish amallari hali ulanmagan.
+Frontend o‘zida soxta biriktirish yoki moliyaviy natija yaratmaydi.
+
+7. QABUL VA DAVOMAT
+--------------------------------------------------------------------------------
+Kunlik va haftalik ko‘rinish, sana, bola/xizmat bo‘yicha qidiruv va davomat filtri.
+Har qabulda bola, bajariladigan xizmat, davomiylik, narx va ixtiyoriy vaqt bor.
+Qabul yaratish faqat bolaning biriktirilgan xizmatidan amalga oshiriladi.
+Kelmagan qabulni boshqa sanaga ko‘chirish uchun alohida amal mavjud.
+
+Server ulanadigan oqim:
+  Keldi  → xizmat bajarildi; bitta seans sarflanadi, xizmat haqi oila hisobidan
+           olinadi va haqiqiy kelgan vaqt serverda saqlanadi.
+  Kelmadi → pul yechilmaydi, bajarilgan seanslar soni oshmaydi.
+  Keldi → Kelmadi → avvalgi haq qaytarish yozuvi bilan tiklanadi.
+  Bir holatdagi izohni tahrirlash → takror pul yechmaydi.
+
+Tanaffus kunlari seans yoki pul sarfi hisoblanmaydi.
+Seans soni kalendar kunlari soni emas. Har kuni kelish majburiyligi tizimga
+umumiy qoida sifatida yozilmagan; kelish kunlari biriktirishda tanlanadi.
+Bir kunda faqat bitta seans bo‘lishi kerak degan sun’iy cheklov yo‘q.
+
+HOZIRGI CHEGARA: eski attendance API qabul/xizmat va atomik hisoblashni
+qo‘llamaydi. Uni /charges bilan ketma-ket chaqirish xavfsiz yechim emas.
+Yangi server shartnomasi ulanmaguncha “Keldi/Kelmadi” saqlash faol emas.
+Avvalgi haqiqiy davomat tarixi bola kartasida ko‘rinadi.
+
+8. KASSA
+--------------------------------------------------------------------------------
+Ikki ichki bo‘lim:
+  Balans to‘ldirish — ota-ona, summa, to‘lov usuli va ixtiyoriy izoh.
+  Pul harakatlari — kirim, xizmat haqi, qaytarishlar va boshqa mavjud yozuvlar.
+
+To‘lov usullari: naqd, karta, o‘tkazma. Bu bank orqali avtomatik pul o‘tkazish
+integratsiyasi emas, markaz qabul qilgan to‘lovni qayd etish usullari.
+To‘lovlar tarixida qidiruv, sana/usul filtri va kvitansiya mavjud.
+
+Oila hisobida barcha farzandlar bitta depozitdan foydalanadi.
+Kirim avval qarzni qoplaydi; ortgani depozit bo‘ladi.
+Xizmat haqi avval depozitdan sarflanadi; yetmagan qismi qarzga o‘tadi.
+Bir vaqtda musbat depozit va musbat qarz javobi oila hisobi deb qabul qilinmaydi.
+Xizmat haqi markazning tashqi xarajati sifatida ko‘rsatilmaydi.
+
+HOZIRGI CHEGARA: mavjud to‘lov API childId ni majburiy deb belgilaydi,
+so‘m/tiyin birligi ham kelishilishi kerak. Yangi oilaviy to‘lov shartnomasi
+ulanmaguncha yangi balans to‘ldirish o‘chirilgan. Tarixni ko‘rish ishlaydi.
+Muvaffaqiyatli server javobisiz kvitansiya yoki kirim yaratilmaydi.
+
+9. QARZDORLAR
+--------------------------------------------------------------------------------
+Kassadan alohida sahifa. Bitta ota-ona bitta qator sifatida ko‘rsatiladi.
+Farzandlari, telefon raqami, server tasdiqlagan qarzi va balans to‘ldirishga
+havola mavjud. Telefon orqali bog‘lanish mumkin.
+Qarz muddati haqidagi mavjud bo‘lmagan sanalar yoki taxminiy kunlar uydirilmaydi.
+Hisoblar yuklanmasa “Qarzdorlik yo‘q” deb ko‘rsatilmaydi.
+
+10. HISOBOTLAR VA SOZLAMALAR
+--------------------------------------------------------------------------------
+Hisobotlar ichida hisobot jadvali va moliyaviy tahlil joylashgan.
+Mavjud moliya, davomat, seanslar va bolalar tarixini filtrlash/eksport qilish
+saqlangan. Yangi bajarilgan seanslar server tasdiqlagan qabullardan olinadi.
+Tarix migratsiyasi va serverdagi yangi hisoblash ulanmaguncha to‘liq yangi
+seans hisobotini tayyor deb hisoblamang.
+
+Sozlamalar ichida:
+  Markaz — nomi, telefoni, manzili va ish vaqti.
+  Profil va parol — mavjud server amallari doirasida.
+  Faollik tarixi — serverdan olingan mavjud audit yozuvlari.
+SMS, ovoz, eslatma kabi ishlamaydigan lokal sozlamalar va demo tiklash olindi.
+Egasining klinik baholash yozishi uchun server haqiqiy specialistId bog‘lanishini
+qaytarishi kerak. Boshqa xodimning birinchi IDsi avtomatik tanlanmaydi.
+
+11. OTA-ONA KABINETI
+--------------------------------------------------------------------------------
+Ota-ona o‘z farzandlari, xizmatlari, kelishlari, qaydlar, to‘lovlari,
+umumiy balansi va qarzini ko‘radi. Pul harakatlari uchun alohida ko‘rinish bor.
+Boshqa oilaning ma’lumoti frontendda ko‘rsatilmaydi; haqiqiy kirish nazoratini
+server ham har bir endpointda bajarishi shart.
+Ota-ona xizmat biriktira olmaydi, bola profilini tahrirlay olmaydi,
+davomat yoki to‘lovni boshqara olmaydi.
+Pul harakatlari va xizmat biriktirishning ota-ona uchun o‘qish APIlari ham
+server shartnomasiga bog‘liq. Ulanmagan joyda aniq holat yozuvi chiqadi.
+
+12. ESKI HAVOLALAR
+--------------------------------------------------------------------------------
+/admins, /employees, /specialists → Sozlamalar / Profil.
+/schedule → Qabul va davomat.
+/assessments → Bolalar / Baholashlar (bolani tanlash).
+/progress, /goals → Bolalar / Rivojlanish (bolani tanlash).
+/payments, /balance → Kassa / Balans to‘ldirish.
+/transactions → Kassa / Pul harakatlari.
+/analytics → Hisobotlar / Tahlil.
+/activity-logs → Sozlamalar / Faollik tarixi.
+/profile → Sozlamalar / Profil va parol.
+Mavjud query parametrlari saqlanadi; kerakli tab/section yangilanadi.
+Legacy SPECIALIST kabineti saqlangan; unga moliyaviy huquq qo‘shilmagan.
+
+13. NAMUNA MA’LUMOTLAR VA TEKSHIRUV CHEGARASI
+--------------------------------------------------------------------------------
+Production store bo‘sh bazani demo bolalar yoki pul harakatlari bilan to‘ldirmaydi.
+seed.ts production storega import qilinmaydi; sinov fixturelari alohida.
+Noto‘g‘ri ID birinchi topilgan haqiqiy bolaning IDsi bilan almashtirilmaydi.
+Moliyaviy ro‘yxatlar birinchi 100 ta yozuv bilan cheklanib qolmasligi uchun
+pagination qo‘llanadi. Server sahifalashni bajarmasa, xato qaytariladi.
+
+Frontend testlari va build serverdagi moliyaviy tranzaksiyalar, parallel
+davomat, migratsiya yoki real qurilmalarda ishlashni o‘z-o‘zidan isbotlamaydi.
+Haqiqiy server integratsiyasi uchun BACKEND_ULASH_TALABLARI.txt dagi shartlar
+bajarilib, alohida staging sinovlari o‘tkazilishi kerak.
 ================================================================================

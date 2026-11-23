@@ -3,92 +3,130 @@
 //  Senior Medical/Wellness CRM Standard
 // ═══════════════════════════════════════════════════════
 
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
-  Calendar, CheckCircle2, Clock, Play, Award,
-  Users, Activity, ChevronRight, FileText, Plus,
-  Stethoscope, AlertCircle, HeartPulse,
-  CalendarCheck, ArrowRight, ClipboardList
-} from 'lucide-react';
-import { useAuth, useStore } from '@/store';
-import { formatDate, cn, getAppointmentStatusColor, getAppointmentStatusLabel } from '@/utils';
-import { differenceInYears, parseISO } from 'date-fns';
-import { Card, Badge, Avatar, EmptyState, ProgressBar, Textarea, Select } from '@/components/ui/primitives';
-import { Button } from '@/components/ui/Button';
-import { KpiCard } from '@/components/ui/KpiCard';
-import { Modal } from '@/components/ui/Modal';
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Play,
+  Award,
+  Users,
+  Activity,
+  ChevronRight,
+  FileText,
+  Plus,
+  Stethoscope,
+  AlertCircle,
+  HeartPulse,
+  CalendarCheck,
+  ArrowRight,
+  ClipboardList,
+} from "lucide-react";
+import { useAuth, useStore } from "@/store";
+import {
+  formatDate,
+  cn,
+  getAppointmentStatusColor,
+  getAppointmentStatusLabel,
+} from "@/utils";
+import { differenceInYears, parseISO } from "date-fns";
+import {
+  Card,
+  Badge,
+  Avatar,
+  EmptyState,
+  ProgressBar,
+  Textarea,
+  Select,
+} from "@/components/ui/primitives";
+import { Button } from "@/components/ui/Button";
+import { KpiCard } from "@/components/ui/KpiCard";
+import { Modal } from "@/components/ui/Modal";
 
-type ScheduleFilter = 'ALL' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+type ScheduleFilter = "ALL" | "PENDING" | "IN_PROGRESS" | "COMPLETED";
 
 export function SpecialistDashboard() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  const appointments = useStore(s => s.appointments);
-  const sessions = useStore(s => s.sessions);
-  const children = useStore(s => s.children);
-  const services = useStore(s => s.services);
-  const startSession = useStore(s => s.startSession);
-  const createProgressNote = useStore(s => s.createProgressNote);
+  const appointments = useStore((s) => s.appointments);
+  const sessions = useStore((s) => s.sessions);
+  const children = useStore((s) => s.children);
+  const services = useStore((s) => s.services);
+  const startSession = useStore((s) => s.startSession);
+  const createProgressNote = useStore((s) => s.createProgressNote);
 
-  const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>('ALL');
+  const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>("ALL");
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [noteForm, setNoteForm] = useState({
-    childId: '',
-    note: '',
-    recommendation: '',
+    childId: "",
+    note: "",
+    recommendation: "",
   });
 
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
 
   // Today's appointments for this specialist
   const todayAppointments = useMemo(() => {
     return appointments
-      .filter(a => a.specialistId === currentUser?.id && a.date === todayStr)
+      .filter((a) => a.specialistId === currentUser?.id && a.date === todayStr)
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
   }, [appointments, currentUser?.id, todayStr]);
 
   const completedTodayCount = useMemo(() => {
-    return todayAppointments.filter(a => a.status === 'COMPLETED').length;
+    return todayAppointments.filter((a) => a.status === "COMPLETED").length;
   }, [todayAppointments]);
 
   const inProgressTodayCount = useMemo(() => {
-    return todayAppointments.filter(a => a.status === 'IN_PROGRESS').length;
+    return todayAppointments.filter((a) => a.status === "IN_PROGRESS").length;
   }, [todayAppointments]);
 
-  const completionRate = todayAppointments.length > 0
-    ? Math.round((completedTodayCount / todayAppointments.length) * 100)
-    : 0;
+  const completionRate =
+    todayAppointments.length > 0
+      ? Math.round((completedTodayCount / todayAppointments.length) * 100)
+      : 0;
 
   // Filtered today's appointments
   const filteredAppointments = useMemo(() => {
-    return todayAppointments.filter(apt => {
-      if (scheduleFilter === 'PENDING') return apt.status === 'SCHEDULED' || apt.status === 'CONFIRMED';
-      if (scheduleFilter === 'IN_PROGRESS') return apt.status === 'IN_PROGRESS';
-      if (scheduleFilter === 'COMPLETED') return apt.status === 'COMPLETED';
+    return todayAppointments.filter((apt) => {
+      if (scheduleFilter === "PENDING")
+        return apt.status === "SCHEDULED" || apt.status === "CONFIRMED";
+      if (scheduleFilter === "IN_PROGRESS") return apt.status === "IN_PROGRESS";
+      if (scheduleFilter === "COMPLETED") return apt.status === "COMPLETED";
       return true;
     });
   }, [todayAppointments, scheduleFilter]);
 
   // Assigned children
   const assignedChildren = useMemo(() => {
-    return children.filter(c => c.assignedSpecialistId === currentUser?.id);
+    return children.filter((c) => c.assignedSpecialistId === currentUser?.id);
   }, [children, currentUser?.id]);
 
   // Specialist's completed sessions
   const completedSessions = useMemo(() => {
-    return sessions.filter(s => s.specialistId === currentUser?.id && s.status === 'COMPLETED');
+    return sessions.filter(
+      (s) => s.specialistId === currentUser?.id && s.status === "COMPLETED",
+    );
   }, [sessions, currentUser?.id]);
 
   // Next upcoming appointment
   const nextAppointment = useMemo(() => {
-    return todayAppointments.find(a => a.status === 'CONFIRMED' || a.status === 'SCHEDULED');
+    return todayAppointments.find(
+      (a) => a.status === "CONFIRMED" || a.status === "SCHEDULED",
+    );
   }, [todayAppointments]);
 
   const handleStartAppointmentSession = (aptId: string) => {
-    startSession(aptId);
-    navigate('/dashboard/specialist/schedule');
+    try {
+      startSession(aptId);
+    } catch {
+      useStore
+        .getState()
+        .addToast({ type: "info", title: "Seans serverga hali ulanmagan" });
+      return;
+    }
+    navigate("/dashboard/specialist/schedule");
   };
 
   const handleSaveNote = async (e: React.FormEvent) => {
@@ -102,12 +140,12 @@ export function SpecialistDashboard() {
     try {
       await createProgressNote({
         childId: noteForm.childId,
-        specialistId: currentUser?.id || '',
+        specialistId: currentUser?.id || "",
         note: fullNote,
         date: todayStr,
       });
       setShowNoteModal(false);
-      setNoteForm({ childId: '', note: '', recommendation: '' });
+      setNoteForm({ childId: "", note: "", recommendation: "" });
     } catch {
       // Store displays the backend error; preserve the draft for retry.
     }
@@ -124,11 +162,14 @@ export function SpecialistDashboard() {
             </h1>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-50 text-brand-700 border border-brand-200/80 shadow-2xs">
               <Stethoscope className="w-3.5 h-3.5" />
-              {currentUser?.role === 'SPECIALIST' ? 'Klinik amaliyotchi' : 'Mutaxassis'}
+              {currentUser?.role === "SPECIALIST"
+                ? "Klinik amaliyotchi"
+                : "Mutaxassis"}
             </span>
           </div>
           <p className="text-xs sm:text-sm text-charcoal-500 mt-1">
-            Bugungi rejalashtirilgan muolajalar, bemor bolalar parvarishi va klinik telemetriya paneli
+            Bugungi rejalashtirilgan muolajalar, bemor bolalar parvarishi va
+            klinik telemetriya paneli
           </p>
         </div>
 
@@ -138,7 +179,7 @@ export function SpecialistDashboard() {
             size="sm"
             variant="secondary"
             leftIcon={<Calendar className="w-4 h-4" />}
-            onClick={() => navigate('/dashboard/specialist/attendance')}
+            onClick={() => navigate("/dashboard/specialist/attendance")}
           >
             Davomat
           </Button>
@@ -148,7 +189,10 @@ export function SpecialistDashboard() {
             leftIcon={<Plus className="w-4 h-4" />}
             onClick={() => {
               if (assignedChildren[0]) {
-                setNoteForm(prev => ({ ...prev, childId: assignedChildren[0].id }));
+                setNoteForm((prev) => ({
+                  ...prev,
+                  childId: assignedChildren[0].id,
+                }));
               }
               setShowNoteModal(true);
             }}
@@ -158,7 +202,7 @@ export function SpecialistDashboard() {
           <Button
             size="sm"
             leftIcon={<ClipboardList className="w-4 h-4" />}
-            onClick={() => navigate('/dashboard/specialist/attendance')}
+            onClick={() => navigate("/dashboard/specialist/attendance")}
           >
             Davomat bo‘limi
           </Button>
@@ -175,7 +219,10 @@ export function SpecialistDashboard() {
                 <Clock className="w-4 h-4 text-brand-600" />
                 Bugungi reja bajarilishi:
               </span>
-              <strong className="text-charcoal-900">{completedTodayCount} / {todayAppointments.length} muolaja ({completionRate}%)</strong>
+              <strong className="text-charcoal-900">
+                {completedTodayCount} / {todayAppointments.length} muolaja (
+                {completionRate}%)
+              </strong>
             </div>
             <ProgressBar value={completionRate} fillClassName="bg-brand-500" />
           </div>
@@ -188,15 +235,16 @@ export function SpecialistDashboard() {
             <div className="min-w-0">
               <p className="font-bold text-charcoal-900 truncate">
                 {nextAppointment
-                  ? `Navbatdagi: ${nextAppointment.startTime} — ${children.find(c => c.id === nextAppointment.childId)?.fullName}`
+                  ? `Navbatdagi: ${nextAppointment.startTime} — ${children.find((c) => c.id === nextAppointment.childId)?.fullName}`
                   : "Bugun boshqa qabullar yo'q"}
               </p>
               <p className="text-[11px] text-charcoal-500 truncate">
                 {nextAppointment
-                  ? services.find(s => s.id === nextAppointment.serviceId)?.name || 'Reabilitatsiya muolajasi'
+                  ? services.find((s) => s.id === nextAppointment.serviceId)
+                      ?.name || "Reabilitatsiya muolajasi"
                   : todayAppointments.length > 0
-                  ? "Barcha rejalashtirilgan seanslar yakunlandi"
-                  : "Bugungi kunga qabullar belgilanmagan"}
+                    ? "Barcha rejalashtirilgan seanslar yakunlandi"
+                    : "Bugungi kunga qabullar belgilanmagan"}
               </p>
             </div>
           </div>
@@ -208,7 +256,9 @@ export function SpecialistDashboard() {
             </div>
             <div>
               <p className="font-bold text-emerald-950">Faol ish kuni rejimi</p>
-              <p className="text-[11px] text-emerald-700">Smena: 09:00 — 18:00 (Reabilitatsiya)</p>
+              <p className="text-[11px] text-emerald-700">
+                Smena: 09:00 — 18:00 (Reabilitatsiya)
+              </p>
             </div>
           </div>
         </div>
@@ -242,8 +292,8 @@ export function SpecialistDashboard() {
         />
         <KpiCard
           label="Kasbiy reyting"
-          value={completedSessions.length > 0 ? "4.95 / 5.0" : "0.0 / 5.0"}
-          description={completedSessions.length > 0 ? "Ota-onalar bahosi asosida" : "Hozircha baholanmagan"}
+          value="?"
+          description="Reyting ma’lumoti mavjud emas"
           accentColor="blue"
           icon={<Award className="w-5 h-5 text-blue-600" />}
           change={completedSessions.length > 0 ? "A’lo darajada" : undefined}
@@ -273,13 +323,27 @@ export function SpecialistDashboard() {
                   <Select
                     size="sm"
                     value={scheduleFilter}
-                    onChange={e => setScheduleFilter(e.target.value as ScheduleFilter)}
+                    onChange={(e) =>
+                      setScheduleFilter(e.target.value as ScheduleFilter)
+                    }
                     triggerClassName="h-9 rounded-[10px] text-xs font-semibold border-warm-300 shadow-2xs w-full bg-white"
                     options={[
-                      { value: 'ALL', label: `Barchasi (${todayAppointments.length})` },
-                      { value: 'PENDING', label: `Kutilayotgan (${todayAppointments.filter(a => a.status === 'SCHEDULED' || a.status === 'CONFIRMED').length})` },
-                      { value: 'IN_PROGRESS', label: `Jarayonda (${inProgressTodayCount})` },
-                      { value: 'COMPLETED', label: `Yakunlangan (${completedTodayCount})` },
+                      {
+                        value: "ALL",
+                        label: `Barchasi (${todayAppointments.length})`,
+                      },
+                      {
+                        value: "PENDING",
+                        label: `Kutilayotgan (${todayAppointments.filter((a) => a.status === "SCHEDULED" || a.status === "CONFIRMED").length})`,
+                      },
+                      {
+                        value: "IN_PROGRESS",
+                        label: `Jarayonda (${inProgressTodayCount})`,
+                      },
+                      {
+                        value: "COMPLETED",
+                        label: `Yakunlangan (${completedTodayCount})`,
+                      },
                     ]}
                     aria-label="Bugungi qabullar filtri"
                   />
@@ -288,29 +352,52 @@ export function SpecialistDashboard() {
                 {/* Desktop Status Tabs (>= sm) */}
                 <div className="hidden sm:flex items-center gap-1 bg-white p-0.5 rounded-[8px] border border-warm-200/90 shadow-2xs">
                   {[
-                    { key: 'ALL', label: 'Barchasi', count: todayAppointments.length },
-                    { key: 'PENDING', label: 'Kutilayotgan', count: todayAppointments.filter(a => a.status === 'SCHEDULED' || a.status === 'CONFIRMED').length },
-                    { key: 'IN_PROGRESS', label: 'Jarayonda', count: inProgressTodayCount },
-                    { key: 'COMPLETED', label: 'Yakunlangan', count: completedTodayCount },
-                  ].map(tab => {
+                    {
+                      key: "ALL",
+                      label: "Barchasi",
+                      count: todayAppointments.length,
+                    },
+                    {
+                      key: "PENDING",
+                      label: "Kutilayotgan",
+                      count: todayAppointments.filter(
+                        (a) =>
+                          a.status === "SCHEDULED" || a.status === "CONFIRMED",
+                      ).length,
+                    },
+                    {
+                      key: "IN_PROGRESS",
+                      label: "Jarayonda",
+                      count: inProgressTodayCount,
+                    },
+                    {
+                      key: "COMPLETED",
+                      label: "Yakunlangan",
+                      count: completedTodayCount,
+                    },
+                  ].map((tab) => {
                     const isActive = scheduleFilter === tab.key;
                     return (
                       <button
                         key={tab.key}
                         type="button"
-                        onClick={() => setScheduleFilter(tab.key as ScheduleFilter)}
+                        onClick={() =>
+                          setScheduleFilter(tab.key as ScheduleFilter)
+                        }
                         className={cn(
-                          'px-2.5 py-1 text-xs font-semibold rounded-[6px] transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5',
+                          "px-2.5 py-1 text-xs font-semibold rounded-[6px] transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5",
                           isActive
-                            ? 'bg-charcoal-900 text-white shadow-xs'
-                            : 'text-charcoal-500 hover:text-charcoal-800'
+                            ? "bg-charcoal-900 text-white shadow-xs"
+                            : "text-charcoal-500 hover:text-charcoal-800",
                         )}
                       >
                         <span>{tab.label}</span>
                         <span
                           className={cn(
-                            'text-[10px] px-1.5 py-0.5 rounded-full font-bold tabular-nums',
-                            isActive ? 'bg-white/20 text-white' : 'bg-warm-100 text-charcoal-600'
+                            "text-[10px] px-1.5 py-0.5 rounded-full font-bold tabular-nums",
+                            isActive
+                              ? "bg-white/20 text-white"
+                              : "bg-warm-100 text-charcoal-600",
                           )}
                         >
                           {tab.count}
@@ -332,12 +419,17 @@ export function SpecialistDashboard() {
                     />
                   </div>
                 ) : (
-                  filteredAppointments.map(apt => {
-                    const child = children.find(c => c.id === apt.childId);
-                    const svc = services.find(s => s.id === apt.serviceId);
-                    const childAge = child?.dateOfBirth ? differenceInYears(new Date(), parseISO(child.dateOfBirth)) : null;
-                    const isCompleted = apt.status === 'COMPLETED';
-                    const isInProgress = apt.status === 'IN_PROGRESS';
+                  filteredAppointments.map((apt) => {
+                    const child = children.find((c) => c.id === apt.childId);
+                    const svc = services.find((s) => s.id === apt.serviceId);
+                    const childAge = child?.dateOfBirth
+                      ? differenceInYears(
+                          new Date(),
+                          parseISO(child.dateOfBirth),
+                        )
+                      : null;
+                    const isCompleted = apt.status === "COMPLETED";
+                    const isInProgress = apt.status === "IN_PROGRESS";
 
                     return (
                       <div
@@ -347,11 +439,19 @@ export function SpecialistDashboard() {
                         <div className="flex items-center gap-3.5 min-w-0">
                           {/* Time Slot Badge */}
                           <div className="text-center w-14 shrink-0 py-1.5 px-1 rounded-[8px] bg-warm-50 border border-warm-200/80">
-                            <p className="text-xs font-bold text-charcoal-900 tabular-nums">{apt.startTime}</p>
-                            <p className="text-[10px] text-charcoal-400 font-medium tabular-nums">{apt.endTime}</p>
+                            <p className="text-xs font-bold text-charcoal-900 tabular-nums">
+                              {apt.startTime}
+                            </p>
+                            <p className="text-[10px] text-charcoal-400 font-medium tabular-nums">
+                              {apt.endTime}
+                            </p>
                           </div>
 
-                          <Avatar name={child?.fullName ?? 'Bola'} size="md" className="shrink-0 ring-2 ring-warm-100 shadow-2xs" />
+                          <Avatar
+                            name={child?.fullName ?? "Bola"}
+                            size="md"
+                            className="shrink-0 ring-2 ring-warm-100 shadow-2xs"
+                          />
 
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
@@ -363,15 +463,23 @@ export function SpecialistDashboard() {
                                   {childAge} yosh
                                 </span>
                               )}
-                              <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-[6px] border shadow-2xs', getAppointmentStatusColor(apt.status))}>
+                              <span
+                                className={cn(
+                                  "text-[10px] font-bold px-2 py-0.5 rounded-[6px] border shadow-2xs",
+                                  getAppointmentStatusColor(apt.status),
+                                )}
+                              >
                                 {getAppointmentStatusLabel(apt.status)}
                               </span>
                             </div>
 
                             <p className="text-xs text-charcoal-500 font-medium mt-0.5 truncate">
-                              {svc?.name || 'Reabilitatsiya muolajasi'}
+                              {svc?.name || "Reabilitatsiya muolajasi"}
                               {child?.diagnosis && (
-                                <span className="text-charcoal-400"> • Tashxis: {child.diagnosis}</span>
+                                <span className="text-charcoal-400">
+                                  {" "}
+                                  • Tashxis: {child.diagnosis}
+                                </span>
                               )}
                             </p>
 
@@ -388,8 +496,12 @@ export function SpecialistDashboard() {
                           {!isCompleted && !isInProgress && (
                             <Button
                               size="sm"
-                              leftIcon={<Play className="w-3.5 h-3.5 fill-current" />}
-                              onClick={() => handleStartAppointmentSession(apt.id)}
+                              leftIcon={
+                                <Play className="w-3.5 h-3.5 fill-current" />
+                              }
+                              onClick={() =>
+                                handleStartAppointmentSession(apt.id)
+                              }
                             >
                               Seansni boshlash
                             </Button>
@@ -400,7 +512,9 @@ export function SpecialistDashboard() {
                               variant="secondary"
                               className="bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100"
                               leftIcon={<Activity className="w-3.5 h-3.5" />}
-                              onClick={() => navigate('/dashboard/specialist/schedule')}
+                              onClick={() =>
+                                navigate("/dashboard/specialist/schedule")
+                              }
                             >
                               Jarayonda (O‘tish)
                             </Button>
@@ -421,10 +535,13 @@ export function SpecialistDashboard() {
 
             {/* Bottom link to sessions */}
             <div className="p-3 bg-warm-50/70 border-t border-warm-100 flex items-center justify-between text-xs text-charcoal-500">
-              <span>Bugun jami reja: <strong>{todayAppointments.length} ta bemor</strong></span>
+              <span>
+                Bugun jami reja:{" "}
+                <strong>{todayAppointments.length} ta bemor</strong>
+              </span>
               <button
                 type="button"
-                onClick={() => navigate('/dashboard/specialist/schedule')}
+                onClick={() => navigate("/dashboard/specialist/schedule")}
                 className="font-bold text-brand-600 hover:text-brand-700 inline-flex items-center gap-1 cursor-pointer"
               >
                 To‘liq jadvalni ochish <ChevronRight className="w-3.5 h-3.5" />
@@ -439,8 +556,12 @@ export function SpecialistDashboard() {
           <Card className="overflow-hidden border border-warm-200/90 shadow-xs">
             <div className="p-4 bg-warm-50/70 border-b border-warm-200/80 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-charcoal-900">Menga biriktirilgan bolalar</h3>
-                <p className="text-xs text-charcoal-400 mt-0.5">Nazoratimdagi kichik bemorlar</p>
+                <h3 className="text-sm font-bold text-charcoal-900">
+                  Menga biriktirilgan bolalar
+                </h3>
+                <p className="text-xs text-charcoal-400 mt-0.5">
+                  Nazoratimdagi kichik bemorlar
+                </p>
               </div>
               <Badge variant="neutral">{assignedChildren.length} nafar</Badge>
             </div>
@@ -451,22 +572,29 @@ export function SpecialistDashboard() {
                   Hozircha biriktirilgan bolalar yo‘q
                 </div>
               ) : (
-                assignedChildren.slice(0, 5).map(c => {
-                  const childAge = c.dateOfBirth ? differenceInYears(new Date(), parseISO(c.dateOfBirth)) : null;
+                assignedChildren.slice(0, 5).map((c) => {
+                  const childAge = c.dateOfBirth
+                    ? differenceInYears(new Date(), parseISO(c.dateOfBirth))
+                    : null;
                   return (
                     <div
                       key={c.id}
-                      onClick={() => navigate('/dashboard/specialist/children')}
+                      onClick={() => navigate("/dashboard/specialist/children")}
                       className="p-3 sm:px-4 flex items-center justify-between hover:bg-warm-50/60 cursor-pointer transition-colors group"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <Avatar name={c.fullName} size="sm" className="shrink-0" />
+                        <Avatar
+                          name={c.fullName}
+                          size="sm"
+                          className="shrink-0"
+                        />
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-charcoal-900 truncate group-hover:text-brand-600 transition-colors">
                             {c.fullName}
                           </p>
                           <p className="text-[11px] text-charcoal-400 truncate">
-                            {childAge !== null ? `${childAge} yosh` : ''} {c.diagnosis ? `• ${c.diagnosis}` : ''}
+                            {childAge !== null ? `${childAge} yosh` : ""}{" "}
+                            {c.diagnosis ? `• ${c.diagnosis}` : ""}
                           </p>
                         </div>
                       </div>
@@ -480,7 +608,7 @@ export function SpecialistDashboard() {
             <div className="p-2.5 bg-warm-50/60 border-t border-warm-100 text-center">
               <button
                 type="button"
-                onClick={() => navigate('/dashboard/specialist/children')}
+                onClick={() => navigate("/dashboard/specialist/children")}
                 className="text-xs text-brand-600 hover:text-brand-700 font-bold inline-flex items-center gap-1 cursor-pointer"
               >
                 Barcha bolalar ro‘yxati <ArrowRight className="w-3.5 h-3.5" />
@@ -499,7 +627,7 @@ export function SpecialistDashboard() {
                 size="sm"
                 className="justify-start text-xs font-medium"
                 leftIcon={<FileText className="w-3.5 h-3.5 text-brand-600" />}
-                onClick={() => navigate('/dashboard/specialist/progress')}
+                onClick={() => navigate("/dashboard/specialist/progress")}
               >
                 Kuzatuv qaydi
               </Button>
@@ -508,7 +636,7 @@ export function SpecialistDashboard() {
                 size="sm"
                 className="justify-start text-xs font-medium"
                 leftIcon={<Activity className="w-3.5 h-3.5 text-emerald-600" />}
-                onClick={() => navigate('/dashboard/specialist/assessments')}
+                onClick={() => navigate("/dashboard/specialist/assessments")}
               >
                 Baholash (5 ball)
               </Button>
@@ -516,8 +644,10 @@ export function SpecialistDashboard() {
                 variant="secondary"
                 size="sm"
                 className="justify-start text-xs font-medium"
-                leftIcon={<CheckCircle2 className="w-3.5 h-3.5 text-amber-600" />}
-                onClick={() => navigate('/dashboard/specialist/attendance')}
+                leftIcon={
+                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" />
+                }
+                onClick={() => navigate("/dashboard/specialist/attendance")}
               >
                 Davomat
               </Button>
@@ -531,7 +661,9 @@ export function SpecialistDashboard() {
               <span>Klinik eslatma</span>
             </div>
             <p className="text-emerald-800 text-[11px] leading-relaxed">
-              Har bir seans yakunlangach, bolaning holatini xulosalab, ota-onaga uy sharoitida bajariladigan maxsus mashqlarni tayinlash reabilitatsiya samaradorligini oshiradi.
+              Har bir seans yakunlangach, bolaning holatini xulosalab, ota-onaga
+              uy sharoitida bajariladigan maxsus mashqlarni tayinlash
+              reabilitatsiya samaradorligini oshiradi.
             </p>
           </div>
         </div>
@@ -549,10 +681,12 @@ export function SpecialistDashboard() {
             label="Bemor bola"
             required
             value={noteForm.childId}
-            onChange={e => setNoteForm({ ...noteForm, childId: e.target.value })}
+            onChange={(e) =>
+              setNoteForm({ ...noteForm, childId: e.target.value })
+            }
             options={[
-              { value: '', label: 'Bolani tanlang...' },
-              ...children.map(c => ({ value: c.id, label: c.fullName })),
+              { value: "", label: "Bolani tanlang..." },
+              ...children.map((c) => ({ value: c.id, label: c.fullName })),
             ]}
           />
 
@@ -562,7 +696,7 @@ export function SpecialistDashboard() {
             rows={4}
             placeholder="Bolaning mushak tonusi, koordinatsiyasi, bugungi seansga javob reaksiyasi..."
             value={noteForm.note}
-            onChange={e => setNoteForm({ ...noteForm, note: e.target.value })}
+            onChange={(e) => setNoteForm({ ...noteForm, note: e.target.value })}
           />
 
           <Textarea
@@ -570,11 +704,18 @@ export function SpecialistDashboard() {
             rows={2}
             placeholder="Uyda bajariladigan massaj yoki jismoniy mashqlar..."
             value={noteForm.recommendation}
-            onChange={e => setNoteForm({ ...noteForm, recommendation: e.target.value })}
+            onChange={(e) =>
+              setNoteForm({ ...noteForm, recommendation: e.target.value })
+            }
           />
 
           <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-warm-100">
-            <Button variant="secondary" type="button" onClick={() => setShowNoteModal(false)} className="w-full sm:w-auto">
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => setShowNoteModal(false)}
+              className="w-full sm:w-auto"
+            >
               Bekor qilish
             </Button>
             <Button type="submit" className="w-full sm:w-auto">

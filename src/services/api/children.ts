@@ -1,32 +1,51 @@
-import type { ApiClient } from './client';
+import {
+  normalizeAttendance,
+  normalizeAssessment,
+  normalizeProgress,
+} from "./clinical";
+import { getAllPages } from "./pagination";
+import type { ApiClient } from "./client";
 import type {
   CreateChildDto,
   UpdateChildDto,
   LinkParentDto,
   RecordConsentDto,
   CreateDocumentDto,
-} from './types';
-import type { Child } from '@/types';
+} from "./types";
+import type { Child } from "@/types";
 
 export function normalizeChild(raw: any): Child {
   if (!raw) return raw;
-  const firstName = raw.firstName || '';
-  const lastName = raw.lastName || '';
+  const firstName = raw.firstName || "";
+  const lastName = raw.lastName || "";
   const fullName =
     raw.fullName ||
-    (firstName || lastName ? `${firstName} ${lastName}`.trim() : 'Noma’lum bola');
+    (firstName || lastName
+      ? `${firstName} ${lastName}`.trim()
+      : "Noma’lum bola");
 
   return {
     id: String(raw.id),
     fullName,
-    dateOfBirth: raw.birthDate || raw.dateOfBirth || '',
-    gender: raw.gender === 'FEMALE' ? 'FEMALE' : 'MALE',
-    parentId: raw.parentId ? String(raw.parentId) : (raw.parents?.[0]?.id ? String(raw.parents[0].id) : ''),
-    assignedSpecialistId: raw.assignedSpecialistId ? String(raw.assignedSpecialistId) : undefined,
+    dateOfBirth: raw.birthDate || raw.dateOfBirth || "",
+    gender: raw.gender === "FEMALE" ? "FEMALE" : "MALE",
+    parentId: raw.parentId
+      ? String(raw.parentId)
+      : raw.parents?.[0]?.id
+        ? String(raw.parents[0].id)
+        : "",
+    assignedSpecialistId: raw.assignedSpecialistId
+      ? String(raw.assignedSpecialistId)
+      : undefined,
     phone: raw.phone || raw.parent?.phone,
     address: raw.address,
     emergencyContact: raw.emergencyContact,
-    status: raw.status === 'ARCHIVED' ? 'ARCHIVED' : raw.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
+    status:
+      raw.status === "ARCHIVED"
+        ? "ARCHIVED"
+        : raw.status === "INACTIVE"
+          ? "INACTIVE"
+          : "ACTIVE",
     notes: raw.notes,
     createdAt: raw.createdAt || new Date().toISOString(),
     avatar: raw.avatar,
@@ -44,7 +63,9 @@ export class ChildrenApi {
     page?: number;
     limit?: number;
   }): Promise<Child[]> {
-    const res = await this.client.get<any>('/children', params);
+    if (!params?.page)
+      return getAllPages(this.client, "/children", params, normalizeChild);
+    const res = await this.client.get<any>("/children", params);
     const list = Array.isArray(res) ? res : res?.data || res?.items || [];
     return list.map(normalizeChild);
   }
@@ -56,7 +77,7 @@ export class ChildrenApi {
   }
 
   public async create(dto: CreateChildDto): Promise<Child> {
-    const res = await this.client.post<any>('/children', dto);
+    const res = await this.client.post<any>("/children", dto);
     const item = res?.data || res;
     return normalizeChild(item);
   }
@@ -84,11 +105,19 @@ export class ChildrenApi {
     return Array.isArray(res) ? res : res?.data || [];
   }
 
-  public async linkParent(childId: string, parentId: string, dto: LinkParentDto): Promise<any> {
+  public async linkParent(
+    childId: string,
+    parentId: string,
+    dto: LinkParentDto,
+  ): Promise<any> {
     return this.client.post(`/children/${childId}/parents/${parentId}`, dto);
   }
 
-  public async updateParentLink(childId: string, parentId: string, dto: Partial<LinkParentDto>): Promise<any> {
+  public async updateParentLink(
+    childId: string,
+    parentId: string,
+    dto: Partial<LinkParentDto>,
+  ): Promise<any> {
     return this.client.patch(`/children/${childId}/parents/${parentId}`, dto);
   }
 
@@ -96,19 +125,29 @@ export class ChildrenApi {
     await this.client.delete(`/children/${childId}/parents/${parentId}`);
   }
 
-  public async getBalance(childId: string): Promise<{ balance: number; debt: number }> {
+  public async getBalance(
+    childId: string,
+  ): Promise<{ balance: number; debt: number }> {
     const res = await this.client.get<any>(`/children/${childId}/balance`);
     return res?.data || res || { balance: 0, debt: 0 };
   }
 
   public async getAssessments(childId: string): Promise<any[]> {
     const res = await this.client.get<any>(`/children/${childId}/assessments`);
-    return Array.isArray(res) ? res : res?.data || [];
+    return (Array.isArray(res) ? res : res?.data || []).map(
+      normalizeAssessment,
+    );
   }
 
   public async getProgress(childId: string): Promise<any[]> {
     const res = await this.client.get<any>(`/children/${childId}/progress`);
-    return Array.isArray(res) ? res : res?.data || [];
+    return (Array.isArray(res) ? res : res?.data || []).map(normalizeProgress);
+  }
+
+  public async getAttendance(childId: string): Promise<any[]> {
+    const res = await this.client.get<any>(`/children/${childId}/attendance`);
+    const list = Array.isArray(res) ? res : res?.data || [];
+    return list.map(normalizeAttendance);
   }
 
   public async getConsents(childId: string): Promise<any[]> {
@@ -116,7 +155,10 @@ export class ChildrenApi {
     return Array.isArray(res) ? res : res?.data || [];
   }
 
-  public async recordConsent(childId: string, dto: RecordConsentDto): Promise<any> {
+  public async recordConsent(
+    childId: string,
+    dto: RecordConsentDto,
+  ): Promise<any> {
     return this.client.post(`/children/${childId}/consents`, dto);
   }
 
@@ -125,7 +167,10 @@ export class ChildrenApi {
     return Array.isArray(res) ? res : res?.data || [];
   }
 
-  public async registerDocument(childId: string, dto: CreateDocumentDto): Promise<any> {
+  public async registerDocument(
+    childId: string,
+    dto: CreateDocumentDto,
+  ): Promise<any> {
     return this.client.post(`/children/${childId}/documents`, dto);
   }
 }

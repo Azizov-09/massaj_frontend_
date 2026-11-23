@@ -1,31 +1,33 @@
-import { type ApiClient } from './client';
-import type { CreateParentDto, UpdateParentDto } from './types';
-import type { Parent } from '@/types';
+import { getAllPages } from "./pagination";
+import { type ApiClient } from "./client";
+import type { CreateParentDto, UpdateParentDto } from "./types";
+import type { Parent } from "@/types";
 
 export function normalizeParent(raw: any): Parent {
   if (!raw) return raw;
-  const parentId = raw.parent?.id || raw.id;
-  const fullName = raw.fullName || raw.user?.fullName || 'Noma\u02bclum Ota-ona';
-  const phone = raw.phone || raw.user?.phone || '';
-  const address = raw.address || raw.parent?.address || '';
+  const parentId = raw.parent?.id || raw.parentId || raw.id;
+  const fullName =
+    raw.fullName || raw.user?.fullName || "Noma\u02bclum Ota-ona";
+  const phone = raw.phone || raw.user?.phone || "";
+  const address = raw.address || raw.parent?.address || "";
   const childrenIds = Array.isArray(raw.children)
     ? raw.children.map((c: any) => String(c.id || c))
     : Array.isArray(raw.childrenIds)
-    ? raw.childrenIds.map(String)
-    : [];
+      ? raw.childrenIds.map(String)
+      : [];
 
   return {
     id: String(parentId),
     fullName,
     phone,
     address,
-    role: 'PARENT',
+    role: "PARENT",
     status:
-      raw.status === 'ARCHIVED'
-        ? 'ARCHIVED'
-        : raw.status === 'INACTIVE'
-        ? 'INACTIVE'
-        : 'ACTIVE',
+      raw.status === "ARCHIVED"
+        ? "ARCHIVED"
+        : raw.status === "INACTIVE"
+          ? "INACTIVE"
+          : "ACTIVE",
     childrenIds,
     createdAt: raw.createdAt || new Date().toISOString(),
     avatar: raw.avatar,
@@ -36,8 +38,13 @@ export function normalizeParent(raw: any): Parent {
 export class ParentsApi {
   constructor(private client: ApiClient) {}
 
-  public async getAll(params?: { page?: number; limit?: number }): Promise<Parent[]> {
-    const res = await this.client.get<any>('/parents', params);
+  public async getAll(params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<Parent[]> {
+    if (!params?.page)
+      return getAllPages(this.client, "/parents", params, normalizeParent);
+    const res = await this.client.get<any>("/parents", params);
     const list = Array.isArray(res) ? res : res?.data || res?.items || [];
     return list.map(normalizeParent);
   }
@@ -49,7 +56,7 @@ export class ParentsApi {
   }
 
   public async create(dto: CreateParentDto): Promise<Parent> {
-    const res = await this.client.post<any>('/parents', dto);
+    const res = await this.client.post<any>("/parents", dto);
     const item = res?.data || res;
     return normalizeParent(item);
   }
@@ -62,12 +69,15 @@ export class ParentsApi {
   }
 
   /** Update parent status via contract: PATCH /parents/:id/status { status } */
-  public async updateStatus(id: string, status: 'ACTIVE' | 'INACTIVE'): Promise<void> {
+  public async updateStatus(
+    id: string,
+    status: "ACTIVE" | "INACTIVE",
+  ): Promise<void> {
     try {
       await this.client.patch(`/parents/${id}/status`, { status });
     } catch {
       // Fallback to dedicated activate/deactivate endpoints
-      if (status === 'ACTIVE') {
+      if (status === "ACTIVE") {
         await this.client.patch(`/parents/${id}/activate`);
       } else {
         await this.client.patch(`/parents/${id}/deactivate`);
@@ -77,12 +87,12 @@ export class ParentsApi {
 
   /** Activate a parent account */
   public async activate(id: string): Promise<void> {
-    await this.updateStatus(id, 'ACTIVE');
+    await this.updateStatus(id, "ACTIVE");
   }
 
   /** Deactivate a parent account */
   public async deactivate(id: string): Promise<void> {
-    await this.updateStatus(id, 'INACTIVE');
+    await this.updateStatus(id, "INACTIVE");
   }
 
   /** Archive (soft-delete) a parent — preserves children, payments, history */
@@ -100,18 +110,22 @@ export class ParentsApi {
     await this.archive(id);
   }
 
-  public async getBalance(parentId: string): Promise<{ balance: number; debt: number }> {
+  public async getBalance(
+    parentId: string,
+  ): Promise<{ balance: number; debt: number }> {
     const res = await this.client.get<any>(`/parents/${parentId}/balance`);
     return res?.data || res || { balance: 0, debt: 0 };
   }
 
   public async getFinancialSummary(parentId: string): Promise<any> {
-    const res = await this.client.get<any>(`/parents/${parentId}/financial-summary`);
+    const res = await this.client.get<any>(
+      `/parents/${parentId}/financial-summary`,
+    );
     return res?.data || res;
   }
 
   public async getMe(): Promise<Parent> {
-    const res = await this.client.get<any>('/parent/me');
+    const res = await this.client.get<any>("/parent/me");
     const item = res?.data || res;
     return normalizeParent(item);
   }

@@ -1,98 +1,52 @@
-import '@testing-library/jest-dom/vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CreateChildForm } from './CreateChildForm';
-import { useStore } from '@/store';
-import type { AdminUser, Parent } from '@/types';
-
-describe('CreateChildForm Component', () => {
-  const mockAdmin: AdminUser = {
-    id: 'admin-1',
-    fullName: 'Bosh Admin',
-    phone: '+998901234567',
-    role: 'ADMIN',
-    status: 'ACTIVE',
-    createdAt: '2026-01-01T00:00:00Z',
-  };
-
-  const mockParents: Parent[] = [
-    {
-      id: 'par-1',
-      fullName: 'Feruza Aliyeva',
-      phone: '+998901234600',
-      role: 'PARENT',
-      status: 'ACTIVE',
-      childrenIds: [],
-      createdAt: '2026-01-01T00:00:00Z',
-    },
-  ];
-
-  beforeEach(() => {
-    useStore.setState({
-      currentUser: mockAdmin,
-      isAuthenticated: true,
-      parents: mockParents,
-      specialists: [],
-      children: [],
-    });
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { beforeEach, afterEach, it, expect, vi } from "vitest";
+import { CreateChildForm } from "./CreateChildForm";
+import { useStore } from "@/store";
+import { child, owner, parent } from "@/test/clinicFixtures";
+const original = useStore.getState().createChild;
+beforeEach(() => useStore.setState({ currentUser: owner, parents: [parent] }));
+afterEach(() => useStore.setState({ createChild: original }));
+it("creates a child without requiring a service or a specialist and returns the saved child", async () => {
+  const create = vi.fn().mockResolvedValue(child),
+    done = vi.fn();
+  useStore.setState({ createChild: create });
+  render(<CreateChildForm onSuccess={done} onCancel={vi.fn()} />);
+  fireEvent.change(screen.getByLabelText(/To‘liq ism/), {
+    target: { value: child.fullName },
   });
-
-  it('keeps submit button disabled until required fields are filled and valid', () => {
-    const handleSuccess = vi.fn();
-    const handleCancel = vi.fn();
-
-    render(<CreateChildForm onSuccess={handleSuccess} onCancel={handleCancel} />);
-
-    const submitBtn = screen.getByRole('button', { name: /Saqlash/i });
-    expect(submitBtn).toBeDisabled();
+  fireEvent.change(screen.getByLabelText(/Tug‘ilgan sana/), {
+    target: { value: child.dateOfBirth },
   });
-
-  it('formats phone number with +998 (XX) XXX-XX-XX mask as user types', async () => {
-    render(<CreateChildForm onSuccess={vi.fn()} onCancel={vi.fn()} />);
-
-    const phoneInputs = screen.getAllByPlaceholderText('+998 (90) 123-45-67');
-    fireEvent.change(phoneInputs[0], { target: { value: '901234567' } });
-
-    expect(phoneInputs[0]).toHaveValue('+998 (90) 123-45-67');
+  fireEvent.change(screen.getByRole("combobox", { name: "Ota-ona" }), {
+    target: { value: parent.id },
   });
-
-  it('submits successfully and calls createChild when valid', async () => {
-    const handleSuccess = vi.fn();
-    const createChildSpy = vi.fn().mockResolvedValue({ id: 'child-1' } as any);
-    useStore.setState({ createChild: createChildSpy });
-
-    render(<CreateChildForm onSuccess={handleSuccess} onCancel={vi.fn()} />);
-
-    // Fill Full Name
-    const nameInput = screen.getByLabelText(/To'liq ism/i);
-    fireEvent.change(nameInput, { target: { value: 'Jasur Karimov' } });
-
-    // Open and select Date of Birth in the past
-    const trigger = screen.getByTestId('datepicker-trigger');
-    fireEvent.click(trigger);
-    const dayBtn = screen.getByRole('button', { name: '5' });
-    fireEvent.click(dayBtn);
-
-    // Select Parent via custom Select dropdown
-    const parentCombobox = screen.getByRole('combobox', { name: /Ota-ona \/ vasiy/i });
-    fireEvent.click(parentCombobox);
-    const parentOption = screen.getByRole('option', { name: /Feruza Aliyeva/i });
-    fireEvent.click(parentOption);
-
-    // Fill Phone
-    const phoneInputs = screen.getAllByPlaceholderText('+998 (90) 123-45-67');
-    fireEvent.change(phoneInputs[0], { target: { value: '901234567' } });
-
-    const submitBtn = screen.getByRole('button', { name: /Saqlash/i });
-    await waitFor(() => {
-      expect(submitBtn).not.toBeDisabled();
-    });
-
-    fireEvent.click(submitBtn);
-
-    await waitFor(() => {
-      expect(createChildSpy).toHaveBeenCalled();
-      expect(handleSuccess).toHaveBeenCalled();
-    });
+  fireEvent.click(screen.getByRole("button", { name: "Bolani saqlash" }));
+  await waitFor(() => expect(done).toHaveBeenCalledWith(child));
+  expect(create).toHaveBeenCalledWith(
+    expect.objectContaining({ fullName: child.fullName, parentId: parent.id }),
+  );
+  expect(screen.queryByText("Mutaxassis")).not.toBeInTheDocument();
+});
+it("retains entered information and shows an error when the backend rejects creation", async () => {
+  useStore.setState({
+    createChild: vi.fn().mockRejectedValue(new Error("Server javob bermadi")),
   });
+  render(
+    <CreateChildForm
+      onSuccess={vi.fn()}
+      onCancel={vi.fn()}
+      defaultParentId={parent.id}
+    />,
+  );
+  fireEvent.change(screen.getByLabelText(/To‘liq ism/), {
+    target: { value: child.fullName },
+  });
+  fireEvent.change(screen.getByLabelText(/Tug‘ilgan sana/), {
+    target: { value: child.dateOfBirth },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Bolani saqlash" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Server javob bermadi",
+  );
+  expect(screen.getByLabelText(/To‘liq ism/)).toHaveValue(child.fullName);
 });

@@ -1,0 +1,205 @@
+﻿================================================================================
+MASSAJ CRM — BACKEND ULASH TALABLARI
+================================================================================
+Sana: 23.11.2026
+Holat: frontend moslashtirilgan; backend implementatsiyasi BU REPODA YO‘Q.
+Bu hujjat bajarilgan server o‘zgarishi yoki tayyor API va’dasi emas.
+Foydalanuvchi bilan kelishuv: hozir faqat frontend; quyidagilar keyingi bosqich
+uchun texnik ma’lumotdir. Backend kodi, DB va server sozlamalari o‘zgartirilmadi.
+
+1. TEKSHIRILGAN SERVER
+--------------------------------------------------------------------------------
+.env orqali ko‘rsatilgan mavjud serverning /api/docs-json hujjati tekshirildi.
+API prefiksi: /api/v1. Mavjud frontend proxy yo‘nalishi saqlangan.
+
+Swaggerda mavjud:
+  children, parents, specialists, services;
+  POST /attendance, PATCH /attendance/{id};
+  GET /children/{childId}/attendance;
+  POST /charges;
+  payments, transactions, debtors;
+  GET /parents/{parentId}/balance va financial-summary;
+  parent/me, my-children, my-attendances, my-payments, my-balance, my-debt;
+  klinik baholash, rivojlanish, sozlamalar va audit APIlari.
+
+Swaggerda topilmagan:
+  appointments CRUD;
+  bolaga xizmatni seans sonlari bilan biriktirish va qo‘shimcha seans;
+  attendance + assignment counter + family wallet + audit atomik amali;
+  ota-onaning xizmat sarflari va qaytarishlari uchun xususiy ledger endpointi.
+
+CreateAttendanceDto qabul/xizmat/biriktirish IDlarini qabul qilmaydi.
+POST /charges appointmentId yoki idempotencyKey ni belgilamaydi.
+Ularni ikki alohida so‘rov bilan ulash yarim hisoblash va takror yechish xavfini
+bartaraf qilmaydi. Frontend bu yo‘l bilan pul hisoblamaydi.
+
+RecordPaymentDto childId ni majburiy ko‘rsatgan; yangi oqimda to‘lov oilaga tushadi.
+Swagger payment amount ni tiyin, charges amount ni so‘m deb tushuntirgan.
+Unitni server egasi bilan tekshirmasdan 100 ga bo‘lish yoki ko‘paytirish mumkin emas.
+
+2. SERVER MODELLARI VA MIGRATSIYA
+--------------------------------------------------------------------------------
+Service: id, name, durationMinutes, price, status. Narx — bir seans uchun.
+ServiceAssignment: id, childId, parentId, serviceId, serviceName,
+  price, durationMinutes (biriktirish paytidagi nusxa), totalSessions,
+  completedSessions, startDate, workingDays (JS: 0=yakshanba … 6=shanba),
+  startTime (null yoki HH:mm), status (ACTIVE/COMPLETED/ARCHIVED), createdAt.
+Appointment: id, assignmentId, childId, parentId, specialistId, serviceId,
+  serviceName, price, durationMinutes, date (markaz sanasi YYYY-MM-DD),
+  startTime/endTime (bo‘sh/null mumkin), status, attendanceStatus,
+  actualArrivalTime (ISO timestamp/null), version (butun >=0), createdAt.
+Attendance: id, appointmentId, childId, specialistId, date, status, note, createdAt.
+ParentAccount: parentId, balance, debt. Ikkalasi ham manfiy emas; bir vaqtda
+  ikkalasi musbat bo‘lishi mumkin emas.
+Ledger: id, parentId, childId (atributsiya), assignmentId, appointmentId,
+  direction, type, amount, idempotencyKey, reversesId, actor, timestamp.
+
+Pul DECIMAL yoki butun minor-unit formatida saqlansin. Frontendning yangi
+v1 shartnomasida barcha summalar UZS, butun so‘m sifatida uzatiladi.
+Mavjud DB valyuta birligini aniqlab, adapter/migratsiyani serverda bajaring.
+
+Yangi modellar qo‘shish eski bolalar, ota-onalar, xodimlar, klinik qaydlar,
+to‘lovlar, ledger va auditni o‘chirmasin. Tarixiy narxni yangi katalog bilan
+almashtirmang. Eski child hisoblarini bitta parent hisobiga migratsiya qilishda
+har bir ledger ID faqat bir marta hisoblanadi. Parent yozuvi va child atributsiyasi
+ikkita alohida pul sifatida qo‘shilmaydi. Opening balance bo‘lsa izohli,
+qarama-qarshi tekshirilgan migratsiya yozuvi bilan o‘tkazing va oldin/keyin
+jamlamalarni taqqoslang. Migratsiya bu frontend vazifasida bajarilmagan.
+
+Egasi uchun haqiqiy specialist profilini uning auth useriga serverda bog‘lang.
+Login javobida specialistId qaytaring; frontend birinchi xodim IDsi yoki
+admin UUIDsini specialist o‘rnida taxmin qilmaydi.
+PARENT loginidan keyin /parent/me haqiqiy parent entity IDni aniqlaydi.
+
+3. YANGI VERSION 1 SHARTNOMA (URL NOMLARI SERVER BILAN KELISHILADI)
+--------------------------------------------------------------------------------
+Frontendda ClinicWorkflowApi adapteri tayyor. Quyidagi route nomlari mavjud
+server route deb taxmin qilinmagan. Endpointlarni backendda amalga oshirgach,
+ularning haqiqiy yo‘llari bilan VITE_CLINIC_WORKFLOW_CONTRACT JSON bering.
+Yo‘llar /api/v1 ga nisbatan, '/' bilan boshlanadigan same-origin yo‘llar bo‘lsin.
+Tashqi origin qabul qilinmaydi. Bu ochiq capability konfiguratsiyasi, secret emas.
+Konfiguratsiyasiz yangi yozish amallari 501 bilan rad etiladi va HTTP yubormaydi.
+Faqat konfiguratsiyani yozib qo‘yish backend kafolatlarini yaratmaydi.
+
+Majburiy konfiguratsiya maydonlari:
+  version: 1
+  atomicAttendanceBilling: true
+  familyWallet: true
+  currencyUnit: "UZS"
+  assignments: "<bolaning ro‘yxati; {childId} placeholderi shart>"
+  createAssignment: "<biriktirish POST yo‘li>"
+  extendAssignment: "<qo‘shimcha seans POST; {assignmentId} shart>"
+  appointments: "<qabullar GET yo‘li>"
+  createAppointment: "<qabul POST yo‘li>"
+  commitAttendance: "<atomik davomat POST; {appointmentId} shart>"
+Ixtiyoriy alohida ishga tushiriladigan maydonlar:
+  topUp: "<oilaviy to‘lov POST yo‘li>"
+  myTransactions: "<PARENT uchun o‘z ledgeri GET yo‘li>"
+
+Ro‘yxat javobi: to‘liq array yoki {data:[...], meta:{total,totalPages}}.
+Sahifalash page=1, limit parametrlarini qabul qilsin. appointments va ledger
+barcha sahifalari olinadi. assignments bola bo‘yicha to‘liq array qaytarsin.
+GET appointments serverda auth bo‘yicha filtrlanadi: owner — o‘z markazi,
+parent — o‘z farzandlari, specialist — faqat ruxsat berilgan klinik resurslar.
+Frontend query parentId o‘rniga serverdagi JWT identifikatsiyasi asos bo‘lsin.
+
+POST createAssignment body:
+  {childId, serviceId, totalSessions, startDate, workingDays,
+   startTime:null|"HH:mm", idempotencyKey}
+  Javob: ServiceAssignment yoki {data:ServiceAssignment}.
+Server ownerdan specialistni, childdan parentni aniqlasin. Narx/davomiylik
+server katalogidan olinadi; mijoz yuborgan narxga ishonilmaydi.
+Server bitta tranzaksiyada tanlangan kunlar bo‘yicha N ta qabul yaratsin.
+Vaqt null bo‘lsa, sun’iy standart vaqt kiritilmasin. Takror kalit yangi kurs
+va takror qabullar yaratmasin. Qabullar rejalanishi balansga tegmasin.
+
+POST extendAssignment body:
+  {additionalSessions, idempotencyKey}
+  Javob: yangilangan ServiceAssignment.
+Qo‘shilgan sonni va qo‘shimcha qabullarni bir marta yarating; avvalgi bajarilgan
+seanslar, narx nusxalari va tarix saqlansin. Biriktirish kunlari davom ettiriladi.
+
+POST createAppointment body:
+  {childId, assignmentId, date, startTime:null|"HH:mm",
+   rescheduledFrom?:appointmentId, idempotencyKey}
+  Javob: to‘liq Appointment.
+Biriktirishga tegishlilik, qolgan seans va ortiqcha rezervlarni server tekshirsin.
+Kelmadi qabulini ko‘chirish bir xil qolgan seansdan yangi rezerv yaratadi;
+eski tarix saqlanadi. Bir kunda bir xil xizmatning ikkita HAQIQIY qabuli mumkin.
+Idempotency child+service+date bo‘yicha emas, amal va qabul IDsi bo‘yicha ishlaydi.
+
+POST commitAttendance body:
+  {status:"PRESENT"|"ABSENT", note?:string,
+   expectedVersion:integer, idempotencyKey:string}
+  Javob: {appointment, attendance, assignment, parentAccount}
+  yoki {data:{appointment, attendance, assignment, parentAccount}}.
+To‘liq javob kelmaguncha frontend moliyaviy muvaffaqiyat ko‘rsatmaydi.
+
+Bitta DB tranzaksiyada:
+  - Egasi/ruxsat, markaz, child-parent va assignment munosabatlarini tekshirish.
+  - Appointment/version va parent wallet uchun lock yoki mos concurrent nazorat.
+  - PRESENT birinchi marta: haqiqiy arrival vaqt, completedSessions +1,
+    bitta faol SESSION_CHARGE, wallet o‘zgarishi, audit va notification.
+  - ABSENT birinchi marta: 0 charge va 0 completed increment.
+  - PRESENT → ABSENT: asl chargega bog‘langan immutable reversal,
+    completedSessions -1, wallet tiklash, audit.
+  - ABSENT → PRESENT: yangi faol charge, natijada bitta faol sarf.
+  - Bir xil holat + izoh: counter/charge/arrival qayta yozilmaydi.
+  - Har qabulning versiyasi izoh o‘zgarganda ham oshsin.
+  - Idempotency key va payload: takror so‘rov oldingi natijani qaytarsin.
+    Boshqa payload bilan bir xil kalit 409; stale version ham 409 qaytarsin.
+  - Takror kalitni version tekshiruvidan oldin tiklang: yo‘qolgan javobni
+    ayni request bilan qayta olish mumkin bo‘lsin.
+
+POST topUp body:
+  {parentId, amount, method:"CASH"|"CARD"|"TRANSFER", note?, idempotencyKey}
+  Javob: {payment, parentAccount}, zarur bo‘lsa {data:...} o‘rami bilan.
+  Payment: haqiqiy id, parentId, amount, method, date/paidAt, transactionId va
+  createdAt. To‘lov sanasini server belgilasin; retryda vaqt almashtirilmasin.
+Child tanlash shart bo‘lmasin. Kirim qarzni yopadi, keyin depozit qoladi.
+Yangi ledger va wallet bitta tranzaksiyada yozilsin; double click yoki retry
+faqat bitta to‘lov keltirsin. Frontendning sessiyaviy amal kaliti saqlanadi.
+
+GET myTransactions faqat auth parentning o‘z, to‘liq, immutable ledgerini bersin.
+Har yozuvning parentId si shu parent bo‘lsin. Klinik markazning o‘z xarajatlarini
+ota-ona walletidan yechilgan xizmat haqi bilan aralashtirmang.
+
+4. XATOLAR, RUXSAT VA QAYTA ULASH
+--------------------------------------------------------------------------------
+Clientda musbat butun seans/so‘m, sana va vaqt tekshiriladi. Server ham tekshirsin.
+401 sessiya; 403 ruxsat; 404 resurs; 409 konflikt; 422 validatsiya ishlasin.
+Parent read APIlarida childId yoki parentId ni almashtirib IDOR bo‘lmasin.
+Oddiy SPECIALISTga oilaviy to‘lov va owner moliya huquqlarini bermang.
+Owner klinik amallari uning linked specialist profiliga yozilsin.
+
+API muvaffaqiyatsizligi demo, mahalliy charge yoki avtomatik success bilan
+almashtirilmaydi. Natijasi noma’lum bo‘lgan yozishda bir xil idempotency key
+qayta yuboriladi. Server holati qayta o‘qilmasdan boshqa to‘lov yaratilmang.
+Frontend kalitni qayta foydalanishi serverning unique constraint va DB locklari
+o‘rnini bosmaydi. Cross-device holatning yagona manbasi server bo‘lishi shart.
+
+5. STAGINGDA MAJBURIY INTEGRATSIYA SINOVLARI
+--------------------------------------------------------------------------------
+- Vaqtsiz va vaqtli biriktirish; ikki xizmat uchun ikki xil N.
+- Kelish kunlari bo‘yicha N rezerv, retryda takror rezerv yo‘q.
+- PRESENT: bitta sarf, bitta completed, haqiqiy vaqt.
+- Bir qabulga parallel ikkita qurilma: bitta faol sarf.
+- Javob yo‘qolgach ayni kalit bilan retry: ikkinchi sarf/to‘lov yo‘q.
+- ABSENT, tanaffus va rejalashtirishda 0 hisoblash.
+- PRESENT → ABSENT → PRESENT; izoh tahriri; arrival va auditni tekshirish.
+- Ikki farzand bitta depozitdan sarflashi; kirim avval qarzni yopishi.
+- Yetishmagan qismgina qarz; bir vaqtning o‘zida deposit va debt musbat emas.
+- Bir kunda ikkita haqiqiy qabulning mustaqil hisoblanishi.
+- Kurs tugaganda ortiqcha yechish yo‘q; seans qo‘shish qayta sanalmaydi.
+- Katalog narxi o‘zgarganda avvalgi sarflar o‘zgarmaydi.
+- 101+ transaction/payment; server jamlamasi va barcha sahifalar mos.
+- DB tranzaksiyasining o‘rtasida xato: hech qanday yarim hisoblash yo‘q.
+- Parent boshqa oilaning child/account/assignment/ledgerini o‘qiy olmaydi.
+- SPECIALIST family top-up yoki owner moliyasiga kira olmaydi.
+- Migratsiyadan oldin/keyin oila va markaz jamlamalari mos; audit saqlangan.
+
+Frontenddagi mock testlar ushbu server kafolatlari ishlashining isboti emas.
+Server kodi va DBga kirish berilmaganligi sabab bu sinovlar va migratsiyalar
+mazkur o‘zgarish doirasida bajarilmadi. .envdagi URL backend manba kodining
+o‘rnini bosa olmaydi; serverga o‘zgartirishni uning checkoutida bajarish kerak.
+================================================================================

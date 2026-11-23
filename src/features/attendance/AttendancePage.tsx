@@ -1,834 +1,440 @@
-// ═══════════════════════════════════════════════════════
-//  Attendance Page — Real-time Daily Attendance Journal
-// ═══════════════════════════════════════════════════════
-
-import { useState, useMemo } from 'react';
 import {
-  Calendar, CheckCircle2, Clock, XCircle, AlertCircle,
-  ChevronLeft, ChevronRight, UserCheck, Search, Users,
-  CheckCheck, X, Sparkles, Quote, FileText
-} from 'lucide-react';
-import { useStore, useAuth } from '@/store';
-import { cn } from '@/utils';
-import { Card, Badge, Avatar, Select, EmptyState, DatePicker } from '@/components/ui/primitives';
-import { Button } from '@/components/ui/Button';
-import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
-import { Modal } from '@/components/ui/Modal';
-import { format, parseISO, isToday, differenceInYears } from 'date-fns';
-import { uz } from 'date-fns/locale';
-import type { AttendanceStatus } from '@/types';
-
-const ATTENDANCE_OPTIONS: {
-  status: AttendanceStatus;
-  label: string;
-  title: string;
-  icon: typeof CheckCircle2;
-  activeClass: string;
-  iconColor: string;
-}[] = [
-  {
-    status: 'PRESENT',
-    label: 'Keldi',
-    title: 'Keldi (mashg‘ulotda qatnashdi)',
-    icon: CheckCircle2,
-    activeClass: 'bg-emerald-600 text-white shadow-xs',
-    iconColor: 'text-emerald-600',
-  },
-  {
-    status: 'LATE',
-    label: 'Kechikdi',
-    title: 'Kechikdi',
-    icon: Clock,
-    activeClass: 'bg-amber-500 text-white shadow-xs',
-    iconColor: 'text-amber-500',
-  },
-  {
-    status: 'ABSENT',
-    label: 'Sababli kelmadi',
-    title: 'Sababli kelmadi',
-    icon: AlertCircle,
-    activeClass: 'bg-blue-600 text-white shadow-xs',
-    iconColor: 'text-blue-500',
-  },
-  {
-    status: 'NO_SHOW',
-    label: 'Sababsiz kelmadi',
-    title: 'Sababsiz kelmadi',
-    icon: XCircle,
-    activeClass: 'bg-rose-600 text-white shadow-xs',
-    iconColor: 'text-rose-500',
-  },
-];
-
+  pendingOperation,
+  finishOperation,
+} from "@/services/pending-operation";
+import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { addDays, format, startOfWeek } from "date-fns";
+import { useStore } from "@/store";
+import { api } from "@/services/api";
+import { WORKFLOW_UNAVAILABLE } from "@/services/api/workflow";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/primitives";
+import { Modal } from "@/components/ui/Modal";
+import { formatCurrency, formatDateTime } from "@/utils";
+import type { Appointment } from "@/types";
 export function AttendancePage() {
-  const { currentUser } = useAuth();
-  const appointments = useStore(s => s.appointments);
-  const attendance = useStore(s => s.attendance);
-  const children = useStore(s => s.children);
-  const parents = useStore(s => s.parents);
-  const specialists = useStore(s => s.specialists);
-  const services = useStore(s => s.services);
-  const recordAttendance = useStore(s => s.recordAttendance);
-
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [specialistFilter, setSpecialistFilter] = useState('');
-  const [search, setSearch] = useState('');
-  const [statusFilterTab, setStatusFilterTab] = useState<'ALL' | AttendanceStatus | 'UNMARKED'>('ALL');
-  const [loadingAptId, setLoadingAptId] = useState<string | null>(null);
-
-  // Quick Note modal state
-  const [editingNoteRecord, setEditingNoteRecord] = useState<{
-    appointmentId: string;
-    childName: string;
-    serviceName: string;
-    time: string;
-    status: AttendanceStatus | null;
-    note: string;
-  } | null>(null);
-
-  // Date shortcuts
-  const setToday = () => setSelectedDate(new Date().toISOString().split('T')[0]);
-  const prevDay = () => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() - 1);
-    setSelectedDate(d.toISOString().split('T')[0]);
-  };
-  const nextDay = () => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() + 1);
-    setSelectedDate(d.toISOString().split('T')[0]);
-  };
-
-  const dateFormatted = useMemo(() => {
-    try {
-      const d = parseISO(selectedDate);
-      const str = format(d, 'EEEE, d-MMMM, yyyy', { locale: uz });
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    } catch {
-      return selectedDate;
-    }
-  }, [selectedDate]);
-
-  const isCurrentDay = useMemo(() => {
-    try {
-      return isToday(parseISO(selectedDate));
-    } catch {
-      return false;
-    }
-  }, [selectedDate]);
-
-  // Appointments on selected day
-  const dayAppointments = useMemo(() => {
-    return appointments.filter(a => {
-      if (a.date !== selectedDate) return false;
-      const targetSpecialistId = currentUser?.role === 'SPECIALIST' ? currentUser.id : specialistFilter;
-      if (targetSpecialistId && a.specialistId !== targetSpecialistId) return false;
-      return true;
-    });
-  }, [appointments, selectedDate, specialistFilter, currentUser]);
-
-  // Combined attendance records for the day's appointments (strictly per appointmentId)
-  const attendanceItems = useMemo(() => {
-    return dayAppointments.map(apt => {
-      const localChild = children.find(c => c.id === apt.childId);
-      const rawChild = apt.child as any;
-      const childFirstLast = [rawChild?.firstName, rawChild?.lastName].filter(Boolean).join(' ');
-      const childFullName =
-        localChild?.fullName ||
-        (localChild?.firstName ? `${localChild.firstName} ${localChild.lastName || ''}`.trim() : null) ||
-        rawChild?.fullName ||
-        childFirstLast ||
-        apt.childName ||
-        (apt.childId ? `Bola #${apt.childId.slice(-4)}` : 'Bola');
-
-      const child = localChild || (apt.child as any) || {
-        id: apt.childId,
-        fullName: childFullName,
-        dateOfBirth: rawChild?.dateOfBirth,
-        gender: rawChild?.gender || 'MALE',
-        parentId: apt.parentId,
-        status: 'ACTIVE',
-        createdAt: apt.createdAt || new Date().toISOString(),
-      };
-
-      const localSpec = specialists.find(s => s.id === apt.specialistId);
-      const rawSpec = apt.specialist as any;
-      const specialistFullName =
-        localSpec?.fullName ||
-        (localSpec?.user as any)?.fullName ||
-        rawSpec?.fullName ||
-        rawSpec?.user?.fullName ||
-        apt.specialistName ||
-        (apt.specialistId ? `Mutaxassis #${apt.specialistId.slice(-4)}` : 'Mutaxassis belgilanmagan');
-
-      const specialist = localSpec || (apt.specialist as any) || {
-        id: apt.specialistId,
-        fullName: specialistFullName,
-        phone: rawSpec?.phone || rawSpec?.user?.phone,
-        role: 'SPECIALIST',
-        status: 'ACTIVE',
-        specialization: rawSpec?.specialization || 'Massaj terapevti',
-      };
-
-      const localSvc = services.find(s => s.id === apt.serviceId);
-      const rawSvc = apt.service as any;
-      const serviceName =
-        localSvc?.name ||
-        rawSvc?.name ||
-        apt.serviceName ||
-        (apt.serviceId ? `Xizmat #${apt.serviceId.slice(-4)}` : "Xizmat");
-
-      const service = localSvc || (apt.service as any) || {
-        id: apt.serviceId,
-        name: serviceName,
-        durationMinutes: rawSvc?.durationMinutes || 45,
-        price: rawSvc?.price || 0,
-        status: 'ACTIVE',
-      };
-
-      const attRecord = attendance.find(att => att.appointmentId === apt.id);
-      const parent = parents.find(p => p.id === apt.parentId || (child && p.childrenIds?.includes(child.id)));
-
-      return {
-        appointment: apt,
-        child: { ...child, fullName: childFullName },
-        childName: childFullName,
-        parent,
-        specialist: { ...specialist, fullName: specialistFullName },
-        specialistName: specialistFullName,
-        service: { ...service, name: serviceName },
-        serviceName,
-        attendanceRecord: attRecord,
-        status: attRecord?.status ?? null,
-      };
-    }).filter(item => {
-      if (!search) return true;
-      const q = search.toLowerCase();
-      return (
-        item.childName.toLowerCase().includes(q) ||
-        item.specialistName.toLowerCase().includes(q) ||
-        item.serviceName.toLowerCase().includes(q) ||
-        item.parent?.fullName?.toLowerCase().includes(q)
-      );
-    });
-  }, [dayAppointments, attendance, children, parents, specialists, services, search]);
-
-  // Filtered by status tab
-  const filteredAttendanceItems = useMemo(() => {
-    return attendanceItems.filter(item => {
-      if (statusFilterTab === 'ALL') return true;
-      if (statusFilterTab === 'UNMARKED') return !item.status;
-      return item.status === statusFilterTab;
-    });
-  }, [attendanceItems, statusFilterTab]);
-
-  // Daily statistics
-  const stats = useMemo(() => {
-    const total = dayAppointments.length;
-    let present = 0;
-    let late = 0;
-    let absent = 0;
-    let noShow = 0;
-
-    dayAppointments.forEach(apt => {
-      const att = attendance.find(a => a.appointmentId === apt.id);
-      if (att) {
-        if (att.status === 'PRESENT') present++;
-        else if (att.status === 'LATE') late++;
-        else if (att.status === 'ABSENT') absent++;
-        else if (att.status === 'NO_SHOW') noShow++;
-      }
-    });
-
-    const attended = present + late;
-    const rate = total > 0 ? Math.round((attended / total) * 100) : 0;
-    const unmarked = Math.max(0, total - (present + late + absent + noShow));
-
-    return { total, present, late, absent, noShow, attended, rate, unmarked };
-  }, [dayAppointments, attendance]);
-
-  const handleMark = async (
-    appointmentId: string,
-    childId: string,
-    specialistId: string,
-    status: AttendanceStatus,
-    currentStatus: AttendanceStatus | null
+  const user = useStore((s) => s.currentUser);
+  const appointments = useStore((s) => s.appointments);
+  const children = useStore((s) => s.children);
+  const services = useStore((s) => s.services);
+  const attendance = useStore((s) => s.attendance);
+  const assignments = useStore((s) => s.serviceAssignments);
+  const loadAssignments = useStore((s) => s.fetchServiceAssignments);
+  const save = useStore((s) => s.saveReception);
+  const commit = useStore((s) => s.commitReception);
+  const refresh = useStore((s) => s.fetchInitialData);
+  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [mode, setMode] = useState("day");
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("");
+  const [open, setOpen] = useState(false);
+  const [childId, setChildId] = useState("");
+  const [assignmentId, setAssignmentId] = useState("");
+  const [newDate, setNewDate] = useState(date);
+  const [time, setTime] = useState("");
+  const [rescheduledFrom, setRescheduledFrom] = useState("");
+  const [selected, setSelected] = useState<Appointment | null>(null);
+  const [status, setStatus] = useState<"PRESENT" | "ABSENT">("PRESENT");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const request = useRef({ signature: "", key: "" });
+  const canManage = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
+  const weekStart = format(
+    startOfWeek(new Date(date + "T12:00:00"), { weekStartsOn: 1 }),
+    "yyyy-MM-dd",
+  );
+  const weekEnd = format(
+    addDays(new Date(weekStart + "T12:00:00"), 6),
+    "yyyy-MM-dd",
+  );
+  const rows = appointments
+    .filter(
+      (a) =>
+        (mode === "day"
+          ? a.date === date
+          : a.date >= weekStart && a.date <= weekEnd) &&
+        (!filter || a.attendanceStatus === filter) &&
+        `${children.find((c) => c.id === a.childId)?.fullName || a.childName || ""} ${a.serviceName || services.find((s) => s.id === a.serviceId)?.name || ""}`
+          .toLowerCase()
+          .includes(search.toLowerCase()),
+    )
+    .sort(
+      (a, b) =>
+        a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime),
+    );
+  const run = async (
+    input: unknown,
+    action: (key: string) => Promise<void>,
   ) => {
-    if (currentUser?.role === 'SPECIALIST' && specialistId !== currentUser.id) return;
-    if (currentStatus === status) {
-      // Backend does not expose an attendance-delete endpoint. Keep the
-      // server-confirmed value instead of removing it only from local state.
-      return;
-    }
-    setLoadingAptId(appointmentId);
+    if (busy) return;
+    const signature = JSON.stringify(input);
+    if (request.current.signature !== signature)
+      request.current = {
+        signature,
+        key: pendingOperation(
+          "reception:" + (useStore.getState().currentUser?.id || ""),
+          signature,
+        ),
+      };
+    setBusy(true);
+    setError("");
     try {
-      await recordAttendance({
-        appointmentId,
-        childId,
-        specialistId,
-        date: selectedDate,
-        status,
-        note: `Belgilandi: ${status}`,
-      });
-    } catch {
-      // Store shows the backend error and leaves the previous state intact.
+      await action(request.current.key);
+      finishOperation("reception:" + (user?.id || ""), signature);
+      setSelected(null);
+      setOpen(false);
+      request.current = { signature: "", key: "" };
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Amal tasdiqlanmadi");
     } finally {
-      setLoadingAptId(null);
+      setBusy(false);
     }
   };
-
-  const handleMarkAllPresent = async () => {
-    const unmarked = attendanceItems.filter(item => !item.status);
-    if (unmarked.length === 0) return;
-    await Promise.allSettled(unmarked.map(item =>
-      recordAttendance({
-        appointmentId: item.appointment.id,
-        childId: item.appointment.childId,
-        specialistId: item.appointment.specialistId,
-        date: selectedDate,
-        status: 'PRESENT',
-        note: "O‘z vaqtida qatnashdi",
-      })
-    ));
-  };
-
-  const handleSaveNote = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingNoteRecord) return;
-    const apt = appointments.find(a => a.id === editingNoteRecord.appointmentId);
-    if (!apt) return;
-    const targetStatus = editingNoteRecord.status || 'PRESENT';
-    try {
-      await recordAttendance({
-        appointmentId: editingNoteRecord.appointmentId,
-        childId: apt.childId,
-        specialistId: apt.specialistId,
-        date: selectedDate,
-        status: targetStatus,
-        note: editingNoteRecord.note.trim() || undefined,
-      });
-      setEditingNoteRecord(null);
-    } catch {
-      // Keep the modal open so the note can be retried.
-    }
-  };
-
-  const getStatusBadge = (status: AttendanceStatus | null) => {
-    switch (status) {
-      case 'PRESENT':
-        return <Badge variant="success" dot>Keldi</Badge>;
-      case 'LATE':
-        return <Badge variant="warning" dot>Kechikdi</Badge>;
-      case 'ABSENT':
-        return <Badge variant="info" dot>Sababli kelmadi</Badge>;
-      case 'NO_SHOW':
-        return <Badge variant="danger" dot>Sababsiz kelmadi</Badge>;
-      default:
-        return <Badge variant="neutral" dot>Kutilmoqda</Badge>;
-    }
-  };
-
-  const canEditGeneral = currentUser?.role !== 'SPECIALIST';
-
   return (
-    <div className="px-4 lg:px-6 py-6 max-w-7xl mx-auto space-y-6">
-      <PageHeader
-        title="Davomat jurnali"
-        description="Har kungi seanslar va uchrashuvlar bo‘yicha bolalar qatnashuvi"
-        actions={
-          canEditGeneral && stats.unmarked > 0 ? (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={handleMarkAllPresent}
-              className="gap-2 bg-white text-emerald-700 hover:bg-emerald-50 border border-emerald-200/80 shadow-2xs font-semibold"
-              title="Barcha kutilayotgan uchrashuvlarni 'Keldi' deb belgilash"
-            >
-              <CheckCheck className="w-4 h-4 text-emerald-600" />
-              <span>Barchasini keldi deb belgilash ({stats.unmarked})</span>
-            </Button>
-          ) : undefined
-        }
-      />
-
-      {/* KPI Cards Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-        <KpiCard
-          label="Davomat darajasi"
-          value={`${stats.rate}%`}
-          description={`${stats.present + stats.late} / ${stats.total} qatnashdi`}
-          icon={<UserCheck className="w-5 h-5 text-brand-600" />}
-          accentColor="brand"
-          index={0}
-        />
-        <KpiCard
-          label="Kelganlar"
-          value={stats.present}
-          description="O‘z vaqtida qatnashdi"
-          icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />}
-          accentColor="sage"
-          index={1}
-        />
-        <KpiCard
-          label="Kechikkanlar"
-          value={stats.late}
-          description="Darsga kechikib keldi"
-          icon={<Clock className="w-5 h-5 text-amber-500" />}
-          accentColor="gold"
-          index={2}
-        />
-        <KpiCard
-          label="Sababli kelmagan"
-          value={stats.absent}
-          description="Oldindan ogohlantirilgan"
-          icon={<AlertCircle className="w-5 h-5 text-blue-500" />}
-          accentColor="blue"
-          index={3}
-        />
-        <KpiCard
-          label="Sababsiz kelmagan"
-          value={stats.noShow}
-          description="Qatnashmadi"
-          icon={<XCircle className="w-5 h-5 text-rose-500" />}
-          accentColor="danger"
-          index={4}
-        />
+    <div className="p-4 lg:p-6 max-w-6xl mx-auto space-y-5">
+      <div className="flex flex-wrap justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Qabul va davomat</h1>
+          <p className="text-charcoal-600">
+            Har bir qabulda bajarilgan xizmat va davomat alohida saqlanadi.
+          </p>
+        </div>
+        {canManage && (
+          <Button
+            onClick={() => {
+              setOpen(true);
+              setError("");
+              setNewDate(date);
+              setRescheduledFrom("");
+            }}
+          >
+            Qabul qo‘shish
+          </Button>
+        )}
       </div>
-
-      {/* Control bar */}
-      <Card className="p-4 space-y-3.5">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          {/* Date Picker & Prev/Next */}
-          <div className="flex items-center gap-2.5 w-full lg:w-auto">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={setToday}
-              className="h-9 px-3 rounded-[10px] text-xs font-semibold text-charcoal-700 bg-white border border-warm-300 hover:bg-warm-50 shadow-2xs shrink-0 cursor-pointer"
+      {!api.workflow.enabled && (
+        <p
+          role="status"
+          className="rounded-xl border border-amber-200 p-4 bg-amber-50 text-amber-900"
+        >
+          {WORKFLOW_UNAVAILABLE} Avvalgi davomat tarixi bola kartasida
+          saqlanadi.
+        </p>
+      )}
+      <div className="flex flex-wrap gap-3 items-end">
+        <Input
+          label="Sana"
+          type="date"
+          required
+          value={date}
+          onChange={(e) => {
+            if (e.target.value) setDate(e.target.value);
+          }}
+        />
+        <div className="flex gap-2">
+          <Button
+            variant={mode === "day" ? "primary" : "secondary"}
+            onClick={() => setMode("day")}
+          >
+            Kun
+          </Button>
+          <Button
+            variant={mode === "week" ? "primary" : "secondary"}
+            onClick={() => setMode("week")}
+          >
+            Hafta
+          </Button>
+        </div>
+        <Input
+          label="Bola yoki xizmat"
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <label className="text-sm font-semibold">
+          Davomat
+          <select
+            className="block mt-1 min-h-11 border rounded-lg p-2"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          >
+            <option value="">Barchasi</option>
+            <option value="PRESENT">Keldi</option>
+            <option value="ABSENT">Kelmadi</option>
+          </select>
+        </label>
+        <Button variant="secondary" onClick={() => void refresh()}>
+          Yangilash
+        </Button>
+      </div>
+      {error && !open && !selected && (
+        <p role="alert" className="text-danger-main">
+          {error}
+        </p>
+      )}
+      <div className="space-y-3">
+        {rows.map((a) => {
+          const recorded = attendance.find((r) => r.appointmentId === a.id);
+          return (
+            <article
+              key={a.id}
+              className="p-5 rounded-xl bg-white border border-warm-200 space-y-3"
             >
-              Bugun
-            </Button>
-            <div className="flex items-center bg-white border border-warm-300 rounded-[10px] shadow-2xs hover:border-warm-400 transition-colors h-9 flex-1 lg:flex-initial">
-              <button
-                type="button"
-                onClick={prevDay}
-                className="h-full px-2.5 flex items-center justify-center text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 rounded-l-[9px] transition-colors cursor-pointer shrink-0"
-                title="Oldingi kun"
-                aria-label="Oldingi kun"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <div className="w-full sm:w-36 border-x border-warm-200 flex-1 sm:flex-initial">
-                <DatePicker
-                  size="sm"
-                  value={selectedDate}
-                  onChange={e => setSelectedDate(e.target.value)}
-                  clearable={false}
-                  aria-label="Sanani tanlash"
-                  triggerClassName="border-0 shadow-none rounded-none py-1.5 focus:ring-0 bg-transparent text-center font-semibold text-xs text-charcoal-800 w-full"
-                />
+              <div className="flex flex-wrap justify-between gap-3">
+                <div>
+                  <h2 className="font-bold text-lg">
+                    {children.find((c) => c.id === a.childId)?.fullName ||
+                      a.childName ||
+                      "Bola"}
+                  </h2>
+                  <p>
+                    {a.date} · {a.startTime || "Vaqt belgilanmagan"}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-semibold">
+                    {a.serviceName ||
+                      services.find((s) => s.id === a.serviceId)?.name ||
+                      "Xizmat"}
+                  </p>
+                  <p>
+                    {a.durationMinutes ?? "—"} daqiqa ·{" "}
+                    {a.price === undefined
+                      ? "Narx tasdiqlanmagan"
+                      : formatCurrency(a.price)}
+                  </p>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={nextDay}
-                className="h-full px-2.5 flex items-center justify-center text-charcoal-500 hover:text-charcoal-800 hover:bg-warm-100 rounded-r-[9px] transition-colors cursor-pointer shrink-0"
-                title="Keyingi kun"
-                aria-label="Keyingi kun"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Human date badge */}
-            <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-warm-100/70 border border-warm-200/80 text-xs font-semibold text-charcoal-700">
-              <Calendar className="w-3.5 h-3.5 text-brand-500" />
-              <span>{dateFormatted}</span>
-              {isCurrentDay && (
-                <Badge variant="success" className="text-[10px] py-0 px-1 font-bold">
-                  Bugun
-                </Badge>
-              )}
-            </div>
-          </div>
-
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
-            <div className="relative w-full sm:w-60">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Bola yoki mutaxassis..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-full h-9 text-xs pl-8.5 pr-8 border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 shadow-2xs placeholder:text-charcoal-400 transition-all font-medium"
-              />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700 p-0.5 rounded-full cursor-pointer"
-                  title="Qidiruvni tozalash"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </div>
-
-            {/* Filters on mobile: 2-column grid; on desktop: inline */}
-            <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
-              {currentUser?.role !== 'SPECIALIST' && (
-                <div className="w-full sm:w-56">
-                  <Select
-                    size="sm"
-                    triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                    value={specialistFilter}
-                    onChange={e => setSpecialistFilter(e.target.value)}
-                    options={[
-                      { value: '', label: 'Barcha mutaxassislar' },
-                      ...specialists.map(s => ({ value: s.id, label: s.fullName })),
-                    ]}
-                    aria-label="Mutaxassis bo'yicha filter"
-                  />
+              <p>
+                {a.attendanceStatus === "PRESENT"
+                  ? "Keldi"
+                  : a.attendanceStatus === "ABSENT"
+                    ? "Kelmadi"
+                    : "Belgilanmagan"}
+                {a.actualArrivalTime
+                  ? ` · Kelgan vaqt: ${formatDateTime(a.actualArrivalTime)}`
+                  : ""}
+              </p>
+              {recorded?.note && <p>Izoh: {recorded.note}</p>}
+              {canManage && (
+                <div className="flex flex-wrap gap-2">
+                  {(["PRESENT", "ABSENT"] as const).map((value) => (
+                    <Button
+                      key={value}
+                      variant={value === "PRESENT" ? "primary" : "secondary"}
+                      disabled={
+                        !api.workflow.enabled ||
+                        busy ||
+                        !Number.isInteger(a.version)
+                      }
+                      onClick={() => {
+                        setSelected(a);
+                        setStatus(value);
+                        setNote(recorded?.note || "");
+                        setError("");
+                      }}
+                    >
+                      {value === "PRESENT" ? "Keldi" : "Kelmadi"}
+                    </Button>
+                  ))}
+                  {a.attendanceStatus === "ABSENT" && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setChildId(a.childId);
+                        setAssignmentId(a.assignmentId || "");
+                        setRescheduledFrom(a.id);
+                        setNewDate(date);
+                        setTime("");
+                        setOpen(true);
+                        void loadAssignments(a.childId);
+                      }}
+                    >
+                      Boshqa kunga ko‘chirish
+                    </Button>
+                  )}
                 </div>
               )}
-
-              {/* Status Filter (Mobile only: on desktop, pills tab bar handles status) */}
-              <div className="sm:hidden w-full">
-                <Select
-                  size="sm"
-                  triggerClassName="h-9 rounded-[10px] text-xs shadow-2xs border-warm-300 font-medium w-full"
-                  value={statusFilterTab}
-                  onChange={e => setStatusFilterTab(e.target.value as any)}
-                  options={[
-                    { value: 'ALL', label: `Barcha holatlar (${stats.total})` },
-                    { value: 'PRESENT', label: `Kelgan (${stats.present})` },
-                    { value: 'LATE', label: `Kechikkan (${stats.late})` },
-                    { value: 'ABSENT', label: `Sababli (${stats.absent})` },
-                    { value: 'NO_SHOW', label: `Sababsiz (${stats.noShow})` },
-                    { value: 'UNMARKED', label: `Kutilmoqda (${stats.unmarked})` },
-                  ]}
-                  aria-label="Davomat holati bo'yicha filter"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Status Filter Tabs — Desktop/tablet filter pills */}
-        <div className="hidden sm:flex pt-2 border-t border-warm-100 items-center justify-between gap-2 overflow-x-auto touch-scroll-x scrollbar-thin">
-          <div className="flex items-center gap-1.5 flex-nowrap">
-            {[
-              { key: 'ALL', label: 'Barchasi', count: stats.total },
-              { key: 'PRESENT', label: 'Kelgan', count: stats.present },
-              { key: 'LATE', label: 'Kechikkan', count: stats.late },
-              { key: 'ABSENT', label: 'Sababli', count: stats.absent },
-              { key: 'NO_SHOW', label: 'Sababsiz', count: stats.noShow },
-              { key: 'UNMARKED', label: 'Kutilmoqda', count: stats.unmarked },
-            ].map(tab => {
-              const isActive = statusFilterTab === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={(e) => {
-                    setStatusFilterTab(tab.key as any);
-                    e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
-                  }}
-                  className={cn(
-                    'shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs font-semibold transition-all cursor-pointer whitespace-nowrap select-none',
-                    isActive
-                      ? 'bg-charcoal-900 text-white shadow-xs'
-                      : 'bg-white text-charcoal-600 hover:text-charcoal-900 hover:bg-warm-100 border border-warm-200/90 shadow-2xs'
-                  )}
-                >
-                  <span>{tab.label}</span>
-                  <span
-                    className={cn(
-                      'text-[10px] px-1.5 py-0.2 rounded-full font-bold tabular-nums',
-                      isActive ? 'bg-white/20 text-white' : 'bg-warm-100 text-charcoal-700'
-                    )}
-                  >
-                    {tab.count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <span className="text-xs text-charcoal-400 font-medium shrink-0 hidden sm:inline-block">
-            {filteredAttendanceItems.length} ta natija
-          </span>
-        </div>
-      </Card>
-
-      {/* Attendance List Card */}
-      <Card className="overflow-hidden">
-        {filteredAttendanceItems.length === 0 ? (
-          <EmptyState
-            title={dayAppointments.length === 0 ? 'Belgilangan sanada uchrashuvlar mavjud emas' : 'Tanlangan holat bo‘yicha natija topilmadi'}
-            description={dayAppointments.length === 0 ? 'Boshqa sanani tanlang yoki yangi uchrashuv rejalashtiring' : 'Boshqa status filtrini tanlab ko‘ring'}
-            icon={<Calendar className="w-6 h-6" />}
-            className="py-16"
-            action={
-              statusFilterTab !== 'ALL' ? (
-                <Button size="sm" variant="secondary" onClick={() => setStatusFilterTab('ALL')}>
-                  Barcha uchrashuvlarni ko‘rish
-                </Button>
-              ) : undefined
+            </article>
+          );
+        })}
+      </div>
+      {!rows.length && (
+        <div className="p-6 border rounded-xl bg-white space-y-3">
+          <p>
+            {api.workflow.enabled
+              ? "Tanlangan davrda qabul yo‘q."
+              : "Qabullar serverga ulangach shu yerda ko‘rinadi."}
+          </p>
+          <Link
+            className="text-brand-600 font-semibold min-h-11 inline-flex items-center"
+            to={
+              canManage
+                ? "/dashboard/super-admin/children"
+                : "/dashboard/specialist/children"
             }
-          />
-        ) : (
-          <div>
-            {/* Table Header Strip for perfect alignment and visual clarity */}
-            <div className="hidden md:grid grid-cols-12 items-center px-5 py-3 bg-warm-50/80 border-b border-warm-200 text-xs font-semibold text-charcoal-500 uppercase tracking-wider">
-              <span className="col-span-4">Bola va mashg‘ulot ma’lumotlari</span>
-              <span className="col-span-3">Mutaxassis va vaqt</span>
-              <span className="col-span-5 text-right pr-6">Davomat holati</span>
-            </div>
-
-            <div className="divide-y divide-warm-100">
-              {filteredAttendanceItems.map(({ appointment, child, childName, parent, specialistName, serviceName, status, attendanceRecord }) => {
-                const canEdit = currentUser?.role !== 'SPECIALIST' || appointment.specialistId === currentUser?.id;
-
-                return (
-                  <div
-                    key={appointment.id}
-                    className="p-4 sm:p-5 flex flex-col md:grid md:grid-cols-12 md:items-center justify-between gap-4 hover:bg-warm-50/50 transition-colors group"
-                  >
-                    {/* Child & Parent Details (col-span-4) */}
-                    <div className="flex items-center gap-3.5 min-w-0 md:col-span-4">
-                      <Avatar name={childName} size="md" />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-bold text-charcoal-900 truncate">
-                            {childName}
-                          </h4>
-                          {child?.dateOfBirth && (
-                            <span className="text-[10px] font-semibold text-charcoal-500 bg-warm-100/90 px-1.5 py-0.5 rounded-[5px] shrink-0 border border-warm-200/60">
-                              {differenceInYears(new Date(), parseISO(child.dateOfBirth))} yosh
-                            </span>
-                          )}
-                        </div>
-                        {parent && (
-                          <p className="text-[11px] text-charcoal-500 flex items-center gap-1.5 mt-0.5 truncate">
-                            <Users className="w-3 h-3 text-charcoal-400 shrink-0" />
-                            <span className="truncate">{parent.fullName}</span>
-                            {parent.phone && (
-                              <span className="text-charcoal-400 text-[10px] shrink-0 font-mono">({parent.phone})</span>
-                            )}
-                          </p>
-                        )}
-                        {/* Mobile view service/time summary */}
-                        <div className="flex md:hidden items-center gap-2 mt-1 text-xs text-charcoal-600">
-                          <span className="font-semibold text-brand-600">{appointment.startTime} - {appointment.endTime}</span>
-                          <span>•</span>
-                          <span className="truncate font-medium">{serviceName}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Service, Specialist & Time Slot (col-span-3, desktop) */}
-                    <div className="hidden md:flex flex-col min-w-0 md:col-span-3 space-y-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-200/70 truncate max-w-[210px]" title={serviceName}>
-                          {serviceName}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-charcoal-600 truncate" title={`Mutaxassis: ${specialistName}`}>
-                        <UserCheck className="w-3.5 h-3.5 text-charcoal-400 shrink-0" />
-                        <span className="truncate font-medium">{specialistName}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-brand-600">
-                        <Clock className="w-3 h-3 text-brand-500 shrink-0" />
-                        <span>{appointment.startTime} - {appointment.endTime}</span>
-                      </div>
-                    </div>
-
-                    {/* Attendance Status Action / Indicator (col-span-5) */}
-                    <div className="w-full md:col-span-5 flex flex-col items-start md:items-end gap-1.5">
-                      {canEdit ? (
-                        <div className="w-full md:w-[420px]">
-                          <div className="grid grid-cols-2 sm:grid-cols-4 p-1.5 bg-warm-100/90 rounded-[12px] border border-warm-200/90 shadow-2xs gap-1.5">
-                            {ATTENDANCE_OPTIONS.map(opt => {
-                              const isSelected = status === opt.status;
-                              const Icon = opt.icon;
-                              const isMarking = loadingAptId === appointment.id;
-                              return (
-                                <button
-                                  key={opt.status}
-                                  type="button"
-                                  disabled={isMarking}
-                                  onClick={() => handleMark(appointment.id, appointment.childId, appointment.specialistId, opt.status, status)}
-                                  className={cn(
-                                    'min-h-[44px] px-2 py-1.5 flex items-center justify-center gap-1.5 rounded-[9px] text-xs font-semibold transition-all duration-150 cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-center',
-                                    isSelected
-                                      ? cn(opt.activeClass, 'ring-2 ring-black/10 shadow-xs')
-                                      : 'text-charcoal-700 hover:text-charcoal-900 bg-white/70 hover:bg-white border border-warm-200/60'
-                                  )}
-                                  title={opt.title}
-                                >
-                                  <Icon className={cn('w-4 h-4 flex-shrink-0', isSelected ? 'text-white' : opt.iconColor)} />
-                                  <span className="leading-tight text-center">{opt.label}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-
-                          {/* Quick note & status feedback strip */}
-                          <div className="flex items-center justify-between mt-1 px-1 text-[11px]">
-                            {attendanceRecord?.note && attendanceRecord.note !== `Belgilandi: ${status}` ? (
-                              <button
-                                type="button"
-                                onClick={() => setEditingNoteRecord({
-                                  appointmentId: appointment.id,
-                                  childName,
-                                  serviceName,
-                                  time: `${appointment.startTime} - ${appointment.endTime}`,
-                                  status,
-                                  note: attendanceRecord.note ?? '',
-                                })}
-                                className="flex items-center gap-1 text-charcoal-600 hover:text-brand-600 transition-colors truncate max-w-[260px] cursor-pointer"
-                                title="Izohni tahrirlash"
-                              >
-                                <Quote className="w-3 h-3 text-brand-500 shrink-0" />
-                                <span className="truncate italic">"{attendanceRecord.note}"</span>
-                              </button>
-                            ) : status ? (
-                              <button
-                                type="button"
-                                onClick={() => setEditingNoteRecord({
-                                  appointmentId: appointment.id,
-                                  childName,
-                                  serviceName,
-                                  time: `${appointment.startTime} - ${appointment.endTime}`,
-                                  status,
-                                  note: '',
-                                })}
-                                className="text-charcoal-400 hover:text-brand-600 transition-colors flex items-center gap-1 cursor-pointer font-medium"
-                                title="Izoh qo‘shish"
-                              >
-                                <FileText className="w-3 h-3" />
-                                <span>+ Izoh kiritish</span>
-                              </button>
-                            ) : (
-                              <span className="text-charcoal-400 text-[10px]">Holatni tanlang</span>
-                            )}
-
-                            {status && (
-                              <span className="text-charcoal-400 text-[10px] ml-auto">
-                                Bekor qilish uchun qayta bosing
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="w-full md:w-[380px] flex items-center justify-start md:justify-end">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-charcoal-400">Holati:</span>
-                            {getStatusBadge(status)}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Table Footer Summary Strip */}
-            <div className="px-5 py-3.5 bg-warm-50/70 border-t border-warm-200/80 flex flex-wrap items-center justify-between gap-3 text-xs text-charcoal-600 font-medium">
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                <span>Jami: <strong className="text-charcoal-900 font-bold">{stats.total}</strong> ta uchrashuv</span>
-                <span>•</span>
-                <span className="text-emerald-700">Qatnashdi: <strong className="font-bold">{stats.present + stats.late}</strong> ta</span>
-                <span>•</span>
-                <span className="text-rose-700">Kelmagan: <strong className="font-bold">{stats.absent + stats.noShow}</strong> ta</span>
-                {stats.unmarked > 0 && (
-                  <>
-                    <span>•</span>
-                    <span className="text-amber-700">Kutilmoqda: <strong className="font-bold">{stats.unmarked}</strong> ta</span>
-                  </>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-charcoal-400">Davomat ko‘rsatkichi:</span>
-                <span className={cn('font-bold tabular-nums px-2 py-0.5 rounded-[6px] text-xs border', stats.rate >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' : 'bg-amber-50 text-amber-700 border-amber-200/80')}>
-                  {stats.rate}%
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-      </Card>
-
-      {/* Attendance Note Modal */}
+          >
+            Bola kartasini ochish →
+          </Link>
+        </div>
+      )}
       <Modal
-        isOpen={!!editingNoteRecord}
-        onClose={() => setEditingNoteRecord(null)}
-        title="Davomatga izoh kiritish"
-        size="md"
+        isOpen={open}
+        onClose={() => {
+          if (!busy) setOpen(false);
+        }}
+        title={
+          rescheduledFrom ? "Qabulni boshqa kunga ko‘chirish" : "Qabul qo‘shish"
+        }
       >
-        {editingNoteRecord && (
-          <form onSubmit={handleSaveNote} className="space-y-4">
-            <div className="p-3 bg-warm-50/80 rounded-[10px] border border-warm-200/80 space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-charcoal-900">{editingNoteRecord.childName}</span>
-                {getStatusBadge(editingNoteRecord.status)}
-              </div>
-              <p className="text-xs text-charcoal-500">
-                {editingNoteRecord.serviceName} • <span className="font-semibold text-brand-600">{editingNoteRecord.time}</span>
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-charcoal-700 mb-1.5">
-                Izoh yoki sabab
-              </label>
-              <textarea
-                rows={3}
-                value={editingNoteRecord.note}
-                onChange={e => setEditingNoteRecord({ ...editingNoteRecord, note: e.target.value })}
-                placeholder="Masalan: 15 daqiqa kechikib keldi, ota-onasi telefon qilib ogohlantirdi..."
-                className="w-full text-xs p-3 border border-warm-300 rounded-[10px] bg-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100/80 shadow-2xs placeholder:text-charcoal-400"
-              />
-            </div>
-
-            {/* Quick Templates */}
-            <div>
-              <p className="text-[11px] font-semibold text-charcoal-500 mb-1.5 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-brand-500" />
-                <span>Tezkor shablonlar:</span>
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  "Ota-onasi ogohlantirdi",
-                  "15 daqiqa kechikib keldi",
-                  "Salomatligi sababli kela olmadi",
-                  "O‘z vaqtida qatnashdi",
-                  "Tirbandlik sababli kechikdi",
-                ].map(tmpl => (
-                  <button
-                    key={tmpl}
-                    type="button"
-                    onClick={() => setEditingNoteRecord({ ...editingNoteRecord, note: tmpl })}
-                    className="text-[11px] px-2.5 py-1 rounded-[6px] bg-warm-100 text-charcoal-700 hover:bg-brand-50 hover:text-brand-700 border border-warm-200/80 transition-colors cursor-pointer"
-                  >
-                    {tmpl}
-                  </button>
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const data = {
+              childId,
+              assignmentId,
+              date: newDate,
+              startTime: time || null,
+              rescheduledFrom: rescheduledFrom || undefined,
+            };
+            if (!childId || !assignmentId || !newDate) {
+              setError("Bola, biriktirilgan xizmat va sanani tanlang.");
+              return;
+            }
+            void run(data, (key) => save(data, key));
+          }}
+        >
+          <label className="block text-sm font-semibold">
+            Bola
+            <select
+              required
+              disabled={Boolean(rescheduledFrom)}
+              className="block min-h-11 border rounded-lg p-2 w-full mt-1"
+              value={childId}
+              onChange={(e) => {
+                setChildId(e.target.value);
+                setAssignmentId("");
+                if (e.target.value) void loadAssignments(e.target.value);
+              }}
+            >
+              <option value="">Bolani tanlang</option>
+              {children
+                .filter((c) => c.status === "ACTIVE")
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.fullName}
+                  </option>
                 ))}
-              </div>
-            </div>
-
-            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-2.5 pt-3 border-t border-warm-100">
-              <Button type="button" variant="secondary" size="sm" onClick={() => setEditingNoteRecord(null)} className="w-full sm:w-auto">
-                Bekor qilish
-              </Button>
-              <Button type="submit" size="sm" className="w-full sm:w-auto">
-                Izohni saqlash
-              </Button>
-            </div>
-          </form>
-        )}
+            </select>
+          </label>
+          <label className="block text-sm font-semibold">
+            Biriktirilgan xizmat
+            <select
+              required
+              disabled={Boolean(rescheduledFrom)}
+              className="block min-h-11 border rounded-lg p-2 w-full mt-1"
+              value={assignmentId}
+              onChange={(e) => setAssignmentId(e.target.value)}
+            >
+              <option value="">Xizmatni tanlang</option>
+              {assignments
+                .filter(
+                  (a) =>
+                    a.childId === childId &&
+                    a.status === "ACTIVE" &&
+                    a.completedSessions < a.totalSessions,
+                )
+                .map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.serviceName ||
+                      services.find((s) => s.id === a.serviceId)?.name}{" "}
+                    · qolgan {a.totalSessions - a.completedSessions} seans
+                  </option>
+                ))}
+            </select>
+          </label>
+          <Input
+            label="Qabul sanasi"
+            type="date"
+            required
+            value={newDate}
+            onChange={(e) => setNewDate(e.target.value)}
+          />
+          <Input
+            label="Qabul vaqti (ixtiyoriy)"
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+          />
+          <p className="text-sm">
+            Xizmat biriktirilmagan bo‘lsa, avval bola kartasidan biriktiring.
+          </p>
+          {(!api.workflow.enabled || error) && (
+            <p role="alert" className="text-danger-main">
+              {error || WORKFLOW_UNAVAILABLE}
+            </p>
+          )}
+          <Button type="submit" disabled={busy || !api.workflow.enabled}>
+            {busy ? "Saqlanmoqda…" : "Qabulni saqlash"}
+          </Button>
+        </form>
+      </Modal>
+      <Modal
+        isOpen={Boolean(selected)}
+        onClose={() => {
+          if (!busy) setSelected(null);
+        }}
+        title={
+          status === "PRESENT"
+            ? "Xizmat bajarilganini tasdiqlash"
+            : "Kelmaganini belgilash"
+        }
+      >
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (selected)
+              void run(
+                { id: selected.id, version: selected.version, status, note },
+                (key) => commit(selected.id, status, note, key),
+              );
+          }}
+        >
+          <p>
+            {status === "PRESENT"
+              ? "Xizmat bajarildi: bitta seans sarflanadi va xizmat narxi oila hisobidan yechiladi."
+              : "Kelmadi: xizmat haqi va seans sarfi hisoblanmaydi."}
+          </p>
+          {selected?.attendanceStatus === "PRESENT" && status === "ABSENT" && (
+            <p className="text-amber-900 bg-amber-50 p-3 rounded-lg">
+              Avvalgi xizmat haqi qaytariladi va seans tiklanadi. Tarixda
+              qaytarish yozuvi qoladi.
+            </p>
+          )}
+          {selected?.attendanceStatus === status && (
+            <p>
+              Holat o‘zgarmasa, faqat izoh yangilanadi. Qayta pul yechilmaydi.
+            </p>
+          )}
+          <Input
+            label="Izoh (ixtiyoriy)"
+            maxLength={1000}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+          {error && (
+            <p role="alert" className="text-danger-main">
+              {error}
+            </p>
+          )}
+          <Button type="submit" disabled={busy || !api.workflow.enabled}>
+            {busy ? "Tasdiqlanmoqda…" : "Tasdiqlash"}
+          </Button>
+        </form>
       </Modal>
     </div>
   );

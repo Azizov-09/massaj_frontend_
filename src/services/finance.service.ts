@@ -3,15 +3,15 @@
 //  All balance/debt calculations derived from transactions
 // ═══════════════════════════════════════════════════════
 
-import { parseISO } from 'date-fns';
+import { parseISO } from "date-fns";
 import type {
   Transaction,
   ChildBalance,
   FinancialSummary,
   DateFilterPreset,
   DateRange,
-} from '@/types';
-import { getDateRange, isWithinRange } from '@/utils';
+} from "@/types";
+import { getDateRange, isWithinRange } from "@/utils";
 
 // ─── Child Balance Calculation ────────────────────────────
 
@@ -25,17 +25,17 @@ import { getDateRange, isWithinRange } from '@/utils';
  */
 export function calculateChildBalance(
   childId: string,
-  transactions: Transaction[]
+  transactions: Transaction[],
 ): ChildBalance {
   const relevant = transactions
-    .filter(t => t.childId === childId)
+    .filter((t) => t.childId === childId)
     .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime());
 
   let running = 0;
   let totalDebt = 0;
 
   for (const txn of relevant) {
-    if (txn.direction === 'IN') {
+    if (txn.direction === "IN") {
       // Incoming money: first clear debt, then add to balance
       if (totalDebt > 0) {
         const debtPayment = Math.min(txn.amount, totalDebt);
@@ -56,7 +56,7 @@ export function calculateChildBalance(
     }
   }
 
-  const parentId = relevant[0]?.parentId ?? '';
+  const parentId = relevant[0]?.parentId ?? "";
   return {
     childId,
     parentId,
@@ -70,68 +70,51 @@ export function calculateChildBalance(
 export function calculateParentBalance(
   parentId: string,
   childrenIds: string[],
-  transactions: Transaction[]
+  transactions: Transaction[],
 ): { balance: number; debt: number } {
-  let totalBalance = 0;
-  let totalDebt = 0;
-
-  for (const childId of childrenIds) {
-    const cb = calculateChildBalance(childId, transactions);
-    totalBalance += cb.balance;
-    totalDebt += cb.debt;
+  const seen = new Set<string>();
+  let net = 0;
+  for (const transaction of transactions) {
+    if (seen.has(transaction.id) || transaction.type === "EXPENSE") continue;
+    const belongs = transaction.parentId
+      ? transaction.parentId === parentId
+      : Boolean(
+          transaction.childId && childrenIds.includes(transaction.childId),
+        );
+    if (!belongs) continue;
+    seen.add(transaction.id);
+    net +=
+      transaction.direction === "IN" ? transaction.amount : -transaction.amount;
   }
-
-  // If parent has direct transactions (no childId)
-  const directTxns = transactions
-    .filter(t => t.parentId === parentId && !t.childId)
-    .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime());
-
-  let directRunning = 0;
-  let directDebt = 0;
-  for (const txn of directTxns) {
-    if (txn.direction === 'IN') {
-      if (directDebt > 0) {
-        const dp = Math.min(txn.amount, directDebt);
-        directDebt -= dp;
-        directRunning += txn.amount - dp;
-      } else {
-        directRunning += txn.amount;
-      }
-    } else {
-      if (directRunning >= txn.amount) {
-        directRunning -= txn.amount;
-      } else {
-        const def = txn.amount - directRunning;
-        directRunning = 0;
-        directDebt += def;
-      }
-    }
-  }
-
-  return {
-    balance: totalBalance + directRunning,
-    debt: totalDebt + directDebt,
-  };
+  return { balance: Math.max(net, 0), debt: Math.max(-net, 0) };
 }
 
 // ─── Financial Summary ────────────────────────────────────
 
 export function calculateFinancialSummary(
   transactions: Transaction[],
-  _preset: DateFilterPreset = 'thisMonth'
+  _preset: DateFilterPreset = "thisMonth",
 ): FinancialSummary {
-  const allPayments = transactions.filter(t => t.type === 'PAYMENT' || t.type === 'REFUND');
-  const allCharges = transactions.filter(t => t.type === 'SESSION_CHARGE');
+  const allPayments = transactions.filter(
+    (t) => t.type === "PAYMENT" || t.type === "REFUND",
+  );
+  const allCharges = transactions.filter((t) => t.type === "SESSION_CHARGE");
 
   const totalRevenue = allPayments
-    .filter(t => t.direction === 'IN')
+    .filter((t) => t.direction === "IN")
     .reduce((sum, t) => sum + t.amount, 0);
 
   // Calculate total debt across all children
-  const childIds = [...new Set(transactions.map(t => t.childId).filter(Boolean) as string[])];
+  const childIds = [
+    ...new Set(
+      transactions
+        .map((t) => t.parentId || t.childId)
+        .filter(Boolean) as string[],
+    ),
+  ];
   let totalDebt = 0;
   for (const childId of childIds) {
-    const cb = calculateChildBalance(childId, transactions);
+    const cb = calculateParentBalance(childId, [childId], transactions);
     totalDebt += cb.debt;
   }
 
@@ -140,45 +123,67 @@ export function calculateFinancialSummary(
   const currentBalance = totalRevenue - totalCharges;
 
   // Today's revenue
-  const todayRange = getDateRange('today');
+  const todayRange = getDateRange("today");
   const todayRevenue = transactions
-    .filter(t => t.type === 'PAYMENT' && t.direction === 'IN' && isWithinRange(t.date, todayRange))
+    .filter(
+      (t) =>
+        t.type === "PAYMENT" &&
+        t.direction === "IN" &&
+        isWithinRange(t.date, todayRange),
+    )
     .reduce((sum, t) => sum + t.amount, 0);
 
   // Monthly revenue
-  const monthlyRange = getDateRange('thisMonth');
+  const monthlyRange = getDateRange("thisMonth");
   const monthlyRevenue = transactions
-    .filter(t => t.type === 'PAYMENT' && t.direction === 'IN' && isWithinRange(t.date, monthlyRange))
+    .filter(
+      (t) =>
+        t.type === "PAYMENT" &&
+        t.direction === "IN" &&
+        isWithinRange(t.date, monthlyRange),
+    )
     .reduce((sum, t) => sum + t.amount, 0);
 
   // Yearly revenue
-  const yearlyRange = getDateRange('thisYear');
+  const yearlyRange = getDateRange("thisYear");
   const yearlyRevenue = transactions
-    .filter(t => t.type === 'PAYMENT' && t.direction === 'IN' && isWithinRange(t.date, yearlyRange))
+    .filter(
+      (t) =>
+        t.type === "PAYMENT" &&
+        t.direction === "IN" &&
+        isWithinRange(t.date, yearlyRange),
+    )
     .reduce((sum, t) => sum + t.amount, 0);
 
   // Monthly debt (charges this month that caused debt)
   const monthlyDebt = transactions
-    .filter(t => t.type === 'SESSION_CHARGE' && isWithinRange(t.date, monthlyRange))
+    .filter(
+      (t) => t.type === "SESSION_CHARGE" && isWithinRange(t.date, monthlyRange),
+    )
     .reduce((sum, t) => sum + t.amount, 0);
 
   // Last month debt
-  const lastMonthRange = getDateRange('lastMonth');
+  const lastMonthRange = getDateRange("lastMonth");
   const lastMonthDebt = transactions
-    .filter(t => t.type === 'SESSION_CHARGE' && isWithinRange(t.date, lastMonthRange))
+    .filter(
+      (t) =>
+        t.type === "SESSION_CHARGE" && isWithinRange(t.date, lastMonthRange),
+    )
     .reduce((sum, t) => sum + t.amount, 0);
 
   // Recovered debt = exact payments applied toward prior debt reduction
   let recoveredDebt = 0;
   for (const childId of childIds) {
     const relevant = transactions
-      .filter(t => t.childId === childId)
+      .filter(
+        (t) => (t.parentId || t.childId) === childId && t.type !== "EXPENSE",
+      )
       .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime());
 
     let running = 0;
     let debt = 0;
     for (const txn of relevant) {
-      if (txn.direction === 'IN') {
+      if (txn.direction === "IN") {
         if (debt > 0) {
           const debtPayment = Math.min(txn.amount, debt);
           debt -= debtPayment;
@@ -216,7 +221,7 @@ export function calculateFinancialSummary(
 
 export function getRevenueByDay(
   transactions: Transaction[],
-  range: DateRange
+  range: DateRange,
 ): { date: string; revenue: number; charges: number }[] {
   const days: Map<string, { revenue: number; charges: number }> = new Map();
 
@@ -226,18 +231,18 @@ export function getRevenueByDay(
 
   for (let ms = startMs; ms <= endMs; ms += dayMs) {
     const d = new Date(ms);
-    const key = d.toISOString().split('T')[0];
+    const key = d.toISOString().split("T")[0];
     days.set(key, { revenue: 0, charges: 0 });
   }
 
   for (const txn of transactions) {
     const d = parseISO(txn.date);
     if (!isWithinRange(d, range)) continue;
-    const key = d.toISOString().split('T')[0];
+    const key = d.toISOString().split("T")[0];
     const existing = days.get(key) ?? { revenue: 0, charges: 0 };
-    if (txn.type === 'PAYMENT' && txn.direction === 'IN') {
+    if (txn.type === "PAYMENT" && txn.direction === "IN") {
       existing.revenue += txn.amount;
-    } else if (txn.type === 'SESSION_CHARGE') {
+    } else if (txn.type === "SESSION_CHARGE") {
       existing.charges += txn.amount;
     }
     days.set(key, existing);
@@ -254,7 +259,7 @@ export function getTopDebtors(
   transactions: Transaction[],
   children: { id: string; fullName: string; parentId: string }[],
   parents: { id: string; fullName: string; phone: string }[],
-  limit = 10
+  limit = 10,
 ): {
   childId: string;
   childName: string;
@@ -264,21 +269,24 @@ export function getTopDebtors(
   balance: number;
   debt: number;
 }[] {
-  const results = children
-    .map(child => {
-      const cb = calculateChildBalance(child.id, transactions);
-      const parent = parents.find(p => p.id === child.parentId);
+  const results = parents
+    .map((parent) => {
+      const family = children.filter((c) => c.parentId === parent.id);
+      const account = calculateParentBalance(
+        parent.id,
+        family.map((c) => c.id),
+        transactions,
+      );
       return {
-        childId: child.id,
-        childName: child.fullName,
-        parentId: child.parentId,
-        parentName: parent?.fullName ?? '',
-        parentPhone: parent?.phone ?? '',
-        balance: cb.balance,
-        debt: cb.debt,
+        childId: family[0]?.id || "",
+        childName: family.map((c) => c.fullName).join(", "),
+        parentId: parent.id,
+        parentName: parent.fullName,
+        parentPhone: parent.phone,
+        ...account,
       };
     })
-    .filter(r => r.debt > 0)
+    .filter((row) => row.debt > 0)
     .sort((a, b) => b.debt - a.debt)
     .slice(0, limit);
 
@@ -289,20 +297,20 @@ export function getTopDebtors(
 
 export function getAppointmentStats(
   appointments: { status: string; date: string }[],
-  range?: DateRange
+  range?: DateRange,
 ) {
   const filtered = range
-    ? appointments.filter(a => isWithinRange(a.date, range))
+    ? appointments.filter((a) => isWithinRange(a.date, range))
     : appointments;
 
   const total = filtered.length;
   const byStatus = {
-    SCHEDULED: filtered.filter(a => a.status === 'SCHEDULED').length,
-    CONFIRMED: filtered.filter(a => a.status === 'CONFIRMED').length,
-    IN_PROGRESS: filtered.filter(a => a.status === 'IN_PROGRESS').length,
-    COMPLETED: filtered.filter(a => a.status === 'COMPLETED').length,
-    CANCELLED: filtered.filter(a => a.status === 'CANCELLED').length,
-    NO_SHOW: filtered.filter(a => a.status === 'NO_SHOW').length,
+    SCHEDULED: filtered.filter((a) => a.status === "SCHEDULED").length,
+    CONFIRMED: filtered.filter((a) => a.status === "CONFIRMED").length,
+    IN_PROGRESS: filtered.filter((a) => a.status === "IN_PROGRESS").length,
+    COMPLETED: filtered.filter((a) => a.status === "COMPLETED").length,
+    CANCELLED: filtered.filter((a) => a.status === "CANCELLED").length,
+    NO_SHOW: filtered.filter((a) => a.status === "NO_SHOW").length,
   };
 
   const completionRate = total > 0 ? (byStatus.COMPLETED / total) * 100 : 0;
@@ -317,21 +325,25 @@ export function getAppointmentStats(
 export function getSpecialistWorkload(
   sessions: { specialistId: string; status: string; serviceId: string }[],
   specialists: { id: string; fullName: string }[],
-  services: { id: string; durationMinutes: number }[]
+  services: { id: string; durationMinutes: number }[],
 ) {
-  return specialists.map(spec => {
-    const specSessions = sessions.filter(s => s.specialistId === spec.id);
-    const completed = specSessions.filter(s => s.status === 'COMPLETED').length;
-    const totalMinutes = specSessions.reduce((sum, s) => {
-      const svc = services.find(sv => sv.id === s.serviceId);
-      return sum + (svc?.durationMinutes ?? 45);
-    }, 0);
-    return {
-      specialistId: spec.id,
-      specialistName: spec.fullName,
-      totalSessions: specSessions.length,
-      completedSessions: completed,
-      totalHours: Math.round(totalMinutes / 60 * 10) / 10,
-    };
-  }).sort((a, b) => b.completedSessions - a.completedSessions);
+  return specialists
+    .map((spec) => {
+      const specSessions = sessions.filter((s) => s.specialistId === spec.id);
+      const completed = specSessions.filter(
+        (s) => s.status === "COMPLETED",
+      ).length;
+      const totalMinutes = specSessions.reduce((sum, s) => {
+        const svc = services.find((sv) => sv.id === s.serviceId);
+        return sum + (svc?.durationMinutes ?? 45);
+      }, 0);
+      return {
+        specialistId: spec.id,
+        specialistName: spec.fullName,
+        totalSessions: specSessions.length,
+        completedSessions: completed,
+        totalHours: Math.round((totalMinutes / 60) * 10) / 10,
+      };
+    })
+    .sort((a, b) => b.completedSessions - a.completedSessions);
 }

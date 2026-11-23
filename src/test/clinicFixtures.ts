@@ -1,0 +1,95 @@
+import type {
+  AdminUser,
+  Parent,
+  Child,
+  Service,
+  Appointment,
+  ServiceAssignment,
+} from "@/types";
+export const owner: AdminUser = {
+  id: "owner",
+  fullName: "Markaz egasi",
+  phone: "+998901234567",
+  role: "SUPER_ADMIN",
+  status: "ACTIVE",
+  createdAt: "2026-01-01",
+  specialistId: "specialist",
+};
+export const parent: Parent = {
+  id: "parent",
+  fullName: "Ota ona",
+  phone: "+998901112233",
+  role: "PARENT",
+  status: "ACTIVE",
+  childrenIds: ["child", "sibling"],
+  createdAt: "2026-01-01",
+};
+export const child: Child = {
+  id: "child",
+  parentId: parent.id,
+  fullName: "Birinchi bola",
+  dateOfBirth: "2020-01-01",
+  gender: "MALE",
+  status: "ACTIVE",
+  createdAt: "2026-01-01",
+};
+export const sibling: Child = {
+  ...child,
+  id: "sibling",
+  fullName: "Ikkinchi bola",
+};
+export const service: Service = {
+  id: "service",
+  name: "Massaj",
+  description: "",
+  durationMinutes: 30,
+  price: 100000,
+  status: "ACTIVE",
+  createdAt: "2026-01-01",
+};
+export const assignment: ServiceAssignment = {
+  id: "assignment",
+  childId: child.id,
+  parentId: parent.id,
+  serviceId: service.id,
+  serviceName: service.name,
+  price: service.price,
+  durationMinutes: 30,
+  totalSessions: 10,
+  completedSessions: 0,
+  startDate: "2026-01-01",
+  workingDays: [1, 3, 5],
+  startTime: null,
+  status: "ACTIVE",
+  createdAt: "2026-01-01",
+};
+export const appointment: Appointment = {
+  id: "appointment",
+  childId: child.id,
+  parentId: parent.id,
+  specialistId: "specialist",
+  serviceId: service.id,
+  assignmentId: assignment.id,
+  serviceName: service.name,
+  price: service.price,
+  durationMinutes: 30,
+  date: "2026-01-01",
+  startTime: "",
+  endTime: "",
+  status: "SCHEDULED",
+  version: 0,
+  createdAt: "2026-01-01",
+};
+export const workflowContract = {
+  version: 1,
+  atomicAttendanceBilling: true,
+  familyWallet: true,
+  currencyUnit: "UZS",
+  assignments: "/test/children/{childId}/assignments",
+  createAssignment: "/test/assignments",
+  extendAssignment: "/test/assignments/{assignmentId}/extend",
+  appointments: "/test/appointments",
+  createAppointment: "/test/appointments",
+  commitAttendance: "/test/appointments/{appointmentId}/attendance",
+  topUp: "/test/top-up",
+};

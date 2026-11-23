@@ -1,189 +1,77 @@
-import '@testing-library/jest-dom/vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { MemoryRouter } from 'react-router-dom';
-import { AttendancePage } from './AttendancePage';
-import { useStore } from '@/store';
-
-describe('AttendancePage Component', () => {
-  const today = new Date().toISOString().split('T')[0];
-
-  beforeEach(() => {
-    // Ensure Super Admin user and today's mock appointment are populated
-    useStore.setState({
-      currentUser: {
-        id: 'u-admin-1',
-        fullName: 'Bosh Administrator',
-        phone: '+998901234567',
-        role: 'SUPER_ADMIN',
-        status: 'ACTIVE',
-        createdAt: '2026-01-01T00:00:00Z',
-      },
-      appointments: [
-        {
-          id: 'apt-test-1',
-          childId: 'c1',
-          parentId: 'p1',
-          specialistId: 's1',
-          serviceId: 'srv1',
-          date: today,
-          startTime: '10:00',
-          endTime: '11:00',
-          status: 'CONFIRMED',
-          createdAt: '2026-01-01T00:00:00Z',
-        },
-      ],
-      children: [
-        {
-          id: 'c1',
-          fullName: 'Alisher Qodirov',
-          dateOfBirth: '2019-05-10',
-          gender: 'MALE',
-          parentId: 'p1',
-          status: 'ACTIVE',
-          createdAt: '2026-01-01T00:00:00Z',
-        } as any,
-      ],
-      specialists: [
-        {
-          id: 's1',
-          fullName: 'Dr. Aziz Nazarov',
-          phone: '+998901234567',
-          status: 'ACTIVE',
-          role: 'SPECIALIST',
-          specialization: 'Massaj terapevti',
-          experience: 5,
-          workingDays: [1, 2, 3, 4, 5],
-          workingHours: { start: '09:00', end: '18:00' },
-          createdAt: '2026-01-01T00:00:00Z',
-        } as any,
-      ],
-      services: [
-        {
-          id: 'srv1',
-          name: 'Davolash massaji',
-          description: 'Reabilitatsiya massaji',
-          durationMinutes: 60,
-          price: 150000,
-          status: 'ACTIVE',
-          createdAt: '2026-01-01T00:00:00Z',
-        } as any,
-      ],
-      attendance: [],
-    });
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { beforeEach, afterEach, it, expect, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
+import { format } from "date-fns";
+import { useStore } from "@/store";
+import { api } from "@/services/api";
+import {
+  owner,
+  parent,
+  child,
+  appointment,
+  service,
+  workflowContract,
+} from "@/test/clinicFixtures";
+import { AttendancePage } from "./AttendancePage";
+const original = useStore.getState().commitReception;
+beforeEach(() => {
+  api.workflow.configure(null);
+  useStore.setState({
+    currentUser: owner,
+    children: [child],
+    appointments: [{ ...appointment, date: format(new Date(), "yyyy-MM-dd") }],
+    services: [service],
+    attendance: [],
+    serviceAssignments: [],
   });
-
-  it('renders page header and KPI statistics cards', () => {
-    render(
-      <MemoryRouter>
-        <AttendancePage />
-      </MemoryRouter>
-    );
-
-    expect(screen.getByRole('heading', { level: 1, name: 'Davomat jurnali' })).toBeInTheDocument();
-    expect(screen.getByText('Davomat darajasi')).toBeInTheDocument();
-    expect(screen.getByText('Kelganlar')).toBeInTheDocument();
-    expect(screen.getByText('Kechikkanlar')).toBeInTheDocument();
-    expect(screen.getByText('Sababli kelmagan')).toBeInTheDocument();
-    expect(screen.getByText('Sababsiz kelmagan')).toBeInTheDocument();
-  });
-
-  it('renders unified date controls with single DatePicker trigger and no duplicate text', () => {
-    render(
-      <MemoryRouter>
-        <AttendancePage />
-      </MemoryRouter>
-    );
-
-    expect(screen.getByRole('button', { name: 'Bugun' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Oldingi kun' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Keyingi kun' })).toBeInTheDocument();
-    expect(screen.getByTestId('datepicker-trigger')).toBeInTheDocument();
-  });
-
-  it('renders table header strip with Bola va mashg‘ulot and Davomat holati columns', () => {
-    render(
-      <MemoryRouter>
-        <AttendancePage />
-      </MemoryRouter>
-    );
-
-    expect(screen.getByText('Bola va mashg‘ulot ma’lumotlari')).toBeInTheDocument();
-    expect(screen.getByText('Davomat holati')).toBeInTheDocument();
-  });
-
-  it('renders segmented quick action toggle buttons and marks attendance on click', () => {
-    render(
-      <MemoryRouter>
-        <AttendancePage />
-      </MemoryRouter>
-    );
-
-    const keldiButton = screen.getByTitle('Keldi (mashg‘ulotda qatnashdi)');
-    expect(keldiButton).toBeInTheDocument();
-    expect(screen.getByTitle('Kechikdi')).toBeInTheDocument();
-    expect(screen.getByTitle('Sababli kelmadi')).toBeInTheDocument();
-    expect(screen.getByTitle('Sababsiz kelmadi')).toBeInTheDocument();
-
-    // Clicking Keldi marks attendance
-    fireEvent.click(keldiButton);
-    expect(keldiButton).toHaveClass('bg-emerald-600');
-  });
-
-  it('marks attendance independently when a child has multiple appointments on the same day', () => {
-    // Add a second appointment for the same child on the same day
-    useStore.setState({
-      appointments: [
-        {
-          id: 'apt-test-1',
-          childId: 'c1',
-          parentId: 'p1',
-          specialistId: 's1',
-          serviceId: 'srv1',
-          date: today,
-          startTime: '10:00',
-          endTime: '11:00',
-          status: 'CONFIRMED',
-          createdAt: '2026-01-01T00:00:00Z',
-        },
-        {
-          id: 'apt-test-2',
-          childId: 'c1',
-          parentId: 'p1',
-          specialistId: 's1',
-          serviceId: 'srv1',
-          date: today,
-          startTime: '14:00',
-          endTime: '15:00',
-          status: 'CONFIRMED',
-          createdAt: '2026-01-01T00:00:00Z',
-        },
-      ],
-      attendance: [],
-    });
-
-    render(
-      <MemoryRouter>
-        <AttendancePage />
-      </MemoryRouter>
-    );
-
-    const keldiButtons = screen.getAllByTitle('Keldi (mashg‘ulotda qatnashdi)');
-    expect(keldiButtons).toHaveLength(2);
-
-    // Both should be unmarked initially
-    expect(keldiButtons[0]).not.toHaveClass('bg-emerald-600');
-    expect(keldiButtons[1]).not.toHaveClass('bg-emerald-600');
-
-    // Click "Keldi" on the FIRST appointment only
-    fireEvent.click(keldiButtons[0]);
-
-    // ONLY the first appointment should have "Keldi" selected!
-    expect(keldiButtons[0]).toHaveClass('bg-emerald-600');
-    expect(keldiButtons[1]).not.toHaveClass('bg-emerald-600');
-
-    // Click "Keldi" again on the first appointment — retains confirmed status (backend has no attendance-delete endpoint)
-    fireEvent.click(keldiButtons[0]);
-    expect(keldiButtons[0]).toHaveClass('bg-emerald-600');
-  });
+});
+afterEach(() => {
+  api.workflow.configure(null);
+  useStore.setState({ commitReception: original });
+});
+it("does not permit a financial attendance action before the atomic backend is connected", () => {
+  render(
+    <MemoryRouter>
+      <AttendancePage />
+    </MemoryRouter>,
+  );
+  expect(
+    screen.getByRole("heading", { level: 1, name: "Qabul va davomat" }),
+  ).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Keldi" })).toBeDisabled();
+  expect(
+    screen.getByText("Vaqt belgilanmagan", { exact: false }),
+  ).toBeInTheDocument();
+});
+it("keeps attendance unchanged on server failure and reuses the request key for retry", async () => {
+  api.workflow.configure(workflowContract);
+  const commit = vi.fn().mockRejectedValue(new Error("Aloqa uzildi"));
+  useStore.setState({ commitReception: commit });
+  render(
+    <MemoryRouter>
+      <AttendancePage />
+    </MemoryRouter>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Keldi" }));
+  fireEvent.click(screen.getByRole("button", { name: "Tasdiqlash" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Aloqa uzildi");
+  fireEvent.click(screen.getByRole("button", { name: "Tasdiqlash" }));
+  await waitFor(() => expect(commit).toHaveBeenCalledTimes(2));
+  expect(commit.mock.calls[0][3]).toBe(commit.mock.calls[1][3]);
+  expect(useStore.getState().attendance).toEqual([]);
+});
+it("does not expose attendance controls to parents", () => {
+  useStore.setState({ currentUser: parent });
+  api.workflow.configure(workflowContract);
+  render(
+    <MemoryRouter>
+      <AttendancePage />
+    </MemoryRouter>,
+  );
+  expect(
+    screen.queryByRole("button", { name: "Keldi" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Qabul qo‘shish" }),
+  ).not.toBeInTheDocument();
 });

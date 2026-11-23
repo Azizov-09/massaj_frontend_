@@ -1,405 +1,195 @@
-// Services Page — FE-07/FE-08 fixed: Edit modal + Archive/Restore
-import { useState, useMemo } from 'react';
-import { Plus, Heart, Archive, RotateCcw, Activity, DollarSign, Pencil } from 'lucide-react';
-import { useStore } from '@/store';
-import { formatCurrencyCompact } from '@/utils';
-import { Card, EmptyState, Input, Textarea } from '@/components/ui/primitives';
-import { Button } from '@/components/ui/Button';
-import { PageHeader, KpiCard } from '@/components/ui/KpiCard';
-import { Modal, ConfirmDialog } from '@/components/ui/Modal';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { motion } from 'framer-motion';
-import type { Service } from '@/types';
-
-const schema = z.object({
-  name: z.string().min(2, 'Nom kamida 2 ta belgi'),
-  description: z.string().optional(),
-  price: z.string().min(1, 'Narxni kiriting').refine(v => !isNaN(Number(v)) && Number(v) > 0, 'To\'g\'ri narx kiriting'),
-  durationMinutes: z.string().min(1, 'Davomiylikni kiriting'),
-  category: z.string().optional(),
-  ageMin: z.string().optional(),
-  ageMax: z.string().optional(),
-});
-type FormValues = z.infer<typeof schema>;
-
-interface CreateServiceFormProps {
-  onSuccess: () => void;
-  onCancel: () => void;
-  createService: (data: Omit<Service, 'id' | 'createdAt'>) => Promise<Service>;
-}
-
-function CreateServiceForm({ onSuccess, onCancel, createService }: CreateServiceFormProps) {
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isShaking, setIsShaking] = useState(false);
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
-    resolver: zodResolver(schema), defaultValues: { durationMinutes: '45' }
-  });
-  const onSubmit = async (data: FormValues) => {
-    setSubmitError(null);
-    try {
-      await createService({
-        name: data.name,
-        description: data.description || '',
-        price: Number(data.price),
-        durationMinutes: Number(data.durationMinutes),
-        status: 'ACTIVE',
-        category: data.category,
-        ageMin: Number(data.ageMin) || undefined,
-        ageMax: Number(data.ageMax) || undefined,
-      });
-      onSuccess();
-    } catch (err: any) {
-      setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 600);
-      setSubmitError(err?.message || 'Serverda xatolik yuz berdi');
-    }
-  };
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className={`space-y-4 transition-transform ${isShaking ? 'animate-shake' : ''}`}>
-      {submitError && (
-        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-50 border-2 border-red-300/60 text-red-700 text-xs font-medium">
-          <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <div className="flex-1">
-            <p className="font-semibold text-sm">{submitError}</p>
-            <p className="text-[11px] text-red-500 mt-0.5">Iltimos, ma'lumotlarni tekshirib qaytadan urinib ko'ring.</p>
-          </div>
-        </div>
-      )}
-      <Input label="Xizmat nomi" required placeholder="Terapevtik massaj" error={errors.name?.message} {...register('name')} />
-      <Textarea label="Tavsif" placeholder="Xizmat haqida qisqacha..." rows={2} {...register('description')} />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <Input label="Narx (so'm)" required type="number" placeholder="150000" min="1000" error={errors.price?.message} {...register('price')} />
-        <Input label="Davomiyligi (daqiqa)" required type="number" placeholder="45" min="15" max="120" error={errors.durationMinutes?.message} {...register('durationMinutes')} />
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-        <div className="col-span-2 sm:col-span-1">
-          <Input label="Kategoriya" placeholder="Massaj, LFK..." {...register('category')} />
-        </div>
-        <Input label="Min yosh" type="number" placeholder="1" min="0" max="18" {...register('ageMin')} />
-        <Input label="Max yosh" type="number" placeholder="18" min="0" max="18" {...register('ageMax')} />
-      </div>
-      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-4 border-t border-warm-100">
-        <Button variant="secondary" type="button" onClick={onCancel} disabled={isSubmitting} className="w-full sm:w-auto">Bekor qilish</Button>
-        <Button type="submit" loading={isSubmitting} className="w-full sm:w-auto">Saqlash</Button>
-      </div>
-    </form>
-  );
-}
-
-// ── Edit Service Form ─────────────────────────────────────────────
-interface EditServiceFormProps {
-  service: Service;
-  onSuccess: () => void;
-  onCancel: () => void;
-  updateService: (id: string, data: Partial<Service>) => Promise<void>;
-}
-
-function EditServiceForm({ service, onSuccess, onCancel, updateService }: EditServiceFormProps) {
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isShaking, setIsShaking] = useState(false);
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      name: service.name,
-      description: service.description || '',
-      price: String(service.price),
-      durationMinutes: String(service.durationMinutes),
-      category: service.category || '',
-      ageMin: service.ageMin !== undefined ? String(service.ageMin) : '',
-      ageMax: service.ageMax !== undefined ? String(service.ageMax) : '',
-    },
-  });
-
-  const onSubmit = async (data: FormValues) => {
-    setSubmitError(null);
-    try {
-      await updateService(service.id, {
-        name: data.name,
-        description: data.description || '',
-        price: Number(data.price),
-        durationMinutes: Number(data.durationMinutes),
-        category: data.category || undefined,
-        ageMin: data.ageMin ? Number(data.ageMin) : undefined,
-        ageMax: data.ageMax ? Number(data.ageMax) : undefined,
-      });
-      onSuccess();
-    } catch (err: any) {
-      setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 600);
-      setSubmitError(err?.message || 'Serverda xatolik yuz berdi');
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className={`space-y-4 transition-transform ${isShaking ? 'animate-shake' : ''}`}>
-      {submitError && (
-        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-50 border-2 border-red-300/60 text-red-700 text-xs font-medium">
-          <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <div className="flex-1">
-            <p className="font-semibold text-sm">{submitError}</p>
-            <p className="text-[11px] text-red-500 mt-0.5">Iltimos, ma'lumotlarni tekshirib qaytadan urinib ko'ring.</p>
-          </div>
-        </div>
-      )}
-      <Input label="Xizmat nomi" required placeholder="Terapevtik massaj" error={errors.name?.message} {...register('name')} />
-      <Textarea label="Tavsif" placeholder="Xizmat haqida qisqacha..." rows={2} {...register('description')} />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <Input label="Narx (so'm)" required type="number" placeholder="150000" min="1000" error={errors.price?.message} {...register('price')} />
-        <Input label="Davomiyligi (daqiqa)" required type="number" placeholder="45" min="15" max="120" error={errors.durationMinutes?.message} {...register('durationMinutes')} />
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-        <div className="col-span-2 sm:col-span-1">
-          <Input label="Kategoriya" placeholder="Massaj, LFK..." {...register('category')} />
-        </div>
-        <Input label="Min yosh" type="number" placeholder="1" min="0" max="18" {...register('ageMin')} />
-        <Input label="Max yosh" type="number" placeholder="18" min="0" max="18" {...register('ageMax')} />
-      </div>
-      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-4 border-t border-warm-100">
-        <Button variant="secondary" type="button" onClick={onCancel} disabled={isSubmitting} className="w-full sm:w-auto">Bekor qilish</Button>
-        <Button type="submit" loading={isSubmitting} className="w-full sm:w-auto">Saqlash</Button>
-      </div>
-    </form>
-  );
-}
-
+﻿import { useState } from "react";
+import { useStore } from "@/store";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/primitives";
+import { Modal } from "@/components/ui/Modal";
+import { formatCurrency } from "@/utils";
+import type { Service } from "@/types";
 export function ServicesPage() {
-  const services = useStore(s => s.services);
-  const sessions = useStore(s => s.sessions);
-  const createService = useStore(s => s.createService);
-  const updateService = useStore(s => s.updateService);
-  const archiveService = useStore(s => s.archiveService);
-  const restoreService = useStore(s => s.restoreService);
-
-  const [showCreate, setShowCreate] = useState(false);
-  const [editingService, setEditingService] = useState<Service | null>(null);
-  const [archiveTarget, setArchiveTarget] = useState<string | null>(null);
-  const [isArchiving, setIsArchiving] = useState(false);
-  const [archiveError, setArchiveError] = useState<string | null>(null);
-
-  const activeServices = services.filter(s => s.status === 'ACTIVE');
-  const archivedServices = services.filter(s => s.status === 'ARCHIVED');
-
-  const sessionCountMap = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const s of sessions) {
-      if (s.status === 'COMPLETED') {
-        map.set(s.serviceId, (map.get(s.serviceId) || 0) + 1);
-      }
-    }
-    return map;
-  }, [sessions]);
-
-  const totalRevenue = sessions
-    .filter(s => s.status === 'COMPLETED')
-    .reduce((sum, s) => {
-      const svc = services.find(sv => sv.id === s.serviceId);
-      return sum + (svc?.price ?? 0);
-    }, 0);
-
-  const handleArchiveConfirm = async () => {
-    if (!archiveTarget) return;
-    setIsArchiving(true);
-    setArchiveError(null);
-    try {
-      await archiveService(archiveTarget);
-      setArchiveTarget(null);
-    } catch (err: any) {
-      setArchiveError(err?.message || 'Arxivlab bo\'lmadi');
-    } finally {
-      setIsArchiving(false);
-    }
+  const services = useStore((s) => s.services);
+  const create = useStore((s) => s.createService);
+  const update = useStore((s) => s.updateService);
+  const archive = useStore((s) => s.archiveService);
+  const restore = useStore((s) => s.restoreService);
+  const [showArchive, setShowArchive] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Service | null>(null);
+  const [name, setName] = useState("");
+  const [duration, setDuration] = useState(30);
+  const [price, setPrice] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const begin = (service?: Service) => {
+    setEditing(service || null);
+    setName(service?.name || "");
+    setDuration(service?.durationMinutes || 30);
+    setPrice(service?.price || 0);
+    setError("");
+    setOpen(true);
   };
-
-  const handleRestore = async (id: string) => {
-    try {
-      await restoreService(id);
-    } catch {
-      // Store shows error toast
-    }
-  };
-
   return (
-    <div className="px-4 lg:px-6 py-6 max-w-[1600px] mx-auto space-y-5">
-      <PageHeader
-        title="Xizmatlar"
-        description={`${activeServices.length} ta faol xizmat`}
-        actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>Xizmat qo'shish</Button>}
-      />
-      {/* 4 Balanced KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <KpiCard
-          label="Faol xizmatlar"
-          value={activeServices.length}
-          description="Amaldagi muolajalar"
-          icon={<Heart className="w-4 h-4 text-brand-600" />}
-          accentColor="brand"
-          index={0}
-        />
-        <KpiCard
-          label="O'tkazilgan seanslar"
-          value={sessions.filter(s => s.status === 'COMPLETED').length}
-          description="Barcha xizmatlar bo'yicha"
-          icon={<Activity className="w-4 h-4 text-blue-600" />}
-          accentColor="blue"
-          index={1}
-        />
-        <KpiCard
-          label="Jami tushum"
-          value={totalRevenue}
-          format="currency"
-          description="Xizmatlar daromadi"
-          icon={<DollarSign className="w-4 h-4 text-emerald-600" />}
-          accentColor="sage"
-          index={2}
-        />
-        <KpiCard
-          label="Arxivlangan"
-          value={archivedServices.length}
-          description="Nofaol xizmat turlari"
-          icon={<Archive className="w-4 h-4 text-amber-600" />}
-          accentColor="gold"
-          index={3}
-        />
-      </div>
-
-      {/* Services Grid */}
-      <div>
-        <h3 className="text-sm font-semibold text-charcoal-700 mb-3">Faol xizmatlar</h3>
-        {activeServices.length === 0 ? (
-          <Card className="p-8 text-center border-dashed border-warm-300">
-            <EmptyState
-              icon={<Heart className="w-8 h-8 text-charcoal-300" />}
-              title="Faol xizmatlar mavjud emas"
-              description="Markaz xizmatlari ro'yxatini shakllantirish uchun yangi xizmat qo'shing."
-              action={
-                <Button
-                  leftIcon={<Plus className="w-4 h-4" />}
-                  onClick={() => setShowCreate(true)}
-                >
-                  Xizmat qo'shish
-                </Button>
-              }
-            />
-          </Card>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {activeServices.map((svc, i) => {
-            const svcSessions = sessionCountMap.get(svc.id) || 0;
-            return (
-              <motion.div key={svc.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="h-full">
-                <Card className="p-4 h-full flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-start justify-between gap-2 mb-3">
-                      <div className="w-9 h-9 rounded-[10px] bg-brand-100 flex items-center justify-center flex-shrink-0">
-                        <Heart className="w-4 h-4 text-brand-600" />
-                      </div>
-                      {/* Action buttons: Edit + Archive */}
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => setEditingService(svc)}
-                          className="p-1.5 text-charcoal-400 hover:text-brand-600 hover:bg-brand-50 rounded-[6px] transition-colors"
-                          title="Tahrirlash"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => { setArchiveError(null); setArchiveTarget(svc.id); }}
-                          className="p-1.5 text-charcoal-300 hover:text-amber-600 hover:bg-amber-50 rounded-[6px] transition-colors"
-                          title="Arxivlash"
-                        >
-                          <Archive className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-sm font-semibold text-charcoal-900 mb-0.5">{svc.name}</p>
-                    {svc.description && <p className="text-xs text-charcoal-400 mb-3 line-clamp-2">{svc.description}</p>}
-                  </div>
-                  <div className="pt-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-base font-bold text-brand-600 tabular-nums">{formatCurrencyCompact(svc.price)}</p>
-                      <div className="text-right">
-                        <p className="text-xs text-charcoal-400">{svc.durationMinutes} daq</p>
-                        <p className="text-xs text-charcoal-400">{svcSessions} seans</p>
-                      </div>
-                    </div>
-                    {(svc.ageMin || svc.ageMax) && (
-                      <p className="text-[10px] text-charcoal-400 mt-2">Yosh: {svc.ageMin ?? 0}–{svc.ageMax ?? 18}</p>
-                    )}
-                  </div>
-                </Card>
-              </motion.div>
-            );
-          })}
-          </div>
-        )}
-      </div>
-
-      {archivedServices.length > 0 && (
+    <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-5">
+      <div className="flex flex-wrap justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-charcoal-400 mb-3">Arxivlangan ({archivedServices.length})</h3>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {archivedServices.map(svc => (
-              <Card key={svc.id} className="p-4 opacity-60">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-charcoal-600">{svc.name}</p>
-                  <button
-                    onClick={() => handleRestore(svc.id)}
-                    className="p-1.5 text-sage-600 hover:bg-sage-50 rounded-[6px] transition-colors"
-                    title="Tiklash"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <p className="text-sm font-bold text-charcoal-700">{formatCurrencyCompact(svc.price)}</p>
-                <p className="text-xs text-charcoal-400 mt-1">{svc.durationMinutes} daqiqa</p>
-              </Card>
-            ))}
-          </div>
+          <h1 className="text-2xl font-bold">Xizmatlar</h1>
+          <p className="text-charcoal-600">
+            Xizmat nomi, davomiyligi va bir seans narxi. Seanslar soni bola
+            kartasida belgilanadi.
+          </p>
         </div>
-      )}
-
-      {/* Create Modal */}
-      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Yangi xizmat" size="md">
-        <CreateServiceForm
-          createService={createService}
-          onSuccess={() => setShowCreate(false)}
-          onCancel={() => setShowCreate(false)}
+        <Button onClick={() => begin()}>Xizmat qo‘shish</Button>
+      </div>
+      <label className="flex items-center gap-2 min-h-11">
+        <input
+          type="checkbox"
+          checked={showArchive}
+          onChange={(e) => setShowArchive(e.target.checked)}
         />
-      </Modal>
-
-      {/* Edit Modal */}
-      {editingService && (
-        <Modal
-          isOpen={!!editingService}
-          onClose={() => setEditingService(null)}
-          title={`Xizmatni tahrirlash: ${editingService.name}`}
-          size="md"
-        >
-          <EditServiceForm
-            service={editingService}
-            updateService={updateService}
-            onSuccess={() => setEditingService(null)}
-            onCancel={() => setEditingService(null)}
-          />
-        </Modal>
+        Arxivdagi xizmatlar
+      </label>
+      {error && !open && (
+        <p role="alert" className="text-danger-main">
+          {error}
+        </p>
       )}
-
-      {/* Archive Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={!!archiveTarget}
-        onClose={() => { setArchiveTarget(null); setArchiveError(null); }}
-        onConfirm={handleArchiveConfirm}
-        title="Xizmatni arxivlash"
-        message={
-          archiveError
-            ? `Xatolik: ${archiveError}\n\nQaytadan urinib ko'ring.`
-            : "Bu xizmat yangi uchrashuvlarda ko'rinmaydi. Mavjud ma'lumotlar va seanslar saqlanib qoladi."
-        }
-        variant={archiveError ? "danger" : "warning"}
-        confirmLabel={isArchiving ? "Arxivlanmoqda..." : "Arxivlash"}
-      />
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {services
+          .filter((s) =>
+            showArchive ? s.status === "ARCHIVED" : s.status !== "ARCHIVED",
+          )
+          .map((service) => (
+            <article
+              className="rounded-xl bg-white border border-warm-200 p-5 space-y-3"
+              key={service.id}
+            >
+              <h2 className="text-lg font-bold">{service.name}</h2>
+              <p>{service.durationMinutes} daqiqa</p>
+              <p className="text-brand-600 font-bold">
+                {formatCurrency(service.price)} / seans
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="secondary" onClick={() => begin(service)}>
+                  Tahrirlash
+                </Button>
+                <Button
+                  variant="ghost"
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    setError("");
+                    try {
+                      if (service.status === "ARCHIVED")
+                        await restore(service.id);
+                      else await archive(service.id);
+                    } catch (e) {
+                      setError(
+                        e instanceof Error ? e.message : "Amal bajarilmadi",
+                      );
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  {service.status === "ARCHIVED" ? "Tiklash" : "Arxivlash"}
+                </Button>
+              </div>
+            </article>
+          ))}
+      </div>
+      {!services.some((s) =>
+        showArchive ? s.status === "ARCHIVED" : s.status !== "ARCHIVED",
+      ) && (
+        <p className="p-6 bg-white rounded-xl border">
+          Xizmat yo‘q.{!showArchive && " Birinchi xizmatni qo‘shing."}
+        </p>
+      )}
+      <Modal
+        isOpen={open}
+        onClose={() => {
+          if (!busy) setOpen(false);
+        }}
+        title={editing ? "Xizmatni tahrirlash" : "Xizmat qo‘shish"}
+      >
+        <form
+          className="space-y-4"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (busy) return;
+            if (
+              !name.trim() ||
+              !Number.isInteger(duration) ||
+              duration < 1 ||
+              !Number.isSafeInteger(price) ||
+              price < 0
+            ) {
+              setError("Nomi, davomiyligi va narxini tekshiring.");
+              return;
+            }
+            setBusy(true);
+            setError("");
+            try {
+              const data = {
+                name: name.trim(),
+                durationMinutes: duration,
+                price,
+              };
+              if (editing) await update(editing.id, data);
+              else
+                await create({
+                  ...data,
+                  description: "",
+                  category: "",
+                  status: "ACTIVE",
+                });
+              setOpen(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Saqlanmadi");
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <Input
+            label="Xizmat nomi"
+            required
+            maxLength={150}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <Input
+            label="Davomiyligi (daqiqa)"
+            required
+            type="number"
+            min={1}
+            step={1}
+            value={duration}
+            onChange={(e) => setDuration(Number(e.target.value))}
+          />
+          <Input
+            label="Bir seans narxi (so‘m)"
+            required
+            type="number"
+            min={0}
+            step={1}
+            value={price}
+            onChange={(e) => setPrice(Number(e.target.value))}
+          />
+          {editing && (
+            <p className="text-sm text-charcoal-600">
+              Yangi narx keyingi biriktirishlarda qo‘llanadi. Avvalgi xizmatlar
+              tarixi o‘zgarmaydi.
+            </p>
+          )}
+          {error && (
+            <p role="alert" className="text-danger-main">
+              {error}
+            </p>
+          )}
+          <Button type="submit" disabled={busy}>
+            {busy ? "Saqlanmoqda…" : "Saqlash"}
+          </Button>
+        </form>
+      </Modal>
     </div>
   );
 }

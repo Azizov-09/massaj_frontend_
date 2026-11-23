@@ -5,34 +5,34 @@
 
 // ─── Shared Enums ───────────────────────────────────────
 
-export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'SPECIALIST' | 'PARENT';
+export type UserRole = "SUPER_ADMIN" | "ADMIN" | "SPECIALIST" | "PARENT";
 
-export type EntityStatus = 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+export type EntityStatus = "ACTIVE" | "INACTIVE" | "ARCHIVED";
 
-export type Gender = 'MALE' | 'FEMALE';
+export type Gender = "MALE" | "FEMALE";
 
 export type AppointmentStatus =
-  | 'SCHEDULED'
-  | 'CONFIRMED'
-  | 'IN_PROGRESS'
-  | 'COMPLETED'
-  | 'CANCELLED'
-  | 'NO_SHOW';
+  | "SCHEDULED"
+  | "CONFIRMED"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "NO_SHOW";
 
-export type SessionStatus = 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+export type SessionStatus = "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 
-export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE' | 'NO_SHOW';
+export type AttendanceStatus = "PRESENT" | "ABSENT" | "LATE" | "NO_SHOW";
 
 export type TransactionType =
-  | 'PAYMENT'
-  | 'SESSION_CHARGE'
-  | 'REFUND'
-  | 'ADJUSTMENT'
-  | 'EXPENSE';
+  | "PAYMENT"
+  | "SESSION_CHARGE"
+  | "REFUND"
+  | "ADJUSTMENT"
+  | "EXPENSE";
 
-export type TransactionDirection = 'IN' | 'OUT';
+export type TransactionDirection = "IN" | "OUT";
 
-export type PaymentMethod = 'CASH' | 'CARD' | 'TRANSFER';
+export type PaymentMethod = "CASH" | "CARD" | "TRANSFER";
 
 // ─── User / Auth ─────────────────────────────────────────
 
@@ -44,10 +44,11 @@ export interface BaseUser {
   status: EntityStatus;
   avatar?: string;
   createdAt: string;
+  specialistId?: string;
 }
 
 export interface AdminUser extends BaseUser {
-  role: 'SUPER_ADMIN' | 'ADMIN';
+  role: "SUPER_ADMIN" | "ADMIN";
   lastLogin?: string;
 }
 
@@ -71,7 +72,7 @@ export interface WorkingHours {
 }
 
 export interface Specialist extends BaseUser {
-  role: 'SPECIALIST';
+  role: "SPECIALIST";
   specialization: string;
   experience: number; // years
   workingDays: number[]; // 0=Sunday, 1=Monday, ..., 6=Saturday
@@ -89,7 +90,7 @@ export interface Specialist extends BaseUser {
 // ─── Parent ───────────────────────────────────────────────
 
 export interface Parent extends BaseUser {
-  role: 'PARENT';
+  role: "PARENT";
   childrenIds: string[];
   address?: string;
   notes?: string;
@@ -154,6 +155,44 @@ export interface Appointment {
   specialistName?: string;
   service?: Partial<Service>;
   serviceName?: string;
+  assignmentId?: string;
+  price?: number;
+  durationMinutes?: number;
+  actualArrivalTime?: string | null;
+  attendanceStatus?: AttendanceStatus;
+  version?: number;
+}
+
+export interface ServiceAssignment {
+  id: string;
+  childId: string;
+  parentId: string;
+  serviceId: string;
+  serviceName?: string;
+  price: number;
+  durationMinutes: number;
+  totalSessions: number;
+  completedSessions: number;
+  startDate: string;
+  workingDays: number[];
+  startTime?: string | null;
+  status: "ACTIVE" | "COMPLETED" | "ARCHIVED";
+  createdAt: string;
+}
+
+export interface CreateServiceAssignmentInput {
+  childId: string;
+  serviceId: string;
+  totalSessions: number;
+  startDate: string;
+  workingDays: number[];
+  startTime?: string | null;
+}
+
+export interface ParentAccount {
+  parentId: string;
+  balance: number;
+  debt: number;
 }
 
 // ─── Session ──────────────────────────────────────────────
@@ -275,13 +314,13 @@ export interface Payment {
 // ─── Notifications ───────────────────────────────────────
 
 export type NotificationType =
-  | 'appointment'
-  | 'payment'
-  | 'debt'
-  | 'schedule'
-  | 'session'
-  | 'assessment'
-  | 'system';
+  | "appointment"
+  | "payment"
+  | "debt"
+  | "schedule"
+  | "session"
+  | "assessment"
+  | "system";
 
 export interface Notification {
   id: string;
@@ -291,7 +330,7 @@ export interface Notification {
   message: string;
   isRead: boolean;
   relatedEntity?: {
-    type: 'appointment' | 'child' | 'session' | 'payment' | 'specialist';
+    type: "appointment" | "child" | "session" | "payment" | "specialist";
     id: string;
   };
   createdAt: string;
@@ -300,29 +339,29 @@ export interface Notification {
 // ─── Activity Logs ────────────────────────────────────────
 
 export type ActivityAction =
-  | 'CREATE'
-  | 'UPDATE'
-  | 'DELETE'
-  | 'ARCHIVE'
-  | 'RESTORE'
-  | 'LOGIN'
-  | 'LOGOUT'
-  | 'COMPLETE'
-  | 'CANCEL'
-  | 'PAYMENT';
+  | "CREATE"
+  | "UPDATE"
+  | "DELETE"
+  | "ARCHIVE"
+  | "RESTORE"
+  | "LOGIN"
+  | "LOGOUT"
+  | "COMPLETE"
+  | "CANCEL"
+  | "PAYMENT";
 
 export type ActivityEntity =
-  | 'child'
-  | 'parent'
-  | 'specialist'
-  | 'admin'
-  | 'employee'
-  | 'appointment'
-  | 'session'
-  | 'payment'
-  | 'service'
-  | 'assessment'
-  | 'user';
+  | "child"
+  | "parent"
+  | "specialist"
+  | "admin"
+  | "employee"
+  | "appointment"
+  | "session"
+  | "payment"
+  | "service"
+  | "assessment"
+  | "user";
 
 export interface ActivityLog {
   id: string;
@@ -363,14 +402,14 @@ export interface DateRange {
 }
 
 export type DateFilterPreset =
-  | 'today'
-  | 'yesterday'
-  | 'last7days'
-  | 'thisWeek'
-  | 'thisMonth'
-  | 'lastMonth'
-  | 'thisYear'
-  | 'custom';
+  | "today"
+  | "yesterday"
+  | "last7days"
+  | "thisWeek"
+  | "thisMonth"
+  | "lastMonth"
+  | "thisYear"
+  | "custom";
 
 // ─── Repository Interfaces ────────────────────────────────
 
@@ -387,7 +426,7 @@ export interface QueryOptions {
   pageSize?: number;
   search?: string;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   filters?: Record<string, string | string[] | boolean | null | undefined>;
 }
 
@@ -450,7 +489,7 @@ export interface CreateServiceInput {
 
 export interface ToastMessage {
   id: string;
-  type: 'success' | 'error' | 'warning' | 'info';
+  type: "success" | "error" | "warning" | "info";
   title: string;
   description?: string;
   duration?: number;
